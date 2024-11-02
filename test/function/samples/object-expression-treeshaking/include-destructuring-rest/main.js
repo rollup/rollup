@@ -5,6 +5,7 @@ assert.deepStrictEqual(rest1, { b: { c: 1, d: 1 } });
 
 const { ...rest2 } = { a: { b: { c: 1, d: 1 }, e: 1 }, f: 1 };
 assert.deepStrictEqual(rest2, { a: { b: { c: 1, d: 1 }, e: 1 }, f: 1 });
+
 const {
 	a: { e: e3, ...rest3 },
 	f

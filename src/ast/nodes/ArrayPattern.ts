@@ -1,8 +1,9 @@
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
@@ -10,7 +11,7 @@ import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
-	declare elements: (PatternNode | null)[];
+	declare elements: (PatternNode | MemberExpression | null)[];
 	declare type: NodeType.tArrayPattern;
 
 	addExportedVariables(
@@ -24,17 +25,14 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 
 	declare(
 		kind: VariableKind,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
 		const variables: LocalVariable[] = [];
-		const includedPatternPath: ObjectPath =
-			includedInitPath.at(-1) === UnknownKey
-				? includedInitPath
-				: [...includedInitPath, UnknownInteger];
+		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
 		for (const element of this.elements) {
 			if (element !== null) {
-				variables.push(...element.declare(kind, includedPatternPath, init));
+				variables.push(...(element as PatternNode).declare(kind, includedPatternPath, init));
 			}
 		}
 		return variables;
@@ -45,6 +43,22 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		for (const element of this.elements) {
 			element?.deoptimizePath(EMPTY_PATH);
 		}
+	}
+
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
+		for (const element of this.elements) {
+			if (
+				(element as PatternNode)?.hasEffectsWhenDestructuring?.(context, includedPatternPath, init)
+			) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// Patterns are only checked at the empty path at the moment
@@ -59,9 +73,32 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		return false;
 	}
 
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		let included = false;
+		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
+		for (const element of this.elements) {
+			included =
+				(element as PatternNode)?.includeDestructuredIfNecessary?.(
+					context,
+					includedPatternPath,
+					init
+				) || included;
+		}
+		return (this.included ||= included);
+	}
+
 	markDeclarationReached(): void {
 		for (const element of this.elements) {
-			element?.markDeclarationReached();
+			(element as PatternNode)?.markDeclarationReached();
 		}
 	}
 }
+
+const getIncludedPatternPath = (destructuredInitPath: ObjectPath): ObjectPath =>
+	destructuredInitPath.at(-1) === UnknownKey
+		? destructuredInitPath
+		: [...destructuredInitPath, UnknownInteger];

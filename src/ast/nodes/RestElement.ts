@@ -24,15 +24,11 @@ export default class RestElement extends NodeBase implements PatternNode {
 
 	declare(
 		kind: VariableKind,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
 		this.declarationInit = init;
-		return this.argument.declare(
-			kind,
-			includedInitPath.at(-1) === UnknownKey ? includedInitPath : [...includedInitPath, UnknownKey],
-			init
-		);
+		return this.argument.declare(kind, getIncludedPatternPath(destructuredInitPath), init);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -50,6 +46,31 @@ export default class RestElement extends NodeBase implements PatternNode {
 			path.length > 0 ||
 			this.argument.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
 		);
+	}
+
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return this.argument.hasEffectsWhenDestructuring(
+			context,
+			getIncludedPatternPath(destructuredInitPath),
+			init
+		);
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return (this.included =
+			this.argument.includeDestructuredIfNecessary(
+				context,
+				getIncludedPatternPath(destructuredInitPath),
+				init
+			) || this.included);
 	}
 
 	includePath(
@@ -75,3 +96,8 @@ export default class RestElement extends NodeBase implements PatternNode {
 		}
 	}
 }
+
+const getIncludedPatternPath = (destructuredInitPath: ObjectPath): ObjectPath =>
+	destructuredInitPath.at(-1) === UnknownKey
+		? destructuredInitPath
+		: [...destructuredInitPath, UnknownKey];

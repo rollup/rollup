@@ -16,7 +16,7 @@ export default class BlockScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		if (kind === 'var') {
@@ -37,7 +37,7 @@ export default class BlockScope extends ChildScope {
 				identifier,
 				context,
 				init,
-				includedInitPath,
+				destructuredInitPath,
 				kind
 			);
 			// Necessary to make sure the init is deoptimized for conditional declarations.
@@ -47,6 +47,6 @@ export default class BlockScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
-		return super.addDeclaration(identifier, context, init, includedInitPath, kind);
+		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);
 	}
 }

@@ -2,6 +2,9 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createHasEffectsContext } from '../ExecutionContext';
+import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import type FunctionScope from '../scopes/FunctionScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
@@ -38,21 +41,63 @@ export default class Identifier extends IdentifierBase implements PatternNode {
 
 	declare(
 		kind: VariableKind,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
 		let variable: LocalVariable;
 		const { treeshake } = this.scope.context.options;
 		if (kind === 'parameter') {
-			variable = (this.scope as FunctionScope).addParameterDeclaration(this, includedInitPath);
+			variable = (this.scope as FunctionScope).addParameterDeclaration(this, destructuredInitPath);
 		} else {
-			variable = this.scope.addDeclaration(this, this.scope.context, init, includedInitPath, kind);
+			variable = this.scope.addDeclaration(
+				this,
+				this.scope.context,
+				init,
+				destructuredInitPath,
+				kind
+			);
 			if (kind === 'var' && treeshake && treeshake.correctVarValueBeforeDeclaration) {
 				// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
 				variable.markInitializersForDeoptimization();
 			}
 		}
 		return [(this.variable = variable)];
+	}
+
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return (
+			destructuredInitPath.length > 0 &&
+			init.hasEffectsOnInteractionAtPath(
+				destructuredInitPath,
+				NODE_INTERACTION_UNKNOWN_ACCESS,
+				context
+			)
+		);
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		if (
+			(this.included ||=
+				destructuredInitPath.length > 0 &&
+				!context.brokenFlow &&
+				init.hasEffectsOnInteractionAtPath(
+					destructuredInitPath,
+					NODE_INTERACTION_UNKNOWN_ACCESS,
+					createHasEffectsContext()
+				))
+		) {
+			init.includePath(destructuredInitPath, context, false);
+			return true;
+		}
+		return false;
 	}
 
 	markDeclarationReached(): void {

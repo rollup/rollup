@@ -19,7 +19,7 @@ export default class CatchBodyScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		if (kind === 'var') {
@@ -41,7 +41,7 @@ export default class CatchBodyScope extends ChildScope {
 						identifier,
 						context,
 						UNDEFINED_EXPRESSION,
-						includedInitPath,
+						destructuredInitPath,
 						kind
 					);
 					// To avoid the need to rewrite the declaration, we link the variable
@@ -66,7 +66,7 @@ export default class CatchBodyScope extends ChildScope {
 				identifier,
 				context,
 				init,
-				includedInitPath,
+				destructuredInitPath,
 				kind
 			);
 			// Necessary to make sure the init is deoptimized for conditional declarations.
@@ -76,6 +76,6 @@ export default class CatchBodyScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
-		return super.addDeclaration(identifier, context, init, includedInitPath, kind);
+		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);
 	}
 }

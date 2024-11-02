@@ -18,15 +18,15 @@ function _mergeNamespaces(n, m) {
 async function entry() {
   // simple
   const { foo1: foo } = await Promise.resolve().then(function () { return sub1; });
-  await Promise.resolve().then(function () { return sub1; });
+  const { doesNotExists } = await Promise.resolve().then(function () { return sub1; });
 (await Promise.resolve().then(function () { return sub2; })).bar2();
-  await Promise.resolve().then(function () { return sub2; });
-  await Promise.resolve().then(function () { return sub2; });
+  const { foo2 } = await Promise.resolve().then(function () { return sub2; });
+  const { foo3 } = await Promise.resolve().then(function () { return sub2; });
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
 
   // external with unknown namespace
-  await Promise.resolve().then(function () { return sub4; });
+  const { foo4, x } = await Promise.resolve().then(function () { return sub4; });
 
   // side-effect only
   Promise.resolve().then(function () { return effect1; });
@@ -37,10 +37,10 @@ async function entry() {
   Promise.resolve().then(function () { return effect6; }).finally(() => {});
 
   // bail out
-  await Promise.resolve().then(function () { return bail1$1; });
+  const { named1 } = await Promise.resolve().then(function () { return bail1$1; });
   Promise.resolve().then(function () { return bail1$1; }); // this make it bail out
 
-  await Promise.resolve().then(function () { return bail2$1; })
+  const { ...named2 } = await Promise.resolve().then(function () { return bail2$1; })
 
   (await Promise.resolve().then(function () { return bail3$1; }))[foo];
 
@@ -55,12 +55,12 @@ async function entry() {
     Promise.resolve().then(function () { return bail8$1; }),
   ];
 
-  await Promise.resolve().then(function () { return bail9$1; });
+  const { [foo]: bar } = await Promise.resolve().then(function () { return bail9$1; });
 
   Promise.resolve().then(function () { return bail10$1; }).then(({ [foo]: bar }) => {});
 
   {
-    await Promise.resolve().then(function () { return bail11$1; });
+    const [name11] = await Promise.resolve().then(function () { return bail11$1; });
   }
 }
 

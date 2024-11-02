@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
@@ -26,10 +26,10 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 
 	declare(
 		kind: VariableKind,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
-		return this.left.declare(kind, includedInitPath, init);
+		return this.left.declare(kind, destructuredInitPath, init);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -46,6 +46,28 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return (
 			path.length > 0 || this.left.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
 		);
+	}
+
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return this.left.hasEffectsWhenDestructuring(context, destructuredInitPath, init);
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		let included =
+			this.left.includeDestructuredIfNecessary(context, destructuredInitPath, init) ||
+			this.included;
+		if ((included ||= this.right.shouldBeIncluded(context))) {
+			this.right.includePath(UNKNOWN_PATH, context, false);
+		}
+		return (this.included = included);
 	}
 
 	markDeclarationReached(): void {

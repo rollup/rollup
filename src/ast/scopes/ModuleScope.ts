@@ -30,13 +30,13 @@ export default class ModuleScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		if (this.context.module.importDescriptions.has(identifier.name)) {
 			context.error(logRedeclarationError(identifier.name), identifier.start);
 		}
-		return super.addDeclaration(identifier, context, init, includedInitPath, kind);
+		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);
 	}
 
 	addExportDefaultDeclaration(

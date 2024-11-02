@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createHasEffectsContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
@@ -38,32 +38,49 @@ export default class Property extends MethodBase implements PatternNode {
 
 	declare(
 		kind: VariableKind,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
-		const pathInProperty: ObjectPath =
-			includedInitPath.at(-1) === UnknownKey
-				? includedInitPath
-				: // For now, we only consider static path as we do not know how to
-					// deoptimize the path in the dynamic case.
-					this.computed
-					? [...includedInitPath, UnknownKey]
-					: this.key instanceof Identifier
-						? [...includedInitPath, this.key.name]
-						: [...includedInitPath, String((this.key as Literal).value)];
-		return (this.value as PatternNode).declare(kind, pathInProperty, init);
+		return (this.value as PatternNode).declare(
+			kind,
+			this.getPathInProperty(destructuredInitPath),
+			init
+		);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		const propertyReadSideEffects = (
-			this.scope.context.options.treeshake as NormalizedTreeshakingOptions
-		).propertyReadSideEffects;
-		return (
-			(this.parent.type === 'ObjectPattern' && propertyReadSideEffects === 'always') ||
-			this.key.hasEffects(context) ||
-			this.value.hasEffects(context)
+		return this.key.hasEffects(context) || this.value.hasEffects(context);
+	}
+
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return (this.value as PatternNode).hasEffectsWhenDestructuring?.(
+			context,
+			this.getPathInProperty(destructuredInitPath),
+			init
 		);
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		let included =
+			(this.value as PatternNode).includeDestructuredIfNecessary(
+				context,
+				this.getPathInProperty(destructuredInitPath),
+				init
+			) || this.included;
+		included ||= this.key.hasEffects(createHasEffectsContext());
+		if (included) {
+			this.key.includePath(EMPTY_PATH, context, false);
+		}
+		return (this.included = included);
 	}
 
 	includePath(
@@ -88,4 +105,16 @@ export default class Property extends MethodBase implements PatternNode {
 	}
 
 	protected applyDeoptimizations(): void {}
+
+	private getPathInProperty(destructuredInitPath: ObjectPath): ObjectPath {
+		return destructuredInitPath.at(-1) === UnknownKey
+			? destructuredInitPath
+			: // For now, we only consider static paths as we do not know how to
+				// deoptimize the path in the dynamic case.
+				this.computed
+				? [...destructuredInitPath, UnknownKey]
+				: this.key instanceof Identifier
+					? [...destructuredInitPath, this.key.name]
+					: [...destructuredInitPath, String((this.key as Literal).value)];
+	}
 }

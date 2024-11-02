@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
@@ -35,7 +36,14 @@ export default class VariableDeclarator extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const initEffect = this.init?.hasEffects(context);
 		this.id.markDeclarationReached();
-		return initEffect || this.id.hasEffects(context) || this.isUsingDeclaration;
+		return (
+			initEffect ||
+			this.isUsingDeclaration ||
+			this.id.hasEffects(context) ||
+			((this.scope.context.options.treeshake as NormalizedTreeshakingOptions)
+				.propertyReadSideEffects &&
+				this.id.hasEffectsWhenDestructuring(context, EMPTY_PATH, this.init || UNDEFINED_EXPRESSION))
+		);
 	}
 
 	includePath(
@@ -48,8 +56,10 @@ export default class VariableDeclarator extends NodeBase {
 		this.included = true;
 		init?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 		id.markDeclarationReached();
-		if (includeChildrenRecursively || id.shouldBeIncluded(context)) {
+		if (includeChildrenRecursively) {
 			id.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		} else {
+			id.includeDestructuredIfNecessary(context, EMPTY_PATH, init || UNDEFINED_EXPRESSION);
 		}
 	}
 

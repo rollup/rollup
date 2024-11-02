@@ -55,7 +55,9 @@ export default class AssignmentExpression extends NodeBase {
 		// MemberExpressions do not access the property before assignments if the
 		// operator is '='.
 		return (
-			right.hasEffects(context) || left.hasEffectsAsAssignmentTarget(context, operator !== '=')
+			right.hasEffects(context) ||
+			left.hasEffectsAsAssignmentTarget(context, operator !== '=') ||
+			(this.left as PatternNode).hasEffectsWhenDestructuring?.(context, EMPTY_PATH, right)
 		);
 	}
 
@@ -75,11 +77,13 @@ export default class AssignmentExpression extends NodeBase {
 		const { deoptimized, left, right, operator } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
+		const hasEffectsContext = createHasEffectsContext();
 		if (
 			includeChildrenRecursively ||
 			operator !== '=' ||
 			left.included ||
-			left.hasEffectsAsAssignmentTarget(createHasEffectsContext(), false)
+			left.hasEffectsAsAssignmentTarget(hasEffectsContext, false) ||
+			(left as PatternNode).hasEffectsWhenDestructuring?.(hasEffectsContext, EMPTY_PATH, right)
 		) {
 			left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
 		}

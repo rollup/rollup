@@ -1,3 +1,7 @@
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
+import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
@@ -7,7 +11,6 @@ import * as NodeType from './NodeType';
 import type Property from './Property';
 import type RestElement from './RestElement';
 import type { ExpressionEntity } from './shared/Expression';
-import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -34,12 +37,12 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 
 	declare(
 		kind: VariableKind,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
 		const variables: LocalVariable[] = [];
 		for (const property of this.properties) {
-			variables.push(...property.declare(kind, includedInitPath, init));
+			variables.push(...property.declare(kind, destructuredInitPath, init));
 		}
 		return variables;
 	}
@@ -65,24 +68,56 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		return false;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
-		this.included = true;
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
 		for (const property of this.properties) {
-			// Including a pattern should not deeply include its children as that
-			// would include all children of nested variable references. Their paths
-			// will be included via their usages instead, and we store the path in
-			// the pattern when declaring the variables.
-			property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+			if (property.hasEffectsWhenDestructuring(context, destructuredInitPath, init)) return true;
 		}
+		return false;
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		let included = false;
+		for (const property of this.properties) {
+			included =
+				property.includeDestructuredIfNecessary(context, destructuredInitPath, init) || included;
+		}
+		return (this.included ||= included);
 	}
 
 	markDeclarationReached(): void {
 		for (const property of this.properties) {
 			property.markDeclarationReached();
+		}
+	}
+
+	render(code: MagicString, options: RenderOptions): void {
+		if (this.properties.length > 0) {
+			const separatedNodes = getCommaSeparatedNodesWithBoundaries(
+				this.properties,
+				code,
+				this.start + 1,
+				this.end - 1
+			);
+			let lastSeparatorPos: number | null = null;
+			for (const { node, separator, start, end } of separatedNodes) {
+				if (!node.included) {
+					treeshakeNode(node, code, start, end);
+					continue;
+				}
+				lastSeparatorPos = separator;
+				node.render(code, options);
+			}
+			if (lastSeparatorPos) {
+				code.remove(lastSeparatorPos, this.end - 1);
+			}
 		}
 	}
 

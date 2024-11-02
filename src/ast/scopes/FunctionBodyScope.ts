@@ -19,7 +19,7 @@ export default class FunctionBodyScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		includedInitPath: ObjectPath,
+		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		const name = identifier.name;
@@ -40,7 +40,7 @@ export default class FunctionBodyScope extends ChildScope {
 			identifier.name,
 			identifier,
 			init,
-			includedInitPath,
+			destructuredInitPath,
 			context,
 			kind
 		);
