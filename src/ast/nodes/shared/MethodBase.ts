@@ -21,12 +21,12 @@ import {
 	UNKNOWN_RETURN_EXPRESSION
 } from './Expression';
 import { type ExpressionNode, NodeBase } from './Node';
-import type { PatternNode } from './Pattern';
+import type { DeclarationPatternNode } from './Pattern';
 
 export default class MethodBase extends NodeBase implements DeoptimizableEntity {
 	declare key: ExpressionNode | PrivateIdentifier;
 	declare kind: 'constructor' | 'method' | 'init' | 'get' | 'set';
-	declare value: ExpressionNode | (ExpressionNode & PatternNode);
+	declare value: ExpressionNode | (ExpressionNode & DeclarationPatternNode);
 
 	get computed(): boolean {
 		return isFlagSet(this.flags, Flag.computed);

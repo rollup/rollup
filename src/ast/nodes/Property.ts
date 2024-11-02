@@ -12,10 +12,10 @@ import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class Property extends MethodBase implements PatternNode {
+export default class Property extends MethodBase implements DeclarationPatternNode {
 	declare key: ExpressionNode;
 	declare kind: 'init' | 'get' | 'set';
 	declare type: NodeType.tProperty;
@@ -41,8 +41,15 @@ export default class Property extends MethodBase implements PatternNode {
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
-		return (this.value as PatternNode).declare(
+		return (this.value as DeclarationPatternNode).declare(
 			kind,
+			this.getPathInProperty(destructuredInitPath),
+			init
+		);
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
+		(this.value as PatternNode).deoptimizeAssignment?.(
 			this.getPathInProperty(destructuredInitPath),
 			init
 		);
@@ -94,7 +101,7 @@ export default class Property extends MethodBase implements PatternNode {
 	}
 
 	markDeclarationReached(): void {
-		(this.value as PatternNode).markDeclarationReached();
+		(this.value as DeclarationPatternNode).markDeclarationReached();
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

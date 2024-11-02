@@ -7,11 +7,8 @@ import type { Node } from './Node';
 import type { VariableKind } from './VariableKinds';
 
 export interface PatternNode extends WritableEntity, Node {
-	declare(
-		kind: VariableKind,
-		destructuredInitPath: ObjectPath,
-		init: ExpressionEntity
-	): LocalVariable[];
+	// This should deoptimize both the left-hand and right-hand side
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void;
 
 	hasEffectsWhenDestructuring(
 		context: HasEffectsContext,
@@ -24,6 +21,14 @@ export interface PatternNode extends WritableEntity, Node {
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean;
+}
+
+export interface DeclarationPatternNode extends PatternNode {
+	declare(
+		kind: VariableKind,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[];
 
 	markDeclarationReached(): void;
 }

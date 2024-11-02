@@ -28,7 +28,7 @@ import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/No
 import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
-	declare left: ExpressionNode | PatternNode;
+	declare left: PatternNode;
 	declare operator:
 		| '='
 		| '+='
@@ -57,7 +57,7 @@ export default class AssignmentExpression extends NodeBase {
 		return (
 			right.hasEffects(context) ||
 			left.hasEffectsAsAssignmentTarget(context, operator !== '=') ||
-			(this.left as PatternNode).hasEffectsWhenDestructuring?.(context, EMPTY_PATH, right)
+			this.left.hasEffectsWhenDestructuring?.(context, EMPTY_PATH, right)
 		);
 	}
 
@@ -83,7 +83,7 @@ export default class AssignmentExpression extends NodeBase {
 			operator !== '=' ||
 			left.included ||
 			left.hasEffectsAsAssignmentTarget(hasEffectsContext, false) ||
-			(left as PatternNode).hasEffectsWhenDestructuring?.(hasEffectsContext, EMPTY_PATH, right)
+			left.hasEffectsWhenDestructuring?.(hasEffectsContext, EMPTY_PATH, right)
 		) {
 			left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
 		}
@@ -172,8 +172,7 @@ export default class AssignmentExpression extends NodeBase {
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.deoptimizePath(UNKNOWN_PATH);
+		this.left.deoptimizeAssignment(EMPTY_PATH, this.right);
 		this.scope.context.requestTreeshakingPass();
 	}
 }

@@ -20,12 +20,12 @@ import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
-import type { PatternNode } from './Pattern';
+import type { DeclarationPatternNode } from './Pattern';
 
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
-	declare params: PatternNode[];
+	declare params: DeclarationPatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;

@@ -13,11 +13,11 @@ import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: PatternNode[];
+	declare params: DeclarationPatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;

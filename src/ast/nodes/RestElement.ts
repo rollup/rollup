@@ -7,10 +7,10 @@ import type * as NodeType from './NodeType';
 import { type ExpressionEntity } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class RestElement extends NodeBase implements PatternNode {
+export default class RestElement extends NodeBase implements DeclarationPatternNode {
 	declare argument: PatternNode;
 	declare type: NodeType.tRestElement;
 	private declarationInit: ExpressionEntity | null = null;
@@ -28,7 +28,15 @@ export default class RestElement extends NodeBase implements PatternNode {
 		init: ExpressionEntity
 	): LocalVariable[] {
 		this.declarationInit = init;
-		return this.argument.declare(kind, getIncludedPatternPath(destructuredInitPath), init);
+		return (this.argument as DeclarationPatternNode).declare(
+			kind,
+			getIncludedPatternPath(destructuredInitPath),
+			init
+		);
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
+		this.argument.deoptimizeAssignment(getIncludedPatternPath(destructuredInitPath), init);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -85,7 +93,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 	}
 
 	markDeclarationReached(): void {
-		this.argument.markDeclarationReached();
+		(this.argument as DeclarationPatternNode).markDeclarationReached();
 	}
 
 	protected applyDeoptimizations(): void {

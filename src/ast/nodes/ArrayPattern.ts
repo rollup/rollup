@@ -3,15 +3,14 @@ import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
-import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class ArrayPattern extends NodeBase implements PatternNode {
-	declare elements: (PatternNode | MemberExpression | null)[];
+export default class ArrayPattern extends NodeBase implements DeclarationPatternNode {
+	declare elements: (PatternNode | null)[];
 	declare type: NodeType.tArrayPattern;
 
 	addExportedVariables(
@@ -32,10 +31,19 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
 		for (const element of this.elements) {
 			if (element !== null) {
-				variables.push(...(element as PatternNode).declare(kind, includedPatternPath, init));
+				variables.push(
+					...(element as DeclarationPatternNode).declare(kind, includedPatternPath, init)
+				);
 			}
 		}
 		return variables;
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
+		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
+		for (const element of this.elements) {
+			element?.deoptimizeAssignment(includedPatternPath, init);
+		}
 	}
 
 	// Patterns can only be deoptimized at the empty path at the moment
@@ -52,9 +60,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	): boolean {
 		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
 		for (const element of this.elements) {
-			if (
-				(element as PatternNode)?.hasEffectsWhenDestructuring?.(context, includedPatternPath, init)
-			) {
+			if (element?.hasEffectsWhenDestructuring(context, includedPatternPath, init)) {
 				return true;
 			}
 		}
@@ -82,18 +88,14 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
 		for (const element of this.elements) {
 			included =
-				(element as PatternNode)?.includeDestructuredIfNecessary?.(
-					context,
-					includedPatternPath,
-					init
-				) || included;
+				element?.includeDestructuredIfNecessary(context, includedPatternPath, init) || included;
 		}
 		return (this.included ||= included);
 	}
 
 	markDeclarationReached(): void {
 		for (const element of this.elements) {
-			(element as PatternNode)?.markDeclarationReached();
+			(element as DeclarationPatternNode)?.markDeclarationReached();
 		}
 	}
 }

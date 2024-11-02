@@ -7,17 +7,18 @@ import { createHasEffectsContext } from '../ExecutionContext';
 import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import type FunctionScope from '../scopes/FunctionScope';
 import type { ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { type ExpressionEntity } from './shared/Expression';
 import IdentifierBase from './shared/IdentifierBase';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
-export default class Identifier extends IdentifierBase implements PatternNode {
+export default class Identifier extends IdentifierBase implements DeclarationPatternNode {
 	name!: string;
 	type!: NodeType.tIdentifier;
 	variable: Variable | null = null;
@@ -62,6 +63,11 @@ export default class Identifier extends IdentifierBase implements PatternNode {
 			}
 		}
 		return [(this.variable = variable)];
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity) {
+		this.deoptimizePath(EMPTY_PATH);
+		init.deoptimizePath([...destructuredInitPath, UnknownKey]);
 	}
 
 	hasEffectsWhenDestructuring(

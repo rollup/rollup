@@ -6,9 +6,6 @@ define((function () { 'use strict';
 	a3();
 	var { x: a4 = effect } = {};
 	a4();
-
-	var b1;
-	({ x: b1 = 1 } = {});
 	var b2;
 	({ x: b2 = effect() } = {});
 	var b3;
@@ -22,9 +19,6 @@ define((function () { 'use strict';
 	c3();
 	var [ c4 = effect ] = [];
 	c4();
-
-	var d1;
-	[ d1 = 1 ] = [];
 	var d2;
 	[ d2 = effect() ] = [];
 	var d3;

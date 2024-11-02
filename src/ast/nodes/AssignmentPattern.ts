@@ -9,10 +9,10 @@ import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class AssignmentPattern extends NodeBase implements PatternNode {
+export default class AssignmentPattern extends NodeBase implements DeclarationPatternNode {
 	declare left: PatternNode;
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentPattern;
@@ -29,7 +29,11 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
-		return this.left.declare(kind, destructuredInitPath, init);
+		return (this.left as DeclarationPatternNode).declare(kind, destructuredInitPath, init);
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
+		this.left.deoptimizeAssignment(destructuredInitPath, init);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -71,7 +75,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	}
 
 	markDeclarationReached(): void {
-		this.left.markDeclarationReached();
+		(this.left as DeclarationPatternNode).markDeclarationReached();
 	}
 
 	render(

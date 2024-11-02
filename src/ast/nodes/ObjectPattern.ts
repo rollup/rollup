@@ -12,10 +12,10 @@ import type Property from './Property';
 import type RestElement from './RestElement';
 import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class ObjectPattern extends NodeBase implements PatternNode {
+export default class ObjectPattern extends NodeBase implements DeclarationPatternNode {
 	declare properties: readonly (Property | RestElement)[];
 	declare type: NodeType.tObjectPattern;
 
@@ -25,10 +25,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {
-				(property.value as unknown as PatternNode).addExportedVariables(
-					variables,
-					exportNamesByVariable
-				);
+				property.value.addExportedVariables(variables, exportNamesByVariable);
 			} else {
 				property.argument.addExportedVariables(variables, exportNamesByVariable);
 			}
@@ -45,6 +42,12 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 			variables.push(...property.declare(kind, destructuredInitPath, init));
 		}
 		return variables;
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
+		for (const property of this.properties) {
+			property.deoptimizeAssignment(destructuredInitPath, init);
+		}
 	}
 
 	deoptimizePath(path: ObjectPath): void {

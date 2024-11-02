@@ -7,13 +7,18 @@ import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createHasEffectsContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
 	NodeInteractionAssigned,
 	NodeInteractionCalled
 } from '../NodeInteractions';
-import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	NODE_INTERACTION_UNKNOWN_ACCESS
+} from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
@@ -44,6 +49,7 @@ import {
 } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
 
 // To avoid infinite recursions
@@ -94,7 +100,7 @@ function getStringFromPath(path: PathWithPositions): string {
 
 export default class MemberExpression
 	extends NodeBase
-	implements DeoptimizableEntity, ChainElement
+	implements DeoptimizableEntity, ChainElement, PatternNode
 {
 	declare object: ExpressionNode | Super;
 	declare property: ExpressionNode | PrivateIdentifier;
@@ -181,6 +187,11 @@ export default class MemberExpression
 				deoptimizeInteraction(interaction);
 			}
 		}
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity) {
+		this.deoptimizePath(EMPTY_PATH);
+		init.deoptimizePath([...destructuredInitPath, UnknownKey]);
 	}
 
 	deoptimizeCache(): void {
@@ -330,6 +341,21 @@ export default class MemberExpression
 		return true;
 	}
 
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return (
+			destructuredInitPath.length > 0 &&
+			init.hasEffectsOnInteractionAtPath(
+				destructuredInitPath,
+				NODE_INTERACTION_UNKNOWN_ACCESS,
+				context
+			)
+		);
+	}
+
 	includePath(
 		path: ObjectPath,
 		context: InclusionContext,
@@ -368,6 +394,27 @@ export default class MemberExpression
 		} else {
 			super.includeCallArguments(context, interaction);
 		}
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		if (
+			(this.included ||=
+				destructuredInitPath.length > 0 &&
+				!context.brokenFlow &&
+				init.hasEffectsOnInteractionAtPath(
+					destructuredInitPath,
+					NODE_INTERACTION_UNKNOWN_ACCESS,
+					createHasEffectsContext()
+				))
+		) {
+			init.includePath(destructuredInitPath, context, false);
+			return true;
+		}
+		return false;
 	}
 
 	initialise(): void {

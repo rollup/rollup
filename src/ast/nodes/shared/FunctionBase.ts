@@ -27,11 +27,11 @@ import {
 	NodeBase
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
-import type { PatternNode } from './Pattern';
+import type { DeclarationPatternNode } from './Pattern';
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: PatternNode[];
+	declare params: DeclarationPatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 
@@ -221,7 +221,7 @@ export default abstract class FunctionBase extends NodeBase {
 			(parameter: GenericEsTreeNode) =>
 				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
 					parameter
-				) as unknown as PatternNode
+				) as unknown as DeclarationPatternNode
 		));
 		scope.addParameterVariables(
 			parameters.map(

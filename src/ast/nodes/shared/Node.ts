@@ -252,10 +252,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	includeAsAssignmentTarget(
 		context: InclusionContext,
-		_includeChildrenRecursively: IncludeChildren,
+		includeChildrenRecursively: IncludeChildren,
 		_deoptimizeAccess: boolean
 	) {
-		this.includePath(UNKNOWN_PATH, context, true);
+		this.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 
 	/**

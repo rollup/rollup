@@ -14,11 +14,11 @@ import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class VariableDeclarator extends NodeBase {
-	declare id: PatternNode;
+	declare id: DeclarationPatternNode;
 	declare init: ExpressionNode | null;
 	declare type: NodeType.tVariableDeclarator;
 	declare isUsingDeclaration: boolean;
