@@ -7,6 +7,12 @@ import {
 	NODE_INTERACTION_UNKNOWN_ACCESS,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
 } from '../../NodeInteractions';
+import {
+	isFunctionExpressionNode,
+	isObjectExpressionNode,
+	isParameterVariableNode,
+	isPropertyNode
+} from '../../utils/identifyNode';
 import type { ObjectPath } from '../../utils/PathTracker';
 import {
 	SymbolToStringTag,
@@ -298,7 +304,25 @@ const knownGlobals: GlobalDescription = {
 		resolve: O
 	},
 	propertyIsEnumerable: O,
-	Proxy: O,
+	Proxy: {
+		__proto__: null,
+		[ValueProperties]: {
+			deoptimizeArgumentsOnCall: ({ args: [, target, parameter] }) => {
+				if (isObjectExpressionNode(parameter)) {
+					for (const property of parameter.properties) {
+						if (isPropertyNode(property) && isFunctionExpressionNode(property.value)) {
+							const [{ variable: firstParameter }] = property.value.params;
+							if (firstParameter && isParameterVariableNode(firstParameter)) {
+								firstParameter.addEntityToBeDeoptimized(target);
+							}
+						}
+					}
+				}
+			},
+			getLiteralValue: getTruthyLiteralValue,
+			hasEffectsWhenCalled: returnTrue
+		}
+	},
 	RangeError: PC,
 	ReferenceError: PC,
 	Reflect: O,
