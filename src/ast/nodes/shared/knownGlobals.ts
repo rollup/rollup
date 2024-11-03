@@ -4,17 +4,15 @@ import { doNothing } from '../../../utils/doNothing';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteractionCalled } from '../../NodeInteractions';
 import {
+	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
 } from '../../NodeInteractions';
-import {
-	isFunctionExpressionNode,
-	isObjectExpressionNode,
-	isParameterVariableNode,
-	isPropertyNode
-} from '../../utils/identifyNode';
+import { isObjectExpressionNode, isPropertyNode } from '../../utils/identifyNode';
 import type { ObjectPath } from '../../utils/PathTracker';
 import {
+	EMPTY_PATH,
+	SHARED_RECURSION_TRACKER,
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
 	UNKNOWN_PATH
@@ -309,15 +307,23 @@ const knownGlobals: GlobalDescription = {
 		[ValueProperties]: {
 			deoptimizeArgumentsOnCall: ({ args: [, target, parameter] }) => {
 				if (isObjectExpressionNode(parameter)) {
-					for (const property of parameter.properties) {
-						if (isPropertyNode(property) && isFunctionExpressionNode(property.value)) {
-							const [{ variable: firstParameter }] = property.value.params;
-							if (firstParameter && isParameterVariableNode(firstParameter)) {
-								firstParameter.addEntityToBeDeoptimized(target);
-							}
+					const hasSpreadElement = parameter.properties.some(property => !isPropertyNode(property));
+					if (!hasSpreadElement) {
+						for (const property of parameter.properties) {
+							property.deoptimizeArgumentsOnInteractionAtPath(
+								{
+									args: [null, target],
+									type: INTERACTION_CALLED,
+									withNew: false
+								},
+								EMPTY_PATH,
+								SHARED_RECURSION_TRACKER
+							);
 						}
+						return;
 					}
 				}
+				target.deoptimizePath(UNKNOWN_PATH);
 			},
 			getLiteralValue: getTruthyLiteralValue,
 			hasEffectsWhenCalled: returnTrue
