@@ -10,6 +10,7 @@ import {
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
@@ -152,8 +153,20 @@ export default abstract class FunctionBase extends NodeBase {
 				return true;
 			}
 		}
-		for (const parameter of this.params) {
-			if (parameter.hasEffects(context)) return true;
+		const { propertyReadSideEffects } = this.scope.context.options
+			.treeshake as NormalizedTreeshakingOptions;
+		for (let index = 0; index < this.params.length; index++) {
+			const parameter = this.params[index];
+			if (
+				parameter.hasEffects(context) ||
+				(propertyReadSideEffects &&
+					parameter.hasEffectsWhenDestructuring(
+						context,
+						EMPTY_PATH,
+						interaction.args[index + 1] || UNDEFINED_EXPRESSION
+					))
+			)
+				return true;
 		}
 		return false;
 	}
