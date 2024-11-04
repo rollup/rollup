@@ -10,7 +10,7 @@ export const INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE = '_interopNamespaceDefault
 export const MERGE_NAMESPACES_VARIABLE = '_mergeNamespaces';
 export const DOCUMENT_CURRENT_SCRIPT = '_documentCurrentScript';
 
-export const defaultInteropHelpersByInteropType: { [T in InteropType]: string | null } = {
+export const defaultInteropHelpersByInteropType: Record<InteropType, string | null> = {
 	auto: INTEROP_DEFAULT_VARIABLE,
 	compat: INTEROP_DEFAULT_COMPAT_VARIABLE,
 	default: null,
@@ -25,7 +25,7 @@ export const isDefaultAProperty = (
 	interopType === 'esModule' ||
 	(externalLiveBindings && (interopType === 'auto' || interopType === 'compat'));
 
-export const namespaceInteropHelpersByInteropType: { [T in InteropType]: string | null } = {
+export const namespaceInteropHelpersByInteropType: Record<InteropType, string | null> = {
 	auto: INTEROP_NAMESPACE_VARIABLE,
 	compat: INTEROP_NAMESPACE_COMPAT_VARIABLE,
 	default: INTEROP_NAMESPACE_DEFAULT_VARIABLE,
