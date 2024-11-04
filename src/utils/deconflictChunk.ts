@@ -22,8 +22,9 @@ export interface DependenciesToBeDeconflicted {
 	dependencies: ReadonlySet<Chunk | ExternalChunk>;
 }
 
-const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
-	[format in InternalModuleFormat]: (
+const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: Record<
+	InternalModuleFormat,
+	(
 		usedNames: Set<string>,
 		imports: ReadonlySet<Variable>,
 		dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
@@ -33,8 +34,8 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		chunkByModule: ReadonlyMap<Module, Chunk>,
 		externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>,
 		syntheticExports: ReadonlySet<SyntheticNamedExportVariable>
-	) => void;
-} = {
+	) => void
+> = {
 	amd: deconflictImportsOther,
 	cjs: deconflictImportsOther,
 	es: deconflictImportsEsmOrSystem,
