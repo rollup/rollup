@@ -330,10 +330,10 @@ export default {
 
 It can be useful to import your package file to e.g. mark your dependencies as "external" automatically. Depending on your Node version, there are different ways of doing that:
 
-- For Node 17.5+, you can use an import assertion
+- For Node 18.20+, you can use an import attribute
 
   ```js twoslash
-  import pkg from './package.json' assert { type: 'json' };
+  import pkg from './package.json' with { type: 'json' };
 
   export default {
   	// Mark package dependencies as "external". Rest of configuration
