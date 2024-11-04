@@ -512,7 +512,7 @@ export type PluginHooks = {
 
 export interface OutputPlugin
 	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
-		Partial<{ [K in AddonHooks]: ObjectHook<AddonHook> }> {
+		Partial<Record<AddonHooks, ObjectHook<AddonHook>>> {
 	cacheKey?: string;
 	name: string;
 	version?: string;

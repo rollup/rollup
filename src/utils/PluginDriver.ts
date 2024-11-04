@@ -43,9 +43,7 @@ type EnsurePromise<T> = Promise<Awaited<T>>;
 type Argument0<H extends keyof FunctionPluginHooks> = Parameters<FunctionPluginHooks[H]>[0];
 
 // This will make sure no input hook is omitted
-const inputHookNames: {
-	[P in InputPluginHooks]: 1;
-} = {
+const inputHookNames: Record<InputPluginHooks, 1> = {
 	buildEnd: 1,
 	buildStart: 1,
 	closeBundle: 1,

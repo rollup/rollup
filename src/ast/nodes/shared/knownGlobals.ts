@@ -4,11 +4,15 @@ import { doNothing } from '../../../utils/doNothing';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteractionCalled } from '../../NodeInteractions';
 import {
+	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
 } from '../../NodeInteractions';
+import { isObjectExpressionNode, isPropertyNode } from '../../utils/identifyNode';
 import type { ObjectPath } from '../../utils/PathTracker';
 import {
+	EMPTY_PATH,
+	SHARED_RECURSION_TRACKER,
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
 	UNKNOWN_PATH
@@ -298,7 +302,33 @@ const knownGlobals: GlobalDescription = {
 		resolve: O
 	},
 	propertyIsEnumerable: O,
-	Proxy: O,
+	Proxy: {
+		__proto__: null,
+		[ValueProperties]: {
+			deoptimizeArgumentsOnCall: ({ args: [, target, parameter] }) => {
+				if (isObjectExpressionNode(parameter)) {
+					const hasSpreadElement = parameter.properties.some(property => !isPropertyNode(property));
+					if (!hasSpreadElement) {
+						for (const property of parameter.properties) {
+							property.deoptimizeArgumentsOnInteractionAtPath(
+								{
+									args: [null, target],
+									type: INTERACTION_CALLED,
+									withNew: false
+								},
+								EMPTY_PATH,
+								SHARED_RECURSION_TRACKER
+							);
+						}
+						return;
+					}
+				}
+				target.deoptimizePath(UNKNOWN_PATH);
+			},
+			getLiteralValue: getTruthyLiteralValue,
+			hasEffectsWhenCalled: returnTrue
+		}
+	},
 	RangeError: PC,
 	ReferenceError: PC,
 	Reflect: O,

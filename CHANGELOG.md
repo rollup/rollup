@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.24.4
+
+_2024-11-04_
+
+### Bug Fixes
+
+- Ensure mutations by handlers in Proxy definitions are always respected when tree-shaking (#5713)
+
+### Pull Requests
+
+- [#5708](https://github.com/rollup/rollup/pull/5708): Update configuration-options document (@sacru2red, @lukastaegert)
+- [#5711](https://github.com/rollup/rollup/pull/5711): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5713](https://github.com/rollup/rollup/pull/5713): fix: Deoptimize the proxied object if its property is reassigned in the handler functions (@TrickyPi)
+
 ## 4.24.3
 
 _2024-10-29_

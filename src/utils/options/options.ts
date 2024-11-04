@@ -103,11 +103,10 @@ export function warnUnknownOptions(
 
 type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
 
-export const treeshakePresets: {
-	[key in NonNullable<
-		ObjectValue<InputOptions['treeshake']>['preset']
-	>]: NormalizedTreeshakingOptions;
-} = {
+export const treeshakePresets: Record<
+	NonNullable<ObjectValue<InputOptions['treeshake']>['preset']>,
+	NormalizedTreeshakingOptions
+> = {
 	recommended: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
@@ -137,9 +136,10 @@ export const treeshakePresets: {
 	}
 };
 
-export const jsxPresets: {
-	[key in NonNullable<ObjectValue<InputOptions['jsx']>['preset']>]: NormalizedJsxOptions;
-} = {
+export const jsxPresets: Record<
+	NonNullable<ObjectValue<InputOptions['jsx']>['preset']>,
+	NormalizedJsxOptions
+> = {
 	preserve: {
 		factory: null,
 		fragment: null,
@@ -166,11 +166,10 @@ export const jsxPresets: {
 	}
 };
 
-export const generatedCodePresets: {
-	[key in NonNullable<
-		ObjectValue<OutputOptions['generatedCode']>['preset']
-	>]: NormalizedOutputOptions['generatedCode'];
-} = {
+export const generatedCodePresets: Record<
+	NonNullable<ObjectValue<OutputOptions['generatedCode']>['preset']>,
+	NormalizedOutputOptions['generatedCode']
+> = {
 	es2015: {
 		arrowFunctions: true,
 		constBindings: true,
