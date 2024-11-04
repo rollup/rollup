@@ -760,7 +760,7 @@ export default class Module {
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					this.includeVariable(variable, EMPTY_PATH);
+					this.includeVariable(variable, UNKNOWN_PATH);
 				}
 			}
 
