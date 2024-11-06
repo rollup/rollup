@@ -1,5 +1,6 @@
 import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -94,6 +95,8 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 			(this.included ||=
 				destructuredInitPath.length > 0 &&
 				!context.brokenFlow &&
+				(this.scope.context.options.treeshake as NormalizedTreeshakingOptions)
+					.propertyReadSideEffects &&
 				init.hasEffectsOnInteractionAtPath(
 					destructuredInitPath,
 					NODE_INTERACTION_UNKNOWN_ACCESS,
