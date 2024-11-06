@@ -41,9 +41,9 @@ type Operator =
 	| 'in'
 	| 'instanceof';
 
-const binaryOperators: {
-	[operator in Operator]?: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
-} = {
+const binaryOperators: Partial<
+	Record<Operator, (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown>
+> = {
 	'!=': (left, right) => left != right,
 	'!==': (left, right) => left !== right,
 	'%': (left: any, right: any) => left % right,
