@@ -6,7 +6,7 @@ const CHARACTERS_BASE64: &[u8; 64] =
 
 const CHARACTERS_BASE36: &[u8; 36] = b"abcdefghijklmnopqrstuvwxyz0123456789";
 
-const CHARACTERS_BASE16: &[u8; 16] = b"abcdef0123456789";
+const CHARACTERS_BASE16: &[u8; 16] = b"0123456789abcdef";
 
 pub fn xxhash_base64_url(input: &[u8]) -> String {
   to_string(&xxh3_128(input).to_le_bytes(), 64, CHARACTERS_BASE64).unwrap()
