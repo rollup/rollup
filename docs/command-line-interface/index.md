@@ -109,6 +109,7 @@ export default {
 		preserveModulesRoot,
 		sourcemap,
 		sourcemapBaseUrl,
+		sourcemapDebugIds,
 		sourcemapExcludeSources,
 		sourcemapFile,
 		sourcemapFileNames,
@@ -439,6 +440,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
 --sourcemapBaseUrl <url>    Emit absolute sourcemap URLs with given base
+--sourcemapDebugIds         Emit unique debug ids in source and sourcemaps
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --sourcemapFileNames <pattern> Name pattern for emitted sourcemaps

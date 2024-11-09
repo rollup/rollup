@@ -347,6 +347,9 @@ function addChunksToBundle(
 		const finalFileName = replacePlaceholders(fileName, hashesByPlaceholder);
 		let finalSourcemapFileName = null;
 		if (map) {
+			if (options.sourcemapDebugIds) {
+				updatedCode += calculateDebugIdAndGetComment(updatedCode, map);
+			}
 			finalSourcemapFileName = sourcemapFileName
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
 				: `${finalFileName}.map`;
@@ -365,6 +368,9 @@ function addChunksToBundle(
 			hashesByPlaceholder.size > 0 ? replacePlaceholders(code, hashesByPlaceholder) : code;
 		let finalSourcemapFileName = null;
 		if (map) {
+			if (options.sourcemapDebugIds) {
+				updatedCode += calculateDebugIdAndGetComment(updatedCode, map);
+			}
 			finalSourcemapFileName = sourcemapFileName
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
 				: `${fileName}.map`;
@@ -401,4 +407,19 @@ function emitSourceMapAndGetComment(
 		});
 	}
 	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
+}
+
+function calculateDebugIdAndGetComment(code: string, map: SourceMap & { debugId?: string }) {
+	const hash = hasherByType.hex(code);
+	const debugId = [
+		hash.slice(0, 8),
+		hash.slice(8, 12),
+		'4' + hash.slice(12, 15),
+		((parseInt(hash.slice(15, 16), 16) & 3) | 8).toString(16) + hash.slice(17, 20),
+		hash.slice(20, 32)
+	].join('-');
+
+	map.debugId = debugId;
+
+	return '//# debugId=' + debugId + '\n';
 }

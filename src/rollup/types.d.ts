@@ -782,6 +782,7 @@ export interface OutputOptions {
 	sourcemapFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	sourcemapIgnoreList?: boolean | SourcemapIgnoreListOption;
 	sourcemapPathTransform?: SourcemapPathTransformOption;
+	sourcemapDebugIds?: boolean;
 	strict?: boolean;
 	systemNullSetters?: boolean;
 	validate?: boolean;
@@ -836,6 +837,7 @@ export interface NormalizedOutputOptions {
 	sourcemapFileNames: string | ((chunkInfo: PreRenderedChunk) => string) | undefined;
 	sourcemapIgnoreList: SourcemapIgnoreListOption;
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
+	sourcemapDebugIds: boolean;
 	strict: boolean;
 	systemNullSetters: boolean;
 	validate: boolean;

@@ -94,6 +94,7 @@ export async function normalizeOutputOptions(
 					: defaultSanitizeFileName,
 		sourcemap: config.sourcemap || false,
 		sourcemapBaseUrl: getSourcemapBaseUrl(config),
+		sourcemapDebugIds: config.sourcemapDebugIds || false,
 		sourcemapExcludeSources: config.sourcemapExcludeSources || false,
 		sourcemapFile: config.sourcemapFile,
 		sourcemapFileNames: getSourcemapFileNames(config, unsetOptions),
