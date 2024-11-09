@@ -1,5 +1,5 @@
 'use strict';
 
-require('./dep-56610f0f1f4a63.js');
+require('./dep-8e72f6a548dc1a.js');
 
 console.log('main2');
