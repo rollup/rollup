@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.25.0
+
+_2024-11-09_
+
+### Features
+
+- Add `output.sourcemapDebugIds` option to add matching debug ids to sourcemaps and code for tools like Sentry or Rollbar (#5712)
+
+### Bug Fixes
+
+- Make it easier to manually reproduce base16 hashes by using a more standard base16 conversion algorithm (#5719)
+
+### Pull Requests
+
+- [#5712](https://github.com/rollup/rollup/pull/5712): feat: Add support for injecting Debug IDs (@timfish)
+- [#5717](https://github.com/rollup/rollup/pull/5717): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5718](https://github.com/rollup/rollup/pull/5718): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5719](https://github.com/rollup/rollup/pull/5719): Use a less surprising base-16 encoding (@lukastaegert)
+
 ## 4.24.4
 
 _2024-11-04_
