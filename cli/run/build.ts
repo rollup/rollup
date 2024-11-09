@@ -30,7 +30,7 @@ export default async function build(
 		stderr(cyan(`\n${bold(inputFiles!)} → ${bold(files.join(', '))}...`));
 	}
 
-	const bundle = await rollup(inputOptions as any);
+	await using bundle = await rollup(inputOptions as any);
 	if (useStdout) {
 		const output = outputOptions[0];
 		if (output.sourcemap && output.sourcemap !== 'inline') {
@@ -48,7 +48,6 @@ export default async function build(
 	}
 
 	await Promise.all(outputOptions.map(bundle.write));
-	await bundle.close();
 	if (!silent) {
 		warnings.flush();
 		stderr(green(`created ${bold(files.join(', '))} in ${bold(ms(Date.now() - start))}`));
