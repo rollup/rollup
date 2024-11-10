@@ -318,4 +318,18 @@ console.log(x);
 		await bundle.generate({ format: 'iife', inlineDynamicImports: true });
 		await bundle.generate({ format: 'es', exports: 'auto' });
 	});
+
+	it('should support `Symbol.asyncDispose` of the rollup bundle and set closed state to true', async () => {
+		const bundle = await rollup.rollup({
+			input: 'main.js',
+			plugins: [
+				loader({
+					'main.js': "console.log('hello')"
+				})
+			]
+		});
+
+		await bundle[Symbol.asyncDispose]();
+		assert.strictEqual(bundle.closed, true);
+	});
 });
