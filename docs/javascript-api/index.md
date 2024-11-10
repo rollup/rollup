@@ -50,10 +50,11 @@ async function build() {
 // ---cut-start---
 	/** @type {import('rollup').RollupBuild} */
 // ---cut-end---
+	let bundle;
 	let buildFailed = false;
 	try {
 		// create a bundle
-		await using bundle = await rollup(inputOptions);
+		bundle = await rollup(inputOptions);
 
 		// an array of file names this bundle depends on
 		console.log(bundle.watchFiles);
@@ -63,6 +64,10 @@ async function build() {
 		buildFailed = true;
 		// do some error reporting
 		console.error(error);
+	}
+	if (bundle) {
+		// closes the bundle
+		await bundle.close();
 	}
 	process.exit(buildFailed ? 1 : 0);
 }

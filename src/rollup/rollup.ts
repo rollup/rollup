@@ -95,7 +95,7 @@ export async function rollupInternal(
 			await graph.pluginDriver.hookParallel('closeBundle', []);
 		},
 		closed: false,
-		async [Symbol.asyncDispose]() {
+		async [Symbol.asyncDispose ?? Symbol('Symbol.asyncDispose')]() {
 			await this.close();
 		},
 		async generate(rawOutputOptions: OutputOptions) {
