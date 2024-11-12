@@ -5,15 +5,17 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
-import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
+import { INTERACTION_ACCESSED, NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import type FunctionScope from '../scopes/FunctionScope';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
 import IdentifierBase from './shared/IdentifierBase';
+import { ObjectMember } from './shared/ObjectMember';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -23,6 +25,14 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 	name!: string;
 	type!: NodeType.tIdentifier;
 	variable: Variable | null = null;
+
+	private get isDestructuringDeoptimized(): boolean {
+		return isFlagSet(this.flags, Flag.destructuringDeoptimized);
+	}
+
+	private set isDestructuringDeoptimized(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.destructuringDeoptimized, value);
+	}
 
 	addExportedVariables(
 		variables: Variable[],
@@ -91,17 +101,30 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
+		if (destructuredInitPath.length > 0 && !this.isDestructuringDeoptimized) {
+			this.isDestructuringDeoptimized = true;
+			init.deoptimizeArgumentsOnInteractionAtPath(
+				{
+					args: [new ObjectMember(init, destructuredInitPath.slice(0, -1))],
+					type: INTERACTION_ACCESSED
+				},
+				destructuredInitPath,
+				SHARED_RECURSION_TRACKER
+			);
+		}
+		const { propertyReadSideEffects } = this.scope.context.options
+			.treeshake as NormalizedTreeshakingOptions;
 		if (
 			(this.included ||=
 				destructuredInitPath.length > 0 &&
 				!context.brokenFlow &&
-				(this.scope.context.options.treeshake as NormalizedTreeshakingOptions)
-					.propertyReadSideEffects &&
-				init.hasEffectsOnInteractionAtPath(
-					destructuredInitPath,
-					NODE_INTERACTION_UNKNOWN_ACCESS,
-					createHasEffectsContext()
-				))
+				propertyReadSideEffects &&
+				(propertyReadSideEffects === 'always' ||
+					init.hasEffectsOnInteractionAtPath(
+						destructuredInitPath,
+						NODE_INTERACTION_UNKNOWN_ACCESS,
+						createHasEffectsContext()
+					)))
 		) {
 			init.includePath(destructuredInitPath, context, false);
 			return true;

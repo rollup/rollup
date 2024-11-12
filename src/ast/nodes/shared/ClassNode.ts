@@ -188,7 +188,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			kind: 'init',
 			property: new ObjectEntity(
 				dynamicMethods,
-				this.superClass ? new ObjectMember(this.superClass, 'prototype') : OBJECT_PROTOTYPE
+				this.superClass ? new ObjectMember(this.superClass, ['prototype']) : OBJECT_PROTOTYPE
 			)
 		});
 		return (this.objectEntity = new ObjectEntity(
