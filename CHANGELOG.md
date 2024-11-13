@@ -116,6 +116,30 @@ _2024-09-27_
 - [#5682](https://github.com/rollup/rollup/pull/5682): chore(deps): update dependency @rollup/plugin-typescript to v12 (@renovate[bot])
 - [#5684](https://github.com/rollup/rollup/pull/5684): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
 
+## 2.79.2
+
+_2024-09-26_
+
+### Bug Fixes
+
+- Fix a vulnerability in generated code that affects IIFE, UMD and CJS bundles when run in a browser context (#5671)
+
+### Pull Requests
+
+- [#5671](https://github.com/rollup/rollup/pull/5671): Fix DOM Clobbering CVE (@lukastaegert)
+
+## 3.29.5
+
+_2024-09-21_
+
+### Bug Fixes
+
+- Fix a vulnerability in generated code that affects IIFE, UMD and CJS bundles when run in a browser context (#5671)
+
+### Pull Requests
+
+- [#5671](https://github.com/rollup/rollup/pull/5671): Fix DOM Clobbering CVE (@lukastaegert)
+
 ## 4.22.4
 
 _2024-09-21_
