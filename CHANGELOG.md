@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.26.0
+
+_2024-11-13_
+
+### Features
+
+- Allow to avoid `await bundle.close()` via explicit resource management in TypeScript (#5721)
+
+### Pull Requests
+
+- [#5721](https://github.com/rollup/rollup/pull/5721): feat: support `using` for `RollupBuild` (@shulaoda)
+
 ## 4.25.0
 
 _2024-11-09_
