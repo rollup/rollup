@@ -918,6 +918,7 @@ export interface RollupBuild {
 	cache: RollupCache | undefined;
 	close: () => Promise<void>;
 	closed: boolean;
+	[Symbol.asyncDispose](): Promise<void>;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
 	watchFiles: string[];

@@ -53,7 +53,12 @@ async function build() {
 	let bundle;
 	let buildFailed = false;
 	try {
-		// create a bundle
+		// Create a bundle. If you are using TypeScript or a runtime that
+		// supports it, you can write
+		//
+		// await using bundle = await rollup(inputOptions);
+		//
+		// instead and do not need to close the bundle explicitly below.
 		bundle = await rollup(inputOptions);
 
 		// an array of file names this bundle depends on
