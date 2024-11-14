@@ -24,7 +24,7 @@ Rollup now includes native code that is automatically installed (and removed) as
 
 The browser build (`@rollup/browser` on NPM) now relies on a WASM artifact that needs to be provided as well. If you are using the browser build with Vite, you'll need to add `"@rollup/browser"` to `optimizeDeps.exclude`, otherwise `npm run dev` fails with an invalid path to the `.wasm` file (see also [vitejs #14609](https://github.com/vitejs/vite/issues/14609)). Otherwise it should work without any specific intervention.
 
-Otherwise, an obvious change is that Rollup now uses url-safe base64 hashes in file names instead of the older base16 hashes. This provides more hash safety but means that hash length is now limited to at most 22 characters for technical reasons.
+Otherwise, an obvious change is that Rollup now uses url-safe base64 hashes in file names instead of the older base16 hashes. This provides more hash safety but means that hash length is now limited to at most 21 characters for technical reasons.
 
 When bundling CLI apps, Rollup will now automatically preserve shebang comments in entry files if the output [`format`](../configuration-options/index.md#output-format) is `es` or `cjs`. Previously, you would have needed to add the comment via a plugin.
 
