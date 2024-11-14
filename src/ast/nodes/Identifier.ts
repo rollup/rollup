@@ -126,6 +126,9 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 						createHasEffectsContext()
 					)))
 		) {
+			if (this.variable && !this.variable.included) {
+				this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH);
+			}
 			init.includePath(destructuredInitPath, context, false);
 			return true;
 		}
