@@ -23,7 +23,7 @@ export default class SpreadElement extends NodeBase {
 		if (path.length > 0) {
 			this.argument.deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
-				[UnknownKey, ...path],
+				UNKNOWN_PATH,
 				recursionTracker
 			);
 		}

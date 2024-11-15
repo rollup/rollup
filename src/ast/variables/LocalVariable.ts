@@ -21,6 +21,7 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
@@ -77,19 +78,20 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			deoptimizeInteraction(interaction);
 			return;
 		}
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() =>
+			() => {
 				this.init.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					[...this.initPath, ...path],
 					recursionTracker
-				),
+				);
+			},
 			undefined
 		);
 	}
@@ -110,7 +112,7 @@ export default class LocalVariable extends Variable {
 			}
 			this.init.deoptimizePath([...this.initPath, UnknownKey]);
 		} else {
-			this.init.deoptimizePath([...this.initPath, ...path]);
+			this.init.deoptimizePath(limitConcatenatedPathDepth(this.initPath, path));
 		}
 	}
 
@@ -119,7 +121,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UnknownValue;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -143,7 +145,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -167,6 +169,9 @@ export default class LocalVariable extends Variable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (path.length + this.initPath.length > MAX_PATH_DEPTH) {
+			return true;
+		}
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
 				if (this.isReassigned) return true;
@@ -213,7 +218,7 @@ export default class LocalVariable extends Variable {
 			}
 			// We need to make sure we include the correct path of the init
 			if (path.length > 0) {
-				this.init.includePath([...this.initPath, ...path], context, false);
+				this.init.includePath(limitConcatenatedPathDepth(this.initPath, path), context, false);
 				this.additionalInitializers?.forEach(initializer =>
 					initializer.includePath(UNKNOWN_PATH, context, false)
 				);

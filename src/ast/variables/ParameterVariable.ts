@@ -14,6 +14,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
+import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	EntityPathTracker,
@@ -73,6 +74,10 @@ export default class ParameterVariable extends LocalVariable {
 				entity.deoptimizePath([...this.initPath, field]);
 			}
 			for (const { interaction, path } of this.deoptimizationInteractions) {
+				if (this.initPath.length + path.length > MAX_PATH_DEPTH) {
+					deoptimizeInteraction(interaction);
+					continue;
+				}
 				entity.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					[...this.initPath, ...path],
@@ -164,7 +169,7 @@ export default class ParameterVariable extends LocalVariable {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UnknownValue;
 		}
 		const knownValue = this.getKnownValue();
@@ -183,7 +188,11 @@ export default class ParameterVariable extends LocalVariable {
 		context: HasEffectsContext
 	): boolean {
 		const { type } = interaction;
-		if (this.isReassigned || type === INTERACTION_ASSIGNED) {
+		if (
+			this.isReassigned ||
+			type === INTERACTION_ASSIGNED ||
+			path.length + this.initPath.length > MAX_PATH_DEPTH
+		) {
 			return super.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		return (

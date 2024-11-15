@@ -247,7 +247,7 @@ export class ObjectEntity extends ExpressionEntity {
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
-		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [...path, UnknownKey] : path);
+		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [path[0], UnknownKey] : path);
 	}
 
 	getLiteralValueAtPath(
