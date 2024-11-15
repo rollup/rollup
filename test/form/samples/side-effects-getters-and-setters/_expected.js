@@ -1,12 +1,7 @@
 const retained1 = {
 	get effect() {
 		console.log('effect');
-	},
-	get noEffect() {
-		const x = 1;
-		return x;
-	}
-};
+	}};
 
 //retained
 retained1.effect;

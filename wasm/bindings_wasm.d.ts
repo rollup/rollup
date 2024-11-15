@@ -1,26 +1,26 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {string} code
-* @param {boolean} allow_return_outside_function
-* @param {boolean} jsx
-* @returns {Uint8Array}
-*/
+ * @param {string} code
+ * @param {boolean} allow_return_outside_function
+ * @param {boolean} jsx
+ * @returns {Uint8Array}
+ */
 export function parse(code: string, allow_return_outside_function: boolean, jsx: boolean): Uint8Array;
 /**
-* @param {Uint8Array} input
-* @returns {string}
-*/
+ * @param {Uint8Array} input
+ * @returns {string}
+ */
 export function xxhashBase64Url(input: Uint8Array): string;
 /**
-* @param {Uint8Array} input
-* @returns {string}
-*/
+ * @param {Uint8Array} input
+ * @returns {string}
+ */
 export function xxhashBase36(input: Uint8Array): string;
 /**
-* @param {Uint8Array} input
-* @returns {string}
-*/
+ * @param {Uint8Array} input
+ * @returns {string}
+ */
 export function xxhashBase16(input: Uint8Array): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;

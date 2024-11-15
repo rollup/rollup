@@ -8,17 +8,15 @@ import {
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
-import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
-import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
@@ -30,13 +28,11 @@ import {
 	NodeBase
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
-import type { PatternNode } from './Pattern';
-
-type InteractionCalledArguments = NodeInteractionCalled['args'];
+import type { DeclarationPatternNode } from './Pattern';
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: PatternNode[];
+	declare params: DeclarationPatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 
@@ -64,58 +60,13 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	private updateParameterVariableValues(_arguments: InteractionCalledArguments): void {
-		for (let position = 0; position < this.params.length; position++) {
-			const parameter = this.params[position];
-			if (!(parameter instanceof Identifier)) {
-				continue;
-			}
-			const parameterVariable = parameter.variable as ParameterVariable;
-			const argument = _arguments[position + 1] ?? UNDEFINED_EXPRESSION;
-			parameterVariable.updateKnownValue(argument);
-		}
-	}
-
-	private deoptimizeParameterVariableValues() {
-		for (const parameter of this.params) {
-			if (parameter instanceof Identifier) {
-				const parameterVariable = parameter.variable as ParameterVariable;
-				parameterVariable.markReassigned();
-			}
-		}
-	}
-
-	protected objectEntity: ObjectEntity | null = null;
-
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
-		if (interaction.type === INTERACTION_CALLED) {
-			const { parameters } = this.scope;
-			const { args } = interaction;
-			let hasRest = false;
-			for (let position = 0; position < args.length - 1; position++) {
-				const parameter = this.params[position];
-				// Only the "this" argument arg[0] can be null
-				const argument = args[position + 1]!;
-				if (argument instanceof SpreadElement) {
-					this.deoptimizeParameterVariableValues();
-				}
-				if (hasRest || parameter instanceof RestElement) {
-					hasRest = true;
-					argument.deoptimizePath(UNKNOWN_PATH);
-				} else if (parameter instanceof Identifier) {
-					parameters[position][0].addEntityToBeDeoptimized(argument);
-					this.addArgumentToBeDeoptimized(argument);
-				} else if (parameter) {
-					argument.deoptimizePath(UNKNOWN_PATH);
-				} else {
-					this.addArgumentToBeDeoptimized(argument);
-				}
-			}
-			this.updateParameterVariableValues(args);
+		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
+			this.scope.deoptimizeArgumentsOnCall(interaction);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
@@ -131,18 +82,13 @@ export default abstract class FunctionBase extends NodeBase {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression and parameters need to be reassigned
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-			for (const parameterList of this.scope.parameters) {
-				for (const parameter of parameterList) {
-					parameter.deoptimizePath(UNKNOWN_PATH);
-					parameter.markReassigned();
-				}
-			}
+			this.scope.deoptimizeAllParameters();
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
@@ -151,7 +97,7 @@ export default abstract class FunctionBase extends NodeBase {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
@@ -207,8 +153,20 @@ export default abstract class FunctionBase extends NodeBase {
 				return true;
 			}
 		}
-		for (const parameter of this.params) {
-			if (parameter.hasEffects(context)) return true;
+		const { propertyReadSideEffects } = this.scope.context.options
+			.treeshake as NormalizedTreeshakingOptions;
+		for (let index = 0; index < this.params.length; index++) {
+			const parameter = this.params[index];
+			if (
+				parameter.hasEffects(context) ||
+				(propertyReadSideEffects &&
+					parameter.hasEffectsWhenDestructuring(
+						context,
+						EMPTY_PATH,
+						interaction.args[index + 1] || UNDEFINED_EXPRESSION
+					))
+			)
+				return true;
 		}
 		return false;
 	}
@@ -228,25 +186,25 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	private parameterVariableValuesDeoptimized = false;
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.parameterVariableValuesDeoptimized && !this.onlyFunctionCallUsed()) {
+
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
+		if (!(this.parameterVariableValuesDeoptimized || this.onlyFunctionCallUsed())) {
 			this.parameterVariableValuesDeoptimized = true;
-			this.deoptimizeParameterVariableValues();
+			this.scope.reassignAllParameters();
 		}
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.include(context, includeChildrenRecursively);
+		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		this.scope.includeCallArguments(context, parameters);
-	}
+	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);
 
 	initialise(): void {
 		super.initialise();
@@ -276,19 +234,18 @@ export default abstract class FunctionBase extends NodeBase {
 			(parameter: GenericEsTreeNode) =>
 				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
 					parameter
-				) as unknown as PatternNode
+				) as unknown as DeclarationPatternNode
 		));
 		scope.addParameterVariables(
 			parameters.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter =>
+					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
 		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body);
 		return super.parseNode(esTreeNode);
 	}
-
-	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}
 
 	protected applyDeoptimizations() {}
 

@@ -18,8 +18,8 @@ import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
@@ -78,11 +78,19 @@ export interface Node extends Entity {
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean;
 
 	/**
-	 * Includes the node in the bundle. If the flag is not set, children are
-	 * usually included if they are necessary for this node (e.g. a function body)
-	 * or if they have effects. Necessary variables need to be included as well.
+	 * Includes the given path of the Node in the bundle. If
+	 * "includeChildrenRecursively" is true, children of this path are included
+	 * unconditionally. Otherwise, including a given path means that the value of
+	 * this path is needed, but not necessarily its children if it is an object.
+	 * Example:
+	 *   if (x.a.b) { ... }
+	 * would include the path ['a','b'] of the variable x but none of its children
+	 * because those are not needed to get the literal value.
+	 * On the other hand to include all children, we extend the path with
+	 * "UnknownNode".
 	 */
-	include(
+	includePath(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
@@ -131,7 +139,7 @@ export interface ExpressionNode extends ExpressionEntity, Node, Partial<ChainEle
 export interface ChainElement {
 	getLiteralValueAtPathAsChainElement(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain;
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain;
@@ -221,7 +229,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		);
 	}
 
-	include(
+	includePath(
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
@@ -233,10 +242,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.include(context, includeChildrenRecursively);
+					child?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 				}
 			} else {
-				value.include(context, includeChildrenRecursively);
+				value.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -246,7 +255,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_deoptimizeAccess: boolean
 	) {
-		this.include(context, includeChildrenRecursively);
+		this.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 
 	/**

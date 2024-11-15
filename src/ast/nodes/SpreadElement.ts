@@ -2,7 +2,12 @@ import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
-import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import {
+	type EntityPathTracker,
+	type ObjectPath,
+	UNKNOWN_PATH,
+	UnknownKey
+} from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
@@ -13,7 +18,7 @@ export default class SpreadElement extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		if (path.length > 0) {
 			this.argument.deoptimizeArgumentsOnInteractionAtPath(

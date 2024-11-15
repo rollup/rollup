@@ -88,7 +88,7 @@ export const AST_NODES = {
 				'parameters',
 				`scope.addParameterVariables(
            parameters.map(
-             parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+             parameter => parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
            ),
            parameters[parameters.length - 1] instanceof RestElement
          );`
@@ -153,7 +153,7 @@ export const AST_NODES = {
 			['body', 'Node']
 		],
 		postProcessFields: {
-			param: ['parameter', "parameter?.declare('parameter', UNKNOWN_EXPRESSION)"]
+			param: ['parameter', "parameter?.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION)"]
 		},
 		scopes: {
 			body: 'scope.bodyScope'
@@ -310,7 +310,7 @@ export const AST_NODES = {
 				'parameters',
 				`scope.addParameterVariables(
 					 parameters.map(
-						 parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+						 parameter => parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
 					 ),
 					 parameters[parameters.length - 1] instanceof RestElement
 				 );`
