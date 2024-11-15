@@ -53,7 +53,7 @@ import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
 
 // To avoid infinite recursions
-const MAX_PATH_DEPTH = 7;
+const MAX_PATH_DEPTH = 6;
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -208,11 +208,13 @@ export default class MemberExpression
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
-		} else if (!this.isUndefined && path.length < MAX_PATH_DEPTH) {
+		} else if (!this.isUndefined) {
 			const propertyKey = this.getPropertyKey();
 			this.object.deoptimizePath([
 				propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
-				...path
+				...(path.length < MAX_PATH_DEPTH
+					? path
+					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
 			]);
 		}
 	}
@@ -364,7 +366,12 @@ export default class MemberExpression
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.includeProperties(
 			path,
-			[this.getPropertyKey(), ...path],
+			[
+				this.getPropertyKey(),
+				...(path.length < MAX_PATH_DEPTH
+					? path
+					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
+			],
 			context,
 			includeChildrenRecursively
 		);
