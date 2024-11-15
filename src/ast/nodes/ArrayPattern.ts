@@ -87,8 +87,21 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 		let included = false;
 		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
 		for (const element of this.elements) {
-			included =
-				element?.includeDestructuredIfNecessary(context, includedPatternPath, init) || included;
+			if (element) {
+				element.included ||= included;
+				included =
+					element.includeDestructuredIfNecessary(context, includedPatternPath, init) || included;
+			}
+		}
+		if (included) {
+			// This is necessary so that if any pattern element is included, all are
+			// included for proper deconflicting
+			for (const element of this.elements) {
+				if (element && !element.included) {
+					element.included = true;
+					element.includeDestructuredIfNecessary(context, includedPatternPath, init);
+				}
+			}
 		}
 		return (this.included ||= included);
 	}
