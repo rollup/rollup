@@ -184,6 +184,16 @@ jobs:
               rustup target add riscv64gc-unknown-linux-gnu &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
+            target: riscv64gc-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-riscv64-linux-musl -y
+            build: >-
+              set -e &&
+              rustup target add riscv64gc-unknown-linux-musl &&
+              npm run build:napi -- --release --target riscv64gc-unknown-linux-\musl
+          - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             setup: |
               sudo apt-get update

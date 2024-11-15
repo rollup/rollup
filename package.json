@@ -28,6 +28,7 @@
         "i686-pc-windows-msvc",
         "loongarch64-unknown-linux-gnu",
         "riscv64gc-unknown-linux-gnu",
+        "riscv64gc-unknown-linux-musl",
         "powerpc64le-unknown-linux-gnu",
         "s390x-unknown-linux-gnu",
         "x86_64-apple-darwin",
