@@ -19,6 +19,7 @@ import {
 	INTERACTION_ASSIGNED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../NodeInteractions';
+import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
@@ -51,9 +52,6 @@ import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
-
-// To avoid infinite recursions
-const MAX_PATH_DEPTH = 6;
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
