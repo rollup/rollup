@@ -77,15 +77,18 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
+		const path = this.getPathInProperty(destructuredInitPath);
 		let included =
-			(this.value as PatternNode).includeDestructuredIfNecessary(
-				context,
-				this.getPathInProperty(destructuredInitPath),
-				init
-			) || this.included;
-		included ||= this.key.hasEffects(createHasEffectsContext());
-		if (included) {
+			(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init) ||
+			this.included;
+		if ((included ||= this.key.hasEffects(createHasEffectsContext()))) {
 			this.key.includePath(EMPTY_PATH, context, false);
+			if (!this.value.included) {
+				this.value.included = true;
+				// Unfortunately, we need to include the value again now, so that any
+				// declared variables are properly included.
+				(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init);
+			}
 		}
 		return (this.included = included);
 	}
