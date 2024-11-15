@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.27.2
+
+_2024-11-15_
+
+### Bug Fixes
+
+- Ensure unused variables in patterns are always deconflicted if rendered (#5728)
+
+### Pull Requests
+
+- [#5728](https://github.com/rollup/rollup/pull/5728): Fix more variable deconflicting issues (@lukastaegert)
+
 ## 4.27.1
 
 _2024-11-15_
