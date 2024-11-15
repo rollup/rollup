@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.27.0
+
+_2024-11-15_
+
+### Features
+
+- Tree-shake unused properties in object literals (#5420)
+
+### Bug Fixes
+
+- Change hash length limit to 21 to avoid inconsistent hash length (#5423)
+
+### Pull Requests
+
+- [#5420](https://github.com/rollup/rollup/pull/5420): feat: implement object tree-shaking (@TrickyPi, @lukastaegert)
+- [#5723](https://github.com/rollup/rollup/pull/5723): Reduce max hash size to 21 (@lukastaegert)
+- [#5724](https://github.com/rollup/rollup/pull/5724): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5725](https://github.com/rollup/rollup/pull/5725): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.26.0
 
 _2024-11-13_
