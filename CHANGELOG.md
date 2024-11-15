@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.27.1
+
+_2024-11-15_
+
+### Bug Fixes
+
+- Fix some situations where parameter declarations could put Rollup into an infinite loop (#5727)
+
+### Pull Requests
+
+- [#5727](https://github.com/rollup/rollup/pull/5727): Debug out-of-memory issues with Rollup v4.27.0 (@lukastaegert)
+
 ## 4.27.0
 
 _2024-11-15_
