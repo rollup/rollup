@@ -18,6 +18,7 @@ import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase<ast.ArrayExpression> {
+	parent!: nodes.ArrayExpressionParent;
 	elements!: readonly (nodes.Expression | SpreadElement | null)[];
 	type!: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;

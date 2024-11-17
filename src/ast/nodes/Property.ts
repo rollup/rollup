@@ -19,6 +19,7 @@ import PropertyBase from './shared/PropertyBase';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class Property extends PropertyBase<ast.Property> implements DeclarationPatternNode {
+	parent!: nodes.PropertyParent;
 	key!: nodes.Expression;
 	kind!: ast.Property['kind'];
 	type!: NodeType.tProperty;

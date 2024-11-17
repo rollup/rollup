@@ -4,10 +4,12 @@ import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers
 import type Identifier from './Identifier';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ExportAllDeclaration extends NodeBase<ast.ExportAllDeclaration> {
+	parent!: nodes.ExportAllDeclarationParent;
 	attributes!: ImportAttribute[];
 	exported!: Identifier | Literal<string> | null;
 	needsBoundaries!: true;

@@ -19,6 +19,7 @@ import {
 import { doNotDeoptimize, NodeBase } from './shared/Node';
 
 export default class PropertyDefinition extends NodeBase<ast.PropertyDefinition> {
+	parent!: nodes.PropertyDefinitionParent;
 	key!: nodes.Expression | PrivateIdentifier;
 	static!: boolean;
 	type!: NodeType.tPropertyDefinition;

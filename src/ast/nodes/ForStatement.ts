@@ -16,6 +16,7 @@ import {
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ForStatement extends NodeBase<ast.ForStatement> {
+	parent!: nodes.ForStatementParent;
 	body!: nodes.Statement;
 	init!: VariableDeclaration | nodes.Expression | null;
 	test!: nodes.Expression | null;

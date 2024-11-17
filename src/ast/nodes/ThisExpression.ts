@@ -12,12 +12,14 @@ import type Scope from '../scopes/Scope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import ObjectExpression from './ObjectExpression';
 import Property from './Property';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase<ast.ThisExpression> {
+	parent!: nodes.ThisExpressionParent;
 	type!: NodeType.tThisExpression;
 	variable!: Variable;
 	private alias!: string | null;

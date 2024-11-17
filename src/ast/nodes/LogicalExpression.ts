@@ -43,6 +43,7 @@ export default class LogicalExpression
 	extends NodeBase<ast.LogicalExpression>
 	implements DeoptimizableEntity
 {
+	parent!: nodes.LogicalExpressionParent;
 	left!: nodes.Expression;
 	operator!: ast.LogicalExpression['operator'];
 	right!: nodes.Expression;

@@ -107,6 +107,7 @@ export default class MemberExpression
 	extends NodeBase<ast.MemberExpression>
 	implements DeoptimizableEntity, ChainElement, PatternNode
 {
+	parent!: nodes.MemberExpressionParent;
 	object!: nodes.Expression | Super;
 	property!: nodes.Expression | PrivateIdentifier;
 	propertyKey!: ObjectPathKey;

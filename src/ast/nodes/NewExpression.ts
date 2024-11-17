@@ -17,6 +17,7 @@ import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase<ast.NewExpression> {
+	parent!: nodes.NewExpressionParent;
 	arguments!: nodes.Expression[];
 	callee!: nodes.Expression;
 	type!: NodeType.tNewExpression;

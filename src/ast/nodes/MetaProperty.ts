@@ -12,6 +12,7 @@ import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
@@ -19,6 +20,7 @@ const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 const IMPORT = 'import';
 
 export default class MetaProperty extends NodeBase<ast.MetaProperty> {
+	parent!: nodes.MetaPropertyParent;
 	meta!: Identifier;
 	property!: Identifier;
 	type!: NodeType.tMetaProperty;
@@ -92,12 +94,7 @@ export default class MetaProperty extends NodeBase<ast.MetaProperty> {
 					{ chunkId, fileName, format, moduleId, referenceId, relativePath }
 				]) || relativeUrlMechanisms[format](relativePath);
 
-			code.overwrite(
-				(parent as MemberExpression).start,
-				(parent as MemberExpression).end,
-				replacement,
-				{ contentOnly: true }
-			);
+			code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
 			return;
 		}
 

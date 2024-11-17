@@ -14,12 +14,11 @@ import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
-import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import type Identifier from '../Identifier';
 import type * as nodes from '../node-unions';
+import type { ArrowFunctionExpressionParent, FunctionDeclarationParent } from '../node-unions';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
-import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
@@ -34,6 +33,10 @@ import type { ObjectEntity } from './ObjectEntity';
 export default abstract class FunctionBase<
 	T extends ast.ArrowFunctionExpression | ast.FunctionExpression | ast.FunctionDeclaration
 > extends NodeBase<T> {
+	parent!:
+		| nodes.FunctionExpressionParent
+		| FunctionDeclarationParent
+		| ArrowFunctionExpressionParent;
 	body!: BlockStatement | nodes.Expression;
 	params!: nodes.Parameter[];
 	preventChildBlockScope!: true;
@@ -189,10 +192,10 @@ export default abstract class FunctionBase<
 	protected onlyFunctionCallUsed(): boolean {
 		let variable: Variable | null = null;
 		if (this.parent.type === NodeType.VariableDeclarator) {
-			variable = ((this.parent as VariableDeclarator).id as Identifier).variable ?? null;
+			variable = (this.parent.id as Identifier).variable ?? null;
 		}
 		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
-			variable = (this.parent as ExportDefaultDeclaration).variable;
+			variable = this.parent.variable;
 		}
 		return variable?.getOnlyFunctionCallUsed() ?? false;
 	}

@@ -3,13 +3,14 @@ import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import ChildScope from '../scopes/ChildScope';
-import type CallExpression from './CallExpression';
 import type { IdentifierWithVariable } from './Identifier';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
 
 export default class FunctionExpression extends FunctionNode<ast.FunctionExpression> {
+	parent!: nodes.FunctionExpressionParent;
 	type!: NodeType.tFunctionExpression;
 	idScope!: ChildScope;
 
@@ -29,7 +30,7 @@ export default class FunctionExpression extends FunctionNode<ast.FunctionExpress
 	protected onlyFunctionCallUsed(): boolean {
 		const isIIFE =
 			this.parent.type === NodeType.CallExpression &&
-			(this.parent as CallExpression).callee === this &&
+			this.parent.callee === this &&
 			(this.id === null || this.id.variable.getOnlyFunctionCallUsed());
 		return isIIFE || super.onlyFunctionCallUsed();
 	}

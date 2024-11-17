@@ -24,6 +24,7 @@ import {
 } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase<ast.SequenceExpression> {
+	parent!: nodes.SequenceExpressionParent;
 	expressions!: nodes.Expression[];
 	type!: NodeType.tSequenceExpression;
 

@@ -8,6 +8,7 @@ import type * as NodeType from './NodeType';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ThrowStatement extends NodeBase<ast.ThrowStatement> {
+	parent!: nodes.ThrowStatementParent;
 	argument!: nodes.Expression;
 	type!: NodeType.tThrowStatement;
 

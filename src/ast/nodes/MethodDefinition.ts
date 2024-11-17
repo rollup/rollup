@@ -9,6 +9,7 @@ import type PrivateIdentifier from './PrivateIdentifier';
 import PropertyBase from './shared/PropertyBase';
 
 export default class MethodDefinition extends PropertyBase<ast.MethodDefinition> {
+	parent!: nodes.MethodDefinitionParent;
 	key!: nodes.Expression | PrivateIdentifier;
 	kind!: ast.MethodDefinition['kind'];
 	static!: boolean;

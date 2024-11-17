@@ -28,6 +28,7 @@ export default class CallExpression
 	extends CallExpressionBase<ast.CallExpression>
 	implements DeoptimizableEntity, ChainElement
 {
+	parent!: nodes.CallExpressionParent;
 	arguments!: (nodes.Expression | SpreadElement)[];
 	callee!: nodes.Expression | Super;
 	type!: NodeType.tCallExpression;

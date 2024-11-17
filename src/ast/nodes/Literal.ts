@@ -15,6 +15,7 @@ import {
 	hasMemberEffectWhenCalled,
 	type MemberDescription
 } from '../values';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	type ExpressionEntity,
@@ -30,6 +31,7 @@ export type LiteralValueOrBigInt = LiteralValue | bigint;
 export default class Literal<
 	T extends LiteralValueOrBigInt = LiteralValueOrBigInt
 > extends NodeBase<ast.Literal> {
+	parent!: nodes.LiteralParent;
 	bigint?: string;
 	raw?: string;
 	regex?: {

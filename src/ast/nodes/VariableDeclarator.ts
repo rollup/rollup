@@ -18,6 +18,7 @@ import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class VariableDeclarator extends NodeBase<ast.VariableDeclarator> {
+	parent!: nodes.VariableDeclaratorParent;
 	id!: nodes.BindingPattern;
 	init!: nodes.Expression | null;
 	type!: NodeType.tVariableDeclarator;

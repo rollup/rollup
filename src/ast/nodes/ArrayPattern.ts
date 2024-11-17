@@ -15,6 +15,7 @@ export default class ArrayPattern
 	extends NodeBase<ast.ArrayPattern>
 	implements DeclarationPatternNode
 {
+	parent!: nodes.ArrayPatternParent;
 	elements!: (nodes.DestructuringPattern | null)[];
 	type!: NodeType.tArrayPattern;
 

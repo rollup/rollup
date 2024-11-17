@@ -122,7 +122,7 @@ export type AstNodeName =
 	| 'WhileStatement'
 	| 'YieldExpression';
 
-type NodeInterface =
+export type AstUnionName =
 	| 'BindingPattern'
 	| 'DestructuringPattern'
 	| 'Expression'
@@ -133,7 +133,9 @@ type NodeInterface =
 	| 'Parameter'
 	| 'Statement';
 
-export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterface)[]> = {
+export type AstTypeName = AstNodeName | AstUnionName;
+
+export const NODE_UNION_TYPES: Record<AstUnionName, AstTypeName[]> = {
 	// Everything that can be used to declare bindings
 	BindingPattern: ['Identifier', 'ArrayPattern', 'ObjectPattern'],
 	// Everything that can be used for destructuring; MemberExpression is included
@@ -995,14 +997,14 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 interface NodeFieldDescription {
 	type: 'Node';
 	name: string;
-	nodeTypes: (AstNodeName | NodeInterface)[];
+	nodeTypes: AstTypeName[];
 	allowNull?: true;
 }
 
 interface NodeListFieldDescription {
 	type: 'NodeList';
 	name: string;
-	nodeTypes: (AstNodeName | NodeInterface)[];
+	nodeTypes: AstTypeName[];
 	allowNull?: true;
 }
 
@@ -1038,7 +1040,7 @@ export type FieldDescription =
 	| AnnotationFieldDescription;
 
 export interface NodeDescription {
-	astType?: AstNodeName | NodeInterface; // If several converters produce the same type, specify the actual type here
+	astType?: AstTypeName; // If several converters produce the same type, specify the actual type here
 	converterFunction?: string; // What function name to use in converters instead of the kebab case node name
 	hasSameFieldsAs?: AstNodeName; // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
 	hasSameFieldsOverrides?: Record<string, FieldDescription>; // If hasSameFields is used, this can specify overrides by field.

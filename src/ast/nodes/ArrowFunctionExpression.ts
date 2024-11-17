@@ -6,7 +6,6 @@ import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
-import type CallExpression from './CallExpression';
 import Identifier from './Identifier';
 import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
@@ -17,11 +16,13 @@ import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 
 export default class ArrowFunctionExpression extends FunctionBase<ast.ArrowFunctionExpression> {
+	parent!: nodes.ArrowFunctionExpressionParent;
 	body!: BlockStatement | nodes.Expression;
 	params!: nodes.Parameter[];
 	preventChildBlockScope!: true;
 	scope!: ReturnValueScope;
 	type!: NodeType.tArrowFunctionExpression;
+
 	protected objectEntity: ObjectEntity | null = null;
 
 	get expression(): boolean {
@@ -72,9 +73,7 @@ export default class ArrowFunctionExpression extends FunctionBase<ast.ArrowFunct
 	}
 
 	protected onlyFunctionCallUsed(): boolean {
-		const isIIFE =
-			this.parent.type === NodeType.CallExpression &&
-			(this.parent as CallExpression).callee === this;
+		const isIIFE = this.parent.type === NodeType.CallExpression && this.parent.callee === this;
 		return isIIFE || super.onlyFunctionCallUsed();
 	}
 

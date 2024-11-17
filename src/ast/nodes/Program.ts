@@ -20,6 +20,7 @@ import {
 } from './shared/Node';
 
 export default class Program extends NodeBase<ast.Program> {
+	parent!: nodes.ProgramParent;
 	body!: readonly (nodes.Statement | nodes.ModuleDeclaration)[];
 	sourceType!: 'module';
 	type!: NodeType.tProgram;

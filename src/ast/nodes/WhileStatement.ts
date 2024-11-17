@@ -11,6 +11,7 @@ import {
 } from './shared/Node';
 
 export default class WhileStatement extends NodeBase<ast.WhileStatement> {
+	parent!: nodes.WhileStatementParent;
 	body!: nodes.Statement;
 	test!: nodes.Expression;
 	type!: NodeType.tWhileStatement;

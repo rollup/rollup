@@ -10,6 +10,7 @@ import JSXElementBase from './shared/JSXElementBase';
 import type { IncludeChildren } from './shared/Node';
 
 export default class JSXFragment extends JSXElementBase<ast.JSXFragment> {
+	parent!: nodes.JSXFragmentParent;
 	type!: NodeType.tJSXElement;
 	openingFragment!: JSXOpeningFragment;
 	children!: nodes.JSXChild[];

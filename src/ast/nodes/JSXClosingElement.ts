@@ -4,6 +4,7 @@ import type * as NodeType from './NodeType';
 import JSXClosingBase from './shared/JSXClosingBase';
 
 export default class JSXClosingElement extends JSXClosingBase<ast.JSXClosingElement> {
+	parent!: nodes.JSXClosingElementParent;
 	type!: NodeType.tJSXClosingElement;
 	name!: nodes.JSXTagNameExpression;
 }

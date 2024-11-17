@@ -13,6 +13,7 @@ import type { JsxMode } from './shared/jsxHelpers';
 import type { IncludeChildren } from './shared/Node';
 
 export default class JSXElement extends JSXElementBase<ast.JSXElement> {
+	parent!: nodes.JSXElementParent;
 	type!: NodeType.tJSXElement;
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;

@@ -18,6 +18,7 @@ import type { IncludeChildren } from './shared/Node';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase<ast.UpdateExpression> {
+	parent!: nodes.UpdateExpressionParent;
 	argument!: nodes.Expression;
 	operator!: ast.UpdateExpression['operator'];
 	prefix!: boolean;

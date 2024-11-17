@@ -159,7 +159,6 @@ function getFieldDefinition(
 }
 
 const bufferParsers = `${notEditFilesComment}
-import type { AstContext } from '../Module';
 import type { ast } from '../rollup/types';
 import { convertAnnotations } from '../utils/astConverterHelpers';
 import { EMPTY_ARRAY } from '../utils/blank';
@@ -178,7 +177,7 @@ import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(
   buffer: Buffer | Uint8Array,
-  parent: Node | { context: AstContext; type: string },
+  parent: Node | null,
   parentScope: ModuleScope
 ): Program {
   return convertNode(parent, parentScope, 0, getAstBuffer(buffer));
@@ -197,7 +196,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 ];
 
 function convertNode(
-  parent: Node | { context: AstContext; type: string },
+  parent: Node | null,
   parentScope: ChildScope,
   position: number,
   buffer: AstBuffer
@@ -210,7 +209,7 @@ function convertNode(
     throw new Error(\`Unknown node type: $\{nodeType}\`);
   }
   const node = new NodeConstructor(parent, parentScope);
-  node.type = nodeTypeStrings[nodeType];
+  node.type = nodeTypeStrings[nodeType] as any;
   node.start = buffer[position + 1];
   node.end = buffer[position + 2];
   bufferParsers[nodeType](node, position + 3, buffer);
@@ -219,7 +218,7 @@ function convertNode(
 }
 
 function convertNodeList(
-  parent: Node | { context: AstContext; type: string },
+  parent: Node | null,
   parentScope: ChildScope,
   position: number,
   buffer: AstBuffer

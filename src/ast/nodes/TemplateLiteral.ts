@@ -19,6 +19,7 @@ import { NodeBase } from './shared/Node';
 import type TemplateElement from './TemplateElement';
 
 export default class TemplateLiteral extends NodeBase<ast.TemplateLiteral> {
+	parent!: nodes.TemplateLiteralParent;
 	expressions!: nodes.Expression[];
 	quasis!: TemplateElement[];
 	type!: NodeType.tTemplateLiteral;

@@ -1,6 +1,5 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
-import type { AstContext } from '../../../Module';
 import type { AstNode } from '../../../rollup/ast-types';
 import type { ast } from '../../../rollup/types';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
@@ -41,7 +40,7 @@ export interface Node extends Entity {
 	end: number;
 	included: boolean;
 	needsBoundaries?: boolean;
-	parent: Node | { type?: string };
+	parent: Node | null;
 	scope: ChildScope;
 	preventChildBlockScope?: boolean;
 	start: number;
@@ -152,7 +151,7 @@ export interface ChainElement {
 export class NodeBase<T extends AstNode> extends ExpressionEntity implements ExpressionNode {
 	annotations?: readonly ast.Annotation[];
 	end!: number;
-	parent: Node | { context: AstContext; type: string };
+	parent: Node | null;
 	scope!: ChildScope;
 	start!: number;
 	type!: keyof typeof NodeType;
@@ -175,7 +174,7 @@ export class NodeBase<T extends AstNode> extends ExpressionEntity implements Exp
 		this.flags = setFlag(this.flags, Flag.deoptimized, value);
 	}
 
-	constructor(parent: Node | { context: AstContext; type: string }, parentScope: ChildScope) {
+	constructor(parent: Node | null, parentScope: ChildScope) {
 		super();
 		this.parent = parent;
 		this.scope = parentScope;

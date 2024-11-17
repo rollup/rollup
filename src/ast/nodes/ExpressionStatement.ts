@@ -9,8 +9,10 @@ import * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ExpressionStatement extends NodeBase<ast.ExpressionStatement> {
+	parent!: nodes.ExpressionStatementParent;
 	directive?: string;
 	expression!: nodes.Expression;
+	type!: NodeType.tExpressionStatement;
 
 	initialise(): void {
 		super.initialise();

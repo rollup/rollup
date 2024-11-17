@@ -6,10 +6,12 @@ import type ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import type ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import type ImportSpecifier from './ImportSpecifier';
 import type Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase<ast.ImportDeclaration> {
+	parent!: nodes.ImportDeclarationParent;
 	attributes!: ImportAttribute[];
 	needsBoundaries!: true;
 	source!: Literal<string>;

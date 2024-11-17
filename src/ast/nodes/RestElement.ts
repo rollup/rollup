@@ -16,6 +16,7 @@ export default class RestElement
 	extends NodeBase<ast.RestElement>
 	implements DeclarationPatternNode
 {
+	parent!: nodes.RestElementParent;
 	argument!: nodes.DestructuringPattern;
 	type!: NodeType.tRestElement;
 	private declarationInit: ExpressionEntity | null = null;

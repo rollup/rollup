@@ -13,6 +13,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase<ast.SpreadElement> {
+	parent!: nodes.SpreadElementParent;
 	argument!: nodes.Expression;
 	type!: NodeType.tSpreadElement;
 

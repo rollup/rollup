@@ -18,6 +18,7 @@ export default class AssignmentPattern
 	extends NodeBase<ast.AssignmentPattern>
 	implements DeclarationPatternNode
 {
+	parent!: nodes.AssignmentPatternParent;
 	left!: nodes.BindingPattern;
 	right!: nodes.Expression;
 	type!: NodeType.tAssignmentPattern;

@@ -35,7 +35,6 @@ import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionNode from './shared/FunctionNode';
-import type { Node } from './shared/Node';
 import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
@@ -49,6 +48,7 @@ function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 }
 
 export default class ImportExpression extends NodeBase<ast.ImportExpression> {
+	parent!: nodes.ImportExpressionParent;
 	options!: nodes.Expression | null;
 	inlineNamespace: NamespaceVariable | null = null;
 	source!: nodes.Expression;
@@ -206,7 +206,7 @@ export default class ImportExpression extends NodeBase<ast.ImportExpression> {
 	initialise(): void {
 		super.initialise();
 		this.scope.context.addDynamicImport(this);
-		let parent = this.parent;
+		let parent: nodes.AstNode | null = this.parent;
 		let withinAwaitExpression = false;
 		let withinTopLevelAwait = false;
 		do {
@@ -220,7 +220,7 @@ export default class ImportExpression extends NodeBase<ast.ImportExpression> {
 				withinAwaitExpression = true;
 				withinTopLevelAwait = true;
 			}
-		} while ((parent = (parent as Node).parent as Node));
+		} while ((parent = parent.parent));
 
 		if (withinAwaitExpression && withinTopLevelAwait) {
 			this.withinTopLevelAwait = true;

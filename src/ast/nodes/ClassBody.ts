@@ -4,9 +4,9 @@ import type ChildScope from '../scopes/ChildScope';
 import ClassBodyScope from '../scopes/ClassBodyScope';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type MethodDefinition from './MethodDefinition';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type PropertyDefinition from './PropertyDefinition';
-import type ClassNode from './shared/ClassNode';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -16,12 +16,13 @@ import {
 import type StaticBlock from './StaticBlock';
 
 export default class ClassBody extends NodeBase<ast.ClassBody> {
+	parent!: nodes.ClassBodyParent;
 	body!: (MethodDefinition | PropertyDefinition | StaticBlock)[];
 	scope!: ClassBodyScope;
 	type!: NodeType.tClassBody;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode<any>);
+		this.scope = new ClassBodyScope(parentScope, this.parent);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

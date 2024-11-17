@@ -53,6 +53,7 @@ export default class BinaryExpression
 	extends NodeBase<ast.BinaryExpression>
 	implements DeoptimizableEntity
 {
+	parent!: nodes.BinaryExpressionParent;
 	left!: nodes.Expression;
 	operator!: ast.BinaryExpression['operator'];
 	right!: nodes.Expression;

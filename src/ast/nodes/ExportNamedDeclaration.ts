@@ -7,11 +7,13 @@ import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase<ast.ExportNamedDeclaration> {
+	parent!: nodes.ExportNamedDeclarationParent;
 	attributes!: ImportAttribute[];
 	declaration!: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	needsBoundaries!: true;

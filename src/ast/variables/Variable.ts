@@ -4,11 +4,13 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
-import type CallExpression from '../nodes/CallExpression';
+import type JSXOpeningElement from '../nodes/JSXOpeningElement';
+import type JSXOpeningFragment from '../nodes/JSXOpeningFragment';
+import type MemberExpression from '../nodes/MemberExpression';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
-import type { NodeBase } from '../nodes/shared/Node';
+import type JSXElementBase from '../nodes/shared/JSXElementBase';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
@@ -55,10 +57,16 @@ export default class Variable extends ExpressionEntity {
 	 * Collect the places where the identifier variable is used
 	 * @param usedPlace Where the variable is used
 	 */
-	addUsedPlace(usedPlace: NodeBase<any>): void {
+	addUsedPlace(
+		usedPlace:
+			| IdentifierBase<any>
+			| MemberExpression
+			| JSXElementBase<any>
+			| JSXOpeningElement
+			| JSXOpeningFragment
+	): void {
 		const isFunctionCall =
-			usedPlace.parent.type === NodeType.CallExpression &&
-			(usedPlace.parent as CallExpression).callee === usedPlace;
+			usedPlace.parent.type === NodeType.CallExpression && usedPlace.parent.callee === usedPlace;
 		if (!isFunctionCall && usedPlace.parent.type !== NodeType.ExportDefaultDeclaration) {
 			this.onlyFunctionCallUsed = false;
 		}

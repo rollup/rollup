@@ -7,6 +7,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class Decorator extends NodeBase<ast.Decorator> {
+	parent!: nodes.DecoratorParent;
 	type!: NodeType.tDecorator;
 	expression!: nodes.Expression;
 	hasEffects(context: HasEffectsContext): boolean {

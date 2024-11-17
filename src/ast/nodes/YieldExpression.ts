@@ -8,6 +8,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class YieldExpression extends NodeBase<ast.YieldExpression> {
+	parent!: nodes.YieldExpressionParent;
 	argument!: nodes.Expression | null;
 	delegate!: boolean;
 	type!: NodeType.tYieldExpression;

@@ -19,6 +19,7 @@ import { onlyIncludeSelf } from './shared/Node';
 import type TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends CallExpressionBase<ast.TaggedTemplateExpression> {
+	parent!: nodes.TaggedTemplateExpressionParent;
 	quasi!: TemplateLiteral;
 	tag!: nodes.Expression;
 	type!: NodeType.tTaggedTemplateExpression;

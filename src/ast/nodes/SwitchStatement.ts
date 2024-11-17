@@ -15,6 +15,7 @@ import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared
 import type SwitchCase from './SwitchCase';
 
 export default class SwitchStatement extends NodeBase<ast.SwitchStatement> {
+	parent!: nodes.SwitchStatementParent;
 	cases!: readonly SwitchCase[];
 	discriminant!: nodes.Expression;
 	type!: NodeType.tSwitchStatement;

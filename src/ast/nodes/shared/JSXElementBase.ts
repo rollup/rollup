@@ -8,12 +8,14 @@ import type Variable from '../../variables/Variable';
 import JSXEmptyExpression from '../JSXEmptyExpression';
 import JSXExpressionContainer from '../JSXExpressionContainer';
 import type * as nodes from '../node-unions';
+import type { JSXFragmentParent } from '../node-unions';
 import type { JsxMode } from './jsxHelpers';
 import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
 import { doNotDeoptimize, NodeBase } from './Node';
 
 export default class JSXElementBase<T extends AstNode> extends NodeBase<T> {
+	parent!: nodes.JSXElementParent | JSXFragmentParent;
 	children!: nodes.JSXChild[];
 
 	protected factoryVariable: Variable | null = null;

@@ -5,10 +5,12 @@ import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type ChildScope from '../scopes/ChildScope';
 import type Variable from '../variables/Variable';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 
 export default class ClassDeclaration extends ClassNode<ast.ClassDeclaration> {
+	parent!: nodes.ClassDeclarationParent;
 	id!: IdentifierWithVariable | null;
 	type!: NodeType.tClassDeclaration;
 

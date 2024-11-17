@@ -7,6 +7,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class JSXMemberExpression extends NodeBase<ast.JSXMemberExpression> {
+	parent!: nodes.JSXMemberExpressionParent;
 	type!: NodeType.tJSXMemberExpression;
 	object!: nodes.JSXTagNameExpression;
 	property!: JSXIdentifier;

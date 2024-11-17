@@ -1,6 +1,7 @@
 import type { ast } from '../../rollup/types';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
@@ -10,6 +11,7 @@ import {
 } from './shared/Node';
 
 export default class ContinueStatement extends NodeBase<ast.ContinueStatement> {
+	parent!: nodes.ContinueStatementParent;
 	label!: Identifier | null;
 	type!: NodeType.tContinueStatement;
 

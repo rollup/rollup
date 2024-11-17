@@ -14,6 +14,7 @@ import { type IncludeChildren, NodeBase } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ForOfStatement extends NodeBase<ast.ForOfStatement> {
+	parent!: nodes.ForOfStatementParent;
 	body!: nodes.Statement;
 	left!: VariableDeclaration | nodes.DestructuringPattern;
 	right!: nodes.Expression;

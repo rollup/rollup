@@ -29,6 +29,7 @@ import ObjectPattern from './ObjectPattern';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class AssignmentExpression extends NodeBase<ast.AssignmentExpression> {
+	parent!: nodes.AssignmentExpressionParent;
 	left!: nodes.DestructuringPattern;
 	operator!: ast.AssignmentExpression['operator'];
 	right!: nodes.Expression;

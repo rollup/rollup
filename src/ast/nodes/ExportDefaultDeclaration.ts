@@ -42,6 +42,7 @@ function getFunctionIdInsertPosition(code: string, start: number): number {
 }
 
 export default class ExportDefaultDeclaration extends NodeBase<ast.ExportDefaultDeclaration> {
+	parent!: nodes.ExportDefaultDeclarationParent;
 	declaration!: FunctionDeclaration | ClassDeclaration | nodes.Expression;
 	needsBoundaries!: true;
 	scope!: ModuleScope;

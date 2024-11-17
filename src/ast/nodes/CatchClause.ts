@@ -9,6 +9,7 @@ import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class CatchClause extends NodeBase<ast.CatchClause> {
+	parent!: nodes.CatchClauseParent;
 	body!: BlockStatement;
 	param!: nodes.BindingPattern | null;
 	preventChildBlockScope!: true;

@@ -17,6 +17,7 @@ import {
 } from './shared/Node';
 
 export default class SwitchCase extends NodeBase<ast.SwitchCase> {
+	parent!: nodes.SwitchCaseParent;
 	consequent!: readonly nodes.Statement[];
 	needsBoundaries!: true;
 	test!: nodes.Expression | null;

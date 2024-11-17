@@ -12,6 +12,7 @@ import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
@@ -26,6 +27,7 @@ export default class Identifier
 	extends IdentifierBase<ast.Identifier>
 	implements DeclarationPatternNode
 {
+	parent!: nodes.IdentifierParent;
 	name!: string;
 	type!: NodeType.tIdentifier;
 	variable: Variable | null = null;

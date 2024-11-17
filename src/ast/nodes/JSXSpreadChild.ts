@@ -6,6 +6,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class JSXSpreadChild extends NodeBase<ast.JSXSpreadChild> {
+	parent!: nodes.JSXSpreadChildParent;
 	type!: NodeType.tJSXSpreadChild;
 	expression!: nodes.Expression;
 

@@ -13,6 +13,7 @@ import type * as NodeType from './NodeType';
 import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class LabeledStatement extends NodeBase<ast.LabeledStatement> {
+	parent!: nodes.LabeledStatementParent;
 	body!: nodes.Statement;
 	label!: Identifier;
 	type!: NodeType.tLabeledStatement;

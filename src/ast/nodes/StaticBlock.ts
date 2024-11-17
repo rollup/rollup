@@ -18,6 +18,7 @@ import {
 } from './shared/Node';
 
 export default class StaticBlock extends NodeBase<ast.StaticBlock> {
+	parent!: nodes.StaticBlockParent;
 	body!: readonly nodes.Statement[];
 	type!: NodeType.tStaticBlock;
 

@@ -11,6 +11,7 @@ import {
 } from './shared/Node';
 
 export default class DoWhileStatement extends NodeBase<ast.DoWhileStatement> {
+	parent!: nodes.DoWhileStatementParent;
 	body!: nodes.Statement;
 	test!: nodes.Expression;
 	type!: NodeType.tDoWhileStatement;

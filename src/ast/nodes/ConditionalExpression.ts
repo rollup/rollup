@@ -27,6 +27,7 @@ export default class ConditionalExpression
 	extends NodeBase<ast.ConditionalExpression>
 	implements DeoptimizableEntity
 {
+	parent!: nodes.ConditionalExpressionParent;
 	alternate!: nodes.Expression;
 	consequent!: nodes.Expression;
 	test!: nodes.Expression;

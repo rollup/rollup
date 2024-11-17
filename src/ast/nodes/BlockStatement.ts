@@ -18,6 +18,7 @@ import {
 } from './shared/Node';
 
 export default class BlockStatement extends NodeBase<ast.BlockStatement> {
+	parent!: nodes.BlockStatementParent;
 	body!: readonly nodes.Statement[];
 	type!: NodeType.tBlockStatement;
 

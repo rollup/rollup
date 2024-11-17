@@ -2,6 +2,7 @@ import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type BlockStatement from './BlockStatement';
 import type CatchClause from './CatchClause';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
@@ -12,6 +13,7 @@ import {
 } from './shared/Node';
 
 export default class TryStatement extends NodeBase<ast.TryStatement> {
+	parent!: nodes.TryStatementParent;
 	block!: BlockStatement;
 	finalizer!: BlockStatement | null;
 	handler!: CatchClause | null;

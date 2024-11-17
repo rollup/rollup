@@ -8,6 +8,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class JSXOpeningElement extends NodeBase<ast.JSXOpeningElement> {
+	parent!: nodes.JSXOpeningElementParent;
 	type!: NodeType.tJSXOpeningElement;
 	name!: nodes.JSXTagNameExpression;
 	attributes!: (JSXAttribute | JSXSpreadAttribute)[];

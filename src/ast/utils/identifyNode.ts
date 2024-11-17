@@ -11,6 +11,7 @@ import type Property from '../nodes/Property';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { ExpressionNode } from '../nodes/shared/Node';
 import { NodeBase } from '../nodes/shared/Node';
+
 export function isObjectExpressionNode(node: ExpressionEntity): node is ObjectExpression {
 	return node instanceof NodeBase && node.type === nodeType.ObjectExpression;
 }

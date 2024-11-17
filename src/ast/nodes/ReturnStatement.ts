@@ -9,6 +9,7 @@ import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ReturnStatement extends NodeBase<ast.ReturnStatement> {
+	parent!: nodes.ReturnStatementParent;
 	argument!: nodes.Expression | null;
 	type!: NodeType.tReturnStatement;
 

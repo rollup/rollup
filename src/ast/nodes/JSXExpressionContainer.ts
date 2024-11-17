@@ -9,6 +9,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class JSXExpressionContainer extends NodeBase<ast.JSXExpressionContainer> {
+	parent!: nodes.JSXExpressionContainerParent;
 	type!: NodeType.tJSXExpressionContainer;
 	expression!: nodes.Expression | JSXEmptyExpression;
 

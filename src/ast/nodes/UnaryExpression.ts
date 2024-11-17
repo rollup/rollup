@@ -42,6 +42,7 @@ const unaryOperators: Record<
 const UNASSIGNED = Symbol('Unassigned');
 
 export default class UnaryExpression extends NodeBase<ast.UnaryExpression> {
+	parent!: nodes.UnaryExpressionParent;
 	argument!: nodes.Expression;
 	operator!: ast.UnaryExpression['operator'];
 	type!: NodeType.tUnaryExpression;

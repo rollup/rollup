@@ -17,6 +17,7 @@ import {
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import Literal from './Literal';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
@@ -30,6 +31,7 @@ export default class ObjectExpression
 	extends NodeBase<ast.ObjectExpression>
 	implements DeoptimizableEntity
 {
+	parent!: nodes.ObjectExpressionParent;
 	properties!: readonly (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;

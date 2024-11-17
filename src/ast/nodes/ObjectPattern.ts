@@ -8,6 +8,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import type RestElement from './RestElement';
@@ -20,6 +21,7 @@ export default class ObjectPattern
 	extends NodeBase<ast.ObjectPattern>
 	implements DeclarationPatternNode
 {
+	parent!: nodes.ObjectPatternParent;
 	properties!: readonly (Property | RestElement)[];
 	type!: NodeType.tObjectPattern;
 
