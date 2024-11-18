@@ -23,7 +23,7 @@ export default class TemplateElement extends NodeBase {
 		return false;
 	}
 
-	includePath(): void {
+	include(): void {
 		this.included = true;
 	}
 

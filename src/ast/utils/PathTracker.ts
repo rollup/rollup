@@ -1,8 +1,5 @@
-import { EMPTY_OBJECT } from '../../utils/blank';
 import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { Entity } from '../Entity';
-import type { InclusionContext } from '../ExecutionContext';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
 
 export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
@@ -37,7 +34,7 @@ interface EntityPaths {
 	[UnknownNonAccessorKey]?: EntityPaths;
 }
 
-export class EntityPathTracker {
+export class PathTracker {
 	private entityPaths: EntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Set<Entity>() }
 	});
@@ -66,15 +63,15 @@ export class EntityPathTracker {
 	private getEntities(path: ObjectPath): Set<Entity> {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
-			currentPaths = currentPaths[pathSegment] ||= Object.create(null, {
-				[EntitiesKey]: { value: new Set<Entity>() }
-			});
+			currentPaths = currentPaths[pathSegment] =
+				currentPaths[pathSegment] ||
+				Object.create(null, { [EntitiesKey]: { value: new Set<Entity>() } });
 		}
 		return currentPaths[EntitiesKey];
 	}
 }
 
-export const SHARED_RECURSION_TRACKER = new EntityPathTracker();
+export const SHARED_RECURSION_TRACKER = new PathTracker();
 
 interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;
@@ -97,9 +94,9 @@ export class DiscriminatedPathTracker {
 	): boolean {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
-			currentPaths = currentPaths[pathSegment] ||= Object.create(null, {
-				[EntitiesKey]: { value: new Map<unknown, Set<unknown>>() }
-			});
+			currentPaths = currentPaths[pathSegment] =
+				currentPaths[pathSegment] ||
+				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<unknown>>() } });
 		}
 		const trackedEntities = getOrCreate(
 			currentPaths[EntitiesKey],
@@ -109,67 +106,5 @@ export class DiscriminatedPathTracker {
 		if (trackedEntities.has(entity)) return true;
 		trackedEntities.add(entity);
 		return false;
-	}
-}
-
-interface IncludedPaths {
-	[pathSegment: string]: IncludedPaths;
-	[UnknownKey]?: IncludedPaths;
-}
-
-const UNKNOWN_INCLUDED_PATH: IncludedPaths = Object.freeze({ [UnknownKey]: EMPTY_OBJECT });
-
-export class IncludedPathTracker {
-	private includedPaths: IncludedPaths | null = null;
-
-	includePathAndGetIfIncluded(path: ObjectPath): boolean {
-		let included = true;
-		let parent = this as unknown as IncludedPaths;
-		let parentSegment = 'includedPaths';
-		let currentPaths: IncludedPaths = (this.includedPaths ||=
-			((included = false), Object.create(null)));
-		for (const pathSegment of path) {
-			// This means from here, all paths are included
-			if (currentPaths[UnknownKey]) {
-				return true;
-			}
-			// Including UnknownKey automatically includes all nested paths.
-			// From above, we know that UnknownKey is not included yet.
-			if (typeof pathSegment === 'symbol') {
-				// Hopefully, this saves some memory over just setting
-				// currentPaths[UnknownKey] = EMPTY_OBJECT
-				parent[parentSegment] = UNKNOWN_INCLUDED_PATH;
-				return false;
-			}
-			parent = currentPaths;
-			parentSegment = pathSegment;
-			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
-		}
-		return included;
-	}
-
-	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath) {
-		const { includedPaths } = this;
-		if (includedPaths) {
-			includeAllPaths(entity, context, basePath, includedPaths);
-		}
-	}
-}
-
-function includeAllPaths(
-	entity: ExpressionEntity,
-	context: InclusionContext,
-	basePath: ObjectPath,
-	currentPaths: IncludedPaths
-): void {
-	if (currentPaths[UnknownKey]) {
-		return entity.includePath([...basePath, UnknownKey], context, false);
-	}
-	const keys = Object.keys(currentPaths);
-	if (keys.length === 0) {
-		return entity.includePath(basePath, context, false);
-	}
-	for (const key of keys) {
-		includeAllPaths(entity, context, [...basePath, key], currentPaths[key]);
 	}
 }

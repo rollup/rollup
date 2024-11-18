@@ -5,8 +5,6 @@ import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import GlobalVariable from '../variables/GlobalVariable';
@@ -22,7 +20,7 @@ export default class ModuleScope extends ChildScope {
 		super(parent, context);
 		this.variables.set(
 			'this',
-			new LocalVariable('this', null, UNDEFINED_EXPRESSION, EMPTY_PATH, context, 'other')
+			new LocalVariable('this', null, UNDEFINED_EXPRESSION, context, 'other')
 		);
 	}
 
@@ -30,13 +28,12 @@ export default class ModuleScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		if (this.context.module.importDescriptions.has(identifier.name)) {
 			context.error(logRedeclarationError(identifier.name), identifier.start);
 		}
-		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);
+		return super.addDeclaration(identifier, context, init, kind);
 	}
 
 	addExportDefaultDeclaration(

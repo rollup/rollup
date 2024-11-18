@@ -1,7 +1,7 @@
 import type ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type CallExpression from '../nodes/CallExpression';
@@ -112,9 +112,9 @@ export default class Variable extends ExpressionEntity {
 	 * has not been included previously. Once a variable is included, it should
 	 * take care all its declarations are included.
 	 */
-	includePath(path: ObjectPath, context: InclusionContext): void {
+	include(): void {
 		this.included = true;
-		this.renderedLikeHoisted?.includePath(path, context);
+		this.renderedLikeHoisted?.include();
 	}
 
 	/**

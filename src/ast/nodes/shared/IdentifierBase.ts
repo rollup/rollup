@@ -11,11 +11,12 @@ import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../../NodeInteractions';
-import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { EMPTY_PATH } from '../../utils/PathTracker';
 import GlobalVariable from '../../variables/GlobalVariable';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
+import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
@@ -44,7 +45,7 @@ export default class IdentifierBase extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		this.variable!.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 	}
@@ -60,7 +61,7 @@ export default class IdentifierBase extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getVariableRespectingTDZ()!.getLiteralValueAtPath(path, recursionTracker, origin);
@@ -69,7 +70,7 @@ export default class IdentifierBase extends NodeBase {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const [expression, isPure] =
@@ -127,20 +128,21 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	includePath(path: ObjectPath, context: InclusionContext): void {
+	include(): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.scope.context.includeVariableInModule(this.variable, path);
+				this.scope.context.includeVariableInModule(this.variable);
 			}
-		} else if (path.length > 0) {
-			this.variable?.includePath(path, context);
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		this.variable!.includeCallArguments(context, interaction);
+	includeCallArguments(
+		context: InclusionContext,
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
+	): void {
+		this.variable!.includeCallArguments(context, parameters);
 	}
 
 	isPossibleTDZ(): boolean {

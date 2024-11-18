@@ -12,10 +12,8 @@ import {
 	getSystemExportStatement,
 	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
-import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
@@ -59,8 +57,7 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	includePath(
-		_path: ObjectPath,
+	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		{ asSingleStatement }: InclusionOptions = BLANK
@@ -68,10 +65,10 @@ export default class VariableDeclaration extends NodeBase {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
-				declarator.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				declarator.include(context, includeChildrenRecursively);
 			const { id, init } = declarator;
 			if (asSingleStatement) {
-				id.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+				id.include(context, includeChildrenRecursively);
 			}
 			if (
 				init &&
@@ -79,7 +76,7 @@ export default class VariableDeclaration extends NodeBase {
 				!init.included &&
 				(id instanceof ObjectPattern || id instanceof ArrayPattern)
 			) {
-				init.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+				init.include(context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -186,7 +183,8 @@ export default class VariableDeclaration extends NodeBase {
 		);
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
-				treeshakeNode(node, code, start, end);
+				code.remove(start, end);
+				node.removeAnnotations(code);
 				continue;
 			}
 			node.render(code, options);

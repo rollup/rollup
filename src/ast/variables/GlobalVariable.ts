@@ -9,7 +9,7 @@ import {
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import { UnknownValue } from '../nodes/shared/Expression';
 import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
-import { type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
@@ -23,7 +23,7 @@ export default class GlobalVariable extends Variable {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	) {
 		switch (interaction.type) {
 			// While there is no point in testing these cases as at the moment, they
@@ -49,7 +49,7 @@ export default class GlobalVariable extends Variable {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		_recursionTracker: EntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const globalAtPath = getGlobalAtPath([this.name, ...path]);

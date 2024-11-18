@@ -1,31 +1,23 @@
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
-import {
-	EMPTY_PATH,
-	type EntityPathTracker,
-	type ObjectPath,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
+import type { ExpressionEntity } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
-import type { DeclarationPatternNode } from './Pattern';
+import type { PatternNode } from './Pattern';
 
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
-	declare params: DeclarationPatternNode[];
+	declare params: PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;
@@ -36,18 +28,18 @@ export default class FunctionNode extends FunctionBase {
 		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.
-		this.scope.thisVariable.addArgumentValue(this.constructedEntity);
+		this.scope.thisVariable.addEntityToBeDeoptimized(this.constructedEntity);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.args[0]) {
 			// args[0] is the "this" argument
-			this.scope.thisVariable.addArgumentValue(interaction.args[0]);
+			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.args[0]);
 		}
 	}
 
@@ -98,24 +90,24 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		super.includePath(path, context, includeChildrenRecursively);
-		this.id?.includePath(UNKNOWN_PATH, createInclusionContext());
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		super.include(context, includeChildrenRecursively);
+		this.id?.include();
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {
-				parameter.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				parameter.include(context, includeChildrenRecursively);
 			}
 		}
 	}
 
 	initialise(): void {
 		super.initialise();
-		this.id?.declare('function', EMPTY_PATH, this);
+		this.id?.declare('function', this);
+	}
+
+	protected addArgumentToBeDeoptimized(argument: ExpressionEntity) {
+		this.scope.argumentsVariable.addArgumentToBeDeoptimized(argument);
 	}
 
 	protected getObjectEntity(): ObjectEntity {

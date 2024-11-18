@@ -1,9 +1,8 @@
 import type ExternalModule from '../../ExternalModule';
-import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
-import { type ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
@@ -28,8 +27,8 @@ export default class ExternalVariable extends Variable {
 		return type !== INTERACTION_ACCESSED || path.length > (this.isNamespace ? 1 : 0);
 	}
 
-	includePath(path: ObjectPath, context: InclusionContext): void {
-		super.includePath(path, context);
+	include(): void {
+		super.include();
 		this.module.used = true;
 	}
 }

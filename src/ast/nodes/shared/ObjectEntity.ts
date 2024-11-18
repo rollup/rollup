@@ -1,10 +1,9 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
-import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
+import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
 import {
-	EMPTY_PATH,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
@@ -21,7 +20,6 @@ import {
 	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
-import type { IncludeChildren } from './Node';
 
 export interface ObjectProperty {
 	key: ObjectPathKey;
@@ -67,7 +65,6 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly unknownIntegerProps: ExpressionEntity[] = [];
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
-	private readonly unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
 	// If a PropertyMap is used, this will be taken as propertiesAndGettersByKey
@@ -114,7 +111,7 @@ export class ObjectEntity extends ExpressionEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		const [key, ...subPath] = path;
 		const { args, type } = interaction;
@@ -252,7 +249,7 @@ export class ObjectEntity extends ExpressionEntity {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
@@ -275,7 +272,7 @@ export class ObjectEntity extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
@@ -352,40 +349,6 @@ export class ObjectEntity extends ExpressionEntity {
 		return false;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
-		this.included = true;
-		const [key, ...subPath] = path;
-		if (key == null || includeChildrenRecursively) {
-			for (const property of this.allProperties) {
-				if (includeChildrenRecursively || property.shouldBeIncluded(context)) {
-					property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-				}
-			}
-			this.prototypeExpression?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-		} else {
-			const [includedMembers, includedPath] =
-				typeof key === 'string'
-					? [
-							[
-								...new Set([
-									...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-									...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
-								])
-							],
-							subPath
-						]
-					: [this.allProperties, UNKNOWN_PATH];
-			for (const property of includedMembers) {
-				property.includePath(includedPath, context, includeChildrenRecursively);
-			}
-			this.prototypeExpression?.includePath(path, context, includeChildrenRecursively);
-		}
-	}
-
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
 		const {
 			allProperties,
@@ -395,10 +358,10 @@ export class ObjectEntity extends ExpressionEntity {
 			gettersByKey,
 			unknownIntegerProps,
 			unmatchablePropertiesAndGetters,
-			unmatchablePropertiesAndSetters,
 			unmatchableGetters,
 			unmatchableSetters
 		} = this;
+		const unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);

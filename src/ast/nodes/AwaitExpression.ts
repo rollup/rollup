@@ -1,5 +1,4 @@
 import type { InclusionContext } from '../ExecutionContext';
-import { type ObjectPath } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -14,11 +13,7 @@ export default class AwaitExpression extends NodeBase {
 		return true;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
@@ -31,6 +26,6 @@ export default class AwaitExpression extends NodeBase {
 				this.scope.context.usesTopLevelAwait = true;
 			}
 		}
-		this.argument.includePath(path, context, includeChildrenRecursively);
+		this.argument.include(context, includeChildrenRecursively);
 	}
 }

@@ -10,7 +10,9 @@
 	const foo = {
 		get effect () {
 			console.log( 'effect' );
-		}};
+		},
+		get noEffect () {}
+	};
 
 	// effect
 	(foo).effect;

@@ -3,7 +3,7 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../../NodeInteractions';
-import { type EntityPathTracker, type ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -22,7 +22,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		const { args } = interaction;
 		const [returnExpression, isPure] = this.getReturnExpression(recursionTracker);
@@ -84,7 +84,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const [returnExpression] = this.getReturnExpression(recursionTracker);
@@ -105,7 +105,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const returnExpression = this.getReturnExpression(recursionTracker);
@@ -162,6 +162,6 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	}
 
 	protected abstract getReturnExpression(
-		recursionTracker?: EntityPathTracker
+		recursionTracker?: PathTracker
 	): [expression: ExpressionEntity, isPure: boolean];
 }

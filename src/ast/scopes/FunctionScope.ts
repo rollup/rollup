@@ -1,7 +1,6 @@
 import type { InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionCalled } from '../NodeInteractions';
+import type SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
 import type ChildScope from './ChildScope';
@@ -12,8 +11,8 @@ export default class FunctionScope extends ReturnValueScope {
 	readonly thisVariable: ThisVariable;
 
 	constructor(parent: ChildScope) {
-		super(parent, false);
 		const { context } = parent;
+		super(parent, false);
 		this.variables.set('arguments', (this.argumentsVariable = new ArgumentsVariable(context)));
 		this.variables.set('this', (this.thisVariable = new ThisVariable(context)));
 	}
@@ -22,17 +21,17 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		super.includeCallArguments(context, interaction);
+	includeCallArguments(
+		context: InclusionContext,
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
+	): void {
+		super.includeCallArguments(context, parameters);
 		if (this.argumentsVariable.included) {
-			const { args } = interaction;
-			for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
-				args[argumentIndex]?.includePath(UNKNOWN_PATH, context, false);
+			for (const argument of parameters) {
+				if (!argument.included) {
+					argument.include(context, false);
+				}
 			}
 		}
-	}
-
-	protected addArgumentToBeDeoptimized(argument: ExpressionEntity) {
-		this.argumentsVariable.addArgumentToBeDeoptimized(argument);
 	}
 }

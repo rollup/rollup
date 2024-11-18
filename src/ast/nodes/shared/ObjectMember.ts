@@ -1,13 +1,13 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
-import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
 export class ObjectMember extends ExpressionEntity {
 	constructor(
 		private readonly object: ExpressionEntity,
-		private readonly path: ObjectPath
+		private readonly key: string
 	) {
 		super();
 	}
@@ -15,35 +15,35 @@ export class ObjectMember extends ExpressionEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		this.object.deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
-			[...this.path, ...path],
+			[this.key, ...path],
 			recursionTracker
 		);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		this.object.deoptimizePath([...this.path, ...path]);
+		this.object.deoptimizePath([this.key, ...path]);
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return this.object.getLiteralValueAtPath([...this.path, ...path], recursionTracker, origin);
+		return this.object.getLiteralValueAtPath([this.key, ...path], recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.object.getReturnExpressionWhenCalledAtPath(
-			[...this.path, ...path],
+			[this.key, ...path],
 			interaction,
 			recursionTracker,
 			origin
@@ -55,6 +55,6 @@ export class ObjectMember extends ExpressionEntity {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.object.hasEffectsOnInteractionAtPath([...this.path, ...path], interaction, context);
+		return this.object.hasEffectsOnInteractionAtPath([this.key, ...path], interaction, context);
 	}
 }
