@@ -2,8 +2,8 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	UNKNOWN_PATH,
 	UnknownInteger
 } from '../utils/PathTracker';
@@ -23,7 +23,7 @@ export default class ArrayExpression extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -38,7 +38,7 @@ export default class ArrayExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
@@ -47,7 +47,7 @@ export default class ArrayExpression extends NodeBase {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(

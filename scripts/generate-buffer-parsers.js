@@ -178,6 +178,7 @@ import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
 import type ModuleScope from './scopes/ModuleScope';
 import TrackingScope from './scopes/TrackingScope';
+import { EMPTY_PATH } from './utils/PathTracker';
 import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(

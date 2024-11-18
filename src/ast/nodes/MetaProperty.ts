@@ -46,7 +46,7 @@ export default class MetaProperty extends NodeBase {
 		return path.length > 1 || type !== INTERACTION_ACCESSED;
 	}
 
-	include(): void {
+	includePath(): void {
 		if (!this.included) {
 			this.included = true;
 			if (this.meta.name === IMPORT) {

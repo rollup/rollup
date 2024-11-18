@@ -1,6 +1,6 @@
 import type { Entity } from './Entity';
 import type { ExpressionEntity } from './nodes/shared/Expression';
-import { DiscriminatedPathTracker, PathTracker } from './utils/PathTracker';
+import { DiscriminatedPathTracker, EntityPathTracker } from './utils/PathTracker';
 import type ThisVariable from './variables/ThisVariable';
 
 interface ExecutionContextIgnore {
@@ -23,8 +23,8 @@ export interface InclusionContext extends ControlFlowContext {
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
-	accessed: PathTracker;
-	assigned: PathTracker;
+	accessed: EntityPathTracker;
+	assigned: EntityPathTracker;
 	brokenFlow: boolean;
 	called: DiscriminatedPathTracker;
 	ignore: ExecutionContextIgnore;
@@ -44,8 +44,8 @@ export function createInclusionContext(): InclusionContext {
 
 export function createHasEffectsContext(): HasEffectsContext {
 	return {
-		accessed: new PathTracker(),
-		assigned: new PathTracker(),
+		accessed: new EntityPathTracker(),
+		assigned: new EntityPathTracker(),
 		brokenFlow: false,
 		called: new DiscriminatedPathTracker(),
 		hasBreak: false,

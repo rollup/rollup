@@ -3,6 +3,7 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -49,14 +50,18 @@ export default class BlockStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!(this.deoptimizeBody && this.directlyIncluded)) {
 			this.included = true;
 			this.directlyIncluded = true;
 			if (this.deoptimizeBody) includeChildrenRecursively = true;
 			for (const node of this.body) {
 				if (includeChildrenRecursively || node.shouldBeIncluded(context))
-					node.include(context, includeChildrenRecursively);
+					node.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}

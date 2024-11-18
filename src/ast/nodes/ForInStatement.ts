@@ -3,11 +3,11 @@ import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import { EMPTY_PATH } from '../utils/PathTracker';
-import type MemberExpression from './MemberExpression';
+import type { ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import type VariableDeclaration from './VariableDeclaration';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
@@ -15,11 +15,11 @@ import {
 	type StatementNode
 } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
-import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
+import type VariableDeclaration from './VariableDeclaration';
 
 export default class ForInStatement extends StatementBase {
 	declare body: StatementNode;
-	declare left: VariableDeclaration | PatternNode | MemberExpression;
+	declare left: VariableDeclaration | PatternNode;
 	declare right: ExpressionNode;
 	declare type: NodeType.tForInStatement;
 
@@ -34,12 +34,16 @@ export default class ForInStatement extends StatementBase {
 		return hasLoopBodyEffects(context, body);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
-		right.include(context, includeChildrenRecursively);
+		right.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		includeLoopBody(context, body, includeChildrenRecursively);
 	}
 
