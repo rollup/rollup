@@ -2,16 +2,17 @@ import type MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { AstNode, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
-import type { PluginDriver } from '../../utils/PluginDriver';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
+import type { PluginDriver } from '../../utils/PluginDriver';
 import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
+import { type ObjectPath, UnknownKey } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import AwaitExpression from './AwaitExpression';
@@ -22,13 +23,13 @@ import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import VariableDeclarator from './VariableDeclarator';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase
 } from './shared/Node';
+import VariableDeclarator from './VariableDeclarator';
 
 interface DynamicImportMechanism {
 	left: string;
@@ -42,6 +43,8 @@ export default class ImportExpression extends NodeBase {
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;
 
+	private hasUnknownAccessedKey = false;
+	private accessedPropKey = new Set<string>();
 	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
@@ -79,12 +82,15 @@ export default class ImportExpression extends NodeBase {
 				return EMPTY_ARRAY;
 			}
 
-			// Case 1: const { foo } = await import('bar')
+			// Case 1: const { foo } / module = await import('bar')
 			if (parent2 instanceof VariableDeclarator) {
 				const declaration = parent2.id;
-				return declaration instanceof ObjectPattern
-					? getDeterministicObjectDestructure(declaration)
-					: undefined;
+				if (declaration instanceof Identifier) {
+					return this.hasUnknownAccessedKey ? undefined : [...this.accessedPropKey];
+				}
+				if (declaration instanceof ObjectPattern) {
+					return getDeterministicObjectDestructure(declaration);
+				}
 			}
 
 			// Case 2: (await import('bar')).foo
@@ -151,13 +157,25 @@ export default class ImportExpression extends NodeBase {
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.included) {
 			this.included = true;
 			this.scope.context.includeDynamicImport(this);
 			this.scope.addAccessedDynamicImport(this);
+			this.source.includePath(path, context, includeChildrenRecursively);
 		}
-		this.source.include(context, includeChildrenRecursively);
+		if (this.hasUnknownAccessedKey) return;
+		if (path[0] === UnknownKey) {
+			this.hasUnknownAccessedKey = true;
+			this.scope.context.includeDynamicImport(this);
+		} else if (typeof path[0] === 'string') {
+			this.accessedPropKey.add(path[0]);
+			this.scope.context.includeDynamicImport(this);
+		}
 	}
 
 	initialise(): void {

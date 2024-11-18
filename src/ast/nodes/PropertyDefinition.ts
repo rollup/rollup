@@ -1,7 +1,7 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type Decorator from './Decorator';
 import type * as NodeType from './NodeType';
@@ -32,7 +32,7 @@ export default class PropertyDefinition extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.value?.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 	}
@@ -43,7 +43,7 @@ export default class PropertyDefinition extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.value
@@ -54,7 +54,7 @@ export default class PropertyDefinition extends NodeBase {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.value

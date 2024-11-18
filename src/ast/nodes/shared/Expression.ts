@@ -2,10 +2,9 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
-import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath, SymbolToStringTag } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
-import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { IncludeChildren } from './Node';
 
@@ -39,7 +38,7 @@ export class ExpressionEntity implements WritableEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		_path: ObjectPath,
-		_recursionTracker: PathTracker
+		_recursionTracker: EntityPathTracker
 	): void {
 		deoptimizeInteraction(interaction);
 	}
@@ -53,7 +52,7 @@ export class ExpressionEntity implements WritableEntity {
 	 */
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: PathTracker,
+		_recursionTracker: EntityPathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UnknownValue;
@@ -62,7 +61,7 @@ export class ExpressionEntity implements WritableEntity {
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_interaction: NodeInteractionCalled,
-		_recursionTracker: PathTracker,
+		_recursionTracker: EntityPathTracker,
 		_origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return UNKNOWN_RETURN_EXPRESSION;
@@ -76,7 +75,8 @@ export class ExpressionEntity implements WritableEntity {
 		return true;
 	}
 
-	include(
+	includePath(
+		_path: ObjectPath,
 		_context: InclusionContext,
 		_includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
@@ -84,12 +84,9 @@ export class ExpressionEntity implements WritableEntity {
 		this.included = true;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		for (const argument of parameters) {
-			argument.include(context, false);
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+		for (const argument of interaction.args) {
+			argument?.includePath(UNKNOWN_PATH, context, false);
 		}
 	}
 
