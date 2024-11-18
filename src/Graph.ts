@@ -1,6 +1,6 @@
 import flru from 'flru';
 import GlobalScope from './ast/scopes/GlobalScope';
-import { PathTracker } from './ast/utils/PathTracker';
+import { EntityPathTracker } from './ast/utils/PathTracker';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -54,7 +54,7 @@ function normalizeEntryModules(
 export default class Graph {
 	readonly astLru = flru<ProgramNode>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
-	readonly deoptimizationTracker = new PathTracker();
+	readonly deoptimizationTracker = new EntityPathTracker();
 	entryModules: Module[] = [];
 	readonly fileOperationQueue: Queue;
 	readonly moduleLoader: ModuleLoader;

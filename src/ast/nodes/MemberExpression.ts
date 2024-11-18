@@ -7,18 +7,24 @@ import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createHasEffectsContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
 	NodeInteractionAssigned,
 	NodeInteractionCalled
 } from '../NodeInteractions';
-import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	NODE_INTERACTION_UNKNOWN_ACCESS
+} from '../NodeInteractions';
+import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
 	type ObjectPathKey,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	SymbolToStringTag,
 	UNKNOWN_PATH,
@@ -33,9 +39,8 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
-import type SpreadElement from './SpreadElement';
-import type Super from './Super';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
@@ -45,10 +50,8 @@ import {
 } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
-import { getChainElementLiteralValueAtPath } from './shared/chainElements';
-
-// To avoid infinite recursions
-const MAX_PATH_DEPTH = 7;
+import type { PatternNode } from './shared/Pattern';
+import type Super from './Super';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -95,7 +98,7 @@ function getStringFromPath(path: PathWithPositions): string {
 
 export default class MemberExpression
 	extends NodeBase
-	implements DeoptimizableEntity, ChainElement
+	implements DeoptimizableEntity, ChainElement, PatternNode
 {
 	declare object: ExpressionNode | Super;
 	declare property: ExpressionNode | PrivateIdentifier;
@@ -167,7 +170,7 @@ export default class MemberExpression
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		if (this.variable) {
 			this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
@@ -184,6 +187,11 @@ export default class MemberExpression
 		}
 	}
 
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity) {
+		this.deoptimizePath(EMPTY_PATH);
+		init.deoptimizePath([...destructuredInitPath, UnknownKey]);
+	}
+
 	deoptimizeCache(): void {
 		const { expressionsToBeDeoptimized, object } = this;
 		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
@@ -198,18 +206,20 @@ export default class MemberExpression
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
-		} else if (!this.isUndefined && path.length < MAX_PATH_DEPTH) {
+		} else if (!this.isUndefined) {
 			const propertyKey = this.getPropertyKey();
 			this.object.deoptimizePath([
 				propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
-				...path
+				...(path.length < MAX_PATH_DEPTH
+					? path
+					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
 			]);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.variable) {
@@ -231,7 +241,7 @@ export default class MemberExpression
 
 	getLiteralValueAtPathAsChainElement(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
 		if (this.variable) {
@@ -246,7 +256,7 @@ export default class MemberExpression
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.variable) {
@@ -331,9 +341,38 @@ export default class MemberExpression
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return (
+			destructuredInitPath.length > 0 &&
+			init.hasEffectsOnInteractionAtPath(
+				destructuredInitPath,
+				NODE_INTERACTION_UNKNOWN_ACCESS,
+				context
+			)
+		);
+	}
+
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties(context, includeChildrenRecursively);
+		this.includeProperties(
+			path,
+			[
+				this.getPropertyKey(),
+				...(path.length < MAX_PATH_DEPTH
+					? path
+					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
+			],
+			context,
+			includeChildrenRecursively
+		);
 	}
 
 	includeAsAssignmentTarget(
@@ -343,21 +382,44 @@ export default class MemberExpression
 	): void {
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
-			this.include(context, includeChildrenRecursively);
+			this.includePath([this.getPropertyKey()], context, includeChildrenRecursively);
 		} else {
-			this.includeProperties(context, includeChildrenRecursively);
+			this.includeProperties(
+				EMPTY_PATH,
+				[this.getPropertyKey()],
+				context,
+				includeChildrenRecursively
+			);
 		}
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, parameters);
+			this.variable.includeCallArguments(context, interaction);
 		} else {
-			super.includeCallArguments(context, parameters);
+			super.includeCallArguments(context, interaction);
 		}
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		if (
+			(this.included ||=
+				destructuredInitPath.length > 0 &&
+				!context.brokenFlow &&
+				init.hasEffectsOnInteractionAtPath(
+					destructuredInitPath,
+					NODE_INTERACTION_UNKNOWN_ACCESS,
+					createHasEffectsContext()
+				))
+		) {
+			init.includePath(destructuredInitPath, context, false);
+			return true;
+		}
+		return false;
 	}
 
 	initialise(): void {
@@ -449,7 +511,7 @@ export default class MemberExpression
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
 				if (this.variable) {
-					this.scope.context.includeVariableInModule(this.variable);
+					this.scope.context.includeVariableInModule(this.variable, UNKNOWN_PATH);
 				}
 				this.scope.context.log(
 					LOGLEVEL_WARN,
@@ -490,17 +552,21 @@ export default class MemberExpression
 	}
 
 	private includeProperties(
+		includedPath: ObjectPath,
+		objectPath: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable) {
-				this.scope.context.includeVariableInModule(this.variable);
+				this.scope.context.includeVariableInModule(this.variable, includedPath);
 			}
+		} else if (includedPath.length > 0) {
+			this.variable?.includePath(includedPath, context);
 		}
-		this.object.include(context, includeChildrenRecursively);
-		this.property.include(context, includeChildrenRecursively);
+		this.object.includePath(objectPath, context, includeChildrenRecursively);
+		this.property.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 }
 

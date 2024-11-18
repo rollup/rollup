@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
@@ -9,10 +9,10 @@ import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class AssignmentPattern extends NodeBase implements PatternNode {
+export default class AssignmentPattern extends NodeBase implements DeclarationPatternNode {
 	declare left: PatternNode;
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentPattern;
@@ -24,8 +24,16 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
 	}
 
-	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
-		return this.left.declare(kind, init);
+	declare(
+		kind: VariableKind,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[] {
+		return (this.left as DeclarationPatternNode).declare(kind, destructuredInitPath, init);
+	}
+
+	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
+		this.left.deoptimizeAssignment(destructuredInitPath, init);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -44,8 +52,36 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		);
 	}
 
+	hasEffectsWhenDestructuring(
+		context: HasEffectsContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		return this.left.hasEffectsWhenDestructuring(context, destructuredInitPath, init);
+	}
+
+	includeDestructuredIfNecessary(
+		context: InclusionContext,
+		destructuredInitPath: ObjectPath,
+		init: ExpressionEntity
+	): boolean {
+		let included =
+			this.left.includeDestructuredIfNecessary(context, destructuredInitPath, init) ||
+			this.included;
+		if ((included ||= this.right.shouldBeIncluded(context))) {
+			this.right.includePath(UNKNOWN_PATH, context, false);
+			if (!this.left.included) {
+				this.left.included = true;
+				// Unfortunately, we need to include the left side again now, so that
+				// any declared variables are properly included.
+				this.left.includeDestructuredIfNecessary(context, destructuredInitPath, init);
+			}
+		}
+		return (this.included = included);
+	}
+
 	markDeclarationReached(): void {
-		this.left.markDeclarationReached();
+		(this.left as DeclarationPatternNode).markDeclarationReached();
 	}
 
 	render(

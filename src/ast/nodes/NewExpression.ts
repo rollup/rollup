@@ -5,7 +5,12 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
@@ -36,15 +41,19 @@ export default class NewExpression extends NodeBase {
 		return path.length > 0 || type !== INTERACTION_ACCESSED;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.includePath(path, context, includeChildrenRecursively);
 		} else {
 			this.included = true;
-			this.callee.include(context, false);
+			this.callee.includePath(UNKNOWN_PATH, context, false);
 		}
-		this.callee.includeCallArguments(context, this.arguments);
+		this.callee.includeCallArguments(context, this.interaction);
 	}
 
 	initialise(): void {

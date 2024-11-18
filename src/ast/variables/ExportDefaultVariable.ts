@@ -5,6 +5,7 @@ import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier, { type IdentifierWithVariable } from '../nodes/Identifier';
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
 import type { NodeBase } from '../nodes/shared/Node';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
 import type Variable from './Variable';
@@ -12,7 +13,7 @@ import type Variable from './Variable';
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId = false;
 
-	private originalId: IdentifierWithVariable | null = null;
+	private readonly originalId: IdentifierWithVariable | null = null;
 	private originalVariable: Variable | null = null;
 
 	constructor(
@@ -20,7 +21,14 @@ export default class ExportDefaultVariable extends LocalVariable {
 		exportDefaultDeclaration: ExportDefaultDeclaration,
 		context: AstContext
 	) {
-		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration, context, 'other');
+		super(
+			name,
+			exportDefaultDeclaration,
+			exportDefaultDeclaration.declaration,
+			EMPTY_PATH,
+			context,
+			'other'
+		);
 		const declaration = exportDefaultDeclaration.declaration;
 		if (
 			(declaration instanceof FunctionDeclaration || declaration instanceof ClassDeclaration) &&

@@ -1,4 +1,4 @@
-const obj = { mutated: false, noEffect() {} };
+const obj = { mutated: false};
 
 function updateObj(target) {
 	target.mutated = true;
