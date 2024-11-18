@@ -1,3 +1,4 @@
+import type { ast } from '../../rollup/types';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -5,12 +6,17 @@ import { INTERACTION_ACCESSED, NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../No
 import { EMPTY_PATH, type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
+import type * as nodes from './node-unions';
+import type { UnaryExpressionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
-const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnknown> = {
+const unaryOperators: Record<
+	ast.UnaryExpression['operator'],
+	(value: LiteralValue) => LiteralValueOrUnknown
+> = {
 	'!': value => !value,
 	'+': value => +(value as NonNullable<LiteralValue>),
 	'-': value => -(value as NonNullable<LiteralValue>),
@@ -20,10 +26,11 @@ const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnkn
 	'~': value => ~(value as NonNullable<LiteralValue>)
 };
 
-export default class UnaryExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
-	declare type: NodeType.tUnaryExpression;
+export default class UnaryExpression extends NodeBase<ast.UnaryExpression> {
+	parent!: UnaryExpressionParent;
+	argument!: nodes.Expression;
+	operator!: ast.UnaryExpression['operator'];
+	type!: NodeType.tUnaryExpression;
 
 	get prefix(): boolean {
 		return isFlagSet(this.flags, Flag.prefix);

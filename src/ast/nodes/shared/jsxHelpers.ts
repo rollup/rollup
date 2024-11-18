@@ -2,13 +2,8 @@ import { createInclusionContext } from '../../ExecutionContext';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
-import type JSXElement from '../JSXElement';
-import type JSXExpressionContainer from '../JSXExpressionContainer';
-import type JSXFragment from '../JSXFragment';
 import type JSXOpeningElement from '../JSXOpeningElement';
 import type JSXOpeningFragment from '../JSXOpeningFragment';
-import type JSXSpreadChild from '../JSXSpreadChild';
-import type JSXText from '../JSXText';
 import type JSXElementBase from './JSXElementBase';
 
 export type JsxMode =
@@ -18,13 +13,12 @@ export type JsxMode =
 			importSource: string | null;
 	  }
 	| { mode: 'automatic'; factory: string; importSource: string };
-export type JSXChild = JSXText | JSXExpressionContainer | JSXElement | JSXFragment | JSXSpreadChild;
 
 export function getAndIncludeFactoryVariable(
 	factory: string,
 	preserve: boolean,
 	importSource: string | null,
-	node: JSXElementBase | JSXOpeningElement | JSXOpeningFragment
+	node: JSXElementBase<any> | JSXOpeningElement | JSXOpeningFragment
 ): Variable {
 	const [baseName, nestedName] = factory.split('.');
 	let factoryVariable: Variable;

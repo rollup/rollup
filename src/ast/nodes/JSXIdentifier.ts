@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
+import type { ast, NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type JSXMemberExpression from './JSXMemberExpression';
+import type { JSXIdentifierParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import IdentifierBase from './shared/IdentifierBase';
 
@@ -11,7 +11,8 @@ const enum IdentifierType {
 	Other
 }
 
-export default class JSXIdentifier extends IdentifierBase {
+export default class JSXIdentifier extends IdentifierBase<ast.JSXIdentifier> {
+	parent!: JSXIdentifierParent;
 	type!: NodeType.tJSXIdentifier;
 	name!: string;
 
@@ -57,16 +58,14 @@ export default class JSXIdentifier extends IdentifierBase {
 					: IdentifierType.NativeElementName;
 			}
 			case 'JSXMemberExpression': {
-				return (this.parent as JSXMemberExpression).object === this
-					? IdentifierType.Reference
-					: IdentifierType.Other;
+				return this.parent.object === this ? IdentifierType.Reference : IdentifierType.Other;
 			}
 			case 'JSXAttribute':
 			case 'JSXNamespacedName': {
 				return IdentifierType.Other;
 			}
 			default: {
-				/* istanbul ignore next */
+				/* istanbul ignore next */ // @ts-expect-error There should be no valid parent type
 				throw new Error(`Unexpected parent node type for JSXIdentifier: ${this.parent.type}`);
 			}
 		}

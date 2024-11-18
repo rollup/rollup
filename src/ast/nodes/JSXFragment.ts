@@ -1,15 +1,18 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type JSXClosingFragment from './JSXClosingFragment';
 import type JSXOpeningFragment from './JSXOpeningFragment';
+import type * as nodes from './node-unions';
+import type { JSXFragmentParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
-import type { JSXChild } from './shared/jsxHelpers';
 
-export default class JSXFragment extends JSXElementBase {
+export default class JSXFragment extends JSXElementBase<ast.JSXFragment> {
+	parent!: JSXFragmentParent;
 	type!: NodeType.tJSXElement;
 	openingFragment!: JSXOpeningFragment;
-	children!: JSXChild[];
+	children!: nodes.JSXChild[];
 	closingFragment!: JSXClosingFragment;
 
 	render(code: MagicString, options: RenderOptions): void {

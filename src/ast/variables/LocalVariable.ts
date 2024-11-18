@@ -10,6 +10,7 @@ import {
 } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
+import type * as nodes from '../nodes/node-unions';
 import * as NodeType from '../nodes/NodeType';
 import {
 	deoptimizeInteraction,
@@ -19,7 +20,6 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
-import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
@@ -207,13 +207,13 @@ export default class LocalVariable extends Variable {
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
 				if (!declaration.included) declaration.includePath(EMPTY_PATH, context, false);
-				let node = declaration.parent as Node;
+				let node: nodes.AstNode = declaration.parent;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
 					// in which case .include() might pull in more dead code
 					node.included = true;
 					if (node.type === NodeType.Program) break;
-					node = node.parent as Node;
+					node = node.parent;
 				}
 			}
 			// We need to make sure we include the correct path of the init

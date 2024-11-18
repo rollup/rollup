@@ -2,7 +2,7 @@ import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import { NodeBase } from './shared/Node';
 
-export default class UnknownNode extends NodeBase {
+export default class UnknownNode extends NodeBase<any> {
 	hasEffects(): boolean {
 		return true;
 	}

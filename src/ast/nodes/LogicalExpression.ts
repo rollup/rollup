@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -18,6 +19,8 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
+import type { LogicalExpressionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
@@ -26,15 +29,17 @@ import {
 	UnknownValue
 } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export type LogicalOperator = '||' | '&&' | '??';
-
-export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	declare left: ExpressionNode;
-	declare operator: LogicalOperator;
-	declare right: ExpressionNode;
-	declare type: NodeType.tLogicalExpression;
+export default class LogicalExpression
+	extends NodeBase<ast.LogicalExpression>
+	implements DeoptimizableEntity
+{
+	parent!: LogicalExpressionParent;
+	left!: nodes.Expression;
+	operator!: ast.LogicalExpression['operator'];
+	right!: nodes.Expression;
+	type!: NodeType.tLogicalExpression;
 
 	//private isBranchResolutionAnalysed = false;
 	private get isBranchResolutionAnalysed(): boolean {
@@ -46,7 +51,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private usedBranch: ExpressionNode | null = null;
+	private usedBranch: nodes.Expression | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

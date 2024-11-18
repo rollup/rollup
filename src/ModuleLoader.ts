@@ -2,7 +2,7 @@ import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';
 import type {
-	AstNode,
+	ast,
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
@@ -15,7 +15,6 @@ import type {
 	ResolvedId,
 	ResolveIdResult
 } from './rollup/types';
-import type { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
 import { readFile } from './utils/fs';
 import { LOGLEVEL_WARN } from './utils/logging';
@@ -39,6 +38,7 @@ import {
 	getAttributesFromImportExpression
 } from './utils/parseImportAttributes';
 import { isAbsolute, isRelative, resolve } from './utils/path';
+import type { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import transform from './utils/transform';
@@ -710,7 +710,7 @@ export class ModuleLoader {
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | AstNode,
+		specifier: string | ast.Expression,
 		importer: string,
 		attributes: Record<string, string>
 	): Promise<ResolvedId | string | null> {

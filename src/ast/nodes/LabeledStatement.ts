@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -11,13 +12,16 @@ import {
 } from '../ExecutionContext';
 import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
+import type { LabeledStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class LabeledStatement extends StatementBase {
-	declare body: StatementNode;
-	declare label: Identifier;
-	declare type: NodeType.tLabeledStatement;
+export default class LabeledStatement extends NodeBase<ast.LabeledStatement> {
+	parent!: LabeledStatementParent;
+	body!: nodes.Statement;
+	label!: Identifier;
+	type!: NodeType.tLabeledStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		const { brokenFlow, includedLabels } = context;

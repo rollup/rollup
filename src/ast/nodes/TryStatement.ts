@@ -1,16 +1,18 @@
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import type CatchClause from './CatchClause';
+import type { TryStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import { INCLUDE_PARAMETERS, type IncludeChildren, StatementBase } from './shared/Node';
+import { INCLUDE_PARAMETERS, type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class TryStatement extends StatementBase {
-	declare block: BlockStatement;
-	declare finalizer: BlockStatement | null;
-	declare handler: CatchClause | null;
-	declare type: NodeType.tTryStatement;
+export default class TryStatement extends NodeBase<ast.TryStatement> {
+	parent!: TryStatementParent;
+	block!: BlockStatement;
+	finalizer!: BlockStatement | null;
+	handler!: CatchClause | null;
+	type!: NodeType.tTryStatement;
 
 	private directlyIncluded = false;
 	private includedLabelsAfterBlock: string[] | null = null;

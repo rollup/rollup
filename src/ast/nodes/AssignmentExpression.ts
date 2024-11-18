@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { logConstVariableReassignError } from '../../utils/logs';
 import {
@@ -22,32 +23,18 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
+import type { AssignmentExpressionParent } from './node-unions';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class AssignmentExpression extends NodeBase {
-	declare left: PatternNode;
-	declare operator:
-		| '='
-		| '+='
-		| '-='
-		| '*='
-		| '/='
-		| '%='
-		| '<<='
-		| '>>='
-		| '>>>='
-		| '|='
-		| '^='
-		| '&='
-		| '**='
-		| '&&='
-		| '||='
-		| '??=';
-	declare right: ExpressionNode;
-	declare type: NodeType.tAssignmentExpression;
+export default class AssignmentExpression extends NodeBase<ast.AssignmentExpression> {
+	parent!: AssignmentExpressionParent;
+	left!: nodes.DestructuringPattern;
+	operator!: ast.AssignmentExpression['operator'];
+	right!: nodes.Expression;
+	type!: NodeType.tAssignmentExpression;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		const { deoptimized, left, operator, right } = this;

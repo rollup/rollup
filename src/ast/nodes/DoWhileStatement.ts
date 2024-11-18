@@ -1,18 +1,17 @@
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
+import type { DoWhileStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import {
-	type ExpressionNode,
-	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class DoWhileStatement extends StatementBase {
-	declare body: StatementNode;
-	declare test: ExpressionNode;
-	declare type: NodeType.tDoWhileStatement;
+export default class DoWhileStatement extends NodeBase<ast.DoWhileStatement> {
+	parent!: DoWhileStatementParent;
+	body!: nodes.Statement;
+	test!: nodes.Expression;
+	type!: NodeType.tDoWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;

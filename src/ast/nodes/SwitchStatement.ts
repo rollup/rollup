@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
 	createHasEffectsContext,
@@ -8,18 +9,21 @@ import {
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
+import type { SwitchStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
+import type { IncludeChildren } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import type SwitchCase from './SwitchCase';
-import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { StatementBase } from './shared/Node';
 
-export default class SwitchStatement extends StatementBase {
-	declare cases: readonly SwitchCase[];
-	declare discriminant: ExpressionNode;
-	declare type: NodeType.tSwitchStatement;
+export default class SwitchStatement extends NodeBase<ast.SwitchStatement> {
+	parent!: SwitchStatementParent;
+	cases!: readonly SwitchCase[];
+	discriminant!: nodes.Expression;
+	type!: NodeType.tSwitchStatement;
 
-	declare parentScope: ChildScope;
-	private declare defaultCase: number | null;
+	parentScope!: ChildScope;
+	private defaultCase!: number | null;
 
 	createScope(parentScope: ChildScope): void {
 		this.parentScope = parentScope;
@@ -96,11 +100,10 @@ export default class SwitchStatement extends StatementBase {
 		this.defaultCase = null;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
-			this,
-			this.parentScope
-		).parseNode(esTreeNode.discriminant);
+	parseNode(esTreeNode: ast.SwitchStatement): this {
+		this.discriminant = new (this.scope.context.getNodeConstructor<any>(
+			esTreeNode.discriminant.type
+		))(this, this.parentScope).parseNode(esTreeNode.discriminant);
 		return super.parseNode(esTreeNode);
 	}
 

@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -14,8 +15,10 @@ import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
+import type { ExportDefaultDeclarationParent } from './node-unions';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
 // The header ends at the first non-white-space after "default"
 function getDeclarationStart(code: string, start: number): number {
@@ -33,14 +36,15 @@ function getFunctionIdInsertPosition(code: string, start: number): number {
 	return declarationEnd + generatorStarPos + 1;
 }
 
-export default class ExportDefaultDeclaration extends NodeBase {
-	declare declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
-	declare needsBoundaries: true;
-	declare scope: ModuleScope;
-	declare type: NodeType.tExportDefaultDeclaration;
-	declare variable: ExportDefaultVariable;
+export default class ExportDefaultDeclaration extends NodeBase<ast.ExportDefaultDeclaration> {
+	parent!: ExportDefaultDeclarationParent;
+	declaration!: FunctionDeclaration | ClassDeclaration | nodes.Expression;
+	needsBoundaries!: true;
+	scope!: ModuleScope;
+	type!: NodeType.tExportDefaultDeclaration;
+	variable!: ExportDefaultVariable;
 
-	private declare declarationName: string | undefined;
+	private declarationName!: string | undefined;
 
 	includePath(
 		path: ObjectPath,

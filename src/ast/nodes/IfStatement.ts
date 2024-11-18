@@ -1,32 +1,29 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
-import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
+import type { IfStatementParent } from './node-unions';
 import * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import {
-	type ExpressionNode,
-	type GenericEsTreeNode,
-	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
 const unset = Symbol('unset');
 
-export default class IfStatement extends StatementBase implements DeoptimizableEntity {
-	declare alternate: StatementNode | null;
-	declare consequent: StatementNode;
-	declare test: ExpressionNode;
-	declare type: NodeType.tIfStatement;
+export default class IfStatement extends NodeBase<ast.IfStatement> implements DeoptimizableEntity {
+	parent!: IfStatementParent;
+	alternate!: nodes.Statement | null;
+	consequent!: nodes.Statement;
+	test!: nodes.Expression;
+	type!: NodeType.tIfStatement;
 
-	declare alternateScope?: TrackingScope;
-	declare consequentScope: TrackingScope;
+	alternateScope?: TrackingScope;
+	consequentScope!: TrackingScope;
 	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache(): void {
@@ -69,13 +66,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
+	parseNode(esTreeNode: ast.IfStatement): this {
+		this.consequent = new (this.scope.context.getNodeConstructor<any>(esTreeNode.consequent.type))(
 			this,
 			(this.consequentScope = new TrackingScope(this.scope))
 		).parseNode(esTreeNode.consequent);
 		if (esTreeNode.alternate) {
-			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
+			this.alternate = new (this.scope.context.getNodeConstructor<any>(esTreeNode.alternate.type))(
 				this,
 				(this.alternateScope = new TrackingScope(this.scope))
 			).parseNode(esTreeNode.alternate);
@@ -200,15 +197,15 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	private shouldKeepAlternateBranch() {
-		let currentParent = this.parent;
+		let currentParent: nodes.AstNode | null = this.parent;
 		do {
-			if (currentParent instanceof IfStatement && currentParent.alternate) {
+			if (currentParent.type === NodeType.IfStatement && currentParent.alternate) {
 				return true;
 			}
-			if (currentParent instanceof BlockStatement) {
+			if (currentParent.type === NodeType.BlockStatement) {
 				return false;
 			}
-			currentParent = (currentParent as any).parent;
+			currentParent = currentParent.parent;
 		} while (currentParent);
 		return false;
 	}
