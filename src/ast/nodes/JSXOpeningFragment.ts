@@ -2,7 +2,6 @@ import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import { getAndIncludeFactoryVariable } from './shared/jsxHelpers';
@@ -16,11 +15,7 @@ export default class JSXOpeningFragment extends NodeBase {
 	private fragment: string | null = null;
 	private fragmentVariable: Variable | null = null;
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
 			if (jsx.mode === 'automatic') {
@@ -44,7 +39,7 @@ export default class JSXOpeningFragment extends NodeBase {
 				}
 			}
 		}
-		super.includePath(path, context, includeChildrenRecursively);
+		super.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

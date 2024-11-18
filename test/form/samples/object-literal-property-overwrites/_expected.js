@@ -18,14 +18,20 @@ const retained3 = {
 retained3.bar();
 
 const retained4 = {
+	foo: {},
 	foo: globalThis.unknown
 };
 retained4.foo.bar = 1;
 
 const retained5 = {
-	['f' + 'oo']: globalThis.unknown};
+	foo: {},
+	['f' + 'oo']: globalThis.unknown,
+	['b' + 'ar']: {},
+};
 retained5.foo.bar = 1;
 
 const retained6 = {
-	};
+	['fo' + 'o']: {},
+	['f' + 'oo']: {}
+};
 retained6.bar.baz = 1;

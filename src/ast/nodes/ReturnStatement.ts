@@ -1,7 +1,6 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
@@ -16,13 +15,9 @@ export default class ReturnStatement extends StatementBase {
 		return false;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		this.argument?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.argument?.include(context, includeChildrenRecursively);
 		context.brokenFlow = true;
 	}
 

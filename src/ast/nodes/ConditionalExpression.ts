@@ -9,9 +9,10 @@ import {
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
-import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
+import type SpreadElement from './SpreadElement';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UnknownValue } from './shared/Expression';
@@ -38,7 +39,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		this.consequent.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		this.alternate.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
@@ -69,7 +70,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
@@ -81,7 +82,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
@@ -136,29 +137,28 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (includeChildrenRecursively || this.test.shouldBeIncluded(context) || usedBranch === null) {
-			this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-			this.consequent.includePath(path, context, includeChildrenRecursively);
-			this.alternate.includePath(path, context, includeChildrenRecursively);
+			this.test.include(context, includeChildrenRecursively);
+			this.consequent.include(context, includeChildrenRecursively);
+			this.alternate.include(context, includeChildrenRecursively);
 		} else {
-			usedBranch.includePath(path, context, includeChildrenRecursively);
+			usedBranch.include(context, includeChildrenRecursively);
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments(
+		context: InclusionContext,
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
+	): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch) {
-			usedBranch.includeCallArguments(context, interaction);
+			usedBranch.includeCallArguments(context, parameters);
 		} else {
-			this.consequent.includeCallArguments(context, interaction);
-			this.alternate.includeCallArguments(context, interaction);
+			this.consequent.includeCallArguments(context, parameters);
+			this.alternate.includeCallArguments(context, parameters);
 		}
 	}
 

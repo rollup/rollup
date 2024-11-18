@@ -31,11 +31,7 @@ export default class UpdateExpression extends NodeBase {
 		return path.length > 1 || type !== INTERACTION_ACCESSED;
 	}
 
-	includePath(
-		_: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);

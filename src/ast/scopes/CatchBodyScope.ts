@@ -4,7 +4,6 @@ import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import type { ObjectPath } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import type LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
@@ -19,7 +18,6 @@ export default class CatchBodyScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		if (kind === 'var') {
@@ -41,7 +39,6 @@ export default class CatchBodyScope extends ChildScope {
 						identifier,
 						context,
 						UNDEFINED_EXPRESSION,
-						destructuredInitPath,
 						kind
 					);
 					// To avoid the need to rewrite the declaration, we link the variable
@@ -62,13 +59,7 @@ export default class CatchBodyScope extends ChildScope {
 				return context.error(logRedeclarationError(name), identifier.start);
 			}
 			// We only add parameters to parameter scopes
-			const declaredVariable = this.parent.parent.addDeclaration(
-				identifier,
-				context,
-				init,
-				destructuredInitPath,
-				kind
-			);
+			const declaredVariable = this.parent.parent.addDeclaration(identifier, context, init, kind);
 			// Necessary to make sure the init is deoptimized for conditional declarations.
 			// We cannot call deoptimizePath here.
 			declaredVariable.markInitializersForDeoptimization();
@@ -76,6 +67,6 @@ export default class CatchBodyScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
-		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);
+		return super.addDeclaration(identifier, context, init, kind);
 	}
 }

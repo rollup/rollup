@@ -10,7 +10,6 @@ import {
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
 
@@ -50,15 +49,11 @@ export default class Program extends NodeBase {
 		return false;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context)) {
-				node.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				node.include(context, includeChildrenRecursively);
 			}
 		}
 	}

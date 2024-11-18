@@ -1,7 +1,5 @@
 import type Module from '../../Module';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../../utils/variableNames';
-import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class ExportShimVariable extends Variable {
@@ -12,8 +10,8 @@ export default class ExportShimVariable extends Variable {
 		this.module = module;
 	}
 
-	includePath(path: ObjectPath, context: InclusionContext): void {
-		super.includePath(path, context);
+	include(): void {
+		super.include();
 		this.module.needsExportShim = true;
 	}
 }

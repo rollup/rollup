@@ -1,5 +1,4 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import {
 	type ExpressionNode,
@@ -19,13 +18,9 @@ export default class WhileStatement extends StatementBase {
 		return hasLoopBodyEffects(context, this.body);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
 }

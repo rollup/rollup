@@ -3,7 +3,6 @@ import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import type { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type ChildScope from './ChildScope';
@@ -29,27 +28,20 @@ export default class Scope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		const name = identifier.name;
 		const existingVariable =
 			this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable);
 		if (existingVariable) {
-			if (kind === 'var' && existingVariable.kind === 'var') {
+			const existingKind = existingVariable.kind;
+			if (kind === 'var' && existingKind === 'var') {
 				existingVariable.addDeclaration(identifier, init);
 				return existingVariable;
 			}
 			context.error(logRedeclarationError(name), identifier.start);
 		}
-		const newVariable = new LocalVariable(
-			identifier.name,
-			identifier,
-			init,
-			destructuredInitPath,
-			context,
-			kind
-		);
+		const newVariable = new LocalVariable(identifier.name, identifier, init, context, kind);
 		this.variables.set(name, newVariable);
 		return newVariable;
 	}

@@ -10,7 +10,7 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import { type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
@@ -23,7 +23,7 @@ export default class SequenceExpression extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		this.expressions[this.expressions.length - 1].deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -38,7 +38,7 @@ export default class SequenceExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
@@ -67,11 +67,7 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const lastExpression = this.expressions[this.expressions.length - 1];
 		for (const expression of this.expressions) {
@@ -80,7 +76,7 @@ export default class SequenceExpression extends NodeBase {
 				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
 			)
-				expression.includePath(path, context, includeChildrenRecursively);
+				expression.include(context, includeChildrenRecursively);
 		}
 	}
 

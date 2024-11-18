@@ -13,8 +13,8 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
-	type EntityPathTracker,
 	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
@@ -51,7 +51,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker
+		recursionTracker: PathTracker
 	): void {
 		this.left.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		this.right.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
@@ -88,7 +88,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
@@ -100,7 +100,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: EntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
@@ -156,11 +156,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (
@@ -168,10 +164,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			(usedBranch === this.right && this.left.shouldBeIncluded(context)) ||
 			!usedBranch
 		) {
-			this.left.includePath(path, context, includeChildrenRecursively);
-			this.right.includePath(path, context, includeChildrenRecursively);
+			this.left.include(context, includeChildrenRecursively);
+			this.right.include(context, includeChildrenRecursively);
 		} else {
-			usedBranch.includePath(path, context, includeChildrenRecursively);
+			usedBranch.include(context, includeChildrenRecursively);
 		}
 	}
 
