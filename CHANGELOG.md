@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.27.3
+
+_2024-11-18_
+
+### Bug Fixes
+
+- Revert object property tree-shaking for now (#5736)
+
+### Pull Requests
+
+- [#5736](https://github.com/rollup/rollup/pull/5736): Revert object tree-shaking until some issues have been resolved (@lukastaegert)
+
 ## 4.27.2
 
 _2024-11-15_
