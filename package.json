@@ -170,7 +170,7 @@
     "is-reference": "^3.0.2",
     "lint-staged": "^15.2.10",
     "locate-character": "^3.0.0",
-    "magic-string": "^0.30.12",
+    "magic-string": "^0.30.13",
     "mocha": "^10.8.2",
     "nodemon": "^3.1.7",
     "npm-audit-resolver": "^3.0.0-RC.0",
