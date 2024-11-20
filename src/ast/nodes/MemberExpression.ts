@@ -102,12 +102,13 @@ export default class MemberExpression
 {
 	declare object: ExpressionNode | Super;
 	declare property: ExpressionNode | PrivateIdentifier;
-	declare propertyKey: ObjectPathKey | null;
+	declare propertyKey: ObjectPathKey;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
 	declare protected assignmentInteraction: NodeInteractionAssigned;
 	declare private accessInteraction: NodeInteractionAccessed;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private declare dynamicPropertyKey: ObjectPathKey | null;
 
 	get computed(): boolean {
 		return isFlagSet(this.flags, Flag.computed);
@@ -178,7 +179,7 @@ export default class MemberExpression
 			if (path.length < MAX_PATH_DEPTH) {
 				this.object.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
-					[this.getPropertyKey(), ...path],
+					this.propertyKey === UnknownKey ? UNKNOWN_PATH : [this.propertyKey, ...path],
 					recursionTracker
 				);
 			} else {
@@ -195,7 +196,7 @@ export default class MemberExpression
 	deoptimizeCache(): void {
 		const { expressionsToBeDeoptimized, object } = this;
 		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-		this.propertyKey = UnknownKey;
+		this.dynamicPropertyKey = this.propertyKey;
 		object.deoptimizePath(UNKNOWN_PATH);
 		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
@@ -207,7 +208,7 @@ export default class MemberExpression
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
 		} else if (!this.isUndefined) {
-			const propertyKey = this.getPropertyKey();
+			const { propertyKey } = this;
 			this.object.deoptimizePath([
 				propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
 				...(path.length < MAX_PATH_DEPTH
@@ -228,13 +229,10 @@ export default class MemberExpression
 		if (this.isUndefined) {
 			return undefined;
 		}
-		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+		const propertyKey = this.getDynamicPropertyKey();
+		if (propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
 			this.expressionsToBeDeoptimized.push(origin);
-			return this.object.getLiteralValueAtPath(
-				[this.getPropertyKey(), ...path],
-				recursionTracker,
-				origin
-			);
+			return this.object.getLiteralValueAtPath([propertyKey, ...path], recursionTracker, origin);
 		}
 		return UnknownValue;
 	}
@@ -270,10 +268,11 @@ export default class MemberExpression
 		if (this.isUndefined) {
 			return [UNDEFINED_EXPRESSION, false];
 		}
-		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+		const propertyKey = this.getDynamicPropertyKey();
+		if (propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
 			this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getReturnExpressionWhenCalledAtPath(
-				[this.getPropertyKey(), ...path],
+				[propertyKey, ...path],
 				interaction,
 				recursionTracker,
 				origin
@@ -333,7 +332,7 @@ export default class MemberExpression
 		}
 		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.hasEffectsOnInteractionAtPath(
-				[this.getPropertyKey(), ...path],
+				[this.getDynamicPropertyKey(), ...path],
 				interaction,
 				context
 			);
@@ -365,7 +364,7 @@ export default class MemberExpression
 		this.includeProperties(
 			path,
 			[
-				this.getPropertyKey(),
+				this.propertyKey,
 				...(path.length < MAX_PATH_DEPTH
 					? path
 					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
@@ -382,14 +381,9 @@ export default class MemberExpression
 	): void {
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
-			this.includePath([this.getPropertyKey()], context, includeChildrenRecursively);
+			this.includePath([this.propertyKey], context, includeChildrenRecursively);
 		} else {
-			this.includeProperties(
-				EMPTY_PATH,
-				[this.getPropertyKey()],
-				context,
-				includeChildrenRecursively
-			);
+			this.includeProperties(EMPTY_PATH, [this.propertyKey], context, includeChildrenRecursively);
 		}
 	}
 
@@ -424,7 +418,8 @@ export default class MemberExpression
 
 	initialise(): void {
 		super.initialise();
-		this.propertyKey = getResolvablePropertyKey(this);
+		this.dynamicPropertyKey = getResolvablePropertyKey(this);
+		this.propertyKey = this.dynamicPropertyKey === null ? UnknownKey : this.dynamicPropertyKey;
 		this.accessInteraction = { args: [this.object], type: INTERACTION_ACCESSED };
 	}
 
@@ -473,10 +468,9 @@ export default class MemberExpression
 			propertyReadSideEffects &&
 			!(this.variable || this.isUndefined)
 		) {
-			const propertyKey = this.getPropertyKey();
 			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.accessInteraction,
-				[propertyKey],
+				[this.propertyKey],
 				SHARED_RECURSION_TRACKER
 			);
 			this.scope.context.requestTreeshakingPass();
@@ -499,7 +493,7 @@ export default class MemberExpression
 		) {
 			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.assignmentInteraction,
-				[this.getPropertyKey()],
+				[this.propertyKey],
 				SHARED_RECURSION_TRACKER
 			);
 			this.scope.context.requestTreeshakingPass();
@@ -522,18 +516,18 @@ export default class MemberExpression
 		}
 	}
 
-	private getPropertyKey(): ObjectPathKey {
-		if (this.propertyKey === null) {
-			this.propertyKey = UnknownKey;
+	private getDynamicPropertyKey(): ObjectPathKey {
+		if (this.dynamicPropertyKey === null) {
+			this.dynamicPropertyKey = UnknownKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey =
+			return (this.dynamicPropertyKey =
 				value === SymbolToStringTag
 					? value
 					: typeof value === 'symbol'
 						? UnknownKey
 						: String(value));
 		}
-		return this.propertyKey;
+		return this.dynamicPropertyKey;
 	}
 
 	private hasAccessEffect(context: HasEffectsContext) {
@@ -544,7 +538,7 @@ export default class MemberExpression
 			propertyReadSideEffects &&
 			(propertyReadSideEffects === 'always' ||
 				this.object.hasEffectsOnInteractionAtPath(
-					[this.getPropertyKey()],
+					[this.getDynamicPropertyKey()],
 					this.accessInteraction,
 					context
 				))
