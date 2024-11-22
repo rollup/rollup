@@ -40,7 +40,8 @@ export default class ReturnValueScope extends ParameterScope {
 				this.addArgumentToBeDeoptimized(argument);
 			}
 		}
-		for (; position < parameters.length; position++) {
+		const nonRestParameterLength = this.hasRest ? parameters.length - 1 : parameters.length;
+		for (; position < nonRestParameterLength; position++) {
 			for (const variable of parameters[position]) {
 				variable.addArgumentValue(UNDEFINED_EXPRESSION);
 			}
