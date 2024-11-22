@@ -897,7 +897,7 @@ If a plugin wants to retain resources across builds in watch mode, they can chec
 Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-banner-output-footer).
 
 ### generateBundle
-
+.
 |  |  |
 | --: | :-- |
 | Type: | `(options: OutputOptions, bundle: { [fileName: string]: OutputAsset \| OutputChunk }, isWrite: boolean) => void` |
@@ -2266,4 +2266,4 @@ function dependentPlugin() {
 	};
 }
 ```
-<!-- prettier-ignore-end -->
+<-- prettier-ignore-end -->
