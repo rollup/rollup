@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.27.4
+
+_2024-11-23_
+
+### Bug Fixes
+
+- Update bundled magic-string to support sourcemap debug ids (#5740)
+
+### Pull Requests
+
+- [#5740](https://github.com/rollup/rollup/pull/5740): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.27.3
 
 _2024-11-18_
