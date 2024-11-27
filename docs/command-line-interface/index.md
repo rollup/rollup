@@ -479,6 +479,16 @@ This option will force your configuration to be transpiled to CommonJS.
 
 This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
 
+### `--configImportAttributesKey <with | assert>`
+
+Controls the keyword Rollup uses for import attributes in your config file.
+
+```shell
+rollup --config rollup.config.ts --configPlugin typescript --configImportAttributesKey with
+```
+
+This option only available if the [`--configPlugin`](#configplugin-plugin) or [`--bundleConfigAsCjs`](#bundleconfigascjs) options are used.
+
 ### `--configPlugin <plugin>`
 
 Allows specifying Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
