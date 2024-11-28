@@ -422,7 +422,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
-            node: '22'
+            node: '20'
             command: 'ci:coverage'
             additionalName: ' with Coverage'
             coverage: true
