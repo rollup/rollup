@@ -465,7 +465,7 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: matrix.coverage
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
