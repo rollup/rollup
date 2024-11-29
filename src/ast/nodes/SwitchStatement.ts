@@ -18,7 +18,7 @@ export default class SwitchStatement extends StatementBase {
 	declare type: NodeType.tSwitchStatement;
 
 	declare parentScope: ChildScope;
-	private declare defaultCase: number | null;
+	declare private defaultCase: number | null;
 
 	createScope(parentScope: ChildScope): void {
 		this.parentScope = parentScope;

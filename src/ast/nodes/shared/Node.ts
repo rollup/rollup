@@ -147,7 +147,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	/**
 	 * This will be populated during initialise if setAssignedValue is called.
 	 */
-	protected declare assignmentInteraction: NodeInteractionAssigned;
+	declare protected assignmentInteraction: NodeInteractionAssigned;
 
 	/**
 	 * Nodes can apply custom deoptimizations once they become part of the

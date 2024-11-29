@@ -19,7 +19,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;
 	declare tag: ExpressionNode;
 	declare type: NodeType.tTaggedTemplateExpression;
-	private declare args: ExpressionEntity[];
+	declare private args: ExpressionEntity[];
 
 	bind(): void {
 		super.bind();

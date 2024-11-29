@@ -102,8 +102,8 @@ export default class MemberExpression
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
-	protected declare assignmentInteraction: NodeInteractionAssigned;
-	private declare accessInteraction: NodeInteractionAccessed;
+	declare protected assignmentInteraction: NodeInteractionAssigned;
+	declare private accessInteraction: NodeInteractionAccessed;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	get computed(): boolean {

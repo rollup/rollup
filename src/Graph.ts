@@ -70,7 +70,7 @@ export default class Graph {
 	private readonly externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
 	private modules: Module[] = [];
-	private declare pluginCache?: Record<string, SerializablePluginCache>;
+	declare private pluginCache?: Record<string, SerializablePluginCache>;
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
