@@ -91,7 +91,7 @@ function getDefaultFromCjs(namespace: GenericConfigObject): unknown {
 }
 
 function getConfigImportAttributesKey(input: unknown): ImportAttributesKey | undefined {
-	if (typeof input === 'string' && (input === 'assert' || input === 'with')) return input;
+	if (input === 'assert' || input === 'with') return input;
 	return;
 }
 
