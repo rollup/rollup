@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import * as rollup from '../../src/node-entry';
-import type { MergedRollupOptions } from '../../src/rollup/types';
+import type { ImportAttributesKey, MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import {
 	error,
@@ -90,11 +90,16 @@ function getDefaultFromCjs(namespace: GenericConfigObject): unknown {
 	return namespace.default || namespace;
 }
 
+function getConfigImportAttributesKey(input: unknown): ImportAttributesKey | undefined {
+	if (input === 'assert' || input === 'with') return input;
+	return;
+}
+
 async function loadTranspiledConfigFile(
 	fileName: string,
 	commandOptions: Record<string, unknown>
 ): Promise<unknown> {
-	const { bundleConfigAsCjs, configPlugin, silent } = commandOptions;
+	const { bundleConfigAsCjs, configPlugin, configImportAttributesKey, silent } = commandOptions;
 	const warnings = batchWarnings(commandOptions);
 	const inputOptions = {
 		external: (id: string) => (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json',
@@ -110,6 +115,7 @@ async function loadTranspiledConfigFile(
 	} = await bundle.generate({
 		exports: 'named',
 		format: bundleConfigAsCjs ? 'cjs' : 'es',
+		importAttributesKey: getConfigImportAttributesKey(configImportAttributesKey),
 		plugins: [
 			{
 				name: 'transpile-import-meta',

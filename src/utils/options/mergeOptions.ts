@@ -76,6 +76,7 @@ export async function mergeOptions(
 			...Object.keys(commandAliases),
 			'bundleConfigAsCjs',
 			'config',
+			'configImportAttributesKey',
 			'configPlugin',
 			'environment',
 			'failAfterWarnings',

@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v4
@@ -209,7 +209,7 @@ jobs:
         uses: actions/setup-node@v4
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 20
+          node-version: 22
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -417,12 +417,12 @@ jobs:
             target: aarch64-apple-darwin
         node:
           - '18.0.0'
-          - '20'
+          - '22'
         include:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
-            node: '20'
+            node: '22'
             command: 'ci:coverage'
             additionalName: ' with Coverage'
             coverage: true
