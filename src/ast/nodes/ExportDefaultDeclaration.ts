@@ -39,7 +39,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	declare type: NodeType.tExportDefaultDeclaration;
 	declare variable: ExportDefaultVariable;
 
-	private declare declarationName: string | undefined;
+	declare private declarationName: string | undefined;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		super.include(context, includeChildrenRecursively);

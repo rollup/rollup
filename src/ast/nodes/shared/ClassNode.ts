@@ -29,7 +29,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare id: Identifier | null;
 	declare superClass: ExpressionNode | null;
 	declare decorators: Decorator[];
-	private declare classConstructor: MethodDefinition | null;
+	declare private classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {

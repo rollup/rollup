@@ -21,7 +21,7 @@ export default class FunctionNode extends FunctionBase {
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;
-	private declare constructedEntity: ObjectEntity;
+	declare private constructedEntity: ObjectEntity;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new FunctionScope(parentScope);

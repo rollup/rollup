@@ -13,7 +13,7 @@ import { NodeBase } from './shared/Node';
 export default class ThisExpression extends NodeBase {
 	declare type: NodeType.tThisExpression;
 	declare variable: Variable;
-	private declare alias: string | null;
+	declare private alias: string | null;
 
 	bind(): void {
 		this.variable = this.scope.findVariable('this');

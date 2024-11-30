@@ -251,9 +251,9 @@ export default class Module {
 
 	private allExportNames: Set<string> | null = null;
 	private ast: Program | null = null;
-	private declare astContext: AstContext;
+	declare private astContext: AstContext;
 	private readonly context: string;
-	private declare customTransformCache: boolean;
+	declare private customTransformCache: boolean;
 	private readonly exportAllModules: (Module | ExternalModule)[] = [];
 	private readonly exportAllSources = new Set<string>();
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;

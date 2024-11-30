@@ -20,7 +20,7 @@ export default class UpdateExpression extends NodeBase {
 	declare operator: '++' | '--';
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
-	private declare interaction: NodeInteractionAssigned;
+	declare private interaction: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
