@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.28.0
+
+_2024-11-30_
+
+### Features
+
+- Allow to specify how to handle import attributes when transpiling Rollup config files (#5743)
+
+### Pull Requests
+
+- [#5743](https://github.com/rollup/rollup/pull/5743): fix: supports modify the import attributes key in the config file (@TrickyPi, @lukastaegert)
+- [#5747](https://github.com/rollup/rollup/pull/5747): chore(deps): update codecov/codecov-action action to v5 (@renovate[bot])
+- [#5748](https://github.com/rollup/rollup/pull/5748): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.27.4
 
 _2024-11-23_
