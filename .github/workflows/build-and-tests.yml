@@ -199,6 +199,12 @@ jobs:
               export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
               rustup target add s390x-unknown-linux-gnu &&
               npm run build:napi -- --release --target s390x-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: loongarch64-unknown-linux-gnu
+            docker: ghcr.io/darkyzhou/napi-rs-nodejs-rust:trixie-loongarch64
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target loongarch64-unknown-linux-gnu
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
