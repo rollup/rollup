@@ -102,6 +102,7 @@ export interface SourceMap {
 	sources: string[];
 	sourcesContent?: string[];
 	version: number;
+	debugId?: string;
 	toString(): string;
 	toUrl(): string;
 }
