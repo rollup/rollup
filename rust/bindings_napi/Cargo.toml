@@ -18,7 +18,7 @@ xxhash = { path = "../xxhash" }
 [target.'cfg(not(any(target_os = "linux", target_os = "freebsd")))'.dependencies]
 mimalloc-rust = { version = "0.2.1" }
 
-[target.'cfg(any(all(target_os = "linux", not(all(target_env = "musl", target_arch = "aarch64"))), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
+[target.'cfg(any(all(target_os = "linux", not(all(target_env = "musl", target_arch = "aarch64")), not(target_arch = "loongarch64")), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
 mimalloc-rust = { version = "0.2.1", features = ["local-dynamic-tls"] }
 
 [build-dependencies]
