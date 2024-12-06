@@ -3,7 +3,7 @@ use swc_ecma_ast::JSXText;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_jsx_text;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_jsx_text(&mut self, jsx_text: &JSXText) {
     store_jsx_text!(
       self,

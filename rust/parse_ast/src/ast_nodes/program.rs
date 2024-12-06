@@ -5,7 +5,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_program(&mut self, body: ModuleItemsOrStatements) {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);

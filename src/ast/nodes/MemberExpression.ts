@@ -108,7 +108,7 @@ export default class MemberExpression
 	declare protected assignmentInteraction: NodeInteractionAssigned;
 	declare private accessInteraction: NodeInteractionAccessed;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private declare dynamicPropertyKey: ObjectPathKey | null;
+	declare private dynamicPropertyKey: ObjectPathKey | null;
 
 	get computed(): boolean {
 		return isFlagSet(this.flags, Flag.computed);

@@ -6,7 +6,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::AstConverter;
 use crate::store_unary_expression;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_unary_expression(&mut self, unary_expression: &UnaryExpr) {
     store_unary_expression!(
       self,

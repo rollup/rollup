@@ -5,7 +5,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_class_body(&mut self, class_members: &[ClassMember], start: u32, end: u32) {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_CLASS_BODY, start, CLASS_BODY_RESERVED_BYTES);

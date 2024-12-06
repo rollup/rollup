@@ -3,7 +3,7 @@ use swc_ecma_ast::IfStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_if_statement;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_if_statement(&mut self, if_statement: &IfStmt) {
     store_if_statement!(
       self,
