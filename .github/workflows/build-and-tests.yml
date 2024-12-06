@@ -295,6 +295,17 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: ${{ matrix.settings.target }}-cargo
       - name: Build
         uses: cross-platform-actions/action@v0.25.0
         with:
