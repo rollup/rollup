@@ -171,7 +171,7 @@
     "lint-staged": "^15.2.10",
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.14",
-    "mocha": "^10.8.2",
+    "mocha": "^11.0.1",
     "nodemon": "^3.1.7",
     "npm-audit-resolver": "^3.0.0-RC.0",
     "nyc": "^17.1.0",
