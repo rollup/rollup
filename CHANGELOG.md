@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.28.1
+
+_2024-12-06_
+
+### Bug Fixes
+
+- Support running Rollup natively on LoongArch (#5749)
+- Add optional `debugId` to `SourceMap` types (#5751)
+
+### Pull Requests
+
+- [#5749](https://github.com/rollup/rollup/pull/5749): feat: add support for LoongArch (@darkyzhou)
+- [#5751](https://github.com/rollup/rollup/pull/5751): feat: Add `debugId` to `SourceMap` types (@timfish, @lukastaegert)
+- [#5752](https://github.com/rollup/rollup/pull/5752): chore(deps): update dependency mocha to v11 (@renovate[bot])
+- [#5753](https://github.com/rollup/rollup/pull/5753): chore(deps): update dependency vite to v6 (@renovate[bot])
+- [#5754](https://github.com/rollup/rollup/pull/5754): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5755](https://github.com/rollup/rollup/pull/5755): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5756](https://github.com/rollup/rollup/pull/5756): Test if saving the Cargo cache can speed up FreeBSD (@lukastaegert)
+
 ## 4.28.0
 
 _2024-11-30_
