@@ -205,11 +205,10 @@
   "overrides": {
     "axios": "^1.7.8",
     "semver": "^7.6.3",
-    "ws": "^8.18.0"
+    "readable-stream": "npm:@built-in/readable-stream@1"
   },
   "comments": {
-    "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges",
-    "ws": "mermaid requires an older 8.13.0 version via puppeteer with vulnerabilities"
+    "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
   },
   "files": [
     "dist/*.node",
