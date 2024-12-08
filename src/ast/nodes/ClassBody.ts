@@ -24,6 +24,7 @@ export default class ClassBody extends NodeBase {
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
+		if (this.included) return;
 		this.included = true;
 		this.scope.context.includeVariableInModule(this.scope.thisVariable, UNKNOWN_PATH);
 		for (const definition of this.body) {
