@@ -7,7 +7,13 @@ import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type IncludeChildren, type Node, StatementBase, type StatementNode } from './shared/Node';
+import {
+	type IncludeChildren,
+	type Node,
+	onlyIncludeSelf,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -51,7 +57,7 @@ export default class BlockStatement extends StatementBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!(this.deoptimizeBody && this.directlyIncluded)) {
-			if (!this.included) this.includeNode();
+			if (!this.included) this.includeNode(context);
 			this.directlyIncluded = true;
 			if (this.deoptimizeBody) includeChildrenRecursively = true;
 			for (const node of this.body) {
@@ -59,10 +65,6 @@ export default class BlockStatement extends StatementBase {
 					node.include(context, includeChildrenRecursively);
 			}
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	initialise(): void {
@@ -81,3 +83,5 @@ export default class BlockStatement extends StatementBase {
 		}
 	}
 }
+
+BlockStatement.prototype.includeNode = onlyIncludeSelf;

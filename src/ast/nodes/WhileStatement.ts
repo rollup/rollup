@@ -4,6 +4,7 @@ import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
+	onlyIncludeSelf,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -19,12 +20,10 @@ export default class WhileStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
-
-	includeNode() {
-		this.included = true;
-	}
 }
+
+WhileStatement.prototype.includeNode = onlyIncludeSelf;

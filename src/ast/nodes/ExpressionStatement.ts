@@ -4,15 +4,11 @@ import { logModuleLevelDirective } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, StatementBase } from './shared/Node';
+import { type ExpressionNode, onlyIncludeSelf, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	declare directive?: string;
 	declare expression: ExpressionNode;
-
-	includeNode() {
-		this.included = true;
-	}
 
 	initialise(): void {
 		super.initialise();
@@ -50,3 +46,5 @@ export default class ExpressionStatement extends StatementBase {
 
 	protected applyDeoptimizations() {}
 }
+
+ExpressionStatement.prototype.includeNode = onlyIncludeSelf;

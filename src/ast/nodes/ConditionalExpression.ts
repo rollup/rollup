@@ -18,7 +18,7 @@ import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expressio
 import { UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	declare alternate: ExpressionNode;
@@ -141,7 +141,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null || includeChildrenRecursively || this.test.shouldBeIncluded(context)) {
 			this.test.include(context, includeChildrenRecursively);
@@ -152,12 +152,8 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	includeNode() {
-		this.included = true;
-	}
-
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null || this.test.shouldBeIncluded(context)) {
 			this.consequent.includePath(path, context);
@@ -232,3 +228,5 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			: (this.usedBranch = testValue ? this.consequent : this.alternate);
 	}
 }
+
+ConditionalExpression.prototype.includeNode = onlyIncludeSelf;

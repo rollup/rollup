@@ -21,7 +21,7 @@ import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import type { InclusionOptions } from './shared/Expression';
-import { type IncludeChildren, NodeBase } from './shared/Node';
+import { type IncludeChildren, NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { VariableDeclarationKind } from './shared/VariableKinds';
 import type VariableDeclarator from './VariableDeclarator';
 
@@ -63,7 +63,7 @@ export default class VariableDeclaration extends NodeBase {
 		includeChildrenRecursively: IncludeChildren,
 		{ asSingleStatement }: InclusionOptions = BLANK
 	): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
 				declarator.include(context, includeChildrenRecursively);
@@ -81,10 +81,6 @@ export default class VariableDeclaration extends NodeBase {
 				init.include(context, includeChildrenRecursively);
 			}
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	initialise(): void {
@@ -282,3 +278,5 @@ function gatherSystemExportsAndGetSingleExport(
 	}
 	return singleSystemExport;
 }
+
+VariableDeclaration.prototype.includeNode = onlyIncludeSelf;
