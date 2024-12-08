@@ -1,8 +1,4 @@
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
@@ -98,17 +94,23 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		super.includePath(path, context, includeChildrenRecursively);
-		this.id?.includePath(UNKNOWN_PATH, createInclusionContext());
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		super.include(context, includeChildrenRecursively);
+		this.id?.include(context);
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {
-				parameter.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				parameter.include(context, includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeNode(context: InclusionContext) {
+		super.includeNode(context);
+		const hasArguments = this.scope.argumentsVariable.included;
+		for (const parameter of this.params) {
+			if (!(parameter instanceof Identifier) || hasArguments) {
+				parameter.includePath(UNKNOWN_PATH, context);
 			}
 		}
 	}

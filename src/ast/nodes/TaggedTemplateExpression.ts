@@ -4,8 +4,8 @@ import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import type { EntityPathTracker } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -44,24 +44,25 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.included) this.includeNode();
 		if (includeChildrenRecursively) {
-			super.includePath(path, context, includeChildrenRecursively);
+			super.include(context, includeChildrenRecursively);
 		} else {
 			this.included = true;
-			this.tag.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-			this.quasi.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+			this.tag.include(context, includeChildrenRecursively);
+			this.quasi.include(context, includeChildrenRecursively);
 		}
 		this.tag.includeCallArguments(context, this.interaction);
 		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
-			returnExpression.includePath(UNKNOWN_PATH, context, false);
+			returnExpression.include(context, false);
 		}
+	}
+
+	includeNode() {
+		this.included = true;
 	}
 
 	initialise(): void {

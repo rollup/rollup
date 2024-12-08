@@ -1,9 +1,5 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
@@ -103,20 +99,15 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			: this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.superClass?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-		for (const decorator of this.decorators)
-			decorator.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		if (!this.included) this.includeNode(context);
+		this.superClass?.include(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively);
+		for (const decorator of this.decorators) decorator.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
-			this.id.includePath(UNKNOWN_PATH, createInclusionContext());
+			this.id.include(context);
 		}
 	}
 

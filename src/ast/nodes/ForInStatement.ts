@@ -3,7 +3,6 @@ import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -34,17 +33,18 @@ export default class ForInStatement extends StatementBase {
 		return hasLoopBodyEffects(context, body);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
-		right.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		right.include(context, includeChildrenRecursively);
 		includeLoopBody(context, body, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.right.includePath(UNKNOWN_PATH, context);
 	}
 
 	initialise() {

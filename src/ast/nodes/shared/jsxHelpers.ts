@@ -1,4 +1,4 @@
-import { createInclusionContext } from '../../ExecutionContext';
+import type { InclusionContext } from '../../ExecutionContext';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
@@ -24,7 +24,8 @@ export function getAndIncludeFactoryVariable(
 	factory: string,
 	preserve: boolean,
 	importSource: string | null,
-	node: JSXElementBase | JSXOpeningElement | JSXOpeningFragment
+	node: JSXElementBase | JSXOpeningElement | JSXOpeningFragment,
+	context: InclusionContext
 ): Variable {
 	const [baseName, nestedName] = factory.split('.');
 	let factoryVariable: Variable;
@@ -37,14 +38,14 @@ export function getAndIncludeFactoryVariable(
 		if (preserve) {
 			// This pretends we are accessing an included global variable of the same name
 			const globalVariable = node.scope.findGlobal(baseName);
-			globalVariable.includePath(UNKNOWN_PATH, createInclusionContext());
+			globalVariable.includePath(UNKNOWN_PATH, context);
 			// This excludes this variable from renaming
 			factoryVariable.globalName = baseName;
 		}
 	} else {
 		factoryVariable = node.scope.findGlobal(baseName);
 	}
-	node.scope.context.includeVariableInModule(factoryVariable, UNKNOWN_PATH);
+	node.scope.context.includeVariableInModule(factoryVariable, UNKNOWN_PATH, context);
 	if (factoryVariable instanceof LocalVariable) {
 		factoryVariable.consolidateInitializers();
 		factoryVariable.addUsedPlace(node);

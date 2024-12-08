@@ -1,5 +1,5 @@
 import type { InclusionContext } from '../ExecutionContext';
-import { type ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -14,23 +14,31 @@ export default class AwaitExpression extends NodeBase {
 		return true;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (!this.included) {
-			this.included = true;
-			checkTopLevelAwait: if (!this.scope.context.usesTopLevelAwait) {
-				let parent = this.parent;
-				do {
-					if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
-						break checkTopLevelAwait;
-				} while ((parent = (parent as Node).parent as Node));
-				this.scope.context.usesTopLevelAwait = true;
-			}
+		if (!this.included) this.includeNode(context);
+		this.argument.include(context, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext): void {
+		this.included = true;
+		checkTopLevelAwait: if (!this.scope.context.usesTopLevelAwait) {
+			let parent = this.parent;
+			do {
+				if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
+					break checkTopLevelAwait;
+			} while ((parent = (parent as Node).parent as Node));
+			this.scope.context.usesTopLevelAwait = true;
 		}
-		this.argument.includePath(path, context, includeChildrenRecursively);
+		// Thenables need to be included
+		this.argument.includePath(THEN_PATH, context);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.included) this.includeNode(context);
+		this.argument.includePath(path, context);
 	}
 }
+
+const THEN_PATH = ['then'];

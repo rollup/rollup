@@ -10,6 +10,10 @@ export default class ExpressionStatement extends StatementBase {
 	declare directive?: string;
 	declare expression: ExpressionNode;
 
+	includeNode() {
+		this.included = true;
+	}
+
 	initialise(): void {
 		super.initialise();
 		if (

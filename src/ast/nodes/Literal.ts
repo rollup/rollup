@@ -90,6 +90,10 @@ export default class Literal<
 		}
 	}
 
+	includeNode() {
+		this.included = true;
+	}
+
 	initialise(): void {
 		super.initialise();
 		this.members = getLiteralMembersForValue(this.value);

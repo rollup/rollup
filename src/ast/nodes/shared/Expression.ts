@@ -75,18 +75,30 @@ export class ExpressionEntity implements WritableEntity {
 		return true;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		_context: InclusionContext,
+	include(
+		context: InclusionContext,
 		_includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
 	): void {
+		if (!this.included) this.includeNode(context);
+	}
+
+	includeNode(_context: InclusionContext): void {
 		this.included = true;
 	}
 
+	includePath(_path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
+	}
+	/* We are both including and including an unknown path here as the former
+	 * ensures that nested nodes are included while the latter ensures that all
+	 * paths of the expression are included.
+	 * */
+
 	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		for (const argument of interaction.args) {
-			argument?.includePath(UNKNOWN_PATH, context, false);
+			argument?.includePath(UNKNOWN_PATH, context);
+			argument?.include(context, false);
 		}
 	}
 

@@ -46,21 +46,21 @@ export default class VariableDeclarator extends NodeBase {
 		);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const { deoptimized, id, init } = this;
 		if (!deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		init?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		if (!this.included) this.includeNode();
+		init?.include(context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively) {
-			id.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+			id.include(context, includeChildrenRecursively);
 		} else {
 			id.includeDestructuredIfNecessary(context, EMPTY_PATH, init || UNDEFINED_EXPRESSION);
 		}
+	}
+
+	includeNode() {
+		this.included = true;
 	}
 
 	removeAnnotations(code: MagicString) {

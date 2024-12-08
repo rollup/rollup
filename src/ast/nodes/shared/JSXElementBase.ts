@@ -3,7 +3,6 @@ import type { NormalizedJsxOptions } from '../../../rollup/types';
 import { getRenderedJsxChildren } from '../../../utils/jsx';
 import type { RenderOptions } from '../../../utils/renderHelpers';
 import type { InclusionContext } from '../../ExecutionContext';
-import type { ObjectPath } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import JSXEmptyExpression from '../JSXEmptyExpression';
 import JSXExpressionContainer from '../JSXExpressionContainer';
@@ -27,24 +26,26 @@ export default class JSXElementBase extends NodeBase {
 		}
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
-		if (!this.included) {
-			const { factory, importSource, mode } = this.jsxMode;
-			if (factory) {
-				this.factory = factory;
-				this.factoryVariable = getAndIncludeFactoryVariable(
-					factory,
-					mode === 'preserve',
-					importSource,
-					this
-				);
-			}
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.included) this.includeNode(context);
+		for (const child of this.children) {
+			child.include(context, includeChildrenRecursively);
 		}
-		super.includePath(path, context, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext) {
+		super.includeNode(context);
+		const { factory, importSource, mode } = this.jsxMode;
+		if (factory) {
+			this.factory = factory;
+			this.factoryVariable = getAndIncludeFactoryVariable(
+				factory,
+				mode === 'preserve',
+				importSource,
+				this,
+				context
+			);
+		}
 	}
 
 	protected applyDeoptimizations() {}

@@ -7,7 +7,7 @@ import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createHasEffectsContext } from '../ExecutionContext';
+import { createHasEffectsContext, createInclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
@@ -198,6 +198,9 @@ export default class MemberExpression
 		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 		this.dynamicPropertyKey = this.propertyKey;
 		object.deoptimizePath(UNKNOWN_PATH);
+		if (this.included) {
+			object.includePath(UNKNOWN_PATH, createInclusionContext());
+		}
 		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}
@@ -355,23 +358,38 @@ export default class MemberExpression
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties(
-			path,
-			[
-				this.propertyKey,
-				...(path.length < MAX_PATH_DEPTH
-					? path
-					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
-			],
-			context,
-			includeChildrenRecursively
-		);
+		if (!this.included) this.includeNode(context);
+		this.object.include(context, includeChildrenRecursively);
+		this.property.include(context, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (this.variable) {
+			this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
+		} else if (!this.isUndefined) {
+			this.object.includePath([this.propertyKey], context);
+		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.included) this.includeNode(context);
+		if (this.variable) {
+			this.variable?.includePath(path, context);
+		} else if (!this.isUndefined) {
+			this.object.includePath(
+				[
+					this.propertyKey,
+					...(path.length < MAX_PATH_DEPTH
+						? path
+						: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
+				],
+				context
+			);
+		}
 	}
 
 	includeAsAssignmentTarget(
@@ -381,9 +399,11 @@ export default class MemberExpression
 	): void {
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
-			this.includePath([this.propertyKey], context, includeChildrenRecursively);
+			this.include(context, includeChildrenRecursively);
 		} else {
-			this.includeProperties(EMPTY_PATH, [this.propertyKey], context, includeChildrenRecursively);
+			if (!this.included) this.includeNode(context);
+			this.object.include(context, includeChildrenRecursively);
+			this.property.include(context, includeChildrenRecursively);
 		}
 	}
 
@@ -410,7 +430,7 @@ export default class MemberExpression
 					createHasEffectsContext()
 				))
 		) {
-			init.includePath(destructuredInitPath, context, false);
+			init.include(context, false);
 			return true;
 		}
 		return false;
@@ -505,7 +525,11 @@ export default class MemberExpression
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
 				if (this.variable) {
-					this.scope.context.includeVariableInModule(this.variable, UNKNOWN_PATH);
+					this.scope.context.includeVariableInModule(
+						this.variable,
+						UNKNOWN_PATH,
+						createInclusionContext()
+					);
 				}
 				this.scope.context.log(
 					LOGLEVEL_WARN,
@@ -543,24 +567,6 @@ export default class MemberExpression
 					context
 				))
 		);
-	}
-
-	private includeProperties(
-		includedPath: ObjectPath,
-		objectPath: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
-		if (!this.included) {
-			this.included = true;
-			if (this.variable) {
-				this.scope.context.includeVariableInModule(this.variable, includedPath);
-			}
-		} else if (includedPath.length > 0) {
-			this.variable?.includePath(includedPath, context);
-		}
-		this.object.includePath(objectPath, context, includeChildrenRecursively);
-		this.property.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 }
 

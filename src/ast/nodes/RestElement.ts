@@ -81,15 +81,15 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 			) || this.included);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
-		this.included = true;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.included) this.includeNode();
 		// This should just include the identifier, its properties should be
 		// included where the variable is used.
-		this.argument.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		this.argument.include(context, includeChildrenRecursively);
+	}
+
+	includeNode() {
+		this.included = true;
 	}
 
 	markDeclarationReached(): void {

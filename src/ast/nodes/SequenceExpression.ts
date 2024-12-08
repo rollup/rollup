@@ -67,21 +67,27 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode();
 		const lastExpression = this.expressions[this.expressions.length - 1];
 		for (const expression of this.expressions) {
 			if (
 				includeChildrenRecursively ||
 				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
-			)
-				expression.includePath(path, context, includeChildrenRecursively);
+			) {
+				expression.include(context, includeChildrenRecursively);
+			}
 		}
+	}
+
+	includeNode() {
+		this.included = true;
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode();
+		this.expressions[this.expressions.length - 1].includePath(path, context);
 	}
 
 	removeAnnotations(code: MagicString) {

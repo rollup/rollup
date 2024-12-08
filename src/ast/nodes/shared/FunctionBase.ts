@@ -187,21 +187,22 @@ export default abstract class FunctionBase extends NodeBase {
 
 	private parameterVariableValuesDeoptimized = false;
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!(this.parameterVariableValuesDeoptimized || this.onlyFunctionCallUsed())) {
 			this.parameterVariableValuesDeoptimized = true;
 			this.scope.reassignAllParameters();
 		}
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.body.includePath(UNKNOWN_PATH, context);
 	}
 
 	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);

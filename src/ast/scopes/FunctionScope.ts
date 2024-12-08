@@ -27,7 +27,11 @@ export default class FunctionScope extends ReturnValueScope {
 		if (this.argumentsVariable.included) {
 			const { args } = interaction;
 			for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
-				args[argumentIndex]?.includePath(UNKNOWN_PATH, context, false);
+				const argument = args[argumentIndex];
+				if (argument) {
+					argument.includePath(UNKNOWN_PATH, context);
+					argument.include(context, false);
+				}
 			}
 		}
 	}
