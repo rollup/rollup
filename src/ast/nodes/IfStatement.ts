@@ -13,6 +13,7 @@ import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
+	onlyIncludeSelf,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -52,7 +53,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
 		} else {
@@ -63,10 +64,6 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				this.includeKnownTest(context, testValue);
 			}
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
@@ -211,3 +208,5 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		return false;
 	}
 }
+
+IfStatement.prototype.includeNode = onlyIncludeSelf;

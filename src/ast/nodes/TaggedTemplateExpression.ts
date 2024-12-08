@@ -13,6 +13,7 @@ import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { onlyIncludeSelf } from './shared/Node';
 import type TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
@@ -46,7 +47,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
 		} else {
@@ -59,10 +60,6 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		if (!returnExpression.included) {
 			returnExpression.include(context, false);
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	initialise(): void {
@@ -108,3 +105,5 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		return this.returnExpression;
 	}
 }
+
+TaggedTemplateExpression.prototype.includeNode = onlyIncludeSelf;

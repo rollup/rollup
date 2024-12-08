@@ -13,7 +13,12 @@ import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelf
+} from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -49,7 +54,7 @@ export default class VariableDeclarator extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const { deoptimized, id, init } = this;
 		if (!deoptimized) this.applyDeoptimizations();
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		init?.include(context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively) {
@@ -57,10 +62,6 @@ export default class VariableDeclarator extends NodeBase {
 		} else {
 			id.includeDestructuredIfNecessary(context, EMPTY_PATH, init || UNDEFINED_EXPRESSION);
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	removeAnnotations(code: MagicString) {
@@ -113,3 +114,5 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 }
+
+VariableDeclarator.prototype.includeNode = onlyIncludeSelf;

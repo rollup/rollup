@@ -11,7 +11,7 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
+import { type IncludeChildren, NodeBase, onlyIncludeSelf, type StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
@@ -50,16 +50,12 @@ export default class Program extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context)) {
 				node.include(context, includeChildrenRecursively);
 			}
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	initialise() {
@@ -106,3 +102,5 @@ export default class Program extends NodeBase {
 
 	protected applyDeoptimizations() {}
 }
+
+Program.prototype.includeNode = onlyIncludeSelf;

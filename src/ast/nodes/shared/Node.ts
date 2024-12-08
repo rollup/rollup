@@ -407,3 +407,7 @@ export function locateNode(node: Node): Location & { file: string } {
 export function logNode(node: Node): string {
 	return node.scope.context.code.slice(node.start, node.end);
 }
+
+export function onlyIncludeSelf(this: Node) {
+	this.included = true;
+}

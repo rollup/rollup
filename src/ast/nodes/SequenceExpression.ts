@@ -14,7 +14,12 @@ import { type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelf
+} from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];
@@ -68,7 +73,7 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		const lastExpression = this.expressions[this.expressions.length - 1];
 		for (const expression of this.expressions) {
 			if (
@@ -81,12 +86,8 @@ export default class SequenceExpression extends NodeBase {
 		}
 	}
 
-	includeNode() {
-		this.included = true;
-	}
-
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		this.expressions[this.expressions.length - 1].includePath(path, context);
 	}
 
@@ -133,3 +134,5 @@ export default class SequenceExpression extends NodeBase {
 		}
 	}
 }
+
+SequenceExpression.prototype.includeNode = onlyIncludeSelf;

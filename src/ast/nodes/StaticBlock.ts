@@ -8,7 +8,12 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import * as NodeType from './NodeType';
-import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
+import {
+	type IncludeChildren,
+	onlyIncludeSelf,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class StaticBlock extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -26,15 +31,11 @@ export default class StaticBlock extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(context, includeChildrenRecursively);
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
@@ -47,6 +48,8 @@ export default class StaticBlock extends StatementBase {
 		}
 	}
 }
+
+StaticBlock.prototype.includeNode = onlyIncludeSelf;
 
 export function isStaticBlock(statement: StatementNode): statement is StaticBlock {
 	return statement.type === NodeType.StaticBlock;

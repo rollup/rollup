@@ -11,7 +11,7 @@ import * as NodeType from './NodeType';
 import type Property from './Property';
 import type RestElement from './RestElement';
 import type { ExpressionEntity } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -95,10 +95,6 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 		return (this.included ||= included);
 	}
 
-	includeNode() {
-		this.included = true;
-	}
-
 	markDeclarationReached(): void {
 		for (const property of this.properties) {
 			property.markDeclarationReached();
@@ -130,3 +126,5 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 
 	protected applyDeoptimizations() {}
 }
+
+ObjectPattern.prototype.includeNode = onlyIncludeSelf;

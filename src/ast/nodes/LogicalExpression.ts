@@ -30,7 +30,12 @@ import {
 	UnknownValue
 } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelf
+} from './shared/Node';
 
 export type LogicalOperator = '||' | '&&' | '??';
 
@@ -190,7 +195,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		const usedBranch = this.getUsedBranch();
 		if (
 			includeChildrenRecursively ||
@@ -213,10 +218,6 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		} else {
 			usedBranch.includePath(path, context);
 		}
-	}
-
-	includeNode() {
-		this.included = true;
 	}
 
 	removeAnnotations(code: MagicString) {
@@ -283,3 +284,5 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch;
 	}
 }
+
+LogicalExpression.prototype.includeNode = onlyIncludeSelf;
