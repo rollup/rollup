@@ -4,7 +4,7 @@ use crate::convert_ast::converter::string_constants::{STRING_MINUSMINUS, STRING_
 use crate::convert_ast::converter::AstConverter;
 use crate::{store_update_expression, store_update_expression_flags};
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_update_expression(&mut self, update_expression: &UpdateExpr) {
     store_update_expression!(
       self,

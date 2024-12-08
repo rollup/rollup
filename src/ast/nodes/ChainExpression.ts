@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import type CallExpression from './CallExpression';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -17,7 +17,7 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const literalValue = this.expression.getLiteralValueAtPathAsChainElement(

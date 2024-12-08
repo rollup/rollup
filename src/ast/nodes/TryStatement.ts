@@ -28,7 +28,7 @@ export default class TryStatement extends StatementBase {
 		)?.tryCatchDeoptimization;
 		const { brokenFlow, includedLabels } = context;
 		if (!this.directlyIncluded || !tryCatchDeoptimization) {
-			this.included = true;
+			if (!this.included) this.includeNode(context);
 			this.directlyIncluded = true;
 			this.block.include(
 				context,

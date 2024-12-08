@@ -3,6 +3,7 @@ import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import type { ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 
@@ -15,6 +16,7 @@ export default class BlockScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
+		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		if (kind === 'var') {
@@ -31,7 +33,13 @@ export default class BlockScope extends ChildScope {
 				}
 				return context.error(logRedeclarationError(name), identifier.start);
 			}
-			const declaredVariable = this.parent.addDeclaration(identifier, context, init, kind);
+			const declaredVariable = this.parent.addDeclaration(
+				identifier,
+				context,
+				init,
+				destructuredInitPath,
+				kind
+			);
 			// Necessary to make sure the init is deoptimized for conditional declarations.
 			// We cannot call deoptimizePath here.
 			declaredVariable.markInitializersForDeoptimization();
@@ -39,6 +47,6 @@ export default class BlockScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
-		return super.addDeclaration(identifier, context, init, kind);
+		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);
 	}
 }

@@ -27,19 +27,25 @@ export default class JSXElementBase extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.included) {
-			const { factory, importSource, mode } = this.jsxMode;
-			if (factory) {
-				this.factory = factory;
-				this.factoryVariable = getAndIncludeFactoryVariable(
-					factory,
-					mode === 'preserve',
-					importSource,
-					this
-				);
-			}
+		if (!this.included) this.includeNode(context);
+		for (const child of this.children) {
+			child.include(context, includeChildrenRecursively);
 		}
-		super.include(context, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext) {
+		super.includeNode(context);
+		const { factory, importSource, mode } = this.jsxMode;
+		if (factory) {
+			this.factory = factory;
+			this.factoryVariable = getAndIncludeFactoryVariable(
+				factory,
+				mode === 'preserve',
+				importSource,
+				this,
+				context
+			);
+		}
 	}
 
 	protected applyDeoptimizations() {}

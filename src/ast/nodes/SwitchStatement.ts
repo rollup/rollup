@@ -8,9 +8,9 @@ import {
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import type * as NodeType from './NodeType';
-import type SwitchCase from './SwitchCase';
 import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { StatementBase } from './shared/Node';
+import { onlyIncludeSelf, StatementBase } from './shared/Node';
+import type SwitchCase from './SwitchCase';
 
 export default class SwitchStatement extends StatementBase {
 	declare cases: readonly SwitchCase[];
@@ -47,7 +47,7 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		this.discriminant.include(context, includeChildrenRecursively);
 		const { brokenFlow, hasBreak } = context;
 		context.hasBreak = false;
@@ -106,3 +106,5 @@ export default class SwitchStatement extends StatementBase {
 		}
 	}
 }
+
+SwitchStatement.prototype.includeNode = onlyIncludeSelf;

@@ -23,7 +23,7 @@ System.register([], (function (exports) {
 			console.log(e1, e2, e3);
 
 			// destructuring declaration
-			let {f1, f2} = globalThis.obj; exports("f2", f2);
+			let {f1, f2} = globalThis.obj, {f3} = globalThis.obj; exports("f2", f2);
 
 		})
 	};

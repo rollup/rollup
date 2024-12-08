@@ -3,7 +3,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import { type ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import type CallExpression from './CallExpression';
 import Identifier from './Identifier';
@@ -13,11 +13,11 @@ import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: PatternNode[];
+	declare params: DeclarationPatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;
@@ -80,6 +80,15 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {
 				parameter.include(context, includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeNode(context: InclusionContext) {
+		super.includeNode(context);
+		for (const parameter of this.params) {
+			if (!(parameter instanceof Identifier)) {
+				parameter.includePath(UNKNOWN_PATH, context);
 			}
 		}
 	}

@@ -11,6 +11,7 @@ import {
 	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
+	onlyIncludeSelf,
 	type StatementNode
 } from './shared/Node';
 
@@ -30,7 +31,7 @@ export default class SwitchCase extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		this.test?.include(context, includeChildrenRecursively);
 		for (const node of this.consequent) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
@@ -55,3 +56,4 @@ export default class SwitchCase extends NodeBase {
 }
 
 SwitchCase.prototype.needsBoundaries = true;
+SwitchCase.prototype.includeNode = onlyIncludeSelf;

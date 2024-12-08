@@ -18,8 +18,8 @@ import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
@@ -81,12 +81,25 @@ export interface Node extends Entity {
 	 * Includes the node in the bundle. If the flag is not set, children are
 	 * usually included if they are necessary for this node (e.g. a function body)
 	 * or if they have effects. Necessary variables need to be included as well.
+	 * This is called repeatedly for each tree-shaking pass.
 	 */
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
 	): void;
+
+	/**
+	 * Includes this node for the first time in the bundle and ensures that all
+	 * paths that this node relies on are included as well. Does not include
+	 * child nodes by default, though.
+	 */
+	includeNode(context: InclusionContext): void;
+
+	/**
+	 * Explicitly include a path of this Node.
+	 */
+	includePath(path: ObjectPath, context: InclusionContext): void;
 
 	/**
 	 * Special version of include for assignment left-hand sides which ensures
@@ -131,7 +144,7 @@ export interface ExpressionNode extends ExpressionEntity, Node, Partial<ChainEle
 export interface ChainElement {
 	getLiteralValueAtPathAsChainElement(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain;
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain;
@@ -227,7 +240,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		_options?: InclusionOptions
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -237,6 +250,23 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				}
 			} else {
 				value.include(context, includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeNode(context: InclusionContext) {
+		// TODO Lukas remove
+		// console.log('NodeBase.includeNode', this.type, logNode(this));
+		this.included = true;
+		for (const key of childNodeKeys[this.type]) {
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					child?.includePath(UNKNOWN_PATH, context);
+				}
+			} else {
+				value.includePath(UNKNOWN_PATH, context);
 			}
 		}
 	}
@@ -376,4 +406,8 @@ export function locateNode(node: Node): Location & { file: string } {
 
 export function logNode(node: Node): string {
 	return node.scope.context.code.slice(node.start, node.end);
+}
+
+export function onlyIncludeSelf(this: Node) {
+	this.included = true;
 }

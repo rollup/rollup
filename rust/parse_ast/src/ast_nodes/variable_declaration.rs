@@ -10,7 +10,7 @@ use crate::convert_ast::converter::string_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
     let (kind, span, decls): (&[u8; 4], Span, &Vec<VarDeclarator>) = match variable_declaration {
       VariableDeclaration::Var(value) => (

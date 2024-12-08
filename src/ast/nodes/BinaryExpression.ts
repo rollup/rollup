@@ -7,8 +7,8 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
@@ -80,7 +80,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;

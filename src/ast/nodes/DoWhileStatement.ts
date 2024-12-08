@@ -1,12 +1,12 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
+import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
-import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 
 export default class DoWhileStatement extends StatementBase {
 	declare body: StatementNode;
@@ -19,7 +19,7 @@ export default class DoWhileStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}

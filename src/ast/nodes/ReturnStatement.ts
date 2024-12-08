@@ -16,7 +16,7 @@ export default class ReturnStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		this.argument?.include(context, includeChildrenRecursively);
 		context.brokenFlow = true;
 	}
