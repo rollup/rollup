@@ -16461,6 +16461,9 @@ class MySqlParser extends SQLParserBase {
         return localContext;
     }
     queryExpressionBody(_p) {
+        if (_p === undefined) {
+            _p = 0;
+        }
         let parentContext = this.context;
         let parentState = this.state;
         let localContext = new QueryExpressionBodyContext(this.context, parentState);
@@ -16575,6 +16578,9 @@ class MySqlParser extends SQLParserBase {
         return localContext;
     }
     queryItem(_p) {
+        if (_p === undefined) {
+            _p = 0;
+        }
         let parentContext = this.context;
         let parentState = this.state;
         let localContext = new QueryItemContext(this.context, parentState);
@@ -44195,6 +44201,9 @@ class MySqlParser extends SQLParserBase {
         return localContext;
     }
     expression(_p) {
+        if (_p === undefined) {
+            _p = 0;
+        }
         let parentContext = this.context;
         let parentState = this.state;
         let localContext = new ExpressionContext(this.context, parentState);
@@ -44315,6 +44324,9 @@ class MySqlParser extends SQLParserBase {
         return localContext;
     }
     predicate(_p) {
+        if (_p === undefined) {
+            _p = 0;
+        }
         let parentContext = this.context;
         let parentState = this.state;
         let localContext = new PredicateContext(this.context, parentState);
@@ -44598,6 +44610,9 @@ class MySqlParser extends SQLParserBase {
         return localContext;
     }
     expressionAtom(_p) {
+        if (_p === undefined) {
+            _p = 0;
+        }
         let parentContext = this.context;
         let parentState = this.state;
         let localContext = new ExpressionAtomContext(this.context, parentState);
