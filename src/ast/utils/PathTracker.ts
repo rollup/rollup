@@ -163,11 +163,11 @@ function includeAllPaths(
 	currentPaths: IncludedPaths
 ): void {
 	if (currentPaths[UnknownKey]) {
-		return entity.includePath([...basePath, UnknownKey], context, false);
+		return entity.includePath([...basePath, UnknownKey], context);
 	}
 	const keys = Object.keys(currentPaths);
 	if (keys.length === 0) {
-		return entity.includePath(basePath, context, false);
+		return entity.includePath(basePath, context);
 	}
 	for (const key of keys) {
 		includeAllPaths(entity, context, [...basePath, key], currentPaths[key]);

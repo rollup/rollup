@@ -4,7 +4,7 @@ import type { NodeInteractionCalled } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
@@ -60,12 +60,14 @@ export default class ParameterScope extends ChildScope {
 		// If there is a SpreadElement, we need to include all arguments after it
 		// because we no longer know which argument corresponds to which parameter.
 		for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
-			if (args[argumentIndex] instanceof SpreadElement && !argumentIncluded) {
+			const argument = args[argumentIndex];
+			if (argument instanceof SpreadElement && !argumentIncluded) {
 				argumentIncluded = true;
 				lastExplicitlyIncludedIndex = argumentIndex - 1;
 			}
 			if (argumentIncluded) {
-				args[argumentIndex]!.includePath(UNKNOWN_PATH, context, false);
+				argument!.includePath(UNKNOWN_PATH, context);
+				argument!.include(context, false);
 			}
 		}
 		// Now we go backwards either starting from the last argument or before the
@@ -86,8 +88,9 @@ export default class ParameterScope extends ChildScope {
 						if (variable.included) {
 							argumentIncluded = true;
 							if (calledFromTryStatement) {
-								argument.includePath(UNKNOWN_PATH, context, true);
+								argument.include(context, true);
 							} else {
+								argument.include(context, false);
 								variable.includeArgumentPaths(argument, context);
 							}
 						}
@@ -96,7 +99,7 @@ export default class ParameterScope extends ChildScope {
 			}
 			if (!argument.included && (argumentIncluded || argument.shouldBeIncluded(context))) {
 				argumentIncluded = true;
-				argument.includePath(EMPTY_PATH, context, calledFromTryStatement);
+				argument.include(context, calledFromTryStatement);
 			}
 		}
 	}

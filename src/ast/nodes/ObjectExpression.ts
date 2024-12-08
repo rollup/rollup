@@ -81,14 +81,20 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.included) this.includeNode(context);
+		this.getObjectEntity().include(context, includeChildrenRecursively);
+		this.protoProp?.include(context, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext) {
 		this.included = true;
-		this.getObjectEntity().includePath(path, context, includeChildrenRecursively);
-		this.protoProp?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.protoProp?.includePath(UNKNOWN_PATH, context);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		if (!this.included) this.includeNode(context);
+		this.getObjectEntity().includePath(path, context);
 	}
 
 	render(

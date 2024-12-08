@@ -4,7 +4,6 @@ import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteracti
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
 import {
-	EMPTY_PATH,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
@@ -352,38 +351,36 @@ export class ObjectEntity extends ExpressionEntity {
 		return false;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		const [key, ...subPath] = path;
-		if (key == null || includeChildrenRecursively) {
-			for (const property of this.allProperties) {
-				if (includeChildrenRecursively || property.shouldBeIncluded(context)) {
-					property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-				}
+		for (const property of this.allProperties) {
+			if (includeChildrenRecursively || property.shouldBeIncluded(context)) {
+				property.include(context, includeChildrenRecursively);
 			}
-			this.prototypeExpression?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-		} else {
-			const [includedMembers, includedPath] =
-				typeof key === 'string'
-					? [
-							[
-								...new Set([
-									...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-									...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
-								])
-							],
-							subPath
-						]
-					: [this.allProperties, UNKNOWN_PATH];
-			for (const property of includedMembers) {
-				property.includePath(includedPath, context, includeChildrenRecursively);
-			}
-			this.prototypeExpression?.includePath(path, context, includeChildrenRecursively);
 		}
+		this.prototypeExpression?.include(context, includeChildrenRecursively);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		this.included = true;
+		if (path.length === 0) return;
+		const [key, ...subPath] = path;
+		const [includedMembers, includedPath] =
+			typeof key === 'string'
+				? [
+						[
+							...new Set([
+								...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+								...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
+							])
+						],
+						subPath
+					]
+				: [this.allProperties, UNKNOWN_PATH];
+		for (const property of includedMembers) {
+			property.includePath(includedPath, context);
+		}
+		this.prototypeExpression?.includePath(path, context);
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

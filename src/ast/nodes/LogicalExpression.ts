@@ -10,6 +10,7 @@ import {
 } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
@@ -73,6 +74,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			if (this.included) {
+				// As we are not tracking inclusions, we just include everything
+				unusedBranch.includePath(UNKNOWN_PATH, createInclusionContext());
+			}
 		}
 		const {
 			scope: { context },
@@ -131,31 +136,32 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch)
-			return [
-				new MultiExpression([
-					this.left.getReturnExpressionWhenCalledAtPath(
-						path,
-						interaction,
-						recursionTracker,
-						origin
-					)[0],
-					this.right.getReturnExpressionWhenCalledAtPath(
-						path,
-						interaction,
-						recursionTracker,
-						origin
-					)[0]
-				]),
-				false
-			];
-		this.expressionsToBeDeoptimized.push(origin);
-		return usedBranch.getReturnExpressionWhenCalledAtPath(
-			path,
-			interaction,
-			recursionTracker,
-			origin
-		);
+		if (usedBranch) {
+			this.expressionsToBeDeoptimized.push(origin);
+			return usedBranch.getReturnExpressionWhenCalledAtPath(
+				path,
+				interaction,
+				recursionTracker,
+				origin
+			);
+		}
+		return [
+			new MultiExpression([
+				this.left.getReturnExpressionWhenCalledAtPath(
+					path,
+					interaction,
+					recursionTracker,
+					origin
+				)[0],
+				this.right.getReturnExpressionWhenCalledAtPath(
+					path,
+					interaction,
+					recursionTracker,
+					origin
+				)[0]
+			]),
+			false
+		];
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -174,32 +180,43 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		context: HasEffectsContext
 	): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) {
-			return (
-				this.left.hasEffectsOnInteractionAtPath(path, interaction, context) ||
-				this.right.hasEffectsOnInteractionAtPath(path, interaction, context)
-			);
+		if (usedBranch) {
+			return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
-		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
+		return (
+			this.left.hasEffectsOnInteractionAtPath(path, interaction, context) ||
+			this.right.hasEffectsOnInteractionAtPath(path, interaction, context)
+		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode();
 		const usedBranch = this.getUsedBranch();
 		if (
 			includeChildrenRecursively ||
-			(usedBranch === this.right && this.left.shouldBeIncluded(context)) ||
-			!usedBranch
+			!usedBranch ||
+			(usedBranch === this.right && this.left.shouldBeIncluded(context))
 		) {
-			this.left.includePath(path, context, includeChildrenRecursively);
-			this.right.includePath(path, context, includeChildrenRecursively);
+			this.left.include(context, includeChildrenRecursively);
+			this.right.include(context, includeChildrenRecursively);
 		} else {
-			usedBranch.includePath(path, context, includeChildrenRecursively);
+			usedBranch.include(context, includeChildrenRecursively);
 		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		this.included = true;
+		const usedBranch = this.getUsedBranch();
+		if (!usedBranch || (usedBranch === this.right && this.left.shouldBeIncluded(context))) {
+			this.left.includePath(path, context);
+			this.right.includePath(path, context);
+		} else {
+			usedBranch.includePath(path, context);
+		}
+	}
+
+	includeNode() {
+		this.included = true;
 	}
 
 	removeAnnotations(code: MagicString) {

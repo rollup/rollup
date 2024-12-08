@@ -127,12 +127,23 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	includePath(path: ObjectPath, context: InclusionContext): void {
+	include(context: InclusionContext): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.included) this.includeNode(context);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (this.variable !== null) {
+			this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
+		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.scope.context.includeVariableInModule(this.variable, path);
+				this.scope.context.includeVariableInModule(this.variable, path, context);
 			}
 		} else if (path.length > 0) {
 			this.variable?.includePath(path, context);

@@ -6,6 +6,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import ModuleScope from '../scopes/ModuleScope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -42,10 +43,19 @@ export default class ThisExpression extends NodeBase {
 		return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
+	include(context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
+	}
+
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) {
 			this.included = true;
-			this.scope.context.includeVariableInModule(this.variable, path);
+			this.scope.context.includeVariableInModule(this.variable, path, context);
 		} else if (path.length > 0) {
 			this.variable.includePath(path, context);
 		}

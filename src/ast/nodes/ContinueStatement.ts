@@ -1,9 +1,4 @@
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
@@ -24,10 +19,10 @@ export default class ContinueStatement extends StatementBase {
 		return false;
 	}
 
-	includePath(_: ObjectPath, context: InclusionContext): void {
-		this.included = true;
+	include(context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
 		if (this.label) {
-			this.label.includePath(UNKNOWN_PATH, createInclusionContext());
+			this.label.include(context);
 			context.includedLabels.add(this.label.name);
 		} else {
 			context.hasContinue = true;

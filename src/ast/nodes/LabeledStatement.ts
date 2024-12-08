@@ -4,12 +4,8 @@ import {
 	findNonWhiteSpace,
 	type RenderOptions
 } from '../../utils/renderHelpers';
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
@@ -37,21 +33,22 @@ export default class LabeledStatement extends StatementBase {
 		return bodyHasEffects;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		const { brokenFlow, includedLabels } = context;
 		context.includedLabels = new Set<string>();
-		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
-			this.label.includePath(UNKNOWN_PATH, createInclusionContext());
+			this.label.include(context);
 			context.includedLabels.delete(this.label.name);
 			context.brokenFlow = brokenFlow;
 		}
 		context.includedLabels = new Set([...includedLabels, ...context.includedLabels]);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.body.includePath(UNKNOWN_PATH, context);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

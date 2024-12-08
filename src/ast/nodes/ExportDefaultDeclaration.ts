@@ -10,6 +10,7 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
 import type ModuleScope from '../scopes/ModuleScope';
 import type { ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
@@ -42,16 +43,21 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	declare private declarationName: string | undefined;
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
-		this.declaration.includePath(path, context, includeChildrenRecursively);
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode();
+		this.declaration.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
-			this.scope.context.includeVariableInModule(this.variable, path);
+			this.scope.context.includeVariableInModule(this.variable, UNKNOWN_PATH, context);
 		}
+	}
+
+	includeNode() {
+		this.included = true;
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode();
+		this.declaration.includePath(path, context);
 	}
 
 	initialise(): void {

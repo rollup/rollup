@@ -8,6 +8,7 @@ import {
 } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -50,6 +51,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			if (this.included) {
+				unusedBranch.includePath(UNKNOWN_PATH, createInclusionContext());
+			}
 			const { expressionsToBeDeoptimized } = this;
 			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 			for (const expression of expressionsToBeDeoptimized) {
@@ -137,19 +141,30 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode();
 		const usedBranch = this.getUsedBranch();
-		if (includeChildrenRecursively || this.test.shouldBeIncluded(context) || usedBranch === null) {
-			this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-			this.consequent.includePath(path, context, includeChildrenRecursively);
-			this.alternate.includePath(path, context, includeChildrenRecursively);
+		if (usedBranch === null || includeChildrenRecursively || this.test.shouldBeIncluded(context)) {
+			this.test.include(context, includeChildrenRecursively);
+			this.consequent.include(context, includeChildrenRecursively);
+			this.alternate.include(context, includeChildrenRecursively);
 		} else {
-			usedBranch.includePath(path, context, includeChildrenRecursively);
+			usedBranch.include(context, includeChildrenRecursively);
+		}
+	}
+
+	includeNode() {
+		this.included = true;
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode();
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null || this.test.shouldBeIncluded(context)) {
+			this.consequent.includePath(path, context);
+			this.alternate.includePath(path, context);
+		} else {
+			usedBranch.includePath(path, context);
 		}
 	}
 
@@ -177,12 +192,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			renderedSurroundingElement
 		}: NodeRenderOptions = BLANK
 	): void {
-		const usedBranch = this.getUsedBranch();
 		if (this.test.included) {
 			this.test.render(code, options, { renderedSurroundingElement });
 			this.consequent.render(code, options);
 			this.alternate.render(code, options);
 		} else {
+			const usedBranch = this.getUsedBranch();
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
 			const inclusionStart = findNonWhiteSpace(
 				code.original,

@@ -23,7 +23,6 @@ import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
-	EMPTY_PATH,
 	type EntityPathTracker,
 	IncludedPathTracker,
 	type ObjectPath,
@@ -206,21 +205,21 @@ export default class LocalVariable extends Variable {
 			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.includePath(EMPTY_PATH, context, false);
+				if (!declaration.included) declaration.include(context, false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
 					// in which case .include() might pull in more dead code
-					node.included = true;
+					node.includeNode(context);
 					if (node.type === NodeType.Program) break;
 					node = node.parent as Node;
 				}
 			}
 			// We need to make sure we include the correct path of the init
 			if (path.length > 0) {
-				this.init.includePath(limitConcatenatedPathDepth(this.initPath, path), context, false);
+				this.init.includePath(limitConcatenatedPathDepth(this.initPath, path), context);
 				this.additionalInitializers?.forEach(initializer =>
-					initializer.includePath(UNKNOWN_PATH, context, false)
+					initializer.includePath(UNKNOWN_PATH, context)
 				);
 			}
 		}
@@ -235,7 +234,10 @@ export default class LocalVariable extends Variable {
 			this.initPath.length > 0
 		) {
 			for (const argument of interaction.args) {
-				argument?.includePath(UNKNOWN_PATH, context, false);
+				if (argument) {
+					argument.includePath(UNKNOWN_PATH, context);
+					argument.include(context, false);
+				}
 			}
 		} else {
 			context.includedCallArguments.add(this.init);

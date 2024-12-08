@@ -75,15 +75,20 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		return isIIFE || super.onlyFunctionCallUsed();
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		super.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		super.include(context, includeChildrenRecursively);
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {
-				parameter.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				parameter.include(context, includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeNode(context: InclusionContext) {
+		super.includeNode(context);
+		for (const parameter of this.params) {
+			if (!(parameter instanceof Identifier)) {
+				parameter.includePath(UNKNOWN_PATH, context);
 			}
 		}
 	}

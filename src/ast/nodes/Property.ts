@@ -3,7 +3,7 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
+import { UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import Identifier from './Identifier';
 import type Literal from './Literal';
@@ -82,7 +82,7 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 			(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init) ||
 			this.included;
 		if ((included ||= this.key.hasEffects(createHasEffectsContext()))) {
-			this.key.includePath(EMPTY_PATH, context, false);
+			this.key.include(context, false);
 			if (!this.value.included) {
 				this.value.included = true;
 				// Unfortunately, we need to include the value again now, so that any
@@ -93,14 +93,19 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		return (this.included = included);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.included) this.includeNode();
+		this.key.include(context, includeChildrenRecursively);
+		this.value.include(context, includeChildrenRecursively);
+	}
+
+	includeNode() {
 		this.included = true;
-		this.key.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-		this.value.includePath(path, context, includeChildrenRecursively);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		if (!this.included) this.includeNode();
+		this.value.includePath(path, context);
 	}
 
 	markDeclarationReached(): void {

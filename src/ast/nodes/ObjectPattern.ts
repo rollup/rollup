@@ -95,6 +95,10 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 		return (this.included ||= included);
 	}
 
+	includeNode() {
+		this.included = true;
+	}
+
 	markDeclarationReached(): void {
 		for (const property of this.properties) {
 			property.markDeclarationReached();

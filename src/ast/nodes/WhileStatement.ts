@@ -1,13 +1,12 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
+import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
-import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 
 export default class WhileStatement extends StatementBase {
 	declare body: StatementNode;
@@ -19,13 +18,13 @@ export default class WhileStatement extends StatementBase {
 		return hasLoopBodyEffects(context, this.body);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
-		this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode();
+		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
+	}
+
+	includeNode() {
+		this.included = true;
 	}
 }

@@ -78,23 +78,28 @@ export interface Node extends Entity {
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean;
 
 	/**
-	 * Includes the given path of the Node in the bundle. If
-	 * "includeChildrenRecursively" is true, children of this path are included
-	 * unconditionally. Otherwise, including a given path means that the value of
-	 * this path is needed, but not necessarily its children if it is an object.
-	 * Example:
-	 *   if (x.a.b) { ... }
-	 * would include the path ['a','b'] of the variable x but none of its children
-	 * because those are not needed to get the literal value.
-	 * On the other hand to include all children, we extend the path with
-	 * "UnknownNode".
+	 * Includes the node in the bundle. If the flag is not set, children are
+	 * usually included if they are necessary for this node (e.g. a function body)
+	 * or if they have effects. Necessary variables need to be included as well.
+	 * This is called repeatedly for each tree-shaking pass.
 	 */
-	includePath(
-		path: ObjectPath,
+	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
 	): void;
+
+	/**
+	 * Includes this node for the first time in the bundle and ensures that all
+	 * paths that this node relies on are included as well. Does not include
+	 * child nodes by default, though.
+	 */
+	includeNode(context: InclusionContext): void;
+
+	/**
+	 * Explicitly include a path of this Node.
+	 */
+	includePath(path: ObjectPath, context: InclusionContext): void;
 
 	/**
 	 * Special version of include for assignment left-hand sides which ensures
@@ -229,23 +234,39 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		);
 	}
 
-	includePath(
-		_path: ObjectPath,
+	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.included) this.includeNode(context);
+		for (const key of childNodeKeys[this.type]) {
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					child?.include(context, includeChildrenRecursively);
+				}
+			} else {
+				value.include(context, includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeNode(context: InclusionContext) {
+		// TODO Lukas remove
+		// console.log('NodeBase.includeNode', this.type, logNode(this));
 		this.included = true;
 		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+					child?.includePath(UNKNOWN_PATH, context);
 				}
 			} else {
-				value.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				value.includePath(UNKNOWN_PATH, context);
 			}
 		}
 	}
@@ -255,7 +276,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_deoptimizeAccess: boolean
 	) {
-		this.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.include(context, includeChildrenRecursively);
 	}
 
 	/**
