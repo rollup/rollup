@@ -363,7 +363,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   // file instead of process.cwd(). For more information:
   // https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
   const packageJson = JSON.parse(
-  	readFileSync(new URL('./package.json', import.meta.url))
+  	readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
   );
 
   // ...
