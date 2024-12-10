@@ -7,7 +7,12 @@ import type MethodDefinition from './MethodDefinition';
 import type * as NodeType from './NodeType';
 import type PropertyDefinition from './PropertyDefinition';
 import type ClassNode from './shared/ClassNode';
-import { type GenericEsTreeNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	type GenericEsTreeNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelf
+} from './shared/Node';
 import type StaticBlock from './StaticBlock';
 
 export default class ClassBody extends NodeBase {
@@ -41,3 +46,5 @@ export default class ClassBody extends NodeBase {
 
 	protected applyDeoptimizations() {}
 }
+
+ClassBody.prototype.includeNode = onlyIncludeSelf;

@@ -15,7 +15,7 @@ import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 type Operator =
 	| '!='
@@ -125,3 +125,5 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		this.right.render(code, options);
 	}
 }
+
+BinaryExpression.prototype.includeNode = onlyIncludeSelf;

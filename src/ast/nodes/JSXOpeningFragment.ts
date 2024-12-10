@@ -15,10 +15,6 @@ export default class JSXOpeningFragment extends NodeBase {
 	private fragment: string | null = null;
 	private fragmentVariable: Variable | null = null;
 
-	include(context: InclusionContext) {
-		if (!this.included) this.includeNode(context);
-	}
-
 	includeNode(context: InclusionContext) {
 		this.included = true;
 		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;

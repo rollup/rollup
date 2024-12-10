@@ -4,6 +4,7 @@ import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
+	onlyIncludeSelf,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -24,3 +25,5 @@ export default class DoWhileStatement extends StatementBase {
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
 }
+
+DoWhileStatement.prototype.includeNode = onlyIncludeSelf;

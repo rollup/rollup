@@ -1,6 +1,7 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import type { InclusionContext } from '../ExecutionContext';
 import JSXAttribute from './JSXAttribute';
 import type JSXClosingElement from './JSXClosingElement';
 import type JSXOpeningElement from './JSXOpeningElement';
@@ -8,12 +9,19 @@ import JSXSpreadAttribute from './JSXSpreadAttribute';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
 import type { JSXChild, JsxMode } from './shared/jsxHelpers';
+import type { IncludeChildren } from './shared/Node';
 
 export default class JSXElement extends JSXElementBase {
 	type!: NodeType.tJSXElement;
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;
 	children!: JSXChild[];
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		super.include(context, includeChildrenRecursively);
+		this.openingElement.include(context, includeChildrenRecursively);
+		this.closingElement?.include(context, includeChildrenRecursively);
+	}
 
 	render(code: MagicString, options: RenderOptions): void {
 		switch (this.jsxMode.mode) {

@@ -1,7 +1,7 @@
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import { onlyIncludeSelf, StatementBase } from './shared/Node';
 
 export default class BreakStatement extends StatementBase {
 	declare label: Identifier | null;
@@ -30,3 +30,5 @@ export default class BreakStatement extends StatementBase {
 		context.brokenFlow = true;
 	}
 }
+
+BreakStatement.prototype.includeNode = onlyIncludeSelf;

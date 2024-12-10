@@ -1,6 +1,6 @@
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { type GenericEsTreeNode, NodeBase } from './shared/Node';
+import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class TemplateElement extends NodeBase {
 	declare type: NodeType.tTemplateElement;
@@ -30,3 +30,5 @@ export default class TemplateElement extends NodeBase {
 
 	render(): void {}
 }
+
+TemplateElement.prototype.includeNode = onlyIncludeSelf;

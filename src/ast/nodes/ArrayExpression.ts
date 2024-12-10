@@ -1,5 +1,5 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	type EntityPathTracker,
@@ -9,11 +9,11 @@ import {
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
+import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
 	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
@@ -64,6 +64,15 @@ export default class ArrayExpression extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		for (const element of this.elements) {
+			if (element) {
+				element?.includePath(UNKNOWN_PATH, context);
+			}
+		}
 	}
 
 	protected applyDeoptimizations(): void {

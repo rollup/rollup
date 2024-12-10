@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../../rollup/types';
 import type { RenderOptions } from '../../../utils/renderHelpers';
-import { NodeBase } from './Node';
+import { NodeBase, onlyIncludeSelf } from './Node';
 
 export default class JSXClosingBase extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
@@ -13,3 +13,5 @@ export default class JSXClosingBase extends NodeBase {
 		}
 	}
 }
+
+JSXClosingBase.prototype.includeNode = onlyIncludeSelf;

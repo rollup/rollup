@@ -1,12 +1,12 @@
 import type MagicString from 'magic-string';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import type CallExpression from './CallExpression';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
-import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
+import { IS_SKIPPED_CHAIN, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class ChainExpression extends NodeBase implements DeoptimizableEntity {
 	declare expression: CallExpression | MemberExpression;
@@ -32,9 +32,16 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 		return this.expression.hasEffectsAsChainElement(context) === true;
 	}
 
+	includePath(path: ObjectPath, context: InclusionContext) {
+		if (!this.included) this.includeNode(context);
+		this.expression.includePath(path, context);
+	}
+
 	removeAnnotations(code: MagicString) {
 		this.expression.removeAnnotations(code);
 	}
 
 	protected applyDeoptimizations() {}
 }
+
+ChainExpression.prototype.includeNode = onlyIncludeSelf;

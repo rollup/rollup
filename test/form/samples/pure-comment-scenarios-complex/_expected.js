@@ -19,4 +19,4 @@ bar();
 "foo" + /* @__PURE__ */(function(){})() ? bar() : baz();
 /* @__PURE__ */(function(){})() ? foo() : foo();
 [/* @__PURE__ */(function(){})()] ? foo() : bar();
-!{ foo: /* @__PURE__ */(function(){})() } ? bar() : baz();
+!{ } ? bar() : baz();

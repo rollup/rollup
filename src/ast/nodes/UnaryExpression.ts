@@ -8,7 +8,7 @@ import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnknown> = {
 	'!': value => !value,
@@ -70,3 +70,5 @@ export default class UnaryExpression extends NodeBase {
 		}
 	}
 }
+
+UnaryExpression.prototype.includeNode = onlyIncludeSelf;

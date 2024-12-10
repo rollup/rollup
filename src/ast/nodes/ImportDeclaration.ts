@@ -6,7 +6,7 @@ import type ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import type ImportSpecifier from './ImportSpecifier';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
 	declare attributes: ImportAttribute[];
@@ -35,3 +35,4 @@ export default class ImportDeclaration extends NodeBase {
 }
 
 ImportDeclaration.prototype.needsBoundaries = true;
+ImportDeclaration.prototype.includeNode = onlyIncludeSelf;

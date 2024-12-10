@@ -20,7 +20,7 @@ import {
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION
 } from './Expression';
-import { type ExpressionNode, NodeBase } from './Node';
+import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './Node';
 import type { DeclarationPatternNode } from './Pattern';
 
 export default class MethodBase extends NodeBase implements DeoptimizableEntity {
@@ -155,3 +155,5 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.accessedValue;
 	}
 }
+
+MethodBase.prototype.includeNode = onlyIncludeSelf;
