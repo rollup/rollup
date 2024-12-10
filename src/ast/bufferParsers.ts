@@ -103,6 +103,7 @@ import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
 import type ModuleScope from './scopes/ModuleScope';
 import TrackingScope from './scopes/TrackingScope';
+import { EMPTY_PATH } from './utils/PathTracker';
 import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(
@@ -335,7 +336,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const parameters = (node.params = convertNodeList(node, scope, buffer[position + 2], buffer));
 		scope.addParameterVariables(
 			parameters.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter =>
+					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
@@ -384,7 +386,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const parameterPosition = buffer[position];
 		const parameter = (node.param =
 			parameterPosition === 0 ? null : convertNode(node, scope, parameterPosition, buffer));
-		parameter?.declare('parameter', UNKNOWN_EXPRESSION);
+		parameter?.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION);
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 1], buffer);
 	},
 	function chainExpression(node: ChainExpression, position, buffer) {
@@ -528,7 +530,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const parameters = (node.params = convertNodeList(node, scope, buffer[position + 3], buffer));
 		scope.addParameterVariables(
 			parameters.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter =>
+					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
@@ -546,7 +549,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const parameters = (node.params = convertNodeList(node, scope, buffer[position + 3], buffer));
 		scope.addParameterVariables(
 			parameters.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter =>
+					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);

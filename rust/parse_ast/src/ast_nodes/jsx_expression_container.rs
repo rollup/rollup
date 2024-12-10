@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_jsx_expression_container(&mut self, jsx_expr_container: &JSXExprContainer) {
     let end_position = self.add_type_and_start(
       &TYPE_JSX_EXPRESSION_CONTAINER,

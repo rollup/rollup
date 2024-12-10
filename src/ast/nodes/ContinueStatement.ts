@@ -1,7 +1,7 @@
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import { onlyIncludeSelf, StatementBase } from './shared/Node';
 
 export default class ContinueStatement extends StatementBase {
 	declare label: Identifier | null;
@@ -20,9 +20,9 @@ export default class ContinueStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext): void {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		if (this.label) {
-			this.label.include();
+			this.label.include(context);
 			context.includedLabels.add(this.label.name);
 		} else {
 			context.hasContinue = true;
@@ -30,3 +30,5 @@ export default class ContinueStatement extends StatementBase {
 		context.brokenFlow = true;
 	}
 }
+
+ContinueStatement.prototype.includeNode = onlyIncludeSelf;

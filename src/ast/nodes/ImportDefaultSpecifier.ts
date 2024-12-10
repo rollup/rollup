@@ -1,6 +1,6 @@
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class ImportDefaultSpecifier extends NodeBase {
 	declare local: Identifier;
@@ -8,3 +8,5 @@ export default class ImportDefaultSpecifier extends NodeBase {
 
 	protected applyDeoptimizations() {}
 }
+
+ImportDefaultSpecifier.prototype.includeNode = onlyIncludeSelf;

@@ -3,7 +3,7 @@ use swc_ecma_ast::ThrowStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_throw_statement;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_throw_statement(&mut self, throw_statement: &ThrowStmt) {
     store_throw_statement!(
       self,

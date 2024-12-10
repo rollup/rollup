@@ -12,6 +12,7 @@ import {
 	getSystemExportStatement,
 	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
+import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
@@ -19,10 +20,10 @@ import ArrayPattern from './ArrayPattern';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import type VariableDeclarator from './VariableDeclarator';
 import type { InclusionOptions } from './shared/Expression';
-import { type IncludeChildren, NodeBase } from './shared/Node';
+import { type IncludeChildren, NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { VariableDeclarationKind } from './shared/VariableKinds';
+import type VariableDeclarator from './VariableDeclarator';
 
 function areAllDeclarationsIncludedAndNotExported(
 	declarations: readonly VariableDeclarator[],
@@ -62,10 +63,11 @@ export default class VariableDeclaration extends NodeBase {
 		includeChildrenRecursively: IncludeChildren,
 		{ asSingleStatement }: InclusionOptions = BLANK
 	): void {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		for (const declarator of this.declarations) {
-			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
+			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
 				declarator.include(context, includeChildrenRecursively);
+			}
 			const { id, init } = declarator;
 			if (asSingleStatement) {
 				id.include(context, includeChildrenRecursively);
@@ -183,8 +185,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
-				code.remove(start, end);
-				node.removeAnnotations(code);
+				treeshakeNode(node, code, start, end);
 				continue;
 			}
 			node.render(code, options);
@@ -277,3 +278,5 @@ function gatherSystemExportsAndGetSingleExport(
 	}
 	return singleSystemExport;
 }
+
+VariableDeclaration.prototype.includeNode = onlyIncludeSelf;

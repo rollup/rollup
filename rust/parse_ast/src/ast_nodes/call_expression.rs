@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_call_expression_flags;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_call_expression(
     &mut self,
     span: &Span,

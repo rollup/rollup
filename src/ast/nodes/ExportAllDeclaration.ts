@@ -4,7 +4,7 @@ import type Identifier from './Identifier';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class ExportAllDeclaration extends NodeBase {
 	declare attributes: ImportAttribute[];
@@ -30,3 +30,4 @@ export default class ExportAllDeclaration extends NodeBase {
 }
 
 ExportAllDeclaration.prototype.needsBoundaries = true;
+ExportAllDeclaration.prototype.includeNode = onlyIncludeSelf;

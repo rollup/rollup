@@ -1,7 +1,7 @@
 import type Identifier from './Identifier';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class ExportSpecifier extends NodeBase {
 	declare exported: Identifier | Literal<string>;
@@ -10,3 +10,5 @@ export default class ExportSpecifier extends NodeBase {
 
 	protected applyDeoptimizations() {}
 }
+
+ExportSpecifier.prototype.includeNode = onlyIncludeSelf;

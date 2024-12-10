@@ -3,7 +3,7 @@ use swc_ecma_ast::DoWhileStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_do_while_statement;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_do_while_statement(&mut self, do_while_statement: &DoWhileStmt) {
     store_do_while_statement!(
       self,

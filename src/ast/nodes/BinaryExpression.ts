@@ -7,15 +7,15 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 type Operator =
 	| '!='
@@ -80,7 +80,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
@@ -125,3 +125,5 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		this.right.render(code, options);
 	}
 }
+
+BinaryExpression.prototype.includeNode = onlyIncludeSelf;
