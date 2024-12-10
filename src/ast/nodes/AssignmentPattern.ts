@@ -80,6 +80,11 @@ export default class AssignmentPattern extends NodeBase implements DeclarationPa
 		return (this.included = included);
 	}
 
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.right.includePath(UNKNOWN_PATH, context);
+	}
+
 	markDeclarationReached(): void {
 		(this.left as DeclarationPatternNode).markDeclarationReached();
 	}

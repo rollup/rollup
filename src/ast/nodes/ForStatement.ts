@@ -8,6 +8,7 @@ import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
+	onlyIncludeSelf,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -52,3 +53,5 @@ export default class ForStatement extends StatementBase {
 		this.body.render(code, options);
 	}
 }
+
+ForStatement.prototype.includeNode = onlyIncludeSelf;

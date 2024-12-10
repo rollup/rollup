@@ -255,8 +255,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	includeNode(context: InclusionContext) {
-		// TODO Lukas remove
-		// console.log('NodeBase.includeNode', this.type, logNode(this));
 		this.included = true;
 		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];

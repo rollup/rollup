@@ -1,8 +1,9 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
-import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { checkEffectForNodes } from '../utils/checkEffectForNodes';
+import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Decorator from './Decorator';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -76,6 +77,14 @@ export default class PropertyDefinition extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		return !this.value || this.value.hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.value?.includePath(UNKNOWN_PATH, context);
+		for (const decorator of this.decorators) {
+			decorator.includePath(UNKNOWN_PATH, context);
+		}
 	}
 
 	protected applyDeoptimizations() {}

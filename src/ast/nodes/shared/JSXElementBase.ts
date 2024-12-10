@@ -34,7 +34,7 @@ export default class JSXElementBase extends NodeBase {
 	}
 
 	includeNode(context: InclusionContext) {
-		super.includeNode(context);
+		this.included = true;
 		const { factory, importSource, mode } = this.jsxMode;
 		if (factory) {
 			this.factory = factory;

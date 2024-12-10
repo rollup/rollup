@@ -1,5 +1,5 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import {
@@ -43,6 +43,11 @@ export default class SpreadElement extends NodeBase {
 						context
 					)))
 		);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.argument.includePath(UNKNOWN_PATH, context);
 	}
 
 	protected applyDeoptimizations(): void {

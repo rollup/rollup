@@ -19,7 +19,7 @@ import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { isStaticBlock } from '../StaticBlock';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
@@ -188,3 +188,5 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		));
 	}
 }
+
+ClassNode.prototype.includeNode = onlyIncludeSelf;
