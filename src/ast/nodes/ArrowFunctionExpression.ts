@@ -35,7 +35,6 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	}
 
 	hasEffects(): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		return false;
 	}
 
