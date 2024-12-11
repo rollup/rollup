@@ -192,7 +192,6 @@ export default abstract class FunctionBase extends NodeBase {
 			this.parameterVariableValuesDeoptimized = true;
 			this.scope.reassignAllParameters();
 		}
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		const { brokenFlow } = context;
 		context.brokenFlow = false;

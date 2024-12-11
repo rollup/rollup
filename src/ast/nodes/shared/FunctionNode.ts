@@ -48,8 +48,6 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
-
 		if (this.annotationNoSideEffects) {
 			return false;
 		}

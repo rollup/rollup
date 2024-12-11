@@ -57,7 +57,6 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		return this.key.hasEffects(context) || this.value.hasEffects(context);
 	}
 
@@ -115,8 +114,6 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		}
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
-
-	protected applyDeoptimizations(): void {}
 
 	private getPathInProperty(destructuredInitPath: ObjectPath): ObjectPath {
 		return destructuredInitPath.at(-1) === UnknownKey
