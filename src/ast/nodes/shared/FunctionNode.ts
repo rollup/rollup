@@ -104,7 +104,7 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	includeNode(context: InclusionContext) {
-		super.includeNode(context);
+		this.included = true;
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {

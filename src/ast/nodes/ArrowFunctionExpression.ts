@@ -84,7 +84,8 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	}
 
 	includeNode(context: InclusionContext) {
-		super.includeNode(context);
+		this.included = true;
+		this.body.includePath(UNKNOWN_PATH, context);
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {
 				parameter.includePath(UNKNOWN_PATH, context);
