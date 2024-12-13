@@ -8,9 +8,10 @@ import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
+	doNotDeoptimize,
 	type IncludeChildren,
 	type Node,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -84,4 +85,5 @@ export default class BlockStatement extends StatementBase {
 	}
 }
 
-BlockStatement.prototype.includeNode = onlyIncludeSelf;
+BlockStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+BlockStatement.prototype.applyDeoptimizations = doNotDeoptimize;

@@ -92,7 +92,7 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 		(this.argument as DeclarationPatternNode).markDeclarationReached();
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);

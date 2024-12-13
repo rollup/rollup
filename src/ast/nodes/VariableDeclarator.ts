@@ -101,7 +101,8 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations() {
+	// TODO Lukas is this not something for includeNode?
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		const { id, init } = this;
 		if (init && id instanceof Identifier && init instanceof ClassExpression && !init.id) {

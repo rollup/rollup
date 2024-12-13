@@ -12,7 +12,7 @@ import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { onlyIncludeSelf } from './shared/Node';
+import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -128,4 +128,5 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	}
 }
 
-Property.prototype.includeNode = onlyIncludeSelf;
+Property.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+Property.prototype.applyDeoptimizations = doNotDeoptimize;

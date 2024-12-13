@@ -88,6 +88,7 @@ export default class AssignmentExpression extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.right.includePath(UNKNOWN_PATH, context);
 	}
 
@@ -171,7 +172,7 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.left.deoptimizeAssignment(EMPTY_PATH, this.right);
 		this.scope.context.requestTreeshakingPass();

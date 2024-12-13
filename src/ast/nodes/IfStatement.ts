@@ -10,10 +10,11 @@ import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -122,8 +123,6 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.renderHoistedDeclarations(hoistedDeclarations, code, getPropertyAccess);
 	}
 
-	protected applyDeoptimizations() {}
-
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
 			return (this.testValue = tryCastLiteralValueToBoolean(
@@ -209,4 +208,5 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 }
 
-IfStatement.prototype.includeNode = onlyIncludeSelf;
+IfStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+IfStatement.prototype.applyDeoptimizations = doNotDeoptimize;

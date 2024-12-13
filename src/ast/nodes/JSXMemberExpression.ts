@@ -11,6 +11,7 @@ export default class JSXMemberExpression extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.object.includePath([this.property.name], context);
 	}
 

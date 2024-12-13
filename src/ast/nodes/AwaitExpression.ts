@@ -15,13 +15,13 @@ export default class AwaitExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		this.argument.include(context, includeChildrenRecursively);
 	}
 
-	includeNode(context: InclusionContext): void {
+	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		checkTopLevelAwait: if (!this.scope.context.usesTopLevelAwait) {
 			let parent = this.parent;
 			do {

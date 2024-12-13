@@ -8,10 +8,11 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	type StatementNode
 } from './shared/Node';
 
@@ -56,4 +57,5 @@ export default class SwitchCase extends NodeBase {
 }
 
 SwitchCase.prototype.needsBoundaries = true;
-SwitchCase.prototype.includeNode = onlyIncludeSelf;
+SwitchCase.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+SwitchCase.prototype.applyDeoptimizations = doNotDeoptimize;

@@ -19,7 +19,7 @@ import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expressio
 import { UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { NodeBase, onlyIncludeSelf } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	declare alternate: ExpressionNode;
@@ -232,4 +232,5 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 }
 
-ConditionalExpression.prototype.includeNode = onlyIncludeSelf;
+ConditionalExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ConditionalExpression.prototype.applyDeoptimizations = doNotDeoptimize;

@@ -7,7 +7,7 @@ import type FunctionDeclaration from './FunctionDeclaration';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { type Node, NodeBase, onlyIncludeSelf } from './shared/Node';
+import { doNotDeoptimize, type Node, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase {
@@ -45,9 +45,8 @@ export default class ExportNamedDeclaration extends NodeBase {
 			(this.declaration as Node).render(code, options, { end, start });
 		}
 	}
-
-	protected applyDeoptimizations() {}
 }
 
 ExportNamedDeclaration.prototype.needsBoundaries = true;
-ExportNamedDeclaration.prototype.includeNode = onlyIncludeSelf;
+ExportNamedDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ExportNamedDeclaration.prototype.applyDeoptimizations = doNotDeoptimize;

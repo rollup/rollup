@@ -31,10 +31,11 @@ import {
 } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelf
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&' | '??';
@@ -285,4 +286,5 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 }
 
-LogicalExpression.prototype.includeNode = onlyIncludeSelf;
+LogicalExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+LogicalExpression.prototype.applyDeoptimizations = doNotDeoptimize;

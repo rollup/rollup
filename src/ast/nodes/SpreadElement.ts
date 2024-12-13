@@ -47,10 +47,11 @@ export default class SpreadElement extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.argument.includePath(UNKNOWN_PATH, context);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		// Only properties of properties of the argument could become subject to reassignment
 		// This will also reassign the return values of iterators

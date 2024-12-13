@@ -51,6 +51,7 @@ export default class ForOfStatement extends StatementBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.right.includePath(UNKNOWN_PATH, context);
 	}
 
@@ -69,7 +70,7 @@ export default class ForOfStatement extends StatementBase {
 		this.body.render(code, options);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);

@@ -9,7 +9,7 @@ import JSXExpressionContainer from '../JSXExpressionContainer';
 import type { JSXChild, JsxMode } from './jsxHelpers';
 import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
-import { NodeBase } from './Node';
+import { doNotDeoptimize, NodeBase } from './Node';
 
 export default class JSXElementBase extends NodeBase {
 	children!: JSXChild[];
@@ -47,8 +47,6 @@ export default class JSXElementBase extends NodeBase {
 			);
 		}
 	}
-
-	protected applyDeoptimizations() {}
 
 	protected getRenderingMode(): JsxMode {
 		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
@@ -88,3 +86,5 @@ export default class JSXElementBase extends NodeBase {
 		return { childrenEnd, firstChild, hasMultipleChildren };
 	}
 }
+
+JSXElementBase.prototype.applyDeoptimizations = doNotDeoptimize;

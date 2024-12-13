@@ -20,7 +20,7 @@ import * as NodeType from './NodeType';
 import type Property from './Property';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
-import { NodeBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import SpreadElement from './SpreadElement';
@@ -131,8 +131,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	protected applyDeoptimizations() {}
-
 	private getObjectEntity(): ObjectEntity {
 		if (this.objectEntity !== null) {
 			return this.objectEntity;
@@ -176,3 +174,5 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		return (this.objectEntity = new ObjectEntity(properties, prototype));
 	}
 }
+
+ObjectExpression.prototype.applyDeoptimizations = doNotDeoptimize;

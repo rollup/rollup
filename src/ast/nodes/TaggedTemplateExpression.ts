@@ -46,7 +46,6 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
@@ -80,7 +79,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.quasi.render(code, options);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.tag.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,

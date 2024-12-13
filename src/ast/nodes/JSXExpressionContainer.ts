@@ -14,6 +14,7 @@ export default class JSXExpressionContainer extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.expression.includePath(UNKNOWN_PATH, context);
 	}
 

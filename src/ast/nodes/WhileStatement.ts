@@ -2,9 +2,10 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -26,4 +27,5 @@ export default class WhileStatement extends StatementBase {
 	}
 }
 
-WhileStatement.prototype.includeNode = onlyIncludeSelf;
+WhileStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+WhileStatement.prototype.applyDeoptimizations = doNotDeoptimize;

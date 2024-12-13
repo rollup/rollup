@@ -17,10 +17,11 @@ import FunctionDeclaration from './FunctionDeclaration';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelf
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
 // The header ends at the first non-white-space after "default"
@@ -119,8 +120,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.declaration.render(code, options);
 	}
 
-	protected applyDeoptimizations() {}
-
 	private renderNamedDeclaration(
 		code: MagicString,
 		declarationStart: number,
@@ -182,4 +181,5 @@ export default class ExportDefaultDeclaration extends NodeBase {
 }
 
 ExportDefaultDeclaration.prototype.needsBoundaries = true;
-ExportDefaultDeclaration.prototype.includeNode = onlyIncludeSelf;
+ExportDefaultDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ExportDefaultDeclaration.prototype.applyDeoptimizations = doNotDeoptimize;

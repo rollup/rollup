@@ -8,10 +8,11 @@ import type * as NodeType from './NodeType';
 import type PropertyDefinition from './PropertyDefinition';
 import type ClassNode from './shared/ClassNode';
 import {
+	doNotDeoptimize,
 	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelf
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 import type StaticBlock from './StaticBlock';
 
@@ -43,8 +44,7 @@ export default class ClassBody extends NodeBase {
 		}
 		return super.parseNode(esTreeNode);
 	}
-
-	protected applyDeoptimizations() {}
 }
 
-ClassBody.prototype.includeNode = onlyIncludeSelf;
+ClassBody.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ClassBody.prototype.applyDeoptimizations = doNotDeoptimize;

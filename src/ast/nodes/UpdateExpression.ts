@@ -32,7 +32,6 @@ export default class UpdateExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
 	}
@@ -82,7 +81,7 @@ export default class UpdateExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.argument.deoptimizePath(EMPTY_PATH);
 		if (this.argument instanceof Identifier) {

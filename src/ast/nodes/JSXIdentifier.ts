@@ -31,12 +31,12 @@ export default class JSXIdentifier extends IdentifierBase {
 	}
 
 	include(context: InclusionContext): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 	}
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (this.variable !== null) {
 			this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
 		}

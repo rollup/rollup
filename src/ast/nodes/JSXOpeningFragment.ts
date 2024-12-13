@@ -17,6 +17,7 @@ export default class JSXOpeningFragment extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
 		if (jsx.mode === 'automatic') {
 			this.fragment = 'Fragment';

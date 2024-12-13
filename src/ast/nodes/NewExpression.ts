@@ -42,7 +42,6 @@ export default class NewExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
 		} else {
@@ -54,6 +53,7 @@ export default class NewExpression extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.callee.includePath(UNKNOWN_PATH, context);
 	}
 
@@ -77,7 +77,7 @@ export default class NewExpression extends NodeBase {
 		renderCallArguments(code, options, this);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.callee.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,

@@ -9,7 +9,7 @@ import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import type * as NodeType from './NodeType';
 import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { onlyIncludeSelf, StatementBase } from './shared/Node';
+import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
 import type SwitchCase from './SwitchCase';
 
 export default class SwitchStatement extends StatementBase {
@@ -107,4 +107,5 @@ export default class SwitchStatement extends StatementBase {
 	}
 }
 
-SwitchStatement.prototype.includeNode = onlyIncludeSelf;
+SwitchStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+SwitchStatement.prototype.applyDeoptimizations = doNotDeoptimize;
