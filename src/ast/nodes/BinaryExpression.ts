@@ -15,7 +15,12 @@ import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './shared/Node';
 
 type Operator =
 	| '!='
@@ -126,4 +131,5 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	}
 }
 
-BinaryExpression.prototype.includeNode = onlyIncludeSelf;
+BinaryExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+BinaryExpression.prototype.applyDeoptimizations = doNotDeoptimize;

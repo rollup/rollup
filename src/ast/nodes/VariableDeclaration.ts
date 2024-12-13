@@ -21,7 +21,12 @@ import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import type { InclusionOptions } from './shared/Expression';
-import { type IncludeChildren, NodeBase, onlyIncludeSelf } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './shared/Node';
 import type { VariableDeclarationKind } from './shared/VariableKinds';
 import type VariableDeclarator from './VariableDeclarator';
 
@@ -117,8 +122,6 @@ export default class VariableDeclaration extends NodeBase {
 			this.renderReplacedDeclarations(code, options);
 		}
 	}
-
-	protected applyDeoptimizations() {}
 
 	private renderDeclarationEnd(
 		code: MagicString,
@@ -279,4 +282,5 @@ function gatherSystemExportsAndGetSingleExport(
 	return singleSystemExport;
 }
 
-VariableDeclaration.prototype.includeNode = onlyIncludeSelf;
+VariableDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+VariableDeclaration.prototype.applyDeoptimizations = doNotDeoptimize;

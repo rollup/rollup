@@ -62,7 +62,7 @@ export default class UnaryExpression extends NodeBase {
 		return type !== INTERACTION_ACCESSED || path.length > (this.operator === 'void' ? 0 : 1);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		if (this.operator === 'delete') {
 			this.argument.deoptimizePath(EMPTY_PATH);

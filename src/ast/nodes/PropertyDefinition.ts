@@ -14,7 +14,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { doNotDeoptimize, type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class PropertyDefinition extends NodeBase {
 	declare key: ExpressionNode | PrivateIdentifier;
@@ -86,6 +86,6 @@ export default class PropertyDefinition extends NodeBase {
 			decorator.includePath(UNKNOWN_PATH, context);
 		}
 	}
-
-	protected applyDeoptimizations() {}
 }
+
+PropertyDefinition.prototype.applyDeoptimizations = doNotDeoptimize;

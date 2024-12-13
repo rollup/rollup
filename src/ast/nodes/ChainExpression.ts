@@ -6,7 +6,12 @@ import type CallExpression from './CallExpression';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
-import { IS_SKIPPED_CHAIN, NodeBase, onlyIncludeSelf } from './shared/Node';
+import {
+	doNotDeoptimize,
+	IS_SKIPPED_CHAIN,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './shared/Node';
 
 export default class ChainExpression extends NodeBase implements DeoptimizableEntity {
 	declare expression: CallExpression | MemberExpression;
@@ -40,8 +45,7 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	removeAnnotations(code: MagicString) {
 		this.expression.removeAnnotations(code);
 	}
-
-	protected applyDeoptimizations() {}
 }
 
-ChainExpression.prototype.includeNode = onlyIncludeSelf;
+ChainExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ChainExpression.prototype.applyDeoptimizations = doNotDeoptimize;

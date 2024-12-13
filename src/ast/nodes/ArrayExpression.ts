@@ -68,6 +68,7 @@ export default class ArrayExpression extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const element of this.elements) {
 			if (element) {
 				element?.includePath(UNKNOWN_PATH, context);
@@ -75,7 +76,7 @@ export default class ArrayExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {

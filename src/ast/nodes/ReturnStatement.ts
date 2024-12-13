@@ -4,7 +4,12 @@ import { type HasEffectsContext, type InclusionContext } from '../ExecutionConte
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	type IncludeChildren,
+	StatementBase
+} from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
 	declare argument: ExpressionNode | null;
@@ -41,3 +46,5 @@ export default class ReturnStatement extends StatementBase {
 		}
 	}
 }
+
+ReturnStatement.prototype.applyDeoptimizations = doNotDeoptimize;

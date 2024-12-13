@@ -239,7 +239,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
 	): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
@@ -256,6 +255,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -361,7 +361,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * something properly, it is deoptimized.
 	 * @protected
 	 */
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
@@ -406,6 +406,15 @@ export function logNode(node: Node): string {
 	return node.scope.context.code.slice(node.start, node.end);
 }
 
-export function onlyIncludeSelf(this: Node) {
+export function onlyIncludeSelf(this: NodeBase) {
 	this.included = true;
+	if (!this.deoptimized) this.applyDeoptimizations();
+}
+
+export function onlyIncludeSelfNoDeoptimize(this: NodeBase) {
+	this.included = true;
+}
+
+export function doNotDeoptimize(this: NodeBase) {
+	this.deoptimized = true;
 }

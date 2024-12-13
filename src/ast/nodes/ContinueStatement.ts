@@ -1,7 +1,7 @@
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { onlyIncludeSelf, StatementBase } from './shared/Node';
+import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
 
 export default class ContinueStatement extends StatementBase {
 	declare label: Identifier | null;
@@ -31,4 +31,5 @@ export default class ContinueStatement extends StatementBase {
 	}
 }
 
-ContinueStatement.prototype.includeNode = onlyIncludeSelf;
+ContinueStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ContinueStatement.prototype.applyDeoptimizations = doNotDeoptimize;

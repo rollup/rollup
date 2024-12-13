@@ -10,6 +10,11 @@ export default class YieldExpression extends NodeBase {
 	declare delegate: boolean;
 	declare type: NodeType.tYieldExpression;
 
+	applyDeoptimizations() {
+		this.deoptimized = true;
+		this.argument?.deoptimizePath(UNKNOWN_PATH);
+	}
+
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		return !(context.ignore.returnYield && !this.argument?.hasEffects(context));
@@ -17,6 +22,7 @@ export default class YieldExpression extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.argument?.includePath(UNKNOWN_PATH, context);
 	}
 

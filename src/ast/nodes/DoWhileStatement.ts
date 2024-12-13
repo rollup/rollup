@@ -2,9 +2,10 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -20,10 +21,11 @@ export default class DoWhileStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
 }
 
-DoWhileStatement.prototype.includeNode = onlyIncludeSelf;
+DoWhileStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+DoWhileStatement.prototype.applyDeoptimizations = doNotDeoptimize;

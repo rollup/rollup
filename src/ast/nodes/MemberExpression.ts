@@ -359,7 +359,6 @@ export default class MemberExpression
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		this.object.include(context, includeChildrenRecursively);
 		this.property.include(context, includeChildrenRecursively);
@@ -367,6 +366,7 @@ export default class MemberExpression
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (this.variable) {
 			this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
 		} else if (!this.isUndefined) {
@@ -375,7 +375,6 @@ export default class MemberExpression
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		if (this.variable) {
 			this.variable?.includePath(path, context);
@@ -478,7 +477,7 @@ export default class MemberExpression
 		};
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;

@@ -25,6 +25,7 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
@@ -283,8 +284,6 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = inlineNamespace;
 	}
 
-	protected applyDeoptimizations() {}
-
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
@@ -389,6 +388,8 @@ export default class ImportExpression extends NodeBase {
 		return { helper: null, mechanism: null };
 	}
 }
+
+ImportExpression.prototype.applyDeoptimizations = doNotDeoptimize;
 
 function getInteropHelper(
 	resolution: Module | ExternalModule | string | null,

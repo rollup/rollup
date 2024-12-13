@@ -55,6 +55,7 @@ export default class TemplateLiteral extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const node of this.expressions) {
 			node.includePath(UNKNOWN_PATH, context);
 		}

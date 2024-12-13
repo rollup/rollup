@@ -22,6 +22,7 @@ import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
@@ -199,6 +200,7 @@ export default abstract class FunctionBase extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
+	// TODO Lukas only for ArrowFunctionExpression?
 	includeNode(context: InclusionContext) {
 		this.included = true;
 		this.body.includePath(UNKNOWN_PATH, context);
@@ -247,9 +249,8 @@ export default abstract class FunctionBase extends NodeBase {
 		return super.parseNode(esTreeNode);
 	}
 
-	protected applyDeoptimizations() {}
-
 	protected abstract getObjectEntity(): ObjectEntity;
 }
 
 FunctionBase.prototype.preventChildBlockScope = true;
+FunctionBase.prototype.applyDeoptimizations = doNotDeoptimize;

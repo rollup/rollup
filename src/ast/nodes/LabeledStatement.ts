@@ -8,7 +8,12 @@ import { type HasEffectsContext, type InclusionContext } from '../ExecutionConte
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class LabeledStatement extends StatementBase {
 	declare body: StatementNode;
@@ -66,3 +71,5 @@ export default class LabeledStatement extends StatementBase {
 		this.body.render(code, options);
 	}
 }
+
+LabeledStatement.prototype.applyDeoptimizations = doNotDeoptimize;

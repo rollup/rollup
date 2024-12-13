@@ -49,6 +49,7 @@ export default class ThisExpression extends NodeBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
 	}
 

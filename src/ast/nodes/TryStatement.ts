@@ -4,9 +4,10 @@ import type BlockStatement from './BlockStatement';
 import type CatchClause from './CatchClause';
 import type * as NodeType from './NodeType';
 import {
+	doNotDeoptimize,
 	INCLUDE_PARAMETERS,
 	type IncludeChildren,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase
 } from './shared/Node';
 
@@ -56,4 +57,5 @@ export default class TryStatement extends StatementBase {
 	}
 }
 
-TryStatement.prototype.includeNode = onlyIncludeSelf;
+TryStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+TryStatement.prototype.applyDeoptimizations = doNotDeoptimize;

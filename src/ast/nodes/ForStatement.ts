@@ -6,9 +6,10 @@ import type ChildScope from '../scopes/ChildScope';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
-	onlyIncludeSelf,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
@@ -54,4 +55,5 @@ export default class ForStatement extends StatementBase {
 	}
 }
 
-ForStatement.prototype.includeNode = onlyIncludeSelf;
+ForStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ForStatement.prototype.applyDeoptimizations = doNotDeoptimize;

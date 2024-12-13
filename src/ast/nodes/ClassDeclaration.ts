@@ -55,7 +55,7 @@ export default class ClassDeclaration extends ClassNode {
 		super.render(code, options);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		super.applyDeoptimizations();
 		const { id, scope } = this;
 		if (id) {

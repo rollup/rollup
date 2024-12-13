@@ -15,10 +15,11 @@ import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelf
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
@@ -135,4 +136,5 @@ export default class SequenceExpression extends NodeBase {
 	}
 }
 
-SequenceExpression.prototype.includeNode = onlyIncludeSelf;
+SequenceExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+SequenceExpression.prototype.applyDeoptimizations = doNotDeoptimize;
