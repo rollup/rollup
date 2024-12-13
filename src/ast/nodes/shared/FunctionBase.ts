@@ -26,7 +26,8 @@ import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
-	NodeBase
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { DeclarationPatternNode } from './Pattern';
@@ -189,21 +190,15 @@ export default abstract class FunctionBase extends NodeBase {
 	private parameterVariableValuesDeoptimized = false;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		if (!(this.parameterVariableValuesDeoptimized || this.onlyFunctionCallUsed())) {
 			this.parameterVariableValuesDeoptimized = true;
 			this.scope.reassignAllParameters();
 		}
-		if (!this.included) this.includeNode(context);
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
-	}
-
-	// TODO Lukas only for ArrowFunctionExpression?
-	includeNode(context: InclusionContext) {
-		this.included = true;
-		this.body.includePath(UNKNOWN_PATH, context);
 	}
 
 	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);
@@ -253,4 +248,5 @@ export default abstract class FunctionBase extends NodeBase {
 }
 
 FunctionBase.prototype.preventChildBlockScope = true;
+FunctionBase.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
 FunctionBase.prototype.applyDeoptimizations = doNotDeoptimize;
