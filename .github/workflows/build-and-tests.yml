@@ -307,7 +307,7 @@ jobs:
           key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: ${{ matrix.settings.target }}-cargo
       - name: Build
-        uses: cross-platform-actions/action@v0.25.0
+        uses: cross-platform-actions/action@v0.26.0
         with:
           operating_system: ${{ matrix.settings.name }}
           architecture: ${{ matrix.settings.architecture }}
