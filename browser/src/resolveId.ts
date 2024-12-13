@@ -13,7 +13,8 @@ export async function resolveId(
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	assertions: Record<string, string>
+	assertions: Record<string, string>,
+	importerAttributes: Record<string, string> | undefined
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -23,7 +24,8 @@ export async function resolveId(
 		skip,
 		customOptions,
 		isEntry,
-		assertions
+		assertions,
+		importerAttributes
 	);
 	if (pluginResult == null) {
 		return throwNoFileSystem('path.resolve')();
