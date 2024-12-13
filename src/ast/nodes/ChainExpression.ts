@@ -38,7 +38,7 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext) {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.expression.includePath(path, context);
 	}
 

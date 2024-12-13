@@ -54,7 +54,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
 		} else {

@@ -196,7 +196,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (
 			includeChildrenRecursively ||

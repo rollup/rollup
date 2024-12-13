@@ -142,7 +142,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null || includeChildrenRecursively || this.test.shouldBeIncluded(context)) {
 			this.test.include(context, includeChildrenRecursively);
@@ -154,7 +154,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null || this.test.shouldBeIncluded(context)) {
 			this.consequent.includePath(path, context);

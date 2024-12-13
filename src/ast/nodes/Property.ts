@@ -94,13 +94,13 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.key.include(context, includeChildrenRecursively);
 		this.value.include(context, includeChildrenRecursively);
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext) {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.value.includePath(path, context);
 	}
 

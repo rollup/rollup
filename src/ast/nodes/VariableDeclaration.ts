@@ -68,7 +68,7 @@ export default class VariableDeclaration extends NodeBase {
 		includeChildrenRecursively: IncludeChildren,
 		{ asSingleStatement }: InclusionOptions = BLANK
 	): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
 				declarator.include(context, includeChildrenRecursively);
