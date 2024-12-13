@@ -38,7 +38,7 @@ export default class ForStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.init?.include(context, includeChildrenRecursively, {
 			asSingleStatement: true
 		});

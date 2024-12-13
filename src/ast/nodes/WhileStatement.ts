@@ -21,7 +21,7 @@ export default class WhileStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}

@@ -32,7 +32,7 @@ export default class StaticBlock extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(context, includeChildrenRecursively);

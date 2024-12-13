@@ -50,7 +50,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	declare private declarationName: string | undefined;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.declaration.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
 			this.scope.context.includeVariableInModule(this.variable, UNKNOWN_PATH, context);
@@ -58,7 +58,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.declaration.includePath(path, context);
 	}
 

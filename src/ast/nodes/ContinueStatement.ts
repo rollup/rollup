@@ -20,7 +20,7 @@ export default class ContinueStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		if (this.label) {
 			this.label.include(context);
 			context.includedLabels.add(this.label.name);

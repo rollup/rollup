@@ -47,7 +47,7 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
 		const { brokenFlow, hasBreak } = context;
 		context.hasBreak = false;
