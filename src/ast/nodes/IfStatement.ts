@@ -7,7 +7,7 @@ import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type LiteralValueOrUnknown, UnknownFalsyValue, UnknownValue } from './shared/Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -124,11 +124,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
-			return (this.testValue = this.test.getLiteralValueAtPath(
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER,
-				this
-			));
+			const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+			if (testValue === UnknownFalsyValue) {
+				this.testValue = false;
+			} else {
+				this.testValue = testValue;
+			}
 		}
 		return this.testValue;
 	}

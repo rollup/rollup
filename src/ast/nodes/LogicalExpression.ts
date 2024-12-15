@@ -23,6 +23,7 @@ import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
+	UnknownFalsyValue,
 	UnknownValue
 } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
@@ -92,9 +93,17 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) return UnknownValue;
-		this.expressionsToBeDeoptimized.push(origin);
-		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
+		if (usedBranch) {
+			this.expressionsToBeDeoptimized.push(origin);
+			return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
+		} else if (this.operator === '&&') {
+			const rightValue = this.right.getLiteralValueAtPath(path, recursionTracker, origin);
+			if (!rightValue) {
+				this.expressionsToBeDeoptimized.push(origin);
+				return UnknownFalsyValue;
+			}
+		}
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
