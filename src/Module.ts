@@ -18,6 +18,7 @@ import Literal from './ast/nodes/Literal';
 import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import type Program from './ast/nodes/Program';
+import type { ExpressionEntity } from './ast/nodes/shared/Expression';
 import type { NodeBase } from './ast/nodes/shared/Node';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
@@ -140,6 +141,7 @@ export interface AstContext {
 	manualPureFunctions: PureFunctions;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
+	newlyIncludedVariableInits: Set<ExpressionEntity>;
 	options: NormalizedInputOptions;
 	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable | null;
@@ -896,6 +898,7 @@ export default class Module {
 			manualPureFunctions: this.graph.pureFunctions,
 			module: this,
 			moduleContext: this.context,
+			newlyIncludedVariableInits: this.graph.newlyIncludedVariableInits,
 			options: this.options,
 			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
 			traceExport: (name: string) => this.getVariableForExportName(name)[0],
