@@ -90,8 +90,8 @@ export default class ParameterScope extends ChildScope {
 							if (calledFromTryStatement) {
 								argument.include(context, true);
 							} else {
-								argument.include(context, false);
 								variable.includeArgumentPaths(argument, context);
+								argument.include(context, false);
 							}
 						}
 					}

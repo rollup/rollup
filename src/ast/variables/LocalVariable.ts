@@ -202,6 +202,13 @@ export default class LocalVariable extends Variable {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.includedPathTracker.includePathAndGetIfIncluded(path)) {
+			this.module.scope.context.requestTreeshakingPass();
+			if (!this.included) {
+				// This will reduce the number of tree-shaking passes by eagerly
+				// including inits. By pushing this here instead of directly including
+				// we avoid deep call stacks.
+				this.module.scope.context.newlyIncludedVariableInits.add(this.init);
+			}
 			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
