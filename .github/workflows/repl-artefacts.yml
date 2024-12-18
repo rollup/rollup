@@ -30,8 +30,10 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: 1.82.0
           targets: wasm32-unknown-unknown
+      - name: Add target manually
+        run: rustup target add wasm32-unknown-unknown
       - name: Cache cargo
         uses: actions/cache@v4
         with:
