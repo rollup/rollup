@@ -194,6 +194,7 @@ export default class MemberExpression
 	}
 
 	deoptimizeCache(): void {
+		if (this.propertyKey === this.dynamicPropertyKey) return;
 		const { expressionsToBeDeoptimized, object } = this;
 		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 		this.dynamicPropertyKey = this.propertyKey;
@@ -234,7 +235,7 @@ export default class MemberExpression
 		}
 		const propertyKey = this.getDynamicPropertyKey();
 		if (propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
-			this.expressionsToBeDeoptimized.push(origin);
+			if (propertyKey !== this.propertyKey) this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getLiteralValueAtPath([propertyKey, ...path], recursionTracker, origin);
 		}
 		return UnknownValue;
@@ -273,7 +274,7 @@ export default class MemberExpression
 		}
 		const propertyKey = this.getDynamicPropertyKey();
 		if (propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
-			this.expressionsToBeDeoptimized.push(origin);
+			if (propertyKey !== this.propertyKey) this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getReturnExpressionWhenCalledAtPath(
 				[propertyKey, ...path],
 				interaction,
@@ -541,7 +542,7 @@ export default class MemberExpression
 
 	private getDynamicPropertyKey(): ObjectPathKey {
 		if (this.dynamicPropertyKey === null) {
-			this.dynamicPropertyKey = UnknownKey;
+			this.dynamicPropertyKey = this.propertyKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
 			return (this.dynamicPropertyKey =
 				value === SymbolToStringTag
