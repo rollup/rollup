@@ -1,3 +1,5 @@
-import { l as log, d as dep } from './generated-main2.js';
+import log from './main2alias.js';
+
+var dep = { x: 42 };
 
 log(dep);

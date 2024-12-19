@@ -1,1 +1,7 @@
-export { l as default } from './generated-main2.js';
+function log (x) {
+  {
+    console.log(x);
+  }
+}
+
+export { log as default };

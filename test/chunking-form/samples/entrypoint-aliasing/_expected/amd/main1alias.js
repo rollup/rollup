@@ -1,5 +1,7 @@
-define(['./generated-main2'], (function (main2alias) { 'use strict';
+define(['./main2alias'], (function (main2alias) { 'use strict';
 
-	main2alias.log(main2alias.dep);
+	var dep = { x: 42 };
+
+	main2alias(dep);
 
 }));

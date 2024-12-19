@@ -11,6 +11,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import type * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -211,7 +212,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			return this.usedBranch;
 		}
 		this.isBranchResolutionAnalysed = true;
-		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+		const testValue = tryCastLiteralValueToBoolean(
+			this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
+		);
 		return typeof testValue === 'symbol'
 			? null
 			: (this.usedBranch = testValue ? this.consequent : this.alternate);

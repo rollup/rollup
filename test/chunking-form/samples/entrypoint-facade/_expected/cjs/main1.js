@@ -1,5 +1,7 @@
 'use strict';
 
-var main2 = require('./generated-main2.js');
+var main2 = require('./main2.js');
 
-main2.log(main2.dep);
+var dep = { x: 42 };
+
+main2(dep);
