@@ -3,7 +3,7 @@ use swc_ecma_ast::TaggedTpl;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_tagged_template_expression;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_tagged_template_expression(&mut self, tagged_template: &TaggedTpl) {
     store_tagged_template_expression!(
       self,

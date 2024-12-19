@@ -3,7 +3,7 @@ use swc_ecma_ast::JSXAttr;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_jsx_attribute;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_jsx_attribute(&mut self, jsx_attribute: &JSXAttr) {
     store_jsx_attribute!(
       self,

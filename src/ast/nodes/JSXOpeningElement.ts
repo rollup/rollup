@@ -7,7 +7,7 @@ import type JSXMemberExpression from './JSXMemberExpression';
 import type JSXNamespacedName from './JSXNamespacedName';
 import type JSXSpreadAttribute from './JSXSpreadAttribute';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class JSXOpeningElement extends NodeBase {
 	type!: NodeType.tJSXOpeningElement;
@@ -28,3 +28,5 @@ export default class JSXOpeningElement extends NodeBase {
 		}
 	}
 }
+
+JSXOpeningElement.prototype.includeNode = onlyIncludeSelf;

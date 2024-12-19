@@ -6,10 +6,12 @@ import {
 	NODE_INTERACTION_UNKNOWN_CALL
 } from './NodeInteractions';
 import type { LiteralValueOrBigInt } from './nodes/Literal';
+import type { LiteralValueOrUnknown } from './nodes/shared/Expression';
 import {
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_RETURN_EXPRESSION
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownValue
 } from './nodes/shared/Expression';
 import {
 	EMPTY_PATH,
@@ -40,8 +42,8 @@ function assembleMemberDescriptions(
 
 export const UNDEFINED_EXPRESSION: ExpressionEntity =
 	new (class UndefinedExpression extends ExpressionEntity {
-		getLiteralValueAtPath() {
-			return undefined;
+		getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+			return path.length > 0 ? UnknownValue : undefined;
 		}
 	})();
 

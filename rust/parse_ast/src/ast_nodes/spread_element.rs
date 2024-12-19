@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_spread_element(&mut self, dot_span: &Span, argument: &Expr) {
     let end_position = self.add_type_and_start(
       &TYPE_SPREAD_ELEMENT,

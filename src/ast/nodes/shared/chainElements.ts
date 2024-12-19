@@ -1,5 +1,5 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../../utils/PathTracker';
 import type CallExpression from '../CallExpression';
 import type MemberExpression from '../MemberExpression';
@@ -11,7 +11,7 @@ export function getChainElementLiteralValueAtPath(
 	element: CallExpression | MemberExpression,
 	object: ExpressionNode,
 	path: ObjectPath,
-	recursionTracker: PathTracker,
+	recursionTracker: EntityPathTracker,
 	origin: DeoptimizableEntity
 ): LiteralValueOrUnknown | SkippedChain {
 	if ('getLiteralValueAtPathAsChainElement' in object) {

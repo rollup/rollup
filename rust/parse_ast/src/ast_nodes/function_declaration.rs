@@ -1,5 +1,5 @@
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   // included in shared/function_node.rs
 }

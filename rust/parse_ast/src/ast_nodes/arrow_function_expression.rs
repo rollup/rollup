@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_arrow_function_expression_flags;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_arrow_function_expression(&mut self, arrow_expression: &ArrowExpr) {
     let end_position = self.add_type_and_start(
       &TYPE_ARROW_FUNCTION_EXPRESSION,

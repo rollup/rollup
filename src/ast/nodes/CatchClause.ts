@@ -1,14 +1,15 @@
 import type ChildScope from '../scopes/ChildScope';
 import ParameterScope from '../scopes/ParameterScope';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type GenericEsTreeNode, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import type { DeclarationPatternNode } from './shared/Pattern';
 
 export default class CatchClause extends NodeBase {
 	declare body: BlockStatement;
-	declare param: PatternNode | null;
+	declare param: DeclarationPatternNode | null;
 	declare preventChildBlockScope: true;
 	declare scope: ParameterScope;
 	declare type: NodeType.tCatchClause;
@@ -24,8 +25,8 @@ export default class CatchClause extends NodeBase {
 			this.param = new (this.scope.context.getNodeConstructor(param.type))(
 				this,
 				this.scope
-			).parseNode(param) as unknown as PatternNode;
-			this.param!.declare('parameter', UNKNOWN_EXPRESSION);
+			).parseNode(param) as unknown as DeclarationPatternNode;
+			this.param!.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION);
 		}
 		this.body = new BlockStatement(this, this.scope.bodyScope).parseNode(body);
 		return super.parseNode(esTreeNode);
@@ -33,3 +34,4 @@ export default class CatchClause extends NodeBase {
 }
 
 CatchClause.prototype.preventChildBlockScope = true;
+CatchClause.prototype.includeNode = onlyIncludeSelf;
