@@ -11,12 +11,12 @@ global.iife1 = /*@__PURE__*/(function() {
 
 baz(), quux();
 a.b(), f.g();
-/* @__PURE__ */(function(){})() || true ? foo() : bar();
 foo() ;
-/* @__PURE__ */(function(){})() && false ? foo() : bar();
+foo() ;
+bar();
 bar();
 /* @__PURE__ */(function(){})() + "foo" ? bar() : baz();
 "foo" + /* @__PURE__ */(function(){})() ? bar() : baz();
 /* @__PURE__ */(function(){})() ? foo() : foo();
-[/* @__PURE__ */(function(){})()] ? foo() : bar();
+foo() ;
 !{ foo: /* @__PURE__ */(function(){})() } ? bar() : baz();

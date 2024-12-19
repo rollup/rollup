@@ -4,10 +4,11 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownFalsyValue, UnknownValue } from './shared/Expression';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -124,12 +125,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
-			const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			if (testValue === UnknownFalsyValue) {
-				this.testValue = false;
-			} else {
-				this.testValue = testValue;
-			}
+			return (this.testValue = tryCastLiteralValueToBoolean(
+				this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
+			));
 		}
 		return this.testValue;
 	}
