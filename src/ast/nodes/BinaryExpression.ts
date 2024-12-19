@@ -2,25 +2,21 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
 	type ObjectPath,
-	SHARED_RECURSION_TRACKER
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	NodeBase,
-	onlyIncludeSelfNoDeoptimize
-} from './shared/Node';
+import { doNotDeoptimize, type ExpressionNode, NodeBase } from './shared/Node';
 
 type Operator =
 	| '!='
@@ -117,6 +113,13 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (this.operator === 'in') {
+			this.right.includePath(UNKNOWN_PATH, context);
+		}
+	}
+
 	removeAnnotations(code: MagicString) {
 		this.left.removeAnnotations(code);
 	}
@@ -131,5 +134,4 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	}
 }
 
-BinaryExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
 BinaryExpression.prototype.applyDeoptimizations = doNotDeoptimize;
