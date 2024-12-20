@@ -11,11 +11,13 @@ import type { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
 export const UnknownTruthyValue = Symbol('Unknown Truthy Value');
+export const UnknownFalsyValue = Symbol('Unknown Falsy Value');
 
 export type LiteralValueOrUnknown =
 	| LiteralValue
 	| typeof UnknownValue
 	| typeof UnknownTruthyValue
+	| typeof UnknownFalsyValue
 	| typeof SymbolToStringTag;
 
 export interface InclusionOptions {

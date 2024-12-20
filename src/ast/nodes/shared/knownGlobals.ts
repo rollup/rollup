@@ -19,7 +19,7 @@ import {
 } from '../../utils/PathTracker';
 import ArrayExpression from '../ArrayExpression';
 import type { LiteralValueOrUnknown } from './Expression';
-import { ExpressionEntity, UnknownTruthyValue } from './Expression';
+import { ExpressionEntity, UnknownValue } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 
@@ -35,25 +35,25 @@ interface GlobalDescription {
 	__proto__: null;
 }
 
-const getTruthyLiteralValue = (): LiteralValueOrUnknown => UnknownTruthyValue;
+const getUnknownValue = (): LiteralValueOrUnknown => UnknownValue;
 const returnFalse = () => false;
 const returnTrue = () => true;
 
 const PURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
-	getLiteralValue: getTruthyLiteralValue,
+	getLiteralValue: getUnknownValue,
 	hasEffectsWhenCalled: returnFalse
 };
 
 const IMPURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
-	getLiteralValue: getTruthyLiteralValue,
+	getLiteralValue: getUnknownValue,
 	hasEffectsWhenCalled: returnTrue
 };
 
 const PURE_WITH_ARRAY: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
-	getLiteralValue: getTruthyLiteralValue,
+	getLiteralValue: getUnknownValue,
 	hasEffectsWhenCalled({ args }) {
 		return args.length > 1 && !(args[1] instanceof ArrayExpression);
 	}
@@ -61,7 +61,7 @@ const PURE_WITH_ARRAY: ValueDescription = {
 
 const GETTER_ACCESS: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
-	getLiteralValue: getTruthyLiteralValue,
+	getLiteralValue: getUnknownValue,
 	hasEffectsWhenCalled({ args }, context) {
 		const [_thisArgument, firstArgument] = args;
 		return (
@@ -101,7 +101,7 @@ const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 		deoptimizeArgumentsOnCall({ args: [, firstArgument] }: NodeInteractionCalled) {
 			firstArgument?.deoptimizePath(UNKNOWN_PATH);
 		},
-		getLiteralValue: getTruthyLiteralValue,
+		getLiteralValue: getUnknownValue,
 		hasEffectsWhenCalled({ args }, context) {
 			return (
 				args.length <= 1 ||
@@ -325,7 +325,7 @@ const knownGlobals: GlobalDescription = {
 				}
 				target.deoptimizePath(UNKNOWN_PATH);
 			},
-			getLiteralValue: getTruthyLiteralValue,
+			getLiteralValue: getUnknownValue,
 			hasEffectsWhenCalled: returnTrue
 		}
 	},
@@ -517,7 +517,7 @@ const knownGlobals: GlobalDescription = {
 			deoptimizeArgumentsOnCall({ args }: NodeInteractionCalled) {
 				args[2]?.deoptimizePath(['detail']);
 			},
-			getLiteralValue: getTruthyLiteralValue,
+			getLiteralValue: getUnknownValue,
 			hasEffectsWhenCalled: returnFalse
 		},
 		prototype: O

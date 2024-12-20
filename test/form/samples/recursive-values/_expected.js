@@ -1,6 +1,4 @@
-var x = x || true;
-
-x && console.log(1);
+console.log(1);
 
 var y = {y};
 

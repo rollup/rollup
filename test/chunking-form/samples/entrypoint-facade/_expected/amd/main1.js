@@ -1,5 +1,7 @@
-define(['./generated-main2'], (function (main2) { 'use strict';
+define(['./main2'], (function (main2) { 'use strict';
 
-	main2.log(main2.dep);
+	var dep = { x: 42 };
+
+	main2(dep);
 
 }));

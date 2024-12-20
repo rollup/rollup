@@ -1,4 +1,4 @@
-System.register(['./main2alias.js'], (function () {
+System.register(['./entry-main2-um8DK13a-system.js'], (function () {
 	'use strict';
 	var log;
 	return {

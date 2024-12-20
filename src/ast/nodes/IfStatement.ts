@@ -4,6 +4,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -124,10 +125,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
-			return (this.testValue = this.test.getLiteralValueAtPath(
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER,
-				this
+			return (this.testValue = tryCastLiteralValueToBoolean(
+				this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
 			));
 		}
 		return this.testValue;

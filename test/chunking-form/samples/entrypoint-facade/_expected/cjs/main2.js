@@ -1,7 +1,9 @@
 'use strict';
 
-var main2 = require('./generated-main2.js');
+function log (x) {
+  {
+    console.log(x);
+  }
+}
 
-
-
-module.exports = main2.log;
+module.exports = log;

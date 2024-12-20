@@ -1,7 +1,11 @@
-define(['./generated-main2'], (function (main2) { 'use strict';
+define((function () { 'use strict';
 
+  function log (x) {
+    {
+      console.log(x);
+    }
+  }
 
-
-	return main2.log;
+  return log;
 
 }));

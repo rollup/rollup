@@ -3,12 +3,10 @@ System.register([], (function (exports) {
   return {
     execute: (function () {
 
-      exports("l", log);
-
-      var dep = exports("d", { x: 42 });
+      exports("default", log);
 
       function log (x) {
-        if (dep) {
+        {
           console.log(x);
         }
       }

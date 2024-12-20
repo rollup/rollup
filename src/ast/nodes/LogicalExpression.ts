@@ -18,11 +18,14 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
+import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
+	UnknownFalsyValue,
+	UnknownTruthyValue,
 	UnknownValue
 } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
@@ -92,9 +95,23 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) return UnknownValue;
-		this.expressionsToBeDeoptimized.push(origin);
-		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
+		if (usedBranch) {
+			this.expressionsToBeDeoptimized.push(origin);
+			return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
+		} else {
+			const rightValue = this.right.getLiteralValueAtPath(path, recursionTracker, origin);
+			const booleanOrUnknown = tryCastLiteralValueToBoolean(rightValue);
+			if (typeof booleanOrUnknown !== 'symbol') {
+				if (!booleanOrUnknown && this.operator === '&&') {
+					this.expressionsToBeDeoptimized.push(origin);
+					return UnknownFalsyValue;
+				}
+				if (booleanOrUnknown && this.operator === '||') {
+					return UnknownTruthyValue;
+				}
+			}
+		}
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -220,12 +237,13 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (!this.isBranchResolutionAnalysed) {
 			this.isBranchResolutionAnalysed = true;
 			const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			if (typeof leftValue === 'symbol') {
+			const booleanOrUnknown = tryCastLiteralValueToBoolean(leftValue);
+			if (typeof booleanOrUnknown === 'symbol') {
 				return null;
 			} else {
 				this.usedBranch =
-					(this.operator === '||' && leftValue) ||
-					(this.operator === '&&' && !leftValue) ||
+					(this.operator === '||' && booleanOrUnknown) ||
+					(this.operator === '&&' && !booleanOrUnknown) ||
 					(this.operator === '??' && leftValue != null)
 						? this.left
 						: this.right;
