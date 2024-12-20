@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.29.0
+
+_2024-12-20_
+
+### Features
+
+- Treat objects as truthy and always check second argument to better simplify logical expressions (#5763)
+
+### Pull Requests
+
+- [#5759](https://github.com/rollup/rollup/pull/5759): docs: add utf-8 encoding to JSON file reading (@chouchouji)
+- [#5760](https://github.com/rollup/rollup/pull/5760): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5763](https://github.com/rollup/rollup/pull/5763): fix: introduce UnknownFalsyValue for enhancing if statement tree-shaking (@TrickyPi)
+- [#5766](https://github.com/rollup/rollup/pull/5766): chore(deps): update dependency @rollup/plugin-node-resolve to v16 (@renovate[bot])
+- [#5767](https://github.com/rollup/rollup/pull/5767): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.28.1
 
 _2024-12-06_
