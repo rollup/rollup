@@ -14,7 +14,7 @@ use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, S
 use crate::convert_ast::converter::AstConverter;
 use crate::store_property_flags;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn convert_property(&mut self, property: &Prop) {
     match property {
       Prop::Getter(getter_property) => self.convert_getter_property(getter_property),

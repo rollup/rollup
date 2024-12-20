@@ -3,7 +3,7 @@ use swc_ecma_ast::ObjectLit;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_object_expression;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_object_expression(&mut self, object_literal: &ObjectLit) {
     store_object_expression!(
       self,

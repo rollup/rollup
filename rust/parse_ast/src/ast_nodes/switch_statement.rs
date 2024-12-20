@@ -3,7 +3,7 @@ use swc_ecma_ast::SwitchStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_switch_statement;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_switch_statement(&mut self, switch_statement: &SwitchStmt) {
     store_switch_statement!(
       self,

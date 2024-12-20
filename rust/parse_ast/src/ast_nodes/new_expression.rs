@@ -7,7 +7,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_new_expression(&mut self, new_expression: &NewExpr) {
     let end_position = self.add_type_and_start(
       &TYPE_NEW_EXPRESSION,

@@ -2,7 +2,7 @@ use swc_ecma_ast::ClassExpr;
 
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_class_expression(
     &mut self,
     class_expression: &ClassExpr,

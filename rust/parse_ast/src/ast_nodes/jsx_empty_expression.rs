@@ -3,7 +3,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_jsx_empty_expression(&mut self, start: u32, end: u32) {
     let end_position = self.add_type_and_explicit_start(
       &TYPE_JSX_EMPTY_EXPRESSION,

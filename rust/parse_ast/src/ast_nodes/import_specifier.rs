@@ -3,7 +3,7 @@ use swc_ecma_ast::ImportNamedSpecifier;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_import_specifier;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_import_specifier(&mut self, import_named_specifier: &ImportNamedSpecifier) {
     store_import_specifier!(
       self,

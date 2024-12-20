@@ -3,7 +3,7 @@ use swc_ecma_ast::ForOfStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::{store_for_of_statement, store_for_of_statement_flags};
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_for_of_statement(&mut self, for_of_statement: &ForOfStmt) {
     store_for_of_statement!(
       self,

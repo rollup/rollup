@@ -3,7 +3,7 @@ use swc_ecma_ast::LabeledStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_labeled_statement;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_labeled_statement(&mut self, labeled_statement: &LabeledStmt) {
     store_labeled_statement!(
       self,
