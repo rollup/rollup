@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 use crate::store_property_definition_flags;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_property_definition(
     &mut self,
     span: &Span,

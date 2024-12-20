@@ -5,7 +5,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_block_statement(
     &mut self,
     block_statement: &BlockStmt,

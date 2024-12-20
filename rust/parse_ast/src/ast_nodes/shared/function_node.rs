@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_function_declaration_flags;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn convert_function(
     &mut self,
     function: &Function,

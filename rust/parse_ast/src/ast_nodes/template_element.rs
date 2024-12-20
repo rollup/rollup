@@ -3,7 +3,7 @@ use swc_ecma_ast::TplElement;
 use crate::convert_ast::converter::AstConverter;
 use crate::{store_template_element, store_template_element_flags};
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_template_element(&mut self, template_element: &TplElement) {
     store_template_element!(
       self,

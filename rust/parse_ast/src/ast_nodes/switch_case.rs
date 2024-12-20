@@ -3,7 +3,7 @@ use swc_ecma_ast::SwitchCase;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_switch_case;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_switch_case(&mut self, switch_case: &SwitchCase) {
     store_switch_case!(
       self,

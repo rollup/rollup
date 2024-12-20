@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_jsx_namespaced_name(&mut self, jsx_namespaced_name: &JSXNamespacedName) {
     let end_position = self.add_type_and_start(
       &TYPE_JSX_NAMESPACED_NAME,

@@ -3,7 +3,7 @@ use swc_ecma_ast::ContinueStmt;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_continue_statement;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_continue_statement(&mut self, continue_statement: &ContinueStmt) {
     store_continue_statement!(
       self,

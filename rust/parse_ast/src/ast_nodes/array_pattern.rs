@@ -5,7 +5,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::AstConverter;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_array_pattern(&mut self, array_pattern: &ArrayPat) {
     let end_position = self.add_type_and_start(
       &TYPE_ARRAY_PATTERN,
