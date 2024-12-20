@@ -11,5 +11,5 @@ swc_atoms = "3.0.0"
 swc_compiler_base = "7.0.0"
 swc_common = { version = "5.0.0", features = ["ahash", "parking_lot"] }
 swc_ecma_ast = "5.0.0"
-swc_ecma_parser = "6.0.0"
+swc_ecma_parser = "6.0.1"
 parking_lot = "0.12.3"
