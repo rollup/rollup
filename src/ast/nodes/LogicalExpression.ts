@@ -50,7 +50,13 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private usedBranch: ExpressionNode | null = null;
-	private isCacheDeoptimized = 0;
+
+	private get hasDeoptimizedCache(): boolean {
+		return isFlagSet(this.flags, Flag.hasDeoptimizedCache);
+	}
+	private set hasDeoptimizedCache(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasDeoptimizedCache, value);
+	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -62,7 +68,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	deoptimizeCache(): void {
-		if (this.isCacheDeoptimized) return;
+		if (this.hasDeoptimizedCache) return;
 		if (this.usedBranch) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
@@ -79,7 +85,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		// Request another pass because we need to ensure "include" runs again if
 		// it is rendered
 		context.requestTreeshakingPass();
-		this.isCacheDeoptimized = 1;
+		this.hasDeoptimizedCache = true;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -101,7 +107,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (usedBranch) {
 			this.expressionsToBeDeoptimized.push(origin);
 			return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
-		} else if (!this.isCacheDeoptimized) {
+		} else if (!this.hasDeoptimizedCache) {
 			const rightValue = this.right.getLiteralValueAtPath(path, recursionTracker, origin);
 			const booleanOrUnknown = tryCastLiteralValueToBoolean(rightValue);
 			if (typeof booleanOrUnknown !== 'symbol') {
