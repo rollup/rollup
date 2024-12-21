@@ -50,6 +50,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private usedBranch: ExpressionNode | null = null;
+	private isCacheDeoptimized = 0;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -61,22 +62,24 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	deoptimizeCache(): void {
+		if (this.isCacheDeoptimized) return;
 		if (this.usedBranch) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			const {
-				scope: { context },
-				expressionsToBeDeoptimized
-			} = this;
-			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-			for (const expression of expressionsToBeDeoptimized) {
-				expression.deoptimizeCache();
-			}
-			// Request another pass because we need to ensure "include" runs again if
-			// it is rendered
-			context.requestTreeshakingPass();
 		}
+		const {
+			scope: { context },
+			expressionsToBeDeoptimized
+		} = this;
+		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+		for (const expression of expressionsToBeDeoptimized) {
+			expression.deoptimizeCache();
+		}
+		// Request another pass because we need to ensure "include" runs again if
+		// it is rendered
+		context.requestTreeshakingPass();
+		this.isCacheDeoptimized = 1;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -98,7 +101,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (usedBranch) {
 			this.expressionsToBeDeoptimized.push(origin);
 			return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
-		} else {
+		} else if (!this.isCacheDeoptimized) {
 			const rightValue = this.right.getLiteralValueAtPath(path, recursionTracker, origin);
 			const booleanOrUnknown = tryCastLiteralValueToBoolean(rightValue);
 			if (typeof booleanOrUnknown !== 'symbol') {
@@ -107,6 +110,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 					return UnknownFalsyValue;
 				}
 				if (booleanOrUnknown && this.operator === '||') {
+					this.expressionsToBeDeoptimized.push(origin);
 					return UnknownTruthyValue;
 				}
 			}
