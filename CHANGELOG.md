@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.29.1
+
+_2024-12-21_
+
+### Bug Fixes
+
+- Fix crash from deoptimized logical expressions (#5771)
+
+### Pull Requests
+
+- [#5769](https://github.com/rollup/rollup/pull/5769): Remove unnecessary lifetimes (@lukastaegert)
+- [#5771](https://github.com/rollup/rollup/pull/5771): fix: do not optimize the literal value if the cache is deoptimized (@TrickyPi)
+
 ## 4.29.0
 
 _2024-12-20_
