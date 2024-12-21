@@ -1,35 +1,40 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
+import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import type Property from './Property';
-import SpreadElement from './SpreadElement';
-import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import type { IncludeChildren } from './shared/Node';
+import { doNotDeoptimize, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
+import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;
+	private protoProp: Property | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -48,7 +53,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
@@ -57,7 +62,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
@@ -76,12 +81,27 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.included) this.includeNode(context);
+		this.getObjectEntity().include(context, includeChildrenRecursively);
+		this.protoProp?.include(context, includeChildrenRecursively);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.protoProp?.includePath(UNKNOWN_PATH, context);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		if (!this.included) this.includeNode(context);
+		this.getObjectEntity().includePath(path, context);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		super.render(code, options);
 		if (
 			renderedSurroundingElement === NodeType.ExpressionStatement ||
 			renderedSurroundingElement === NodeType.ArrowFunctionExpression
@@ -89,9 +109,27 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
 		}
+		if (this.properties.length > 0) {
+			const separatedNodes = getCommaSeparatedNodesWithBoundaries(
+				this.properties,
+				code,
+				this.start + 1,
+				this.end - 1
+			);
+			let lastSeparatorPos: number | null = null;
+			for (const { node, separator, start, end } of separatedNodes) {
+				if (!node.included) {
+					treeshakeNode(node, code, start, end);
+					continue;
+				}
+				lastSeparatorPos = separator;
+				node.render(code, options);
+			}
+			if (lastSeparatorPos) {
+				code.remove(lastSeparatorPos, this.end - 1);
+			}
+		}
 	}
-
-	protected applyDeoptimizations() {}
 
 	private getObjectEntity(): ObjectEntity {
 		if (this.objectEntity !== null) {
@@ -123,6 +161,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 						? property.key.name
 						: String((property.key as Literal).value);
 				if (key === '__proto__' && property.kind === 'init') {
+					this.protoProp = property;
 					prototype =
 						property.value instanceof Literal && property.value.value === null
 							? null
@@ -135,3 +174,5 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		return (this.objectEntity = new ObjectEntity(properties, prototype));
 	}
 }
+
+ObjectExpression.prototype.applyDeoptimizations = doNotDeoptimize;

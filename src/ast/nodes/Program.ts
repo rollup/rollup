@@ -11,7 +11,13 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize,
+	type StatementNode
+} from './shared/Node';
 
 export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
@@ -99,6 +105,7 @@ export default class Program extends NodeBase {
 			super.render(code, options);
 		}
 	}
-
-	protected applyDeoptimizations() {}
 }
+
+Program.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+Program.prototype.applyDeoptimizations = doNotDeoptimize;
