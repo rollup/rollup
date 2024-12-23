@@ -64,8 +64,8 @@ jobs:
       matrix:
         settings:
           # WASM
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: wasm32-unknown-unknown
             name: wasm
             is-wasm-build: true
             build: >-
@@ -75,8 +75,8 @@ jobs:
             path: |
               wasm/
               .empty
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: wasm32-unknown-unknown
             name: wasm-node
             is-wasm-build: true
             build: >-
