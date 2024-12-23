@@ -46,7 +46,7 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
+          key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: cargo-cache
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -95,7 +95,7 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
+          key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: cargo-cache
       - name: Setup Node
         uses: actions/setup-node@v4
