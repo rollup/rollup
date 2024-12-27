@@ -461,7 +461,7 @@ jobs:
           - host: macos-latest
             target: aarch64-apple-darwin
         node:
-          - '18.0.0'
+          - '18.20.0'
           - '22'
         include:
           - settings:
@@ -475,7 +475,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
-            node: '18.0.0'
+            node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
     runs-on: ${{ matrix.settings.host }}
