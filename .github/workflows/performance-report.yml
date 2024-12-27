@@ -51,7 +51,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Restore Node dependencies cache
         id: cache-node-modules
         uses: actions/cache/restore@v4
@@ -100,7 +100,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Restore Node dependencies cache
         id: cache-node-modules
         uses: actions/cache/restore@v4
