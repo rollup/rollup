@@ -36,13 +36,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Cache Node Modules
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Lint
@@ -64,8 +64,8 @@ jobs:
       matrix:
         settings:
           # WASM
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: wasm32-unknown-unknown
             name: wasm
             is-wasm-build: true
             build: >-
@@ -75,8 +75,8 @@ jobs:
             path: |
               wasm/
               .empty
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: wasm32-unknown-unknown
             name: wasm-node
             is-wasm-build: true
             build: >-
@@ -222,8 +222,8 @@ jobs:
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
-      - name: Cache cargo
-        uses: actions/cache@v4
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -241,15 +241,21 @@ jobs:
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Cache Node Modules
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
+      - name: Save Node dependencies cache
+        if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Build in docker
         uses: addnab/docker-run-action@v3
         if: ${{ matrix.settings.docker }}
@@ -261,6 +267,17 @@ jobs:
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
+      - name: Save Cargo cache
+        if: github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v4
         with:
@@ -295,8 +312,8 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-      - name: Cache cargo
-        uses: actions/cache@v4
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -317,6 +334,17 @@ jobs:
             sudo pkg install -y node npm rust
             npm ci --ignore-scripts
             npm run build:napi -- --release --target ${{ matrix.settings.target }}
+      - name: Save Cargo cache
+        if: github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload napi artifact
         uses: actions/upload-artifact@v4
         with:
@@ -365,13 +393,13 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-      - name: Cache Node Modules
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build JS
@@ -460,13 +488,13 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-      - name: Cache Node Modules
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Download napi artifacts
@@ -515,13 +543,13 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-      - name: Cache Node Modules
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Download all artifacts
