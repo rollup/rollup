@@ -37,8 +37,8 @@ jobs:
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
-      - name: Cache cargo
-        uses: actions/cache@v4
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -46,19 +46,19 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: cargo-cache
+          key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Cache Node Modules
+          node-version: 22
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts 123
@@ -86,8 +86,8 @@ jobs:
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
-      - name: Cache cargo
-        uses: actions/cache@v4
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -95,15 +95,15 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: cargo-cache
+          key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Cache Node Modules
+          node-version: 22
+      - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
