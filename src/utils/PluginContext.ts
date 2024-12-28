@@ -74,7 +74,11 @@ export function getPluginContext(
 			watchMode: graph.watchMode
 		},
 		parse: parseAst,
-		resolve(source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) {
+		resolve(
+			source,
+			importer,
+			{ attributes, custom, isEntry, skipSelf, importerAttributes } = BLANK
+		) {
 			skipSelf ??= true;
 			return graph.moduleLoader.resolveId(
 				source,
@@ -82,6 +86,7 @@ export function getPluginContext(
 				custom,
 				isEntry,
 				attributes || EMPTY_OBJECT,
+				importerAttributes,
 				skipSelf ? [{ importer, plugin, source }] : null
 			);
 		},
