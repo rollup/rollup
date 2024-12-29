@@ -1,4 +1,4 @@
-if ((!true).unknown) {
+if ((false).unknown) {
 	console.log('retained');
 } else {
 	console.log('retained');
