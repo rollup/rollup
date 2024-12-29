@@ -118,9 +118,6 @@ function getRenderString(value: unknown) {
 	if (typeof value === 'string') {
 		return JSON.stringify(value);
 	}
-	if (typeof value === 'bigint') {
-		return String(value) + 'n';
-	}
 	if (typeof value === 'number') {
 		return simplifyNumber(value);
 	}
