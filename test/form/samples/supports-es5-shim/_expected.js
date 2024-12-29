@@ -180,7 +180,7 @@ function requireEs5Shim () {
 		            var n = +num;
 		            if (isActualNaN(n)) {
 		                n = 0;
-		            } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
+		            } else if (n !== 0 && n !== (1 / 0) && n !== -Infinity) {
 		                n = (n > 0 || -1) * floor(abs(n));
 		            }
 		            return n;
@@ -1384,7 +1384,7 @@ function requireEs5Shim () {
 		    // string format defined in 15.9.1.15. All fields are present in the String.
 		    // The time zone is always UTC, denoted by the suffix Z. If the time value of
 		    // this object is not a finite Number a RangeError exception is thrown.
-		    var negativeDate = -62198755200000;
+		    var negativeDate = -621987552e5;
 		    var negativeYearString = '-000001';
 		    var hasNegativeDateBug = Date.prototype.toISOString && new Date(negativeDate).toISOString().indexOf(negativeYearString) === -1; // eslint-disable-line max-len
 		    var hasSafari51DateBug = Date.prototype.toISOString && new Date(-1).toISOString() !== '1969-12-31T23:59:59.999Z';
@@ -1642,7 +1642,7 @@ function requireEs5Shim () {
 		                        if (isLocalTime) {
 		                            result = toUTC(result);
 		                        }
-		                        if (-8.64e15 <= result && result <= 8.64e15) {
+		                        if (-864e13 <= result && result <= 8.64e15) {
 		                            return result;
 		                        }
 		                    }

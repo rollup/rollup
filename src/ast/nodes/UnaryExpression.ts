@@ -121,9 +121,21 @@ function getRenderString(value: unknown) {
 	if (typeof value === 'bigint') {
 		return String(value) + 'n';
 	}
-	const stringifiedValue = String(value);
-	if (typeof value === 'number' && /e[+-]?\d+$/i.test(stringifiedValue)) {
-		return value.toExponential();
+	if (typeof value === 'number') {
+		return simplifyNumber(value);
 	}
-	return stringifiedValue;
+	return String(value);
+}
+
+function simplifyNumber(value: number) {
+	if (Object.is(-0, value)) {
+		return '-0';
+	}
+	if ((Math.abs(value) > 1000 && value % 1000 === 0) || (value !== 0 && Math.abs(value) < 0.01)) {
+		const exp = value.toExponential();
+		const [base, exponent] = exp.split('e');
+		const floatLength = base.split('.')[1]?.length || 0;
+		return `${base.replace('.', '')}e${parseInt(exponent) - floatLength}`;
+	}
+	return String(value).replace('+', '');
 }
