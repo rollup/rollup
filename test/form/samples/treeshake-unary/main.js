@@ -1,4 +1,5 @@
-function foo() { // removed
+function foo() {
+	// removed
 	return false;
 }
 
@@ -16,7 +17,12 @@ console.log(void 0);
 console.log(typeof foo2);
 console.log(-(1 / 0));
 console.log(-180n);
-console.log(-1000000000);
+console.log(-1000000100);
+console.log(-1000001000);
+console.log(-0.011222);
+console.log(-0.001222);
+console.log(-1e28);
+console.log(-0);
 console.log(+(1 / 0));
 console.log(~1);
 console.log(!!!true);

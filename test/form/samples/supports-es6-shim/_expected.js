@@ -3037,7 +3037,7 @@ function requireEs6Shim () {
 		            }
 		            entry = entry || new MapEntry(key, value);
 		            if (ES.SameValue(-0, key)) {
-		              entry.key = +0; // coerce -0 to +0 in entry
+		              entry.key = 0; // coerce -0 to +0 in entry
 		            }
 		            entry.next = this._head;
 		            entry.prev = this._head.prev;
