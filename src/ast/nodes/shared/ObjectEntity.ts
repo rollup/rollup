@@ -17,7 +17,6 @@ import {
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
-	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
 import type { IncludeChildren } from './Node';
@@ -255,7 +254,12 @@ export class ObjectEntity extends ExpressionEntity {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
-			return UnknownTruthyValue;
+			// This should actually be "UnknownTruthyValue". However, this currently
+			// causes an issue with TypeScript enums in files with moduleSideEffects:
+			// false because we cannot properly track whether a "var" has been
+			// initialized. This should be reverted once we can properly track this.
+			// return UnknownTruthyValue;
+			return UnknownValue;
 		}
 		const key = path[0];
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);

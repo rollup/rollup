@@ -1,4 +1,4 @@
-System.register(['./generated-main2.js'], (function () {
+System.register(['./chunk-main2-BRXsWtDg-system.js'], (function () {
 	'use strict';
 	var log, dep;
 	return {
