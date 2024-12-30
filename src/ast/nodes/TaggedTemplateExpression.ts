@@ -4,16 +4,17 @@ import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import type { PathTracker } from '../utils/PathTracker';
+import type { EntityPathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
-import type TemplateLiteral from './TemplateLiteral';
 import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { onlyIncludeSelf } from './shared/Node';
+import type TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;
@@ -45,7 +46,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
 		} else {
@@ -53,7 +54,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.tag.include(context, includeChildrenRecursively);
 			this.quasi.include(context, includeChildrenRecursively);
 		}
-		this.tag.includeCallArguments(context, this.args);
+		this.tag.includeCallArguments(context, this.interaction);
 		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
 			returnExpression.include(context, false);
@@ -78,7 +79,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.quasi.render(code, options);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.tag.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,
@@ -89,7 +90,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	protected getReturnExpression(
-		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
+		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
 			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
@@ -103,3 +104,5 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		return this.returnExpression;
 	}
 }
+
+TaggedTemplateExpression.prototype.includeNode = onlyIncludeSelf;

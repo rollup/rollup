@@ -1,9 +1,7 @@
 'use strict';
 
-function log (x) {
-  {
-    console.log(x);
-  }
-}
+var main2alias = require('./generated-main2.js');
 
-module.exports = log;
+
+
+module.exports = main2alias.log;

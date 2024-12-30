@@ -1,3 +1,3 @@
 import * as stuff from 'external';
 
-stuff.y();
+const {x} = stuff.y();

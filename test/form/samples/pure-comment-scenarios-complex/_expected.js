@@ -18,5 +18,5 @@ bar();
 /* @__PURE__ */(function(){})() + "foo" ? bar() : baz();
 "foo" + /* @__PURE__ */(function(){})() ? bar() : baz();
 /* @__PURE__ */(function(){})() ? foo() : foo();
-foo() ;
-!{ foo: /* @__PURE__ */(function(){})() } ? bar() : baz();
+[/* @__PURE__ */(function(){})()] ? foo() : bar();
+!{ } ? bar() : baz();

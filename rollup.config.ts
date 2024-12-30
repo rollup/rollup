@@ -40,7 +40,7 @@ const treeshake = {
 const nodePlugins: readonly Plugin[] = [
 	replace(fsEventsReplacement),
 	alias(moduleAliases),
-	nodeResolve(),
+	nodeResolve({ preferBuiltins: true }),
 	json(),
 	string({ include: '**/*.md' }),
 	commonjs({

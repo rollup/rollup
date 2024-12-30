@@ -4,7 +4,12 @@ import { logModuleLevelDirective } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, StatementBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	onlyIncludeSelfNoDeoptimize,
+	StatementBase
+} from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	declare directive?: string;
@@ -43,6 +48,7 @@ export default class ExpressionStatement extends StatementBase {
 
 		return super.shouldBeIncluded(context);
 	}
-
-	protected applyDeoptimizations() {}
 }
+
+ExpressionStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ExpressionStatement.prototype.applyDeoptimizations = doNotDeoptimize;

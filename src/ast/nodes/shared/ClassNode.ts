@@ -1,17 +1,17 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
+import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
-import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import type ClassBody from '../ClassBody';
 import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
@@ -19,7 +19,7 @@ import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { isStaticBlock } from '../StaticBlock';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
@@ -39,7 +39,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -58,7 +58,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
@@ -67,7 +67,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
@@ -100,20 +100,19 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		this.superClass?.include(context, includeChildrenRecursively);
 		this.body.include(context, includeChildrenRecursively);
 		for (const decorator of this.decorators) decorator.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
-			this.id.include();
+			this.id.include(context);
 		}
 	}
 
 	initialise(): void {
 		super.initialise();
-		this.id?.declare('class', this);
+		this.id?.declare('class', EMPTY_PATH, this);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
 				this.classConstructor = method;
@@ -123,7 +122,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.classConstructor = null;
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		for (const definition of this.body.body) {
 			if (
@@ -179,7 +178,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			kind: 'init',
 			property: new ObjectEntity(
 				dynamicMethods,
-				this.superClass ? new ObjectMember(this.superClass, 'prototype') : OBJECT_PROTOTYPE
+				this.superClass ? new ObjectMember(this.superClass, ['prototype']) : OBJECT_PROTOTYPE
 			)
 		});
 		return (this.objectEntity = new ObjectEntity(
@@ -188,3 +187,5 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		));
 	}
 }
+
+ClassNode.prototype.includeNode = onlyIncludeSelf;

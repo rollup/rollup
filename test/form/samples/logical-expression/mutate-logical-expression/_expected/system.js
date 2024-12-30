@@ -4,7 +4,7 @@ System.register('bundle', [], (function (exports) {
 		execute: (function () {
 
 			var aExp = exports("aExp", {});
-			var logicalAExp = aExp;
+			var logicalAExp = aExp || {};
 			logicalAExp.bar = 1;
 
 			var bExp = exports("bExp", {});

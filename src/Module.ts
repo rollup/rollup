@@ -3,6 +3,7 @@ import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import { parseAsync } from '../native';
 import { convertProgram } from './ast/bufferParsers';
+import type { InclusionContext } from './ast/ExecutionContext';
 import { createInclusionContext } from './ast/ExecutionContext';
 import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
@@ -17,10 +18,12 @@ import Literal from './ast/nodes/Literal';
 import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import type Program from './ast/nodes/Program';
+import type { ExpressionEntity } from './ast/nodes/shared/Expression';
 import type { NodeBase } from './ast/nodes/shared/Node';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
+import type { ObjectPath } from './ast/utils/PathTracker';
+import { type EntityPathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -116,7 +119,7 @@ export interface AstContext {
 	addImportMeta: (node: MetaProperty) => void;
 	addImportSource: (importSource: string) => void;
 	code: string;
-	deoptimizationTracker: PathTracker;
+	deoptimizationTracker: EntityPathTracker;
 	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
@@ -128,12 +131,17 @@ export interface AstContext {
 	importDescriptions: Map<string, ImportDescription>;
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariableInModule: (variable: Variable) => void;
+	includeVariableInModule: (
+		variable: Variable,
+		path: ObjectPath,
+		context: InclusionContext
+	) => void;
 	log: (level: LogLevel, properties: RollupLog, pos: number) => void;
 	magicString: MagicString;
 	manualPureFunctions: PureFunctions;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
+	newlyIncludedVariableInits: Set<ExpressionEntity>;
 	options: NormalizedInputOptions;
 	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable | null;
@@ -708,16 +716,15 @@ export default class Module {
 			this.graph.needsTreeshakingPass = true;
 		}
 
+		const inclusionContext = createInclusionContext();
 		for (const exportName of this.exports.keys()) {
 			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
 				const variable = this.getVariableForExportName(exportName)[0];
 				if (!variable) {
 					return error(logMissingEntryExport(exportName, this.id));
 				}
+				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
 				variable.deoptimizePath(UNKNOWN_PATH);
-				if (!variable.included) {
-					this.includeVariable(variable);
-				}
 			}
 		}
 
@@ -726,7 +733,7 @@ export default class Module {
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					this.includeVariable(variable);
+					this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
 				}
 				if (variable instanceof ExternalVariable) {
 					variable.module.reexported = true;
@@ -752,13 +759,12 @@ export default class Module {
 
 		let includeNamespaceMembers = false;
 
+		const inclusionContext = createInclusionContext();
 		for (const name of names) {
 			const variable = this.getVariableForExportName(name)[0];
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
-				if (!variable.included) {
-					this.includeVariable(variable);
-				}
+				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
 			}
 
 			if (!this.exports.has(name) && !this.reexportDescriptions.has(name)) {
@@ -892,6 +898,7 @@ export default class Module {
 			manualPureFunctions: this.graph.pureFunctions,
 			module: this,
 			moduleContext: this.context,
+			newlyIncludedVariableInits: this.graph.newlyIncludedVariableInits,
 			options: this.options,
 			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
 			traceExport: (name: string) => this.getVariableForExportName(name)[0],
@@ -1336,12 +1343,12 @@ export default class Module {
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
-				externalVariable.include();
+				externalVariable.includePath(UNKNOWN_PATH, createInclusionContext());
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
-				syntheticNamespace.include();
+				syntheticNamespace.includePath(UNKNOWN_PATH, createInclusionContext());
 				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
@@ -1350,14 +1357,14 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: ImportExpression): void {
-		const resolution = (
-			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
-				resolution: string | Module | ExternalModule | undefined;
-			}
-		).resolution;
+		const resolution = this.dynamicImports.find(
+			dynamicImport => dynamicImport.node === node
+		)!.resolution;
 
 		if (resolution instanceof Module) {
-			resolution.includedDynamicImporters.push(this);
+			if (!resolution.includedDynamicImporters.includes(this)) {
+				resolution.includedDynamicImporters.push(this);
+			}
 
 			const importedNames = this.options.treeshake
 				? node.getDeterministicImportedNames()
@@ -1371,14 +1378,14 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(variable: Variable): void {
-		const variableModule = variable.module;
-		if (variable.included) {
+	private includeVariable(variable: Variable, path: ObjectPath, context: InclusionContext): void {
+		const { included, module: variableModule } = variable;
+		variable.includePath(path, context);
+		if (included) {
 			if (variableModule instanceof Module && variableModule !== this) {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.include();
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
@@ -1396,8 +1403,12 @@ export default class Module {
 		}
 	}
 
-	private includeVariableInModule(variable: Variable): void {
-		this.includeVariable(variable);
+	private includeVariableInModule(
+		variable: Variable,
+		path: ObjectPath,
+		context: InclusionContext
+	): void {
+		this.includeVariable(variable, path, context);
 		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
 			this.includedImports.add(variable);

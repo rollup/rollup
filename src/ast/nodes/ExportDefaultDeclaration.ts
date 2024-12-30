@@ -9,12 +9,20 @@ import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
 import type ModuleScope from '../scopes/ModuleScope';
+import type { ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './shared/Node';
 
 // The header ends at the first non-white-space after "default"
 function getDeclarationStart(code: string, start: number): number {
@@ -42,10 +50,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	declare private declarationName: string | undefined;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		super.include(context, includeChildrenRecursively);
+		this.included = true;
+		this.declaration.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
-			this.scope.context.includeVariableInModule(this.variable);
+			this.scope.context.includeVariableInModule(this.variable, UNKNOWN_PATH, context);
 		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		this.included = true;
+		this.declaration.includePath(path, context);
 	}
 
 	initialise(): void {
@@ -105,8 +119,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 		this.declaration.render(code, options);
 	}
-
-	protected applyDeoptimizations() {}
 
 	private renderNamedDeclaration(
 		code: MagicString,
@@ -169,3 +181,5 @@ export default class ExportDefaultDeclaration extends NodeBase {
 }
 
 ExportDefaultDeclaration.prototype.needsBoundaries = true;
+ExportDefaultDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ExportDefaultDeclaration.prototype.applyDeoptimizations = doNotDeoptimize;

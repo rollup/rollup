@@ -1,13 +1,12 @@
-System.register(['./main2.js'], (function () {
+System.register(['./generated-main2.js'], (function () {
 	'use strict';
-	var log;
+	var log, dep;
 	return {
 		setters: [function (module) {
-			log = module.default;
+			log = module.l;
+			dep = module.d;
 		}],
 		execute: (function () {
-
-			var dep = { x: 42 };
 
 			log(dep);
 
