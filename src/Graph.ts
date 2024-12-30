@@ -182,6 +182,10 @@ export default class Graph {
 						} else {
 							module.include();
 						}
+						for (const entity of this.newlyIncludedVariableInits) {
+							this.newlyIncludedVariableInits.delete(entity);
+							entity.include(createInclusionContext(), false);
+						}
 					}
 				}
 				if (treeshakingPass === 1) {
@@ -193,10 +197,6 @@ export default class Graph {
 							this.needsTreeshakingPass = true;
 						}
 					}
-				}
-				for (const entity of this.newlyIncludedVariableInits) {
-					this.newlyIncludedVariableInits.delete(entity);
-					entity.include(createInclusionContext(), false);
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
 			} while (this.needsTreeshakingPass);
