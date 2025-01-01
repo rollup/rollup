@@ -1,6 +1,6 @@
-import chokidar, { type FSWatcher } from 'chokidar';
+import chokidar, { type ChokidarOptions, type FSWatcher } from 'chokidar';
 import { platform } from 'node:os';
-import type { ChangeEvent, ChokidarOptions } from '../rollup/types';
+import type { ChangeEvent } from '../rollup/types';
 import type { Task } from './watch';
 
 export class FileWatcher {
