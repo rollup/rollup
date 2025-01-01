@@ -2905,7 +2905,7 @@ Configures how long Rollup will wait for further changes until it triggers a reb
 | ----: | :---------------- |
 | Type: | `ChokidarOptions` |
 
-An optional object of watch options that will be passed to the bundled [chokidar](https://github.com/paulmillr/chokidar) instance. See the [chokidar documentation](https://github.com/paulmillr/chokidar#api) to find out what options are available.
+An optional object of watch options that will be passed to the bundled [chokidar](https://github.com/paulmillr/chokidar) instance. See the [chokidar documentation](https://github.com/paulmillr/chokidar#getting-started) to find out what options are available.
 
 ### watch.clearScreen
 

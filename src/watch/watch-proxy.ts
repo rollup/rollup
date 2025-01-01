@@ -5,7 +5,6 @@ import { error, logInvalidOption } from '../utils/logs';
 import { mergeOptions } from '../utils/options/mergeOptions';
 import { URL_WATCH } from '../utils/urls';
 import { WatchEmitter } from './WatchEmitter';
-import { loadFsEvents } from './fsevents-importer';
 
 export default function watch(configs: RollupOptions[] | RollupOptions): RollupWatcher {
 	const emitter = new WatchEmitter() as RollupWatcher;
@@ -31,7 +30,6 @@ async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: Rollup
 			)
 		);
 	}
-	await loadFsEvents();
 	const { Watcher } = await import('./watch');
 	new Watcher(watchOptionsList, emitter);
 }
