@@ -1,4 +1,4 @@
-import { blue, cyan } from 'colorette';
+import pc from 'picocolors';
 import type { RollupLog } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
 import { ensureArray } from '../../src/utils/ensureArray';
@@ -72,14 +72,14 @@ export default function batchWarnings(command: Record<string, any>): BatchWarnin
 				}
 				case LOGLEVEL_DEBUG: {
 					if (!silent) {
-						stderr(bold(blue(log.message)));
+						stderr(bold(pc.blue(log.message)));
 						defaultBody(log);
 					}
 					return;
 				}
 				default: {
 					if (!silent) {
-						stderr(bold(cyan(log.message)));
+						stderr(bold(pc.cyan(log.message)));
 						defaultBody(log);
 					}
 				}
