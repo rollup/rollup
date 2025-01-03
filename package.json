@@ -150,7 +150,6 @@
     "buble": "^0.20.0",
     "builtin-modules": "^4.0.0",
     "chokidar": "^3.6.0",
-    "colorette": "^2.0.20",
     "concurrently": "^9.1.0",
     "core-js": "3.38.1",
     "cross-env": "^7.0.3",
@@ -176,6 +175,7 @@
     "nodemon": "^3.1.9",
     "npm-audit-resolver": "^3.0.0-RC.0",
     "nyc": "^17.1.0",
+    "picocolors": "^1.1.1",
     "pinia": "^2.3.0",
     "prettier": "^3.4.2",
     "prettier-plugin-organize-imports": "^4.1.0",
@@ -243,5 +243,6 @@
       "import": "./dist/es/parseAst.js"
     },
     "./dist/*": "./dist/*"
-  }
+  },
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321"
 }
