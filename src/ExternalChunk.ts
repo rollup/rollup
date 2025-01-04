@@ -40,7 +40,7 @@ export default class ExternalChunk {
 
 	getImportAttributes(snippets: GenerateCodeSnippets): string | null {
 		return (this.importAttributes ||= formatAttributes(
-			this.options.format === 'es' &&
+			['es', 'cjs'].includes(this.options.format) &&
 				this.options.externalImportAttributes &&
 				this.moduleInfo.attributes,
 			snippets
