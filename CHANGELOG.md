@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.29.2
+
+_2025-01-05_
+
+### Bug Fixes
+
+- Keep import attributes when using dynamic ESM `import()` expressions from CommonJS (#5781)
+
+### Pull Requests
+
+- [#5772](https://github.com/rollup/rollup/pull/5772): Improve caching on CI (@lukastaegert)
+- [#5773](https://github.com/rollup/rollup/pull/5773): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5780](https://github.com/rollup/rollup/pull/5780): feat: use picocolors instead of colorette (@re-taro)
+- [#5781](https://github.com/rollup/rollup/pull/5781): fix: keep import attributes for cjs format (@TrickyPi)
+
 ## 4.29.1
 
 _2024-12-21_
