@@ -62,6 +62,13 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
+	protected get hasCachedEffects(): boolean {
+		return isFlagSet(this.flags, Flag.hasEffects);
+	}
+	protected set hasCachedEffects(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasEffects, value);
+	}
+
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
@@ -129,9 +136,8 @@ export default abstract class FunctionBase extends NodeBase {
 		if (path.length > 0 || interaction.type !== INTERACTION_CALLED) {
 			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
-
-		if (this.annotationNoSideEffects) {
-			return false;
+		if (this.hasCachedEffects) {
+			return true;
 		}
 
 		if (this.async) {
@@ -152,6 +158,7 @@ export default abstract class FunctionBase extends NodeBase {
 							context
 						)))
 			) {
+				this.hasCachedEffects = true;
 				return true;
 			}
 		}
@@ -167,8 +174,10 @@ export default abstract class FunctionBase extends NodeBase {
 						EMPTY_PATH,
 						interaction.args[index + 1] || UNDEFINED_EXPRESSION
 					))
-			)
+			) {
+				this.hasCachedEffects = true;
 				return true;
+			}
 		}
 		return false;
 	}

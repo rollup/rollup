@@ -60,13 +60,18 @@ export default class FunctionNode extends FunctionBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
-
-		if (this.annotationNoSideEffects) {
+		if (
+			this.annotationNoSideEffects &&
+			path.length === 0 &&
+			interaction.type === INTERACTION_CALLED
+		) {
 			return false;
 		}
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) {
+			return true;
+		}
 
-		if (interaction.type === INTERACTION_CALLED) {
+		if (path.length === 0 && interaction.type === INTERACTION_CALLED) {
 			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 			context.replacedVariableInits.set(
 				this.scope.thisVariable,
@@ -80,7 +85,10 @@ export default class FunctionNode extends FunctionBase {
 				returnYield: true,
 				this: interaction.withNew
 			};
-			if (this.body.hasEffects(context)) return true;
+			if (this.body.hasEffects(context)) {
+				this.hasCachedEffects = true;
+				return true;
+			}
 			context.brokenFlow = brokenFlow;
 			if (thisInit) {
 				replacedVariableInits.set(this.scope.thisVariable, thisInit);
