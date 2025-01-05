@@ -1,9 +1,9 @@
 /* global gc */
 
-import { createColors } from 'colorette';
 import { mkdir, symlink, writeFile } from 'node:fs/promises';
 import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
+import pc from 'picocolors';
 import prettyBytes from 'pretty-bytes';
 import { runWithEcho } from '../helpers.js';
 import reportCollector from './report-collector.js';
@@ -20,7 +20,7 @@ import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.j
 const PERF_DIRECTORY = new URL('../../perf/', import.meta.url);
 const ENTRY = new URL('entry.js', PERF_DIRECTORY);
 const THREEJS_COPIES = 10;
-const { bold, underline, cyan, red, green } = createColors();
+const { bold, underline, cyan, red, green } = pc.createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const MIN_RELATIVE_DEVIATION_PERCENT = 2;
 const RELATIVE_DEVIATION_PERCENT_FOR_COLORING = 5;
