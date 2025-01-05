@@ -4,7 +4,7 @@ define(['exports'], (function (exports) { 'use strict';
 
 	console.log('This is the output when a missing export is reexported');
 
-	var _missingExportShim$1 = void 0;
+	var _missingExportShim$1 = undefined;
 
 	console.log(_missingExportShim$1);
 

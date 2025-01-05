@@ -29,11 +29,13 @@ const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnkn
 	'~': value => ~(value as NonNullable<LiteralValue>)
 };
 
+const UNASSIGNED = Symbol('Unassigned');
+
 export default class UnaryExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
 	declare type: NodeType.tUnaryExpression;
-	declare literalValue: LiteralValueOrUnknown;
+	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 
 	get prefix(): boolean {
 		return isFlagSet(this.flags, Flag.prefix);
@@ -43,7 +45,7 @@ export default class UnaryExpression extends NodeBase {
 	}
 
 	deoptimizeCache(): void {
-		this.literalValue = UnknownValue;
+		this.renderedLiteralValue = UnknownValue;
 	}
 
 	getLiteralValueAtPath(
@@ -84,6 +86,15 @@ export default class UnaryExpression extends NodeBase {
 		}
 	}
 
+	getRenderedLiteralValue(includeChildrenRecursively: IncludeChildren) {
+		if (this.renderedLiteralValue !== UNASSIGNED) return this.renderedLiteralValue;
+		return (this.renderedLiteralValue = includeChildrenRecursively
+			? UnknownValue
+			: getSimplifiedLiterals(
+					this.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
+				));
+	}
+
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
@@ -91,48 +102,45 @@ export default class UnaryExpression extends NodeBase {
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		const literalValue = includeChildrenRecursively
-			? UnknownValue
-			: this.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-		if (typeof literalValue === 'symbol' || this.argument.shouldBeIncluded(context)) {
+		if (
+			typeof this.getRenderedLiteralValue(includeChildrenRecursively) === 'symbol' ||
+			this.argument.shouldBeIncluded(context)
+		) {
 			this.argument.include(context, includeChildrenRecursively);
-			this.literalValue = UnknownValue;
-		} else {
-			this.literalValue = literalValue;
+			this.renderedLiteralValue = UnknownValue;
 		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		if (typeof this.literalValue === 'symbol') {
+		if (typeof this.renderedLiteralValue === 'symbol') {
 			super.render(code, options);
 		} else {
-			code.overwrite(this.start, this.end, getRenderString(this.literalValue));
+			code.overwrite(this.start, this.end, this.renderedLiteralValue);
 		}
 	}
 }
 
-function getRenderString(value: unknown) {
-	if (value === undefined) {
-		return 'void 0';
+function getSimplifiedLiterals(value: unknown) {
+	if (value === undefined || typeof value === 'boolean') {
+		return String(value);
 	}
 	if (typeof value === 'string') {
 		return JSON.stringify(value);
 	}
 	if (typeof value === 'number') {
-		return simplifyNumber(value);
+		return getSimplifiedNumber(value);
 	}
-	return String(value);
+	return UnknownValue;
 }
 
-function simplifyNumber(value: number) {
+function getSimplifiedNumber(value: number) {
 	if (Object.is(-0, value)) {
 		return '-0';
 	}
-	if ((Math.abs(value) > 1000 && value % 1000 === 0) || (value !== 0 && Math.abs(value) < 0.01)) {
-		const exp = value.toExponential();
-		const [base, exponent] = exp.split('e');
-		const floatLength = base.split('.')[1]?.length || 0;
-		return `${base.replace('.', '')}e${parseInt(exponent) - floatLength}`;
-	}
-	return String(value).replace('+', '');
+	const exp = value.toExponential();
+	const [base, exponent] = exp.split('e');
+	const floatLength = base.split('.')[1]?.length || 0;
+	const finalizedExp = `${base.replace('.', '')}e${parseInt(exponent) - floatLength}`;
+	const stringifiedValue = String(value).replace('+', '');
+	return finalizedExp.length < stringifiedValue.length ? finalizedExp : stringifiedValue;
 }
