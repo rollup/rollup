@@ -1,8 +1,8 @@
 'use strict';
 
-import('external');
-import(globalThis.unknown);
-import('resolvedString');
-import('resolved-id');
-import('resolved-different');
-import('unresolved');
+import('external', { assert: { type: 'special' } });
+import(globalThis.unknown, { assert: { type: 'special' } });
+import('resolvedString', { assert: { type: 'special' } });
+import('resolved-id', { assert: { type: 'special' } });
+import('resolved-different', { assert: { type: 'special' } });
+import('unresolved', { assert: { type: 'special' } });
