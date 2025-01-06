@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.30.0
+
+_2025-01-06_
+
+### Features
+
+- Inline values of resolvable unary expressions for improved tree-shaking (#5775)
+
+### Pull Requests
+
+- [#5775](https://github.com/rollup/rollup/pull/5775): feat: enhance the treehshaking for unary expression (@TrickyPi)
+- [#5783](https://github.com/rollup/rollup/pull/5783): Improve CI caching for node_modules (@lukastaegert)
+
 ## 4.29.2
 
 _2025-01-05_
