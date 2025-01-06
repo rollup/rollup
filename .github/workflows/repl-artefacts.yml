@@ -51,11 +51,14 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+          restore-keys: node-modules-${{ runner.os }}
+      - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
       - name: Build artefacts
         run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
