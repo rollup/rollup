@@ -40,11 +40,14 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path: |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
@@ -245,16 +248,21 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts
       - name: Save Node dependencies cache
         if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
         uses: actions/cache/save@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Build in docker
         uses: addnab/docker-run-action@v3
@@ -323,6 +331,15 @@ jobs:
             rust/target/
           key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: ${{ matrix.settings.target }}-cargo
+      - name: Restore Node dependencies cache
+        id: cache-node-modules
+        uses: actions/cache/restore@v4
+        with:
+          path:  |
+            node_modules
+            ~/.npm
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}
       - name: Build
         uses: cross-platform-actions/action@v0.26.0
         with:
@@ -332,7 +349,7 @@ jobs:
           memory: 8G
           run: |
             sudo pkg install -y node npm rust
-            npm ci --ignore-scripts
+            ${{ steps.cache-node-modules.outputs.cache-hit != 'true' && 'npm install --ignore-scripts' || 'echo Cache hit' }}
             npm run build:napi -- --release --target ${{ matrix.settings.target }}
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
@@ -397,11 +414,14 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
       - name: Build JS
         run: npm run build:cjs
       - name: Download napi artifacts
@@ -492,11 +512,14 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
       - name: Download napi artifacts
         uses: actions/download-artifact@v4
         with:
@@ -547,11 +570,14 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
