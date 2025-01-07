@@ -90,7 +90,7 @@ export default class UnaryExpression extends NodeBase {
 		if (this.renderedLiteralValue !== UNASSIGNED) return this.renderedLiteralValue;
 		return (this.renderedLiteralValue = includeChildrenRecursively
 			? UnknownValue
-			: getSimplifiedLiterals(
+			: getRenderedLiteralValue(
 					this.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
 				));
 	}
@@ -115,12 +115,18 @@ export default class UnaryExpression extends NodeBase {
 		if (typeof this.renderedLiteralValue === 'symbol') {
 			super.render(code, options);
 		} else {
-			code.overwrite(this.start, this.end, this.renderedLiteralValue);
+			let value = this.renderedLiteralValue;
+			if (!CHARACTERS_THAT_DO_NOT_REQUIRE_SPACE.test(code.original[this.start - 1])) {
+				value = ` ${value}`;
+			}
+			code.overwrite(this.start, this.end, value);
 		}
 	}
 }
 
-function getSimplifiedLiterals(value: unknown) {
+const CHARACTERS_THAT_DO_NOT_REQUIRE_SPACE = /[\s([=%&*+-/<>^|,?:;]/;
+
+function getRenderedLiteralValue(value: unknown) {
 	if (value === undefined || typeof value === 'boolean') {
 		return String(value);
 	}
