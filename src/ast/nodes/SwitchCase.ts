@@ -39,17 +39,18 @@ export default class SwitchCase extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
-		if (this.consequent.length > 0) {
-			if (this.test) {
-				this.test.render(code, options);
+		if (this.test) {
+			this.test.render(code, options);
+			if (this.test.start === this.start + 4) {
+				code.prependLeft(this.test.start, ' ');
 			}
+		}
+		if (this.consequent.length > 0) {
 			const testEnd = this.test
 				? this.test.end
 				: findFirstOccurrenceOutsideComment(code.original, 'default', this.start) + 7;
 			const consequentStart = findFirstOccurrenceOutsideComment(code.original, ':', testEnd) + 1;
 			renderStatementList(this.consequent, code, consequentStart, nodeRenderOptions!.end!, options);
-		} else {
-			super.render(code, options);
 		}
 	}
 }

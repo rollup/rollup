@@ -29,16 +29,16 @@ function foo3() {
 console.log(delete foo3.a);
 
 switch (bar) {
-	case false:
+	case  false:
 		console.log('false');
 		break;
-	case true:
+	case  true:
 		console.log('true');
 		break;
-	case 1:
+	case  1:
 		console.log('1');
 		break;
-	case 1:
+	case  1:
 		console.log('1');
 		break;
 	case 1:
