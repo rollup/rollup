@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.30.1
+
+_2025-01-07_
+
+### Bug Fixes
+
+- Prevent invalid code when simplifying unary expressions in switch cases (#5786)
+
+### Pull Requests
+
+- [#5786](https://github.com/rollup/rollup/pull/5786): fix: consider that literals cannot following switch case. (@TrickyPi)
+
 ## 4.30.0
 
 _2025-01-06_
