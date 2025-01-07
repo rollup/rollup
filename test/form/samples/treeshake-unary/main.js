@@ -32,3 +32,25 @@ function foo3() {
 }
 
 console.log(delete foo3.a);
+
+switch (bar) {
+	case!1:
+		console.log('false');
+		break;
+	case!0:
+		console.log('true');
+		break;
+	case+1:
+		console.log('1');
+		break;
+	case~-2:
+		console.log('1');
+		break;
+	case ~-2:
+		console.log('1');
+		break;
+}
+
+export async function baz(){
+	await!0;
+}

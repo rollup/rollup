@@ -27,3 +27,27 @@ function foo3() {
 }
 
 console.log(delete foo3.a);
+
+switch (bar) {
+	case  false:
+		console.log('false');
+		break;
+	case  true:
+		console.log('true');
+		break;
+	case  1:
+		console.log('1');
+		break;
+	case  1:
+		console.log('1');
+		break;
+	case 1:
+		console.log('1');
+		break;
+}
+
+async function baz(){
+	await true;
+}
+
+export { baz };
