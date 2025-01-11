@@ -56,11 +56,13 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
       - name: Build artefacts 123
         run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
       - name: Upload artifact
@@ -105,7 +107,9 @@ jobs:
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
-          path: node_modules
+          path:  |
+            node_modules
+            ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'

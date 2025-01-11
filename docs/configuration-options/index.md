@@ -928,7 +928,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 |     CLI: | `--externalImportAttributes`/`--no-externalImportAttributes` |
 | Default: | `true`                                                       |
 
-Whether to add import attributes to external imports in the output if the output format is `es`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
+Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
 
 ### output.generatedCode
 

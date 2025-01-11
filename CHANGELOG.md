@@ -1,5 +1,45 @@
 # rollup changelog
 
+## 4.30.1
+
+_2025-01-07_
+
+### Bug Fixes
+
+- Prevent invalid code when simplifying unary expressions in switch cases (#5786)
+
+### Pull Requests
+
+- [#5786](https://github.com/rollup/rollup/pull/5786): fix: consider that literals cannot following switch case. (@TrickyPi)
+
+## 4.30.0
+
+_2025-01-06_
+
+### Features
+
+- Inline values of resolvable unary expressions for improved tree-shaking (#5775)
+
+### Pull Requests
+
+- [#5775](https://github.com/rollup/rollup/pull/5775): feat: enhance the treehshaking for unary expression (@TrickyPi)
+- [#5783](https://github.com/rollup/rollup/pull/5783): Improve CI caching for node_modules (@lukastaegert)
+
+## 4.29.2
+
+_2025-01-05_
+
+### Bug Fixes
+
+- Keep import attributes when using dynamic ESM `import()` expressions from CommonJS (#5781)
+
+### Pull Requests
+
+- [#5772](https://github.com/rollup/rollup/pull/5772): Improve caching on CI (@lukastaegert)
+- [#5773](https://github.com/rollup/rollup/pull/5773): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5780](https://github.com/rollup/rollup/pull/5780): feat: use picocolors instead of colorette (@re-taro)
+- [#5781](https://github.com/rollup/rollup/pull/5781): fix: keep import attributes for cjs format (@TrickyPi)
+
 ## 4.29.1
 
 _2024-12-21_

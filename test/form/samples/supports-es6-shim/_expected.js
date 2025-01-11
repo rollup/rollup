@@ -334,7 +334,7 @@ function requireEs6Shim () {
 		    // but is not well optimized by runtimes and creates an object
 		    // whenever it returns false, and thus is very slow.
 		    TypeIsObject: function (x) {
-		      if (x === void 0 || x === null || x === true || x === false) {
+		      if (x === undefined || x === null || x === true || x === false) {
 		        return false;
 		      }
 		      return typeof x === 'function' || typeof x === 'object' || x === domAll;
@@ -414,7 +414,7 @@ function requireEs6Shim () {
 		    GetMethod: function (o, p) {
 		      var func = ES.ToObject(o)[p];
 		      if (isNullOrUndefined(func)) {
-		        return void 0;
+		        return undefined;
 		      }
 		      if (!ES.IsCallable(func)) {
 		        throw new TypeError('Method not callable: ' + p);
@@ -428,7 +428,7 @@ function requireEs6Shim () {
 
 		    IteratorClose: function (iterator, completionIsThrow) {
 		      var returnMethod = ES.GetMethod(iterator, 'return');
-		      if (returnMethod === void 0) {
+		      if (returnMethod === undefined) {
 		        return;
 		      }
 		      var innerResult, innerException;
@@ -486,7 +486,7 @@ function requireEs6Shim () {
 
 		    SpeciesConstructor: function (O, defaultConstructor) {
 		      var C = O.constructor;
-		      if (C === void 0) {
+		      if (C === undefined) {
 		        return defaultConstructor;
 		      }
 		      if (!ES.TypeIsObject(C)) {
@@ -939,7 +939,7 @@ function requireEs6Shim () {
 		    var s = this._s;
 		    var i = this._i;
 		    if (typeof s === 'undefined' || i >= s.length) {
-		      this._s = void 0;
+		      this._s = undefined;
 		      return iteratorResult();
 		    }
 		    var first = s.charCodeAt(i);
@@ -1071,7 +1071,7 @@ function requireEs6Shim () {
 		          return iteratorResult(retval);
 		        }
 		      }
-		      this.array = void 0;
+		      this.array = undefined;
 		      return iteratorResult();
 		    }
 		  });
@@ -1800,7 +1800,7 @@ function requireEs6Shim () {
 		      return '/' + pattern + '/' + flags;
 		    }, true);
 		    Value.preserveToString(RegExp.prototype.toString, origRegExpToString);
-		    RegExp.prototype.toString.prototype = void 0;
+		    RegExp.prototype.toString.prototype = undefined;
 		  }
 
 		  if (supportsDescriptors && (!regExpSupportsFlagsWithRegex || regExpNeedsToSupportSymbolMatch)) {
@@ -2159,15 +2159,15 @@ function requireEs6Shim () {
 		      }
 		      var capability = this;
 		      var resolver = function (resolve, reject) {
-		        if (capability.resolve !== void 0 || capability.reject !== void 0) {
+		        if (capability.resolve !== undefined || capability.reject !== undefined) {
 		          throw new TypeError('Bad Promise implementation!');
 		        }
 		        capability.resolve = resolve;
 		        capability.reject = reject;
 		      };
 		      // Initialize fields to inform optimizers about the object shape.
-		      capability.resolve = void 0;
-		      capability.reject = void 0;
+		      capability.resolve = undefined;
+		      capability.reject = undefined;
 		      capability.promise = new C(resolver);
 		      if (!(ES.IsCallable(capability.resolve) && ES.IsCallable(capability.reject))) {
 		        throw new TypeError('Bad promise constructor');
@@ -2261,9 +2261,9 @@ function requireEs6Shim () {
 		          _promise.reactionCapability0,
 		          value
 		        );
-		        _promise.fulfillReactionHandler0 = void 0;
-		        _promise.rejectReactions0 = void 0;
-		        _promise.reactionCapability0 = void 0;
+		        _promise.fulfillReactionHandler0 = undefined;
+		        _promise.rejectReactions0 = undefined;
+		        _promise.reactionCapability0 = undefined;
 		        if (length > 1) {
 		          for (var i = 1, idx = 0; i < length; i++, idx += 3) {
 		            enqueuePromiseReactionJob(
@@ -2271,9 +2271,9 @@ function requireEs6Shim () {
 		              _promise[idx + PROMISE_CAPABILITY_OFFSET],
 		              value
 		            );
-		            promise[idx + PROMISE_FULFILL_OFFSET] = void 0;
-		            promise[idx + PROMISE_REJECT_OFFSET] = void 0;
-		            promise[idx + PROMISE_CAPABILITY_OFFSET] = void 0;
+		            promise[idx + PROMISE_FULFILL_OFFSET] = undefined;
+		            promise[idx + PROMISE_REJECT_OFFSET] = undefined;
+		            promise[idx + PROMISE_CAPABILITY_OFFSET] = undefined;
 		          }
 		        }
 		      }
@@ -2291,9 +2291,9 @@ function requireEs6Shim () {
 		          _promise.reactionCapability0,
 		          reason
 		        );
-		        _promise.fulfillReactionHandler0 = void 0;
-		        _promise.rejectReactions0 = void 0;
-		        _promise.reactionCapability0 = void 0;
+		        _promise.fulfillReactionHandler0 = undefined;
+		        _promise.rejectReactions0 = undefined;
+		        _promise.reactionCapability0 = undefined;
 		        if (length > 1) {
 		          for (var i = 1, idx = 0; i < length; i++, idx += 3) {
 		            enqueuePromiseReactionJob(
@@ -2301,9 +2301,9 @@ function requireEs6Shim () {
 		              _promise[idx + PROMISE_CAPABILITY_OFFSET],
 		              reason
 		            );
-		            promise[idx + PROMISE_FULFILL_OFFSET] = void 0;
-		            promise[idx + PROMISE_REJECT_OFFSET] = void 0;
-		            promise[idx + PROMISE_CAPABILITY_OFFSET] = void 0;
+		            promise[idx + PROMISE_FULFILL_OFFSET] = undefined;
+		            promise[idx + PROMISE_REJECT_OFFSET] = undefined;
+		            promise[idx + PROMISE_CAPABILITY_OFFSET] = undefined;
 		          }
 		        }
 		      }
@@ -2381,7 +2381,7 @@ function requireEs6Shim () {
 		        }
 		        var promise = emulateES6construct(this, PromiseShim, Promise$prototype, {
 		          _promise: {
-		            result: void 0,
+		            result: undefined,
 		            state: PROMISE_PENDING,
 		            // The first member of the "reactions" array is inlined here,
 		            // since most promises only have one reaction.
@@ -2389,9 +2389,9 @@ function requireEs6Shim () {
 		            // "handler" and "capability" fields, since both fulfill and
 		            // reject reactions share the same capability.
 		            reactionLength: 0,
-		            fulfillReactionHandler0: void 0,
-		            rejectReactionHandler0: void 0,
-		            reactionCapability0: void 0
+		            fulfillReactionHandler0: undefined,
+		            rejectReactionHandler0: undefined,
+		            reactionCapability0: undefined
 		          }
 		        });
 		        var resolvingFunctions = createResolvingFunctions(promise);
@@ -2438,7 +2438,7 @@ function requireEs6Shim () {
 		          iteratorRecord.done = true;
 		          throw e;
 		        }
-		        values[index] = void 0;
+		        values[index] = undefined;
 		        var nextPromise = C.resolve(nextValue);
 		        var resolveElement = _promiseAllResolver(
 		          index,
@@ -2906,7 +2906,7 @@ function requireEs6Shim () {
 		              }
 		            }
 		            // once the iterator is done, it is done forever.
-		            this.i = void 0;
+		            this.i = undefined;
 		            return iteratorResult();
 		          }
 		        };
@@ -3037,7 +3037,7 @@ function requireEs6Shim () {
 		            }
 		            entry = entry || new MapEntry(key, value);
 		            if (ES.SameValue(-0, key)) {
-		              entry.key = +0; // coerce -0 to +0 in entry
+		              entry.key = 0; // coerce -0 to +0 in entry
 		            }
 		            entry.next = this._head;
 		            entry.prev = this._head.prev;
@@ -3178,7 +3178,7 @@ function requireEs6Shim () {
 		          if (k === '^null') {
 		            return null;
 		          } else if (k === '^undefined') {
-		            return void 0;
+		            return undefined;
 		          }
 		          var first = k.charAt(0);
 		          if (first === '$') {
@@ -3601,7 +3601,7 @@ function requireEs6Shim () {
 		        var parent = Object.getPrototypeOf(target);
 
 		        if (parent === null) {
-		          return void 0;
+		          return undefined;
 		        }
 
 		        return internalGet(parent, key, receiver);
@@ -3615,7 +3615,7 @@ function requireEs6Shim () {
 		        return ES.Call(desc.get, receiver);
 		      }
 
-		      return void 0;
+		      return undefined;
 		    };
 
 		    var internalSet = function set(target, key, value, receiver) {
@@ -3629,7 +3629,7 @@ function requireEs6Shim () {
 		        }
 
 		        desc = {
-		          value: void 0,
+		          value: undefined,
 		          writable: true,
 		          enumerable: true,
 		          configurable: true
