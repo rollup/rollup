@@ -36,11 +36,13 @@ const EMPTY_PATH_TRACKER = new EntityPathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
 
 export default class ParameterVariable extends LocalVariable {
+	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
 	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
-	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
 	private expressionsDependingOnKnownValue: DeoptimizableEntity[] = [];
+	private knownValue: ExpressionEntity | null = null;
+	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 
 	constructor(
 		name: string,
@@ -68,6 +70,7 @@ export default class ParameterVariable extends LocalVariable {
 			// This means that we already deoptimized all interactions and no longer
 			// track them
 			entity.deoptimizePath([...this.initPath, UnknownKey]);
+			// TODO Lukas: Do we need to track?Technically, there should only ever be one argument value
 		} else if (!this.argumentsToBeDeoptimized.has(entity)) {
 			this.argumentsToBeDeoptimized.add(entity);
 			for (const field of this.deoptimizedFields) {
@@ -87,6 +90,7 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
+	// TODO Lukas can we replace this with adding a new value?
 	/** This says we should not make assumptions about the value of the parameter.
 	 *  This is different from deoptimization that will also cause argument values
 	 *  to be deoptimized. */
@@ -105,8 +109,6 @@ export default class ParameterVariable extends LocalVariable {
 		this.markReassigned();
 	}
 
-	private knownValue: ExpressionEntity | null = null;
-	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 	/**
 	 * Update the known value of the parameter variable.
 	 * Must be called for every function call, so it can track all the arguments,
@@ -150,7 +152,6 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	private frozenValue: ExpressionEntity | null = null;
 	/**
 	 * This function freezes the known value of the parameter variable,
 	 * so the optimization starts with a certain ExpressionEntity.
@@ -158,10 +159,7 @@ export default class ParameterVariable extends LocalVariable {
 	 * @returns the frozen value
 	 */
 	private getKnownValue(): ExpressionEntity {
-		if (this.frozenValue === null) {
-			this.frozenValue = this.knownValue || UNKNOWN_EXPRESSION;
-		}
-		return this.frozenValue;
+		return this.knownValue || UNKNOWN_EXPRESSION;
 	}
 
 	getLiteralValueAtPath(
