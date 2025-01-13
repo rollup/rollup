@@ -29,7 +29,8 @@ interface DeoptimizationInteraction {
 	path: ObjectPath;
 }
 
-const MAX_TRACKED_INTERACTIONS = 20;
+const MAX_TRACKED_INTERACTIONS = 10;
+const MAX_DEOPTIMIZED_FIELDS = 5;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
 const EMPTY_PATH_TRACKER = new EntityPathTracker();
@@ -70,17 +71,12 @@ export default class ParameterVariable extends LocalVariable {
 			// This means that we already deoptimized all interactions and no longer
 			// track them
 			entity.deoptimizePath([...this.initPath, UnknownKey]);
-			// TODO Lukas: Do we need to track?Technically, there should only ever be one argument value
 		} else if (!this.argumentsToBeDeoptimized.has(entity)) {
 			this.argumentsToBeDeoptimized.add(entity);
 			for (const field of this.deoptimizedFields) {
 				entity.deoptimizePath([...this.initPath, field]);
 			}
 			for (const { interaction, path } of this.deoptimizationInteractions) {
-				if (this.initPath.length + path.length > MAX_PATH_DEPTH) {
-					deoptimizeInteraction(interaction);
-					continue;
-				}
 				entity.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					[...this.initPath, ...path],
@@ -90,7 +86,6 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	// TODO Lukas can we replace this with adding a new value?
 	/** This says we should not make assumptions about the value of the parameter.
 	 *  This is different from deoptimization that will also cause argument values
 	 *  to be deoptimized. */
@@ -140,14 +135,12 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 
-		const oldValue = this.knownValueLiteral;
-		if (typeof oldValue === 'symbol') {
-			this.markReassigned();
-			return;
-		}
-		// add tracking for the new argument
-		const newValue = argument.getLiteralValueAtPath(this.initPath, SHARED_RECURSION_TRACKER, this);
-		if (newValue !== oldValue) {
+		const { knownValueLiteral } = this;
+		if (
+			typeof knownValueLiteral === 'symbol' ||
+			argument.getLiteralValueAtPath(this.initPath, SHARED_RECURSION_TRACKER, this) !==
+				knownValueLiteral
+		) {
 			this.markReassigned();
 		}
 	}
@@ -216,7 +209,8 @@ export default class ParameterVariable extends LocalVariable {
 			this.deoptimizationInteractions.length >= MAX_TRACKED_INTERACTIONS ||
 			(path.length === 1 &&
 				(this.deoptimizedFields.has(UnknownKey) ||
-					(interaction.type === INTERACTION_CALLED && this.deoptimizedFields.has(path[0]))))
+					(interaction.type === INTERACTION_CALLED && this.deoptimizedFields.has(path[0])))) ||
+			this.initPath.length + path.length > MAX_PATH_DEPTH
 		) {
 			deoptimizeInteraction(interaction);
 			return;
@@ -246,11 +240,15 @@ export default class ParameterVariable extends LocalVariable {
 		if (this.deoptimizedFields.has(UnknownKey)) {
 			return;
 		}
-		const key = path[0];
+		let key = path[0];
 		if (this.deoptimizedFields.has(key)) {
 			return;
 		}
-		this.deoptimizedFields.add(key);
+		if (this.deoptimizedFields.size > MAX_DEOPTIMIZED_FIELDS) {
+			key = UnknownKey;
+		} else {
+			this.deoptimizedFields.add(key);
+		}
 		for (const entity of this.argumentsToBeDeoptimized) {
 			// We do not need a recursion tracker here as we already track whether
 			// this field is deoptimized
