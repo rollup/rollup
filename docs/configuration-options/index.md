@@ -2864,6 +2864,7 @@ interface WatcherOptions {
 	exclude?: string | RegExp | (string | RegExp)[];
 	include?: string | RegExp | (string | RegExp)[];
 	skipWrite?: boolean;
+	onInvalidate?: (id: string) => void;
 }
 ```
 
@@ -2970,6 +2971,14 @@ export default {
 | Default: | `false`                                    |
 
 Whether to skip the `bundle.write()` step when a rebuild is triggered.
+
+### watch.onInvalidate
+
+|       |                        |
+| ----: | :--------------------- |
+| Type: | `(id: string) => void` |
+
+An optional function that will be called with the module ID that invalidated the build.
 
 ## Deprecated options
 
