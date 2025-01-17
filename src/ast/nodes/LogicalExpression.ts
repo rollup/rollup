@@ -69,6 +69,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	deoptimizeCache(): void {
 		if (this.hasDeoptimizedCache) return;
+		this.hasDeoptimizedCache = true;
 		if (this.usedBranch) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
@@ -85,7 +86,6 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		// Request another pass because we need to ensure "include" runs again if
 		// it is rendered
 		context.requestTreeshakingPass();
-		this.hasDeoptimizedCache = true;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
