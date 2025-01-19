@@ -98,7 +98,15 @@ export interface TestConfigCli extends TestConfigBase {
 	 * Called before the test is run.
 	 */
 	before?: () => void | Promise<void>;
+	/**
+	 * Run command in a shell.
+	 * Will be overridden by "spawnArgs" if that is used.
+	 */
 	command?: string;
+	/**
+	 * Run rollup as a child process with the given arguments.
+	 */
+	spawnArgs?: string[];
 	cwd?: string;
 	/**
 	 * Environment variables to set for the test.

@@ -30,10 +30,6 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 	onExit(close);
 	process.on('uncaughtException', closeWithError);
-	if (!process.stdin.isTTY) {
-		process.stdin.on('end', close);
-		process.stdin.resume();
-	}
 
 	async function loadConfigFromFileAndTrack(configFile: string): Promise<void> {
 		let configFileData: string | null = null;
@@ -134,7 +130,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 				case 'END': {
 					runWatchHook('onEnd');
-					if (!silent && isTTY) {
+					if (!silent) {
 						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}
 				}
