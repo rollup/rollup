@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.31.0
+
+_2025-01-19_
+
+### Features
+
+- Do not immediately quit when trying to use watch mode from within non-TTY environments (#5803)
+
+### Bug Fixes
+
+- Handle files with more than one UTF-8 BOM header (#5806)
+
+### Pull Requests
+
+- [#5792](https://github.com/rollup/rollup/pull/5792): fix(deps): update rust crate swc_compiler_base to v8 (@renovate[bot])
+- [#5793](https://github.com/rollup/rollup/pull/5793): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5794](https://github.com/rollup/rollup/pull/5794): chore(deps): lock file maintenance (@renovate[bot])
+- [#5801](https://github.com/rollup/rollup/pull/5801): chore(deps): update dependency eslint-config-prettier to v10 (@renovate[bot])
+- [#5802](https://github.com/rollup/rollup/pull/5802): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5803](https://github.com/rollup/rollup/pull/5803): Support watch mode in yarn, gradle and containers (@lukastaegert)
+- [#5806](https://github.com/rollup/rollup/pull/5806): fix: strip all BOMs (@TrickyPi)
+
 ## 4.30.1
 
 _2025-01-07_
