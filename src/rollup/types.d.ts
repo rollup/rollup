@@ -1025,31 +1025,38 @@ export interface MergedRollupOptions extends InputOptionsWithPlugins {
 
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
 
+export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
+
+export type MatchFunction = (value: string, stats?: any) => boolean;
+
+export interface MatcherObject {
+	path: string;
+	recursive?: boolean;
+}
+
+export type Matcher = string | RegExp | MatchFunction | MatcherObject;
+
 export interface ChokidarOptions {
 	alwaysStat?: boolean | undefined;
 	atomic?: boolean | number | undefined;
 	awaitWriteFinish?:
+		| boolean
 		| {
 				pollInterval?: number | undefined;
 				stabilityThreshold?: number | undefined;
 		  }
-		| boolean
 		| undefined;
 	binaryInterval?: number | undefined;
 	cwd?: string | undefined;
 	depth?: number | undefined;
-	disableGlobbing?: boolean | undefined;
 	followSymlinks?: boolean | undefined;
 	ignoreInitial?: boolean | undefined;
 	ignorePermissionErrors?: boolean | undefined;
-	ignored?: any | undefined;
+	ignored?: Matcher | Matcher[] | undefined;
 	interval?: number | undefined;
 	persistent?: boolean | undefined;
-	useFsEvents?: boolean | undefined;
 	usePolling?: boolean | undefined;
 }
-
-export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
 
 export interface WatcherOptions {
 	allowInputInsideOutputPath?: boolean | undefined;
