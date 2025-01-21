@@ -26,7 +26,6 @@
       "matchPackageNames": [
         "node",
         "npm",
-        "fsevents",
         "core-js"
       ],
       "enabled": false
