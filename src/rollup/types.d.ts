@@ -1,3 +1,4 @@
+import type { ChokidarOptions as OriginalChokidarOptions } from 'chokidar';
 import type * as estree from 'estree';
 
 declare module 'estree' {
@@ -1029,31 +1030,9 @@ export interface MergedRollupOptions extends InputOptionsWithPlugins {
 
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
 
-export interface ChokidarOptions {
-	alwaysStat?: boolean | undefined;
-	atomic?: boolean | number | undefined;
-	awaitWriteFinish?:
-		| {
-				pollInterval?: number | undefined;
-				stabilityThreshold?: number | undefined;
-		  }
-		| boolean
-		| undefined;
-	binaryInterval?: number | undefined;
-	cwd?: string | undefined;
-	depth?: number | undefined;
-	disableGlobbing?: boolean | undefined;
-	followSymlinks?: boolean | undefined;
-	ignoreInitial?: boolean | undefined;
-	ignorePermissionErrors?: boolean | undefined;
-	ignored?: any | undefined;
-	interval?: number | undefined;
-	persistent?: boolean | undefined;
-	useFsEvents?: boolean | undefined;
-	usePolling?: boolean | undefined;
-}
-
 export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
+
+export type ChokidarOptions = OriginalChokidarOptions;
 
 export interface WatcherOptions {
 	allowInputInsideOutputPath?: boolean | undefined;
