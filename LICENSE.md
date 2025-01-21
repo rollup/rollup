@@ -36,37 +36,6 @@ License text: see MIT (1) below
 
 ---------------------------------------
 
-## anymatch
-License: ISC
-By: Elan Shanker
-Repository: https://github.com/micromatch/anymatch
-License text: see ISC below
-
-> Copyright (c) 2019 Elan Shanker, Paul Miller (https://paulmillr.com)
-
----------------------------------------
-
-## binary-extensions
-License: MIT
-By: Sindre Sorhus
-Repository: sindresorhus/binary-extensions
-License text: see MIT (1) below
-
-> Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-> Copyright (c) Paul Miller (https://paulmillr.com)
-
----------------------------------------
-
-## braces
-License: MIT
-By: Jon Schlinkert, Brian Woodward, Elan Shanker, Eugene Sharygin, hemanth.hm
-Repository: micromatch/braces
-License text: see MIT (1) below
-
-> Copyright (c) 2014-present, Jon Schlinkert.
-
----------------------------------------
-
 ## builtin-modules
 License: MIT
 By: Sindre Sorhus
@@ -79,11 +48,11 @@ License text: see MIT (1) below
 
 ## chokidar
 License: MIT
-By: Paul Miller, Elan Shanker
+By: Paul Miller
 Repository: git+https://github.com/paulmillr/chokidar.git
 License text: see MIT (4) below
 
-> Copyright (c) 2012-2019 Paul Miller (https://paulmillr.com), Elan Shanker
+> Copyright (c) 2012 Paul Miller (https://paulmillr.com), Elan Shanker
 
 ---------------------------------------
 
@@ -97,16 +66,6 @@ License text: see MIT (1) below
 
 ---------------------------------------
 
-## fill-range
-License: MIT
-By: Jon Schlinkert, Edo Rivai, Paul Miller, Rouven Weßling
-Repository: jonschlinkert/fill-range
-License text: see MIT (1) below
-
-> Copyright (c) 2014-present, Jon Schlinkert.
-
----------------------------------------
-
 ## flru
 License: MIT
 By: Luke Edwards
@@ -114,56 +73,6 @@ Repository: lukeed/flru
 License text: see MIT (1) below
 
 > Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
-
----------------------------------------
-
-## glob-parent
-License: ISC
-By: Gulp Team, Elan Shanker, Blaine Bublitz
-Repository: gulpjs/glob-parent
-License text: see ISC below
-
-> Copyright (c) 2015, 2019 Elan Shanker
-
----------------------------------------
-
-## is-binary-path
-License: MIT
-By: Sindre Sorhus
-Repository: sindresorhus/is-binary-path
-License text: see MIT (1) below
-
-> Copyright (c) 2019 Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com), Paul Miller (https://paulmillr.com)
-
----------------------------------------
-
-## is-extglob
-License: MIT
-By: Jon Schlinkert
-Repository: jonschlinkert/is-extglob
-License text: see MIT (1) below
-
-> Copyright (c) 2014-2016, Jon Schlinkert
-
----------------------------------------
-
-## is-glob
-License: MIT
-By: Jon Schlinkert, Brian Woodward, Daniel Perez
-Repository: micromatch/is-glob
-License text: see MIT (1) below
-
-> Copyright (c) 2014-2017, Jon Schlinkert.
-
----------------------------------------
-
-## is-number
-License: MIT
-By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: jonschlinkert/is-number
-License text: see MIT (1) below
-
-> Copyright (c) 2014-present, Jon Schlinkert.
 
 ---------------------------------------
 
@@ -188,16 +97,6 @@ Repository: git+https://github.com/Rich-Harris/magic-string.git
 License text: see MIT (1) below
 
 > Copyright 2018 Rich Harris
-
----------------------------------------
-
-## normalize-path
-License: MIT
-By: Jon Schlinkert, Blaine Bublitz
-Repository: jonschlinkert/normalize-path
-License text: see MIT (1) below
-
-> Copyright (c) 2014-2018, Jon Schlinkert.
 
 ---------------------------------------
 
@@ -278,16 +177,6 @@ Repository: sindresorhus/time-zone
 License text: see MIT (1) below
 
 > Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-
----------------------------------------
-
-## to-regex-range
-License: MIT
-By: Jon Schlinkert, Rouven Weßling
-Repository: micromatch/to-regex-range
-License text: see MIT (1) below
-
-> Copyright (c) 2015-present, Jon Schlinkert.
 
 ---------------------------------------
 
@@ -2321,8 +2210,8 @@ License text: see MIT (1) below
 > MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
 > ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 > WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-> ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-> IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+> ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+> OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ---------------------------------------
 

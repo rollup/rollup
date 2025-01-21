@@ -19,7 +19,7 @@
       "platformAutomerge": true
     },
     {
-      "matchPackageNames": ["node", "npm", "fsevents", "core-js"],
+      "matchPackageNames": ["node", "npm", "core-js"],
       "enabled": false
     },
     {
