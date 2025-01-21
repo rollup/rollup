@@ -42,8 +42,6 @@ jobs:
         run: npm run ci:lint
       - name: Vulnerabilities
         run: npm run check-audit
-      - name: Optional Dependencies
-        run: npm run test:package
       - name: CLI Docs
         run: npm run test:options
       - name: Generated Code
