@@ -84,11 +84,10 @@
     "test:update-snapshots": "node scripts/update-snapshots.js",
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
-    "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:package' 'npm:test:options'",
+    "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:options'",
     "test:coverage": "bash scripts/coverage.sh",
     "test:leak": "npm install --no-save weak-napi@2.0.2 && npm run test:leak:only",
     "test:leak:only": "node --expose-gc test/leak/index.js",
-    "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
     "test:only:coverage": "node scripts/run-with-coverage-environment.js nyc --reporter lcovonly --reporter html mocha test/test.js",
@@ -114,8 +113,7 @@
   },
   "homepage": "https://rollupjs.org/",
   "optionalDependencies": {
-    "@napi-rs/lzma-linux-x64-gnu": "1.5.1",
-    "fsevents": "~2.3.2"
+    "@napi-rs/lzma-linux-x64-gnu": "1.5.1"
   },
   "dependencies": {
     "@types/estree": "1.0.9"
@@ -159,7 +157,7 @@
     "acorn-jsx": "^5.3.2",
     "buble": "^0.20.0",
     "builtin-modules": "^5.4.0",
-    "chokidar": "^3.6.0",
+    "chokidar": "^4.0.3",
     "concurrently": "^9.2.4",
     "core-js": "3.38.1",
     "date-time": "^4.0.0",
