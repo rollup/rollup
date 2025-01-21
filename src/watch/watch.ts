@@ -172,7 +172,6 @@ export class Task {
 		this.filter = createFilter(this.watchOptions.include, this.watchOptions.exclude);
 		this.fileWatcher = new FileWatcher(this, {
 			...this.watchOptions.chokidar,
-			disableGlobbing: true,
 			ignoreInitial: true
 		});
 	}
