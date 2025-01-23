@@ -700,7 +700,7 @@ You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous
 | Kind: | async, parallel |
 | Previous/Next: | This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](#options) |
 
-Notifies a plugin whenever Rollup has detected a change to a monitored file in `--watch` mode. If a Promise is returned, Rollup will wait for the Promise to resolve before scheduling another build. This hook cannot be used by output plugins. The second argument contains additional details of the change event.
+Notifies a plugin whenever Rollup has detected a change to a monitored file in `--watch` mode. If a build is currently running, this hook is called once the build finished. It will be called once for every file that changed. If a Promise is returned, Rollup will wait for the Promise to resolve before scheduling another build. This hook cannot be used by output plugins. The second argument contains additional details of the change event. If you need to be notified immediately when a file changed, you can use the [`watch.onInvalidate`](../configuration-options/index.md#watch-oninvalidate) configuration option.
 
 ## Output Generation Hooks
 
