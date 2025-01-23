@@ -182,10 +182,7 @@ export class Task {
 			}
 		}
 		this.watcher.invalidate({ event: details.event, id });
-
-		if (this.watchOptions.onInvalidate) {
-			this.watchOptions.onInvalidate(id);
-		}
+		this.watchOptions.onInvalidate?.(id);
 	}
 
 	async run(): Promise<void> {
