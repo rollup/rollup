@@ -262,7 +262,7 @@ const deferredHandlers: Record<string, (warnings: RollupLog[]) => void> = {
 
 function defaultBody(log: RollupLog): void {
 	if (log.url) {
-		info(getRollupUrl(log.url));
+		info(log.url);
 	}
 
 	const loc = formatLocation(log);
