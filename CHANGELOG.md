@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.32.0
+
+_2025-01-24_
+
+### Features
+
+- Add watch.onInvalidate option to trigger actions immediately when a file is changed (#5799)
+
+### Bug Fixes
+
+- Fix incorrect urls in CLI warnings (#5809)
+
+### Pull Requests
+
+- [#5799](https://github.com/rollup/rollup/pull/5799): Feature/watch on invalidate (@drebrez, @lukastaegert)
+- [#5808](https://github.com/rollup/rollup/pull/5808): chore(deps): update dependency vite to v6.0.9 [security] (@renovate[bot])
+- [#5809](https://github.com/rollup/rollup/pull/5809): fix: avoid duplicate rollupjs.org prefix (@GauBen, @lukastaegert)
+- [#5810](https://github.com/rollup/rollup/pull/5810): chore(deps): update dependency @shikijs/vitepress-twoslash to v2 (@renovate[bot])
+- [#5811](https://github.com/rollup/rollup/pull/5811): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.31.0
 
 _2025-01-19_
