@@ -138,7 +138,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
     "@rollup/pluginutils": "^5.1.4",
-    "@shikijs/vitepress-twoslash": "^1.29.1",
+    "@shikijs/vitepress-twoslash": "^2.0.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "^18.19.71",
     "@types/semver": "^7.5.8",
