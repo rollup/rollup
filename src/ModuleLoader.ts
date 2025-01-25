@@ -41,6 +41,7 @@ import {
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
+import stripBom from './utils/stripBom';
 import transform from './utils/transform';
 
 export interface UnresolvedModule {
@@ -296,10 +297,7 @@ export class ModuleLoader {
 				: source != null && typeof source === 'object' && typeof source.code === 'string'
 					? source
 					: error(logBadLoader(id));
-		const code = sourceDescription.code;
-		if (code.charCodeAt(0) === 0xfe_ff) {
-			sourceDescription.code = code.slice(1);
-		}
+		sourceDescription.code = stripBom(sourceDescription.code);
 		const cachedModule = this.graph.cachedModules.get(id);
 		if (
 			cachedModule &&

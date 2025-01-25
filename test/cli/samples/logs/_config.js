@@ -20,17 +20,17 @@ module.exports = defineTest({
 ${BOLD}main.js${REGULAR} → ${BOLD}stdout${REGULAR}...${NOCOLOR}
 ${BOLD}${CYAN}[plugin test] simple-info${NOCOLOR}${REGULAR}
 ${BOLD}${CYAN}[plugin test] complex-info${NOCOLOR}${REGULAR}
-${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
+${GRAY}https://my-url.net${NOCOLOR}
 ${BOLD}${BLUE}[plugin test] simple-debug${NOCOLOR}${REGULAR}
 ${BOLD}${BLUE}[plugin test] complex-debug${NOCOLOR}${REGULAR}
-${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
+${GRAY}https://my-url.net${NOCOLOR}
 ${BOLD}${CYAN}[plugin test] main.js (1:12): transform-info${NOCOLOR}${REGULAR}
-${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
+${GRAY}https://my-url.net${NOCOLOR}
 ${BOLD}CWD/main.js:1:12${REGULAR}
 ${GRAY}1: assert.ok( true );
                ^${NOCOLOR}
 ${BOLD}${BLUE}[plugin test] main.js (1:13): transform-debug${NOCOLOR}${REGULAR}
-${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
+${GRAY}https://my-url.net${NOCOLOR}
 ${BOLD}CWD/main.js:1:13${REGULAR}
 ${GRAY}1: assert.ok( true );
                 ^${NOCOLOR}

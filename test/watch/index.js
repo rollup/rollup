@@ -1442,6 +1442,44 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	it('watches a file and triggers onInvalidate', async () => {
+		let onInvalidateCalled = false;
+		let onInvalidateId = '';
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					onInvalidateCalled = true;
+					onInvalidateId = id;
+				}
+			}
+		});
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(onInvalidateCalled, true);
+				assert.strictEqual(onInvalidateId, ENTRY_FILE);
+			}
+		]);
+	});
+
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', async () => {
 			const watchChangeIds = new Set();
