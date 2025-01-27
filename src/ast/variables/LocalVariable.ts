@@ -22,9 +22,10 @@ import {
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
+import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
 	type EntityPathTracker,
-	IncludedPathTracker,
+	IncludedFullPathTracker,
 	type ObjectPath,
 	UNKNOWN_PATH,
 	UnknownKey
@@ -41,7 +42,7 @@ export default class LocalVariable extends Variable {
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: EntityPathTracker;
-	protected includedPathTracker = new IncludedPathTracker();
+	protected includedPathTracker: IncludedPathTracker = new IncludedFullPathTracker();
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(

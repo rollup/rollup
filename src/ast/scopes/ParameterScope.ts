@@ -81,16 +81,16 @@ export default class ParameterScope extends ChildScope {
 					// handle empty destructuring to avoid destructuring undefined
 					argumentIncluded = true;
 				} else {
-					for (const variable of parameterVariables) {
-						if (variable.calledFromTryStatement) {
+					for (const parameterVariable of parameterVariables) {
+						if (parameterVariable.calledFromTryStatement) {
 							calledFromTryStatement = true;
 						}
-						if (variable.included) {
+						if (parameterVariable.included) {
 							argumentIncluded = true;
 							if (calledFromTryStatement) {
 								argument.include(context, true);
 							} else {
-								variable.includeArgumentPaths(argument, context);
+								parameterVariable.includeArgumentPaths(argument, context);
 								argument.include(context, false);
 							}
 						}

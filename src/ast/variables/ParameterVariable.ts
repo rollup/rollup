@@ -18,6 +18,7 @@ import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	EntityPathTracker,
+	IncludedTopLevelPathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
 	UnknownKey
@@ -29,14 +30,14 @@ interface DeoptimizationInteraction {
 	path: ObjectPath;
 }
 
-const MAX_TRACKED_INTERACTIONS = 10;
-const MAX_DEOPTIMIZED_FIELDS = 5;
+const MAX_TRACKED_INTERACTIONS = 20;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
 const EMPTY_PATH_TRACKER = new EntityPathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
 
 export default class ParameterVariable extends LocalVariable {
+	protected includedPathTracker = new IncludedTopLevelPathTracker();
 	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
 	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();
@@ -72,6 +73,7 @@ export default class ParameterVariable extends LocalVariable {
 			// track them
 			entity.deoptimizePath([...this.initPath, UnknownKey]);
 		} else if (!this.argumentsToBeDeoptimized.has(entity)) {
+			// TODO Lukas we should not track too many of these
 			this.argumentsToBeDeoptimized.add(entity);
 			for (const field of this.deoptimizedFields) {
 				entity.deoptimizePath([...this.initPath, field]);
@@ -201,6 +203,7 @@ export default class ParameterVariable extends LocalVariable {
 		);
 	}
 
+	// TODO Lukas limit the number of tracked interactions if possible
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
 		// For performance reasons, we fully deoptimize all deeper interactions
 		if (
@@ -240,15 +243,11 @@ export default class ParameterVariable extends LocalVariable {
 		if (this.deoptimizedFields.has(UnknownKey)) {
 			return;
 		}
-		let key = path[0];
+		const key = path[0];
 		if (this.deoptimizedFields.has(key)) {
 			return;
 		}
-		if (this.deoptimizedFields.size > MAX_DEOPTIMIZED_FIELDS) {
-			key = UnknownKey;
-		} else {
-			this.deoptimizedFields.add(key);
-		}
+		this.deoptimizedFields.add(key);
 		for (const entity of this.argumentsToBeDeoptimized) {
 			// We do not need a recursion tracker here as we already track whether
 			// this field is deoptimized

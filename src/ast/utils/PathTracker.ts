@@ -112,6 +112,10 @@ export class DiscriminatedPathTracker {
 	}
 }
 
+export interface IncludedPathTracker {
+	includePathAndGetIfIncluded(path: ObjectPath): boolean;
+}
+
 interface IncludedPaths {
 	[pathSegment: string]: IncludedPaths;
 	[UnknownKey]?: IncludedPaths;
@@ -119,7 +123,7 @@ interface IncludedPaths {
 
 const UNKNOWN_INCLUDED_PATH: IncludedPaths = Object.freeze({ [UnknownKey]: EMPTY_OBJECT });
 
-export class IncludedPathTracker {
+export class IncludedFullPathTracker implements IncludedPathTracker {
 	private includedPaths: IncludedPaths | null = null;
 
 	includePathAndGetIfIncluded(path: ObjectPath): boolean {
@@ -147,29 +151,68 @@ export class IncludedPathTracker {
 		}
 		return included;
 	}
+}
+
+// "true" means not sub-paths are included, "UnknownKey" means at least some sub-paths are included
+interface IncludedTopLevelPaths {
+	[pathSegment: string]: true | typeof UnknownKey;
+	[UnknownKey]?: true;
+}
+
+const UNKNOWN_INCLUDED_TOP_LEVEL_PATH: IncludedTopLevelPaths = Object.freeze({
+	[UnknownKey]: true as const
+});
+
+export class IncludedTopLevelPathTracker implements IncludedPathTracker {
+	private includedPaths: IncludedTopLevelPaths | null = null;
+
+	includePathAndGetIfIncluded(path: ObjectPath): boolean {
+		let included = true;
+		const includedPaths: IncludedTopLevelPaths = (this.includedPaths ||=
+			((included = false), Object.create(null)));
+		if (includedPaths[UnknownKey]) {
+			return true;
+		}
+		const [firstPathSegment, secondPathSegment] = path;
+		if (!firstPathSegment) {
+			return included;
+		}
+		if (typeof firstPathSegment === 'symbol') {
+			this.includedPaths = UNKNOWN_INCLUDED_TOP_LEVEL_PATH;
+			return false;
+		}
+		if (secondPathSegment) {
+			if (includedPaths[firstPathSegment] === UnknownKey) {
+				return true;
+			}
+			includedPaths[firstPathSegment] = UnknownKey;
+			return false;
+		}
+		if (includedPaths[firstPathSegment]) {
+			return true;
+		}
+		includedPaths[firstPathSegment] = true;
+		return false;
+	}
 
 	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath) {
 		const { includedPaths } = this;
 		if (includedPaths) {
-			includeAllPaths(entity, context, basePath, includedPaths);
+			if (includedPaths[UnknownKey]) {
+				entity.includePath([...basePath, UnknownKey], context);
+			} else {
+				const inclusionEntries = Object.entries(includedPaths);
+				if (inclusionEntries.length === 0) {
+					entity.includePath(basePath, context);
+				} else {
+					for (const [key, value] of inclusionEntries) {
+						entity.includePath(
+							value === UnknownKey ? [...basePath, key, UnknownKey] : [...basePath, key],
+							context
+						);
+					}
+				}
+			}
 		}
-	}
-}
-
-function includeAllPaths(
-	entity: ExpressionEntity,
-	context: InclusionContext,
-	basePath: ObjectPath,
-	currentPaths: IncludedPaths
-): void {
-	if (currentPaths[UnknownKey]) {
-		return entity.includePath([...basePath, UnknownKey], context);
-	}
-	const keys = Object.keys(currentPaths);
-	if (keys.length === 0) {
-		return entity.includePath(basePath, context);
-	}
-	for (const key of keys) {
-		includeAllPaths(entity, context, [...basePath, key], currentPaths[key]);
 	}
 }

@@ -15,6 +15,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		super('arguments', null, UNKNOWN_EXPRESSION, EMPTY_PATH, context, 'other');
 	}
 
+	// TODO Lukas can we detect if it is used and otherwise not push into deoptimizedArguments?
 	addArgumentToBeDeoptimized(argument: ExpressionEntity): void {
 		if (this.included) {
 			argument.deoptimizePath(UNKNOWN_PATH);
