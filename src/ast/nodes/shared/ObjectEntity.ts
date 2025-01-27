@@ -372,12 +372,10 @@ export class ObjectEntity extends ExpressionEntity {
 		const [includedMembers, includedPath] =
 			typeof key === 'string'
 				? [
-						[
-							...new Set([
-								...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-								...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
-							])
-						],
+						new Set([
+							...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+							...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
+						]),
 						subPath
 					]
 				: [this.allProperties, UNKNOWN_PATH];
