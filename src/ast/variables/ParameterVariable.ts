@@ -73,7 +73,6 @@ export default class ParameterVariable extends LocalVariable {
 			// track them
 			entity.deoptimizePath([...this.initPath, UnknownKey]);
 		} else if (!this.argumentsToBeDeoptimized.has(entity)) {
-			// TODO Lukas we should not track too many of these
 			this.argumentsToBeDeoptimized.add(entity);
 			for (const field of this.deoptimizedFields) {
 				entity.deoptimizePath([...this.initPath, field]);
@@ -203,7 +202,6 @@ export default class ParameterVariable extends LocalVariable {
 		);
 	}
 
-	// TODO Lukas limit the number of tracked interactions if possible
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
 		// For performance reasons, we fully deoptimize all deeper interactions
 		if (

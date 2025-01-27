@@ -402,8 +402,11 @@ export function locateNode(node: Node): Location & { file: string } {
 	return location;
 }
 
-export function logNode(node: Node): string {
-	return node.scope.context.code.slice(node.start, node.end);
+export function logNode(node: Node | ExpressionEntity): string {
+	if ('scope' in node) {
+		return node.scope.context.code.slice(node.start, node.end);
+	}
+	return node.constructor.name;
 }
 
 export function onlyIncludeSelf(this: NodeBase) {
