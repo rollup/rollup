@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.32.1
+
+_2025-01-28_
+
+### Bug Fixes
+
+- Fix possible crash when optimizing logical expressions (#5804)
+
+### Pull Requests
+
+- [#5804](https://github.com/rollup/rollup/pull/5804): fix: set hasDeoptimizedCache to true as early as possible (@TrickyPi)
+- [#5813](https://github.com/rollup/rollup/pull/5813): Fix typo (@kantuni)
+
 ## 4.32.0
 
 _2025-01-24_
