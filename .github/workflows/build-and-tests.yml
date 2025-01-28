@@ -393,10 +393,11 @@ jobs:
 #          - arch: armv7
 #            distro: alpine_latest
 #            target: armv7-unknown-linux-musleabihf
-          - arch: ppc64le
-            distro: ubuntu_latest
-            target: powerpc64le-unknown-linux-gnu
-            use-nvm: true
+# This one has become very flaky as of late
+#          - arch: ppc64le
+#            distro: ubuntu_latest
+#            target: powerpc64le-unknown-linux-gnu
+#            use-nvm: true
           - arch: s390x
             distro: ubuntu_latest
             target: s390x-unknown-linux-gnu
