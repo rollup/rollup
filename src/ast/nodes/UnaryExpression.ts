@@ -63,8 +63,8 @@ export default class UnaryExpression extends NodeBase {
 		if (typeof argumentValue === 'symbol') {
 			if (this.operator === 'void') return undefined;
 			if (this.operator === '!') {
-				if (argumentValue === UnknownFalsyValue) return UnknownTruthyValue;
-				if (argumentValue === UnknownTruthyValue) return UnknownFalsyValue;
+				if (argumentValue === UnknownFalsyValue) return true;
+				if (argumentValue === UnknownTruthyValue) return false;
 			}
 			return UnknownValue;
 		}
