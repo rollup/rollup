@@ -15,7 +15,12 @@ import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { InclusionOptions } from './shared/Expression';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import {
+	type LiteralValueOrUnknown,
+	UnknownFalsyValue,
+	UnknownTruthyValue,
+	UnknownValue
+} from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
@@ -55,7 +60,14 @@ export default class UnaryExpression extends NodeBase {
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
 		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (typeof argumentValue === 'symbol') return UnknownValue;
+		if (typeof argumentValue === 'symbol') {
+			if (this.operator === 'void') return undefined;
+			if (this.operator === '!') {
+				if (argumentValue === UnknownFalsyValue) return true;
+				if (argumentValue === UnknownTruthyValue) return false;
+			}
+			return UnknownValue;
+		}
 
 		return unaryOperators[this.operator](argumentValue);
 	}
