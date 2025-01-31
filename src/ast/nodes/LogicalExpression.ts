@@ -103,6 +103,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		if (origin === this) return UnknownValue;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch) {
 			this.expressionsToBeDeoptimized.push(origin);
