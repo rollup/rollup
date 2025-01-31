@@ -5,3 +5,5 @@ var MyEnum =
 		MyEnum2['bar'] = 'BAR';
 		return MyEnum2;
 	})(MyEnum || {}));
+
+assert.strictEqual(MyEnum.foo, 'FOO');
