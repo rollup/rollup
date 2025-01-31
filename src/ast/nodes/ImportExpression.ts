@@ -172,7 +172,8 @@ export default class ImportExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		const {
-			snippets: { _, getDirectReturnFunction, getObject, getPropertyAccess }
+			snippets: { _, getDirectReturnFunction, getObject, getPropertyAccess },
+			importAttributesKey
 		} = options;
 		if (this.inlineNamespace) {
 			const [left, right] = getDirectReturnFunction([], {
@@ -215,7 +216,7 @@ export default class ImportExpression extends NodeBase {
 			if (this.attributes) {
 				code.appendLeft(
 					this.end - 1,
-					`,${_}${getObject([['assert', this.attributes]], {
+					`,${_}${getObject([[importAttributesKey, this.attributes]], {
 						lineBreakIndent: null
 					})}`
 				);
