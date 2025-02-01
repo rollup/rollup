@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.34.0
+
+_2025-02-01_
+
+### Features
+
+- Tree-shake unused properties in object literals (re-implements #5420) (#5737)
+
+### Pull Requests
+
+- [#5737](https://github.com/rollup/rollup/pull/5737): Reapply object tree-shaking (@lukastaegert, @TrickyPi)
+
 ## 4.33.0
 
 _2025-02-01_
