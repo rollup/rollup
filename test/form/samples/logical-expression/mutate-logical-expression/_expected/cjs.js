@@ -1,7 +1,7 @@
 'use strict';
 
 var aExp = {};
-var logicalAExp = aExp;
+var logicalAExp = aExp || {};
 logicalAExp.bar = 1;
 
 var bExp = {};

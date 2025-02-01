@@ -1,5 +1,7 @@
 import type Module from '../../Module';
 import type { AstContext } from '../../Module';
+import type { InclusionContext } from '../ExecutionContext';
+import { type ObjectPath } from '../utils/PathTracker';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
@@ -44,9 +46,9 @@ export default class SyntheticNamedExportVariable extends Variable {
 		return `${this.syntheticNamespace.getName(getPropertyAccess)}${getPropertyAccess(this.name)}`;
 	}
 
-	include(): void {
-		super.include();
-		this.context.includeVariableInModule(this.syntheticNamespace);
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		super.includePath(path, context);
+		this.context.includeVariableInModule(this.syntheticNamespace, path, context);
 	}
 
 	setRenderNames(baseName: string | null, name: string | null): void {

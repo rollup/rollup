@@ -1,19 +1,20 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../NodeInteractions';
 import type { ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import {
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	literalStringMembers
 } from '../values';
 import type * as NodeType from './NodeType';
-import type TemplateElement from './TemplateElement';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UNKNOWN_RETURN_EXPRESSION, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
+import type TemplateElement from './TemplateElement';
 
 export default class TemplateLiteral extends NodeBase {
 	declare expressions: ExpressionNode[];
@@ -50,6 +51,14 @@ export default class TemplateLiteral extends NodeBase {
 			return hasMemberEffectWhenCalled(literalStringMembers, path[0], interaction, context);
 		}
 		return true;
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		for (const node of this.expressions) {
+			node.includePath(UNKNOWN_PATH, context);
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

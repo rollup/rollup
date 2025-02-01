@@ -9,7 +9,7 @@ import JSXExpressionContainer from '../JSXExpressionContainer';
 import type { JSXChild, JsxMode } from './jsxHelpers';
 import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
-import { NodeBase } from './Node';
+import { doNotDeoptimize, NodeBase } from './Node';
 
 export default class JSXElementBase extends NodeBase {
 	children!: JSXChild[];
@@ -27,22 +27,26 @@ export default class JSXElementBase extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.included) {
-			const { factory, importSource, mode } = this.jsxMode;
-			if (factory) {
-				this.factory = factory;
-				this.factoryVariable = getAndIncludeFactoryVariable(
-					factory,
-					mode === 'preserve',
-					importSource,
-					this
-				);
-			}
+		if (!this.included) this.includeNode(context);
+		for (const child of this.children) {
+			child.include(context, includeChildrenRecursively);
 		}
-		super.include(context, includeChildrenRecursively);
 	}
 
-	protected applyDeoptimizations() {}
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		const { factory, importSource, mode } = this.jsxMode;
+		if (factory) {
+			this.factory = factory;
+			this.factoryVariable = getAndIncludeFactoryVariable(
+				factory,
+				mode === 'preserve',
+				importSource,
+				this,
+				context
+			);
+		}
+	}
 
 	protected getRenderingMode(): JsxMode {
 		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
@@ -82,3 +86,5 @@ export default class JSXElementBase extends NodeBase {
 		return { childrenEnd, firstChild, hasMultipleChildren };
 	}
 }
+
+JSXElementBase.prototype.applyDeoptimizations = doNotDeoptimize;

@@ -1,8 +1,8 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext } from '../../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
-import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
 import {
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
@@ -17,9 +17,9 @@ import {
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
-	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
+import type { IncludeChildren } from './Node';
 
 export interface ObjectProperty {
 	key: ObjectPathKey;
@@ -65,6 +65,7 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly unknownIntegerProps: ExpressionEntity[] = [];
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
+	private readonly unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
 	// If a PropertyMap is used, this will be taken as propertiesAndGettersByKey
@@ -111,7 +112,7 @@ export class ObjectEntity extends ExpressionEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		const [key, ...subPath] = path;
 		const { args, type } = interaction;
@@ -249,11 +250,16 @@ export class ObjectEntity extends ExpressionEntity {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
-			return UnknownTruthyValue;
+			// This should actually be "UnknownTruthyValue". However, this currently
+			// causes an issue with TypeScript enums in files with moduleSideEffects:
+			// false because we cannot properly track whether a "var" has been
+			// initialized. This should be reverted once we can properly track this.
+			// return UnknownTruthyValue;
+			return UnknownValue;
 		}
 		const key = path[0];
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
@@ -272,7 +278,7 @@ export class ObjectEntity extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
@@ -349,6 +355,36 @@ export class ObjectEntity extends ExpressionEntity {
 		return false;
 	}
 
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		for (const property of this.allProperties) {
+			if (includeChildrenRecursively || property.shouldBeIncluded(context)) {
+				property.include(context, includeChildrenRecursively);
+			}
+		}
+		this.prototypeExpression?.include(context, includeChildrenRecursively);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		this.included = true;
+		if (path.length === 0) return;
+		const [key, ...subPath] = path;
+		const [includedMembers, includedPath] =
+			typeof key === 'string'
+				? [
+						new Set([
+							...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+							...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
+						]),
+						subPath
+					]
+				: [this.allProperties, UNKNOWN_PATH];
+		for (const property of includedMembers) {
+			property.includePath(includedPath, context);
+		}
+		this.prototypeExpression?.includePath(path, context);
+	}
+
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
 		const {
 			allProperties,
@@ -358,10 +394,10 @@ export class ObjectEntity extends ExpressionEntity {
 			gettersByKey,
 			unknownIntegerProps,
 			unmatchablePropertiesAndGetters,
+			unmatchablePropertiesAndSetters,
 			unmatchableGetters,
 			unmatchableSetters
 		} = this;
-		const unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);

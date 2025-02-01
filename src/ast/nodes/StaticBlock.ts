@@ -8,7 +8,13 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import * as NodeType from './NodeType';
-import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	onlyIncludeSelfNoDeoptimize,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class StaticBlock extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -43,6 +49,9 @@ export default class StaticBlock extends StatementBase {
 		}
 	}
 }
+
+StaticBlock.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+StaticBlock.prototype.applyDeoptimizations = doNotDeoptimize;
 
 export function isStaticBlock(statement: StatementNode): statement is StaticBlock {
 	return statement.type === NodeType.StaticBlock;

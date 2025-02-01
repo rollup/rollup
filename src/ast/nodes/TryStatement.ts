@@ -3,7 +3,13 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type BlockStatement from './BlockStatement';
 import type CatchClause from './CatchClause';
 import type * as NodeType from './NodeType';
-import { INCLUDE_PARAMETERS, type IncludeChildren, StatementBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	INCLUDE_PARAMETERS,
+	type IncludeChildren,
+	onlyIncludeSelfNoDeoptimize,
+	StatementBase
+} from './shared/Node';
 
 export default class TryStatement extends StatementBase {
 	declare block: BlockStatement;
@@ -50,3 +56,6 @@ export default class TryStatement extends StatementBase {
 		this.finalizer?.include(context, includeChildrenRecursively);
 	}
 }
+
+TryStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+TryStatement.prototype.applyDeoptimizations = doNotDeoptimize;

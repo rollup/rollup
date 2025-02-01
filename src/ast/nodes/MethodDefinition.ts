@@ -14,8 +14,8 @@ export default class MethodDefinition extends MethodBase {
 	declare type: NodeType.tMethodDefinition;
 	declare value: FunctionExpression;
 	declare decorators: Decorator[];
+
 	hasEffects(context: HasEffectsContext): boolean {
 		return super.hasEffects(context) || checkEffectForNodes(this.decorators, context);
 	}
-	protected applyDeoptimizations() {}
 }

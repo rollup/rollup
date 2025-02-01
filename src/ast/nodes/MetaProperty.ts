@@ -47,18 +47,20 @@ export default class MetaProperty extends NodeBase {
 	}
 
 	include(): void {
-		if (!this.included) {
-			this.included = true;
-			if (this.meta.name === IMPORT) {
-				this.scope.context.addImportMeta(this);
-				const parent = this.parent;
-				const metaProperty = (this.metaProperty =
-					parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
-						? parent.propertyKey
-						: null);
-				if (metaProperty?.startsWith(FILE_PREFIX)) {
-					this.referenceId = metaProperty.slice(FILE_PREFIX.length);
-				}
+		if (!this.included) this.includeNode();
+	}
+
+	includeNode() {
+		this.included = true;
+		if (this.meta.name === IMPORT) {
+			this.scope.context.addImportMeta(this);
+			const parent = this.parent;
+			const metaProperty = (this.metaProperty =
+				parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
+					? parent.propertyKey
+					: null);
+			if (metaProperty?.startsWith(FILE_PREFIX)) {
+				this.referenceId = metaProperty.slice(FILE_PREFIX.length);
 			}
 		}
 	}

@@ -1,19 +1,19 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	UNKNOWN_PATH,
 	UnknownInteger
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
+import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
 	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
@@ -23,7 +23,7 @@ export default class ArrayExpression extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -38,7 +38,7 @@ export default class ArrayExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
@@ -47,7 +47,7 @@ export default class ArrayExpression extends NodeBase {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
@@ -66,7 +66,17 @@ export default class ArrayExpression extends NodeBase {
 		return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	protected applyDeoptimizations(): void {
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		for (const element of this.elements) {
+			if (element) {
+				element?.includePath(UNKNOWN_PATH, context);
+			}
+		}
+	}
+
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {

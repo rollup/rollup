@@ -13,5 +13,5 @@ var obj2 = {
 
 mutate(obj1, obj2);
 
-assert.ok(obj1.x ? true : false);
-assert.ok(obj2.x ? true : false);
+assert.ok(obj1.x ? true : false, 'obj1');
+assert.ok(obj2.x ? true : false, 'obj2');

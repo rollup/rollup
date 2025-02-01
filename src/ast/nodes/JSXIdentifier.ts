@@ -1,6 +1,9 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import type { InclusionContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import type JSXMemberExpression from './JSXMemberExpression';
 import type * as NodeType from './NodeType';
 import IdentifierBase from './shared/IdentifierBase';
@@ -24,6 +27,29 @@ export default class JSXIdentifier extends IdentifierBase {
 			this.variable.addReference(this);
 		} else if (type === IdentifierType.NativeElementName) {
 			this.isNativeElement = true;
+		}
+	}
+
+	include(context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		if (this.variable !== null) {
+			this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
+		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) {
+			this.included = true;
+			if (this.variable !== null) {
+				this.scope.context.includeVariableInModule(this.variable, path, context);
+			}
+		} else if (path.length > 0) {
+			this.variable?.includePath(path, context);
 		}
 	}
 

@@ -13,7 +13,7 @@ import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
@@ -32,8 +32,7 @@ export default class UpdateExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
 	}
 
@@ -82,7 +81,7 @@ export default class UpdateExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.argument.deoptimizePath(EMPTY_PATH);
 		if (this.argument instanceof Identifier) {
@@ -92,3 +91,5 @@ export default class UpdateExpression extends NodeBase {
 		this.scope.context.requestTreeshakingPass();
 	}
 }
+
+UpdateExpression.prototype.includeNode = onlyIncludeSelf;

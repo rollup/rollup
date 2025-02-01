@@ -2,7 +2,6 @@ import type { AstContext, default as Module } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -12,7 +11,6 @@ import {
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import type SpreadElement from '../nodes/SpreadElement';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
@@ -23,33 +21,43 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
+import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
+import type { IncludedPathTracker } from '../utils/PathTracker';
+import {
+	type EntityPathTracker,
+	IncludedFullPathTracker,
+	type ObjectPath,
+	UNKNOWN_PATH,
+	UnknownKey
+} from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
+
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
-	readonly kind: VariableKind;
 
 	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
-	protected deoptimizationTracker: PathTracker;
+	protected deoptimizationTracker: EntityPathTracker;
+	protected includedPathTracker: IncludedPathTracker = new IncludedFullPathTracker();
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		private init: ExpressionEntity,
+		/** if this is non-empty, the actual init is this path of this.init */
+		protected initPath: ObjectPath,
 		context: AstContext,
-		kind: VariableKind
+		readonly kind: VariableKind
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.deoptimizationTracker = context.deoptimizationTracker;
 		this.module = context.module;
-		this.kind = kind;
 	}
 
 	addDeclaration(identifier: Identifier, init: ExpressionEntity): void {
@@ -62,23 +70,28 @@ export default class LocalVariable extends Variable {
 			for (const initializer of this.additionalInitializers) {
 				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
-			this.additionalInitializers = null;
 		}
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			deoptimizeInteraction(interaction);
 			return;
 		}
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() => this.init.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker),
+			() => {
+				this.init.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					[...this.initPath, ...path],
+					recursionTracker
+				);
+			},
 			undefined
 		);
 	}
@@ -97,18 +110,18 @@ export default class LocalVariable extends Variable {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
-			this.init.deoptimizePath(UNKNOWN_PATH);
+			this.init.deoptimizePath([...this.initPath, UnknownKey]);
 		} else {
-			this.init.deoptimizePath(path);
+			this.init.deoptimizePath(limitConcatenatedPathDepth(this.initPath, path));
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UnknownValue;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -116,7 +129,11 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
-				return this.init.getLiteralValueAtPath(path, recursionTracker, origin);
+				return this.init.getLiteralValueAtPath(
+					[...this.initPath, ...path],
+					recursionTracker,
+					origin
+				);
 			},
 			UnknownValue
 		);
@@ -125,10 +142,10 @@ export default class LocalVariable extends Variable {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -137,7 +154,7 @@ export default class LocalVariable extends Variable {
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
 				return this.init.getReturnExpressionWhenCalledAtPath(
-					path,
+					[...this.initPath, ...path],
 					interaction,
 					recursionTracker,
 					origin
@@ -152,12 +169,15 @@ export default class LocalVariable extends Variable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (path.length + this.initPath.length > MAX_PATH_DEPTH) {
+			return true;
+		}
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
 				if (this.isReassigned) return true;
 				return (
 					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
 			case INTERACTION_ASSIGNED: {
@@ -166,7 +186,7 @@ export default class LocalVariable extends Variable {
 				if (this.isReassigned) return true;
 				return (
 					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
 			case INTERACTION_CALLED: {
@@ -175,41 +195,61 @@ export default class LocalVariable extends Variable {
 					!(
 						interaction.withNew ? context.instantiated : context.called
 					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
 		}
 	}
 
-	include(): void {
-		if (!this.included) {
-			super.include();
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.includedPathTracker.includePathAndGetIfIncluded(path)) {
+			this.module.scope.context.requestTreeshakingPass();
+			if (!this.included) {
+				// This will reduce the number of tree-shaking passes by eagerly
+				// including inits. By pushing this here instead of directly including
+				// we avoid deep call stacks.
+				this.module.scope.context.newlyIncludedVariableInits.add(this.init);
+			}
+			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(createInclusionContext(), false);
+				if (!declaration.included) declaration.include(context, false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
 					// in which case .include() might pull in more dead code
-					node.included = true;
+					node.includeNode(context);
 					if (node.type === NodeType.Program) break;
 					node = node.parent as Node;
 				}
 			}
+			// We need to make sure we include the correct path of the init
+			if (path.length > 0) {
+				this.init.includePath(limitConcatenatedPathDepth(this.initPath, path), context);
+				this.additionalInitializers?.forEach(initializer =>
+					initializer.includePath(UNKNOWN_PATH, context)
+				);
+			}
 		}
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
-			for (const argument of parameters) {
-				argument.include(context, false);
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+		if (
+			this.isReassigned ||
+			context.includedCallArguments.has(this.init) ||
+			// This can be removed again once we can include arguments when called at
+			// a specific path
+			this.initPath.length > 0
+		) {
+			for (const argument of interaction.args) {
+				if (argument) {
+					argument.includePath(UNKNOWN_PATH, context);
+					argument.include(context, false);
+				}
 			}
 		} else {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, parameters);
+			this.init.includeCallArguments(context, interaction);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

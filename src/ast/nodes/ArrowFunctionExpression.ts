@@ -3,7 +3,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import { type ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import type CallExpression from './CallExpression';
 import Identifier from './Identifier';
@@ -13,11 +13,11 @@ import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
-import type { PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: PatternNode[];
+	declare params: DeclarationPatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;
@@ -35,7 +35,6 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	}
 
 	hasEffects(): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		return false;
 	}
 
@@ -44,12 +43,15 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (
+			this.annotationNoSideEffects &&
+			path.length === 0 &&
+			interaction.type === INTERACTION_CALLED
+		) {
+			return false;
+		}
 		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) {
 			return true;
-		}
-
-		if (this.annotationNoSideEffects) {
-			return false;
 		}
 
 		if (interaction.type === INTERACTION_CALLED) {
@@ -80,6 +82,16 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {
 				parameter.include(context, includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		this.body.includePath(UNKNOWN_PATH, context);
+		for (const parameter of this.params) {
+			if (!(parameter instanceof Identifier)) {
+				parameter.includePath(UNKNOWN_PATH, context);
 			}
 		}
 	}

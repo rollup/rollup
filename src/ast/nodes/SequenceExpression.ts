@@ -10,11 +10,17 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];
@@ -23,7 +29,7 @@ export default class SequenceExpression extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.expressions[this.expressions.length - 1].deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -38,7 +44,7 @@ export default class SequenceExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
@@ -75,9 +81,15 @@ export default class SequenceExpression extends NodeBase {
 				includeChildrenRecursively ||
 				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
-			)
+			) {
 				expression.include(context, includeChildrenRecursively);
+			}
 		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		this.included = true;
+		this.expressions[this.expressions.length - 1].includePath(path, context);
 	}
 
 	removeAnnotations(code: MagicString) {
@@ -123,3 +135,6 @@ export default class SequenceExpression extends NodeBase {
 		}
 	}
 }
+
+SequenceExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+SequenceExpression.prototype.applyDeoptimizations = doNotDeoptimize;

@@ -1,7 +1,1 @@
-function log (x) {
-  {
-    console.log(x);
-  }
-}
-
-export { log as default };
+export { l as default } from './generated-main2.js';
