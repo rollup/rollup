@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.33.0
+
+_2025-02-01_
+
+### Features
+
+- Correctly detect literal value of more negated expressions (#5812)
+
+### Bug Fixes
+
+- Use the correct with/assert attribute key in dynamic imports (#5818)
+- Fix an issue where logical expressions were considered to have the wrong value (#5819)
+
+### Pull Requests
+
+- [#5812](https://github.com/rollup/rollup/pull/5812): feat: optimize the literal value of unary expressions (@TrickyPi)
+- [#5816](https://github.com/rollup/rollup/pull/5816): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#5817](https://github.com/rollup/rollup/pull/5817): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5818](https://github.com/rollup/rollup/pull/5818): support for changing the attributes key for dynamic imports (@TrickyPi)
+- [#5819](https://github.com/rollup/rollup/pull/5819): Return UnknownValue if getLiteralValueAtPath is called recursively within logical expressions (@TrickyPi)
+- [#5820](https://github.com/rollup/rollup/pull/5820): return null (@kingma-sbw)
+
 ## 4.32.1
 
 _2025-01-28_

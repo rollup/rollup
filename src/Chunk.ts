@@ -10,7 +10,7 @@ import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
-import ExternalChunk from './ExternalChunk';
+import ExternalChunk, { formatAttributes } from './ExternalChunk';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import Module from './Module';
@@ -27,6 +27,7 @@ import type {
 	RenderedModule
 } from './rollup/types';
 import { createAddons } from './utils/addons';
+import { EMPTY_OBJECT } from './utils/blank';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
@@ -56,6 +57,7 @@ import {
 } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
+import { getAttributesFromImportExpression } from './utils/parseImportAttributes';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
 import type { PluginDriver } from './utils/PluginDriver';
 import { getAliasName, getImportPath } from './utils/relativeId';
@@ -958,18 +960,25 @@ export default class Chunk {
 
 	private getDynamicImportStringAndAttributes(
 		resolution: ExternalModule | string | null,
-		fileName: string
+		fileName: string,
+		node: ImportExpression
 	): [importPath: string, attributes: string | null | true] {
 		if (resolution instanceof ExternalModule) {
 			const chunk = this.externalChunkByModule.get(resolution)!;
 			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAttributes(this.snippets)];
 		}
-		return [
-			resolution || '',
-			(['es', 'cjs'].includes(this.outputOptions.format) &&
-				this.outputOptions.externalImportAttributes) ||
-				null
-		];
+		let attributes: string | true | null = null;
+		if (
+			['es', 'cjs'].includes(this.outputOptions.format) &&
+			this.outputOptions.externalImportAttributes
+		) {
+			const attributesFromImportAttributes = getAttributesFromImportExpression(node);
+			attributes =
+				attributesFromImportAttributes === EMPTY_OBJECT
+					? true
+					: formatAttributes(attributesFromImportAttributes, this.snippets);
+		}
+		return [resolution || '', attributes];
 	}
 
 	private getFallbackChunkName(): string {
@@ -1216,7 +1225,8 @@ export default class Chunk {
 			compact,
 			format,
 			freeze,
-			generatedCode: { symbols }
+			generatedCode: { symbols },
+			importAttributesKey
 		} = outputOptions;
 		const { _, cnst, n } = snippets;
 		this.setDynamicImportResolutions(fileName);
@@ -1235,6 +1245,7 @@ export default class Chunk {
 			exportNamesByVariable,
 			format,
 			freeze,
+			importAttributesKey,
 			indent,
 			pluginDriver,
 			snippets,
@@ -1326,7 +1337,8 @@ export default class Chunk {
 				const { node, resolution } = resolvedDynamicImport;
 				const [resolutionString, attributes] = this.getDynamicImportStringAndAttributes(
 					resolution,
-					fileName
+					fileName,
+					node
 				);
 				node.setExternalResolution(
 					'external',
