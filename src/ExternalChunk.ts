@@ -56,7 +56,7 @@ export default class ExternalChunk {
 	}
 }
 
-function formatAttributes(
+export function formatAttributes(
 	attributes: Record<string, string> | null | void | false,
 	{ getObject }: GenerateCodeSnippets
 ): string | null {
