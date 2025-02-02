@@ -39,12 +39,12 @@ export default class ClassBody extends NodeBase<ast.ClassBody> {
 		));
 		let index = 0;
 		for (const definition of esTreeNode.body) {
-			body[index++] = new (this.scope.context.getNodeConstructor<any>(definition.type))(
+			body[index++] = new (this.scope.context.getNodeConstructor(definition.type))(
 				this,
 				(definition as MethodDefinition | PropertyDefinition).static
 					? this.scope
 					: this.scope.instanceScope
-			).parseNode(definition);
+			).parseNode(definition as any);
 		}
 		return super.parseNode(esTreeNode);
 	}

@@ -24,10 +24,10 @@ export default class CatchClause extends NodeBase<ast.CatchClause> {
 		const { body, param, type } = esTreeNode;
 		this.type = type;
 		if (param) {
-			this.param = new (this.scope.context.getNodeConstructor<any>(param.type))(
+			this.param = new (this.scope.context.getNodeConstructor(param.type))(
 				this,
 				this.scope
-			).parseNode(param);
+			).parseNode(param as any);
 			this.param!.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION);
 		}
 		this.body = new BlockStatement(this, this.scope.bodyScope).parseNode(body);

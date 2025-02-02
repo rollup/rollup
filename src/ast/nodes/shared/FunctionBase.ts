@@ -241,7 +241,7 @@ export default abstract class FunctionBase<
 		// so that the scope already knows all parameters and can detect conflicts
 		// when parsing the body.
 		const parameters: typeof this.params = (this.params = params.map(parameter =>
-			new (context.getNodeConstructor<any>(parameter.type))(this, scope).parseNode(parameter)
+			new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(parameter as any)
 		));
 		scope.addParameterVariables(
 			parameters.map(
@@ -250,7 +250,7 @@ export default abstract class FunctionBase<
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		this.body = new (context.getNodeConstructor<any>(body.type))(this, bodyScope).parseNode(body);
+		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body as any);
 		return super.parseNode(esTreeNode);
 	}
 

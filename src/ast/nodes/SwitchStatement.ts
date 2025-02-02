@@ -95,9 +95,10 @@ export default class SwitchStatement extends NodeBase<ast.SwitchStatement> {
 	}
 
 	parseNode(esTreeNode: ast.SwitchStatement): this {
-		this.discriminant = new (this.scope.context.getNodeConstructor<any>(
-			esTreeNode.discriminant.type
-		))(this, this.parentScope).parseNode(esTreeNode.discriminant);
+		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
+			this,
+			this.parentScope
+		).parseNode(esTreeNode.discriminant as any);
 		return super.parseNode(esTreeNode);
 	}
 

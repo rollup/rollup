@@ -67,15 +67,15 @@ export default class IfStatement extends NodeBase<ast.IfStatement> implements De
 	}
 
 	parseNode(esTreeNode: ast.IfStatement): this {
-		this.consequent = new (this.scope.context.getNodeConstructor<any>(esTreeNode.consequent.type))(
+		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
 			this,
 			(this.consequentScope = new TrackingScope(this.scope))
-		).parseNode(esTreeNode.consequent);
+		).parseNode(esTreeNode.consequent as any);
 		if (esTreeNode.alternate) {
-			this.alternate = new (this.scope.context.getNodeConstructor<any>(esTreeNode.alternate.type))(
+			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
 				this,
 				(this.alternateScope = new TrackingScope(this.scope))
-			).parseNode(esTreeNode.alternate);
+			).parseNode(esTreeNode.alternate as any);
 		}
 		return super.parseNode(esTreeNode);
 	}
