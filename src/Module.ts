@@ -124,7 +124,6 @@ export interface AstContext {
 	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
-	// TODO Lukas this should be the type corresponding
 	getNodeConstructor: <T extends keyof typeof nodeConstructors>(
 		name: T
 	) => (typeof nodeConstructors)[T];
