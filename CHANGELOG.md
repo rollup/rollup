@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.34.1
+
+_2025-02-03_
+
+### Bug Fixes
+
+- Ensure throwing objects includes the entire object (#5825)
+
+### Pull Requests
+
+- [#5825](https://github.com/rollup/rollup/pull/5825): Ensure that all properties of throw statements are included (@lukastaegert)
+
 ## 4.34.0
 
 _2025-02-01_
