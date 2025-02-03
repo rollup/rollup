@@ -1,13 +1,9 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { type InclusionContext } from '../ExecutionContext';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import {
-	type ExpressionNode,
-	type IncludeChildren,
-	onlyIncludeSelf,
-	StatementBase
-} from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ThrowStatement extends StatementBase {
 	declare argument: ExpressionNode;
@@ -23,6 +19,13 @@ export default class ThrowStatement extends StatementBase {
 		context.brokenFlow = true;
 	}
 
+	includeNode(context: InclusionContext) {
+		if (!this.included) {
+			this.included = true;
+			this.argument.includePath(UNKNOWN_PATH, context);
+		}
+	}
+
 	render(code: MagicString, options: RenderOptions): void {
 		this.argument.render(code, options, { preventASI: true });
 		if (this.argument.start === this.start + 5 /* 'throw'.length */) {
@@ -30,5 +33,3 @@ export default class ThrowStatement extends StatementBase {
 		}
 	}
 }
-
-ThrowStatement.prototype.includeNode = onlyIncludeSelf;
