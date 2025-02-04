@@ -99,8 +99,10 @@ export class ExpressionEntity implements WritableEntity {
 
 	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		for (const argument of interaction.args) {
-			argument?.includePath(UNKNOWN_PATH, context);
-			argument?.include(context, false);
+			if (argument) {
+				argument.includePath(UNKNOWN_PATH, context);
+				argument.include(context, false);
+			}
 		}
 	}
 
