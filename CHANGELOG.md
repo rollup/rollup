@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.34.2
+
+_2025-02-04_
+
+### Bug Fixes
+
+- Fix an issue where not all usages of a function were properly detected (#5827)
+
+### Pull Requests
+
+- [#5827](https://github.com/rollup/rollup/pull/5827): Ensure that functions provided to a constructor are properly deoptimized (@lukastaegert)
+
 ## 4.34.1
 
 _2025-02-03_
