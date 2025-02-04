@@ -97,7 +97,7 @@ export default class ParameterScope extends ChildScope {
 					}
 				}
 			}
-			if (!argument.included && (argumentIncluded || argument.shouldBeIncluded(context))) {
+			if (argumentIncluded || argument.shouldBeIncluded(context)) {
 				argumentIncluded = true;
 				argument.include(context, calledFromTryStatement);
 			}
