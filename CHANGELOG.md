@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.34.3
+
+_2025-02-05_
+
+### Bug Fixes
+
+- Ensure properties of "this" are included in getters (#5831)
+
+### Pull Requests
+
+- [#5831](https://github.com/rollup/rollup/pull/5831): include the properties that accessed by this (@TrickyPi)
+
 ## 4.34.2
 
 _2025-02-04_
