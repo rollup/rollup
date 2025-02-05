@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.34.4
+
+_2025-02-05_
+
+### Bug Fixes
+
+- Do not tree-shake properties if a rest element is used in destructuring (#5833)
+
+### Pull Requests
+
+- [#5833](https://github.com/rollup/rollup/pull/5833): include all properties if a rest element is destructed (@TrickyPi)
+
 ## 4.34.3
 
 _2025-02-05_
