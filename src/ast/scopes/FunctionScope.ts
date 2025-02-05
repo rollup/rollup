@@ -1,6 +1,7 @@
 import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionCalled } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import type { NodeBase } from '../nodes/shared/Node';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
@@ -11,7 +12,10 @@ export default class FunctionScope extends ReturnValueScope {
 	readonly argumentsVariable: ArgumentsVariable;
 	readonly thisVariable: ThisVariable;
 
-	constructor(parent: ChildScope) {
+	constructor(
+		parent: ChildScope,
+		readonly functionNode: NodeBase
+	) {
 		super(parent, false);
 		const { context } = parent;
 		this.variables.set('arguments', (this.argumentsVariable = new ArgumentsVariable(context)));
