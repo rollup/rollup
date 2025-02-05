@@ -303,6 +303,10 @@ export default class ImportExpression extends NodeBase {
 				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
 				format,
 				moduleId: this.scope.context.module.id,
+				targetModuleAttributes:
+					this.resolution && typeof this.resolution !== 'string'
+						? this.resolution.info.attributes
+						: {},
 				targetModuleId:
 					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
 			}
