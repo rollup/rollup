@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.34.6
+
+_2025-02-07_
+
+### Bug Fixes
+
+- Retain "void 0" in the output for smaller output and fewer surprises (#5838)
+
+### Pull Requests
+
+- [#5835](https://github.com/rollup/rollup/pull/5835): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#5838](https://github.com/rollup/rollup/pull/5838): replace undefined with void 0 for operator void (@TrickyPi)
+
 ## 4.34.5
 
 _2025-02-07_
