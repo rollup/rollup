@@ -139,7 +139,11 @@ export default class UnaryExpression extends NodeBase {
 const CHARACTERS_THAT_DO_NOT_REQUIRE_SPACE = /[\s([=%&*+-/<>^|,?:;]/;
 
 function getRenderedLiteralValue(value: unknown) {
-	if (value === undefined || typeof value === 'boolean') {
+	if (value === undefined) {
+		// At the moment, the undefined only happens when the operator is void
+		return 'void 0';
+	}
+	if (typeof value === 'boolean') {
 		return String(value);
 	}
 	if (typeof value === 'string') {
