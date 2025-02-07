@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.34.5
+
+_2025-02-07_
+
+### Bug Fixes
+
+- Ensure namespace reexports always include all properties of all exports (#5837)
+
+### Pull Requests
+
+- [#5836](https://github.com/rollup/rollup/pull/5836): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5837](https://github.com/rollup/rollup/pull/5837): Include all paths of reexports if namespace is used (@lukastaegert)
+
 ## 4.34.4
 
 _2025-02-05_
