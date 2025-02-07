@@ -258,6 +258,7 @@ export default class Module {
 	declare transformFiles?: EmittedFile[];
 
 	private allExportNames: Set<string> | null = null;
+	private allExportsIncluded = false;
 	private ast: Program | null = null;
 	declare private astContext: AstContext;
 	private readonly context: string;
@@ -711,6 +712,8 @@ export default class Module {
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
+		if (this.allExportsIncluded) return;
+		this.allExportsIncluded = true;
 		if (!this.isExecuted) {
 			markModuleAndImpureDependenciesAsExecuted(this);
 			this.graph.needsTreeshakingPass = true;
@@ -732,9 +735,7 @@ export default class Module {
 			const [variable] = this.getVariableForExportName(name);
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
-				if (!variable.included) {
-					this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
-				}
+				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
 				if (variable instanceof ExternalVariable) {
 					variable.module.reexported = true;
 				}
