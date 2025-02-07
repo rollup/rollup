@@ -4,7 +4,7 @@ retained1.foo.bar;
 const retained2 = new function () {}();
 retained2.foo.bar;
 
-const retained3 = undefined;
+const retained3 = void 0;
 retained3.foo;
 const retained4b = undefined;
 retained4b.foo;

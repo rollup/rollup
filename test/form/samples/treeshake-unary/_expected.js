@@ -8,7 +8,7 @@ function foo2() {
 }
 console.log(!foo2());
 
-console.log(undefined);
+console.log(void 0);
 console.log(typeof foo2);
 console.log(-Infinity);
 console.log(-180n);

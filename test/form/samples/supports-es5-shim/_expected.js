@@ -2043,7 +2043,7 @@ function requireEs5Shim () {
 		                            match[0].replace(separator2, function () {
 		                                for (var i = 1; i < arguments.length - 2; i++) {
 		                                    if (typeof arguments[i] === 'undefined') {
-		                                        match[i] = undefined;
+		                                        match[i] = void 0;
 		                                    }
 		                                }
 		                            });
@@ -2080,7 +2080,7 @@ function requireEs5Shim () {
 		    // then the output array is truncated so that it contains no more than limit
 		    // elements.
 		    // "0".split(undefined, 0) -> []
-		    } else if ('0'.split(undefined, 0).length) {
+		    } else if ('0'.split(void 0, 0).length) {
 		        StringPrototype.split = function split(separator, limit) {
 		            if (typeof separator === 'undefined' && limit === 0) {
 		                return [];
