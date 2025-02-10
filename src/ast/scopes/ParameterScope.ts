@@ -51,11 +51,10 @@ export default class ParameterScope extends ChildScope {
 		this.hasRest = hasRest;
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments({ args }: NodeInteractionCalled, context: InclusionContext): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;
 		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
-		const { args } = interaction;
 		let lastExplicitlyIncludedIndex = args.length - 1;
 		// If there is a SpreadElement, we need to include all arguments after it
 		// because we no longer know which argument corresponds to which parameter.

@@ -97,13 +97,8 @@ export class ExpressionEntity implements WritableEntity {
 	 * paths of the expression are included.
 	 * */
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		for (const argument of interaction.args) {
-			if (argument) {
-				argument.includePath(UNKNOWN_PATH, context);
-				argument.include(context, false);
-			}
-		}
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+		includeInteraction(interaction, context);
 	}
 
 	shouldBeIncluded(_context: InclusionContext): boolean {
@@ -122,5 +117,18 @@ export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: b
 export const deoptimizeInteraction = (interaction: NodeInteraction) => {
 	for (const argument of interaction.args) {
 		argument?.deoptimizePath(UNKNOWN_PATH);
+	}
+};
+
+export const includeInteraction = ({ args }: NodeInteraction, context: InclusionContext) => {
+	// We do not re-include the "this" argument as we expect this is already
+	// re-included at the call site
+	args[0]?.includePath(UNKNOWN_PATH, context);
+	for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
+		const argument = args[argumentIndex];
+		if (argument) {
+			argument.includePath(UNKNOWN_PATH, context);
+			argument.include(context, false);
+		}
 	}
 };

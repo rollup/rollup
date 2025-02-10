@@ -44,7 +44,7 @@ export default class LabeledStatement extends StatementBase {
 		context.includedLabels = new Set<string>();
 		this.body.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
-			this.label.include(context);
+			this.label.include(context, includeChildrenRecursively);
 			context.includedLabels.delete(this.label.name);
 			context.brokenFlow = brokenFlow;
 		}

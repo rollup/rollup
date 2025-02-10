@@ -25,13 +25,13 @@ import {
 } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
-interface DeoptimizationInteraction {
+interface TrackedInteraction {
 	interaction: NodeInteraction;
 	path: ObjectPath;
 }
 
 const MAX_TRACKED_INTERACTIONS = 20;
-const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
+const NO_INTERACTIONS = EMPTY_ARRAY as unknown as TrackedInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
 const EMPTY_PATH_TRACKER = new EntityPathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
@@ -39,7 +39,7 @@ const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION
 export default class ParameterVariable extends LocalVariable {
 	protected includedPathTracker = new IncludedTopLevelPathTracker();
 	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
-	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
+	private deoptimizationInteractions: TrackedInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private expressionsDependingOnKnownValue: DeoptimizableEntity[] = [];
@@ -55,7 +55,7 @@ export default class ParameterVariable extends LocalVariable {
 		super(name, declarator, UNKNOWN_EXPRESSION, argumentPath, context, 'parameter');
 	}
 
-	addArgumentValue(entity: ExpressionEntity): void {
+	addArgumentForDeoptimization(entity: ExpressionEntity): void {
 		this.updateKnownValue(entity);
 		if (entity === UNKNOWN_EXPRESSION) {
 			// As unknown expressions fully deoptimize all interactions, we can clear
