@@ -14,6 +14,7 @@ import * as NodeType from '../nodes/NodeType';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
+	includeInteraction,
 	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
@@ -233,7 +234,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		if (
 			this.isReassigned ||
 			context.includedCallArguments.has(this.init) ||
@@ -241,15 +242,10 @@ export default class LocalVariable extends Variable {
 			// a specific path
 			this.initPath.length > 0
 		) {
-			for (const argument of interaction.args) {
-				if (argument) {
-					argument.includePath(UNKNOWN_PATH, context);
-					argument.include(context, false);
-				}
-			}
+			includeInteraction(interaction, context);
 		} else {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, interaction);
+			this.init.includeCallArguments(interaction, context);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

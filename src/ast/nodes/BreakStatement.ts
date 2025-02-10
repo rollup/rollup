@@ -1,7 +1,12 @@
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	onlyIncludeSelfNoDeoptimize,
+	StatementBase
+} from './shared/Node';
 
 export default class BreakStatement extends StatementBase {
 	declare label: Identifier | null;
@@ -19,10 +24,10 @@ export default class BreakStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (this.label) {
-			this.label.include(context);
+			this.label.include(context, includeChildrenRecursively);
 			context.includedLabels.add(this.label.name);
 		} else {
 			context.hasBreak = true;

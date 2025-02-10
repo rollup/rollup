@@ -26,8 +26,8 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		super.includeCallArguments(context, interaction);
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+		super.includeCallArguments(interaction, context);
 		if (this.argumentsVariable.included) {
 			const { args } = interaction;
 			for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {

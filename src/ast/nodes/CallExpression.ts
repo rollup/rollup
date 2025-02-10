@@ -114,11 +114,7 @@ export default class CallExpression
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
-			this.callee.include(context, true);
-			for (const argument of this.arguments) {
-				argument.includePath(UNKNOWN_PATH, context);
-				argument.include(context, true);
-			}
+			super.include(context, true);
 			if (
 				includeChildrenRecursively === INCLUDE_PARAMETERS &&
 				this.callee instanceof Identifier &&
@@ -127,16 +123,8 @@ export default class CallExpression
 				this.callee.variable.markCalledFromTryStatement();
 			}
 		} else {
-			// If the callee is a member expression and does not have a variable, its
-			// object will already be included via the first argument of the
-			// interaction in includeCallArguments. Including it again can lead to
-			// severe performance problems.
-			if (this.callee instanceof MemberExpression && !this.callee.variable) {
-				this.callee.property.include(context, false);
-			} else {
-				this.callee.include(context, false);
-			}
-			this.callee.includeCallArguments(context, this.interaction);
+			this.callee.include(context, false);
+			this.callee.includeCallArguments(this.interaction, context);
 		}
 	}
 

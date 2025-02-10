@@ -42,13 +42,13 @@ export default class NewExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.include(context, true);
 		} else {
-			if (!this.included) this.includeNode(context);
 			this.callee.include(context, false);
+			this.callee.includeCallArguments(this.interaction, context);
 		}
-		this.callee.includeCallArguments(context, this.interaction);
 	}
 
 	includeNode(context: InclusionContext) {

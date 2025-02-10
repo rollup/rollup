@@ -44,6 +44,7 @@ import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
+	includeInteraction,
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -407,11 +408,11 @@ export default class MemberExpression
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, interaction);
+			this.variable.includeCallArguments(interaction, context);
 		} else {
-			super.includeCallArguments(context, interaction);
+			includeInteraction(interaction, context);
 		}
 	}
 

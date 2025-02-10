@@ -106,7 +106,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		for (const decorator of this.decorators) decorator.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
-			this.id.include(context);
+			this.id.include(context, includeChildrenRecursively);
 		}
 	}
 
