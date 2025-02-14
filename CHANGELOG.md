@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.34.7
+
+_2025-02-14_
+
+### Bug Fixes
+
+- Ensure that calls to parameters are included correctly when using try-catch deoptimization (#5842)
+
+### Pull Requests
+
+- [#5840](https://github.com/rollup/rollup/pull/5840): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5842](https://github.com/rollup/rollup/pull/5842): Fix prop inclusion with try-catch-deoptimization (@lukastaegert)
+
 ## 4.34.6
 
 _2025-02-07_
