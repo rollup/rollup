@@ -13,9 +13,8 @@ export default class ReturnValueScope extends ParameterScope {
 		this.returnExpressions.push(expression);
 	}
 
-	deoptimizeArgumentsOnCall(interaction: NodeInteractionCalled): void {
+	deoptimizeArgumentsOnCall({ args }: NodeInteractionCalled): void {
 		const { parameters } = this;
-		const { args } = interaction;
 		let position = 0;
 		for (; position < args.length - 1; position++) {
 			// Only the "this" argument arg[0] can be null
@@ -24,7 +23,9 @@ export default class ReturnValueScope extends ParameterScope {
 				// This deoptimizes the current and remaining parameters and arguments
 				for (; position < parameters.length; position++) {
 					args[position + 1]?.deoptimizePath(UNKNOWN_PATH);
-					parameters[position].forEach(variable => variable.markReassigned());
+					for (const variable of parameters[position]) {
+						variable.markReassigned();
+					}
 				}
 				break;
 			}
@@ -34,7 +35,7 @@ export default class ReturnValueScope extends ParameterScope {
 				const variables = parameters[position];
 				if (variables) {
 					for (const variable of variables) {
-						variable.addArgumentValue(argument);
+						variable.addArgumentForDeoptimization(argument);
 					}
 				}
 				this.addArgumentToBeDeoptimized(argument);
@@ -43,7 +44,7 @@ export default class ReturnValueScope extends ParameterScope {
 		const nonRestParameterLength = this.hasRest ? parameters.length - 1 : parameters.length;
 		for (; position < nonRestParameterLength; position++) {
 			for (const variable of parameters[position]) {
-				variable.addArgumentValue(UNDEFINED_EXPRESSION);
+				variable.addArgumentForDeoptimization(UNDEFINED_EXPRESSION);
 			}
 		}
 	}

@@ -12,14 +12,14 @@ import {
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
-import { EMPTY_PATH } from '../../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import GlobalVariable from '../../variables/GlobalVariable';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
-import { NodeBase } from './Node';
+import { type IncludeChildren, NodeBase } from './Node';
 
 const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'await using']);
 
@@ -127,8 +127,11 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	include(context: InclusionContext): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) this.includeNode(context);
+		if (includeChildrenRecursively) {
+			this.variable?.includePath(UNKNOWN_PATH, context);
+		}
 	}
 
 	includeNode(context: InclusionContext) {
@@ -151,8 +154,8 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		this.variable!.includeCallArguments(context, interaction);
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+		this.variable!.includeCallArguments(interaction, context);
 	}
 
 	isPossibleTDZ(): boolean {

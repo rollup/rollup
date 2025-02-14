@@ -44,6 +44,7 @@ import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
+	includeInteraction,
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -375,6 +376,16 @@ export default class MemberExpression
 		}
 	}
 
+	includeNodeAsAssignmentTarget(context: InclusionContext) {
+		this.included = true;
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
+		if (this.variable) {
+			this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
+		} else if (!this.isUndefined) {
+			this.object.includePath([this.propertyKey], context);
+		}
+	}
+
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) this.includeNode(context);
 		if (this.variable) {
@@ -397,21 +408,17 @@ export default class MemberExpression
 		includeChildrenRecursively: IncludeChildren,
 		deoptimizeAccess: boolean
 	): void {
-		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
-		if (deoptimizeAccess) {
-			this.include(context, includeChildrenRecursively);
-		} else {
-			if (!this.included) this.includeNode(context);
-			this.object.include(context, includeChildrenRecursively);
-			this.property.include(context, includeChildrenRecursively);
-		}
+		if (!this.included) this.includeNodeAsAssignmentTarget(context);
+		if (deoptimizeAccess && !this.deoptimized) this.applyDeoptimizations();
+		this.object.include(context, includeChildrenRecursively);
+		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, interaction);
+			this.variable.includeCallArguments(interaction, context);
 		} else {
-			super.includeCallArguments(context, interaction);
+			includeInteraction(interaction, context);
 		}
 	}
 

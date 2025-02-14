@@ -48,16 +48,11 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.include(context, true);
 		} else {
-			this.included = true;
-			this.tag.include(context, includeChildrenRecursively);
-			this.quasi.include(context, includeChildrenRecursively);
-		}
-		this.tag.includeCallArguments(context, this.interaction);
-		const [returnExpression] = this.getReturnExpression();
-		if (!returnExpression.included) {
-			returnExpression.include(context, false);
+			this.quasi.include(context, false);
+			this.tag.include(context, false);
+			this.tag.includeCallArguments(this.interaction, context);
 		}
 	}
 
