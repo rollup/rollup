@@ -178,7 +178,7 @@ export function getChunkAssignments(
 		allEntries
 	);
 	// This mutates the dependentEntries in chunkAtoms
-	removeUnnecessaryDependentEntries(chunkAtoms, alreadyLoadedAtomsByEntry);
+	removeUnnecessaryDependentEntries(chunkAtoms, alreadyLoadedAtomsByEntry, allEntries);
 	const { chunks, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
@@ -444,16 +444,45 @@ function getAlreadyLoadedAtomsByEntry(
  */
 function removeUnnecessaryDependentEntries(
 	chunkAtoms: ModulesWithDependentEntries[],
-	alreadyLoadedAtomsByEntry: bigint[]
+	alreadyLoadedAtomsByEntry: bigint[],
+	allEntries: readonly Module[]
 ) {
 	// Remove entries from dependent entries if a chunk is already loaded without
 	// that entry.
 	let chunkMask = 1n;
 	for (const { dependentEntries } of chunkAtoms) {
+		let firstEntryIndex: number | null = null;
+		const shouldBeRemovedEntries = new Set<number>();
 		for (const entryIndex of dependentEntries) {
+			firstEntryIndex ??= entryIndex;
 			if ((alreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === chunkMask) {
-				dependentEntries.delete(entryIndex);
+				const { includedTopLevelAwaitDynamicImporters } = allEntries[entryIndex];
+				const dependencies = new Set([
+					allEntries[firstEntryIndex],
+					...allEntries[firstEntryIndex].getDependenciesToBeIncluded()
+				]);
+				let isExistedCircular = false;
+				const topLevelAwaitDynamicImportersStack = [...includedTopLevelAwaitDynamicImporters];
+				while (topLevelAwaitDynamicImportersStack.length > 0) {
+					const includedTopLevelAwaitDynamicImporter = topLevelAwaitDynamicImportersStack.pop()!;
+					if (dependencies.has(includedTopLevelAwaitDynamicImporter)) {
+						isExistedCircular = true;
+						break;
+					}
+					topLevelAwaitDynamicImportersStack.push(
+						...includedTopLevelAwaitDynamicImporter.includedTopLevelAwaitDynamicImporters
+					);
+				}
+				if (isExistedCircular) {
+					shouldBeRemovedEntries.clear();
+					break;
+				} else {
+					shouldBeRemovedEntries.add(entryIndex);
+				}
 			}
+		}
+		for (const entryIndex of shouldBeRemovedEntries) {
+			dependentEntries.delete(entryIndex);
 		}
 		chunkMask <<= 1n;
 	}
