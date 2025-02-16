@@ -119,7 +119,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (usedBranch) {
 			this.expressionsToBeDeoptimized.push(origin);
 			return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
-		} else if (!this.hasDeoptimizedCache) {
+		} else if (!this.hasDeoptimizedCache && !path.length) {
 			const rightValue = this.right.getLiteralValueAtPath(path, recursionTracker, origin);
 			const booleanOrUnknown = tryCastLiteralValueToBoolean(rightValue);
 			if (typeof booleanOrUnknown !== 'symbol') {
