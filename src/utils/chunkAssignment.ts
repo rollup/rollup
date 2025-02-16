@@ -450,28 +450,32 @@ function removeUnnecessaryDependentEntries(
 	// Remove entries from dependent entries if a chunk is already loaded without
 	// that entry.
 	let chunkMask = 1n;
+	const topLevelAwaitDynamicImporterSetByEntry = new Map<number, Set<Module>>();
 	for (const { dependentEntries } of chunkAtoms) {
-		let firstEntryIndex: number | null = null;
 		const shouldBeRemovedEntries = new Set<number>();
+		const iteratedEntries = new Set<number>();
 		for (const entryIndex of dependentEntries) {
-			firstEntryIndex ??= entryIndex;
 			if ((alreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === chunkMask) {
-				const { includedTopLevelAwaitDynamicImporters } = allEntries[entryIndex];
-				const dependencies = new Set([
-					allEntries[firstEntryIndex],
-					...allEntries[firstEntryIndex].getDependenciesToBeIncluded()
-				]);
+				const topLevelAwaitDynamicImporterSet = getOrCreate(
+					topLevelAwaitDynamicImporterSetByEntry,
+					entryIndex,
+					() =>
+						getTopLevelAwaitDynamicImporterSet(
+							allEntries[entryIndex].includedTopLevelAwaitDynamicImporters
+						)
+				);
 				let isExistedCircular = false;
-				const topLevelAwaitDynamicImportersStack = [...includedTopLevelAwaitDynamicImporters];
-				while (topLevelAwaitDynamicImportersStack.length > 0) {
-					const includedTopLevelAwaitDynamicImporter = topLevelAwaitDynamicImportersStack.pop()!;
-					if (dependencies.has(includedTopLevelAwaitDynamicImporter)) {
-						isExistedCircular = true;
-						break;
-					}
-					topLevelAwaitDynamicImportersStack.push(
-						...includedTopLevelAwaitDynamicImporter.includedTopLevelAwaitDynamicImporters
+				for (const iteratedEntryIndex of iteratedEntries) {
+					const includedModules = [
+						allEntries[iteratedEntryIndex],
+						...allEntries[iteratedEntryIndex].getDependenciesToBeIncluded()
+					];
+					isExistedCircular = includedModules.some(
+						includedModule =>
+							includedModule instanceof Module &&
+							topLevelAwaitDynamicImporterSet.has(includedModule)
 					);
+					if (isExistedCircular) break;
 				}
 				if (isExistedCircular) {
 					shouldBeRemovedEntries.clear();
@@ -480,12 +484,24 @@ function removeUnnecessaryDependentEntries(
 					shouldBeRemovedEntries.add(entryIndex);
 				}
 			}
+			iteratedEntries.add(entryIndex);
 		}
 		for (const entryIndex of shouldBeRemovedEntries) {
 			dependentEntries.delete(entryIndex);
 		}
 		chunkMask <<= 1n;
 	}
+}
+
+function getTopLevelAwaitDynamicImporterSet(includedTopLevelAwaitDynamicImporters: Module[]) {
+	const stack = [...includedTopLevelAwaitDynamicImporters];
+	const topLevelAwaitDynamicImporterSet = new Set(stack);
+	while (stack.length > 0) {
+		const includedTopLevelAwaitDynamicImporter = stack.pop()!;
+		topLevelAwaitDynamicImporterSet.add(includedTopLevelAwaitDynamicImporter);
+		stack.push(...includedTopLevelAwaitDynamicImporter.includedTopLevelAwaitDynamicImporters);
+	}
+	return topLevelAwaitDynamicImporterSet;
 }
 
 function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
