@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.34.8
+
+_2025-02-17_
+
+### Bug Fixes
+
+- Do not make assumptions about the value of nested paths in logical expressions if the expression cannot be simplified (#5846)
+
+### Pull Requests
+
+- [#5846](https://github.com/rollup/rollup/pull/5846): return UnknownValue if the usedbranch is unkown and the path is not empty (@TrickyPi)
+
 ## 4.34.7
 
 _2025-02-14_
