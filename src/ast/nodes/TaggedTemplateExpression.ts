@@ -52,7 +52,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		} else {
 			this.quasi.include(context, false);
 			this.tag.include(context, false);
-			this.tag.includeCallArguments(this.interaction, context);
+			this.tag.includeArgumentsOnInteractionAtPath(EMPTY_PATH, this.interaction, context);
 		}
 	}
 

@@ -1,6 +1,7 @@
 import type MagicString from 'magic-string';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import type CallExpression from './CallExpression';
 import type MemberExpression from './MemberExpression';
@@ -35,6 +36,14 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return this.expression.hasEffectsAsChainElement(context) === true;
+	}
+
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	) {
+		this.expression.includeArgumentsOnInteractionAtPath(path, interaction, context);
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext) {

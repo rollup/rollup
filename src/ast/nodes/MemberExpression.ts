@@ -364,6 +364,13 @@ export default class MemberExpression
 		if (!this.included) this.includeNode(context);
 		this.object.include(context, includeChildrenRecursively);
 		this.property.include(context, includeChildrenRecursively);
+		if (!(this.variable || this.isUndefined)) {
+			this.object.includeArgumentsOnInteractionAtPath(
+				[this.propertyKey],
+				this.accessInteraction,
+				context
+			);
+		}
 	}
 
 	includeNode(context: InclusionContext) {
@@ -412,14 +419,31 @@ export default class MemberExpression
 		if (deoptimizeAccess && !this.deoptimized) this.applyDeoptimizations();
 		this.object.include(context, includeChildrenRecursively);
 		this.property.include(context, includeChildrenRecursively);
+		this.object.includeArgumentsOnInteractionAtPath(
+			[this.propertyKey],
+			this.assignmentInteraction,
+			context
+		);
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(interaction, context);
-		} else {
-			includeInteraction(interaction, context);
+			return this.variable.includeArgumentsOnInteractionAtPath(path, interaction, context);
+		} else if (!this.isUndefined) {
+			const propertyKey = this.getDynamicPropertyKey();
+			if (propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+				return this.object.includeArgumentsOnInteractionAtPath(
+					[propertyKey, ...path],
+					interaction,
+					context
+				);
+			}
 		}
+		includeInteraction(interaction, context);
 	}
 
 	includeDestructuredIfNecessary(

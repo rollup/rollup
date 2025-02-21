@@ -1,6 +1,8 @@
+import type { InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValueOrUnknown } from './Expression';
 import { deoptimizeInteraction, ExpressionEntity, UnknownValue } from './Expression';
 import {
@@ -34,6 +36,22 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 
 		hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
 			return path.length > 1 || type === INTERACTION_CALLED;
+		}
+
+		includeArgumentsOnInteractionAtPath(
+			_path: ObjectPath,
+			{ args }: NodeInteraction,
+			context: InclusionContext
+		) {
+			// We include all arguments except "this" as we assume for now that no
+			// unknown prototype properties rely on this.
+			for (let index = 1; index < args.length; index++) {
+				const argument = args[index];
+				if (argument) {
+					argument.includePath(UNKNOWN_PATH, context);
+					argument.include(context, false);
+				}
+			}
 		}
 	})();
 

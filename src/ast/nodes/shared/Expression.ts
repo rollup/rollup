@@ -97,7 +97,11 @@ export class ExpressionEntity implements WritableEntity {
 	 * paths of the expression are included.
 	 * */
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+	includeArgumentsOnInteractionAtPath(
+		_path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	): void {
 		includeInteraction(interaction, context);
 	}
 

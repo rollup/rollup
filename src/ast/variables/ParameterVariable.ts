@@ -10,6 +10,7 @@ import Identifier from '../nodes/Identifier';
 import type { ExpressionEntity, LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import {
 	deoptimizeInteraction,
+	includeInteraction,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -39,7 +40,9 @@ const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION
 export default class ParameterVariable extends LocalVariable {
 	protected includedPathTracker = new IncludedTopLevelPathTracker();
 	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
+	private argumentsToBeIncluded = new Set<ExpressionEntity>();
 	private deoptimizationInteractions: TrackedInteraction[] = [];
+	private inclusionInteractions: TrackedInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private expressionsDependingOnKnownValue: DeoptimizableEntity[] = [];
@@ -55,6 +58,7 @@ export default class ParameterVariable extends LocalVariable {
 		super(name, declarator, UNKNOWN_EXPRESSION, argumentPath, context, 'parameter');
 	}
 
+	// TODO Lukas some cases should just include all tracked inclusions? Are there opportunities to save memory by cleaning up?
 	addArgumentForDeoptimization(entity: ExpressionEntity): void {
 		this.updateKnownValue(entity);
 		if (entity === UNKNOWN_EXPRESSION) {
@@ -82,6 +86,20 @@ export default class ParameterVariable extends LocalVariable {
 					interaction,
 					[...this.initPath, ...path],
 					SHARED_RECURSION_TRACKER
+				);
+			}
+		}
+	}
+
+	addArgumentForInclusion(entity: ExpressionEntity, context: InclusionContext) {
+		if (!this.argumentsToBeIncluded.has(entity)) {
+			this.argumentsToBeIncluded.add(entity);
+			this.includedPathTracker.includeAllPaths(entity, context, this.initPath);
+			for (const { interaction, path } of this.inclusionInteractions) {
+				entity.includeArgumentsOnInteractionAtPath(
+					[...this.initPath, ...path],
+					interaction,
+					context
 				);
 			}
 		}
@@ -205,6 +223,7 @@ export default class ParameterVariable extends LocalVariable {
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
 		// For performance reasons, we fully deoptimize all deeper interactions
 		if (
+			this.isReassigned ||
 			path.length >= 2 ||
 			this.argumentsToBeDeoptimized.has(UNKNOWN_EXPRESSION) ||
 			this.deoptimizationInteractions.length >= MAX_TRACKED_INTERACTIONS ||
@@ -217,18 +236,16 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 		if (!this.deoptimizations.trackEntityAtPathAndGetIfTracked(path, interaction.args)) {
+			this.deoptimizationInteractions.push({
+				interaction,
+				path
+			});
 			for (const entity of this.argumentsToBeDeoptimized) {
 				entity.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					[...this.initPath, ...path],
 					SHARED_RECURSION_TRACKER
 				);
-			}
-			if (!this.argumentsToBeDeoptimized.has(UNKNOWN_EXPRESSION)) {
-				this.deoptimizationInteractions.push({
-					interaction,
-					path
-				});
 			}
 		}
 	}
@@ -251,6 +268,7 @@ export default class ParameterVariable extends LocalVariable {
 			// this field is deoptimized
 			entity.deoptimizePath([...this.initPath, key]);
 		}
+		// TODO Lukas this case should fully include all interactions
 		if (key === UnknownKey) {
 			// save some memory
 			this.deoptimizationInteractions = NO_INTERACTIONS;
@@ -274,7 +292,37 @@ export default class ParameterVariable extends LocalVariable {
 		return UNKNOWN_RETURN_EXPRESSION;
 	}
 
-	includeArgumentPaths(entity: ExpressionEntity, context: InclusionContext) {
-		this.includedPathTracker.includeAllPaths(entity, context, this.initPath);
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	) {
+		if (
+			this.isReassigned ||
+			path.length >= 2 ||
+			this.argumentsToBeDeoptimized.has(UNKNOWN_EXPRESSION) ||
+			this.inclusionInteractions.length >= MAX_TRACKED_INTERACTIONS ||
+			(path.length === 1 &&
+				(this.deoptimizedFields.has(UnknownKey) ||
+					(interaction.type === INTERACTION_CALLED && this.deoptimizedFields.has(path[0])))) ||
+			this.initPath.length + path.length > MAX_PATH_DEPTH
+		) {
+			return includeInteraction(interaction, context);
+		}
+		if (
+			!context.includedCallArguments.trackEntityAtPathAndGetIfTracked(path, interaction.args, this)
+		) {
+			for (const entity of this.argumentsToBeIncluded) {
+				entity.includeArgumentsOnInteractionAtPath(
+					[...this.initPath, ...path],
+					interaction,
+					context
+				);
+			}
+			this.inclusionInteractions.push({
+				interaction,
+				path
+			});
+		}
 	}
 }

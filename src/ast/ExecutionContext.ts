@@ -1,4 +1,3 @@
-import type { Entity } from './Entity';
 import type { ExpressionEntity } from './nodes/shared/Expression';
 import { DiscriminatedPathTracker, EntityPathTracker } from './utils/PathTracker';
 import type ThisVariable from './variables/ThisVariable';
@@ -19,7 +18,7 @@ interface ControlFlowContext {
 }
 
 export interface InclusionContext extends ControlFlowContext {
-	includedCallArguments: Set<Entity>;
+	includedCallArguments: DiscriminatedPathTracker;
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
@@ -37,7 +36,7 @@ export function createInclusionContext(): InclusionContext {
 		brokenFlow: false,
 		hasBreak: false,
 		hasContinue: false,
-		includedCallArguments: new Set(),
+		includedCallArguments: new DiscriminatedPathTracker(),
 		includedLabels: new Set()
 	};
 }

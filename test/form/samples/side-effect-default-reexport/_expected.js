@@ -38,7 +38,9 @@ Menu.Item1 = Item;
 /* default-export2/index */
 Menu.Item2 = Item;
 
-console.log('test-package-default-export', Menu$1.Item);
-console.log('test-package-named-export', NamedExport.Item);
+console.log('test-package-default-export', Menu$1.Item1);
+console.log('test-package-default-export', Menu$1.Item2);
+console.log('test-package-named-export', NamedExport.Item1);
+console.log('test-package-named-export', NamedExport.Item2);
 
 export { Menu as default };

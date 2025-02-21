@@ -234,19 +234,22 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	): void {
 		if (
 			this.isReassigned ||
-			context.includedCallArguments.has(this.init) ||
-			// This can be removed again once we can include arguments when called at
-			// a specific path
-			this.initPath.length > 0
+			context.includedCallArguments.trackEntityAtPathAndGetIfTracked(path, interaction.args, this)
 		) {
 			includeInteraction(interaction, context);
 		} else {
-			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(interaction, context);
-			context.includedCallArguments.delete(this.init);
+			this.init.includeArgumentsOnInteractionAtPath(
+				[...this.initPath, ...path],
+				interaction,
+				context
+			);
 		}
 	}
 

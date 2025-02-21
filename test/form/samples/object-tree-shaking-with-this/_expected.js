@@ -1,5 +1,5 @@
 const config = {
-	recipients: { ALL: 'all'},
+	recipients: { ALL: 'all', TEAM: 'team' },
 
 	get recipientsList() {
 		return [

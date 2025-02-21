@@ -20,7 +20,7 @@ import RestElement from '../RestElement';
 import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import { includeInteraction, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -210,7 +210,17 @@ export default abstract class FunctionBase extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	) {
+		if (path.length === 0 && interaction.type === INTERACTION_CALLED) {
+			this.scope.includeCallArguments(interaction, context);
+		} else {
+			includeInteraction(interaction, context);
+		}
+	}
 
 	initialise(): void {
 		super.initialise();

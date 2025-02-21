@@ -1,7 +1,6 @@
 import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionCalled } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import type { NodeBase } from '../nodes/shared/Node';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
@@ -12,10 +11,7 @@ export default class FunctionScope extends ReturnValueScope {
 	readonly argumentsVariable: ArgumentsVariable;
 	readonly thisVariable: ThisVariable;
 
-	constructor(
-		parent: ChildScope,
-		readonly functionNode: NodeBase
-	) {
+	constructor(parent: ChildScope) {
 		super(parent, false);
 		const { context } = parent;
 		this.variables.set('arguments', (this.argumentsVariable = new ArgumentsVariable(context)));
@@ -28,8 +24,13 @@ export default class FunctionScope extends ReturnValueScope {
 
 	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		super.includeCallArguments(interaction, context);
+		const { args } = interaction;
+		const [thisArgument] = args;
+		if (thisArgument) {
+			this.thisVariable.addArgumentForInclusion(thisArgument, context);
+			thisArgument.include(context, false);
+		}
 		if (this.argumentsVariable.included) {
-			const { args } = interaction;
 			for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
 				const argument = args[argumentIndex];
 				if (argument) {

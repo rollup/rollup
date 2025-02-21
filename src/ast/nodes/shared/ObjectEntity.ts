@@ -1,7 +1,11 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
-import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED
+} from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
 import {
 	UNKNOWN_INTEGER_PATH,
@@ -15,6 +19,7 @@ import type { LiteralValueOrUnknown } from './Expression';
 import {
 	deoptimizeInteraction,
 	ExpressionEntity,
+	includeInteraction,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -383,6 +388,54 @@ export class ObjectEntity extends ExpressionEntity {
 			property.includePath(includedPath, context);
 		}
 		this.prototypeExpression?.includePath(path, context);
+	}
+
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	) {
+		if (path.length === 0) return;
+		const [key, ...subPath] = path;
+		// Note that individual reassigned properties will never become getters or
+		// setters, so we just run the existing inclusion logic here.
+		if (
+			!(
+				this.hasLostTrack ||
+				this.hasUnknownDeoptimizedProperty ||
+				typeof key !== 'string' ||
+				(interaction.type === INTERACTION_CALLED &&
+					((this.hasUnknownDeoptimizedInteger && INTEGER_REG_EXP.test(key)) ||
+						this.deoptimizedPaths[key]))
+			)
+		) {
+			if (path.length === 1 && interaction.type === INTERACTION_ASSIGNED) {
+				if (this.unmatchablePropertiesAndSetters.length === 0) {
+					if (this.propertiesAndSettersByKey[key]) {
+						for (const property of this.propertiesAndSettersByKey[key]) {
+							property.includeArgumentsOnInteractionAtPath(subPath, interaction, context);
+						}
+					} else {
+						this.prototypeExpression?.includeArgumentsOnInteractionAtPath(
+							path,
+							interaction,
+							context
+						);
+					}
+					return;
+				}
+			} else if (this.unmatchablePropertiesAndGetters.length === 0) {
+				if (this.propertiesAndGettersByKey[key]) {
+					for (const property of this.propertiesAndGettersByKey[key]) {
+						property.includeArgumentsOnInteractionAtPath(subPath, interaction, context);
+					}
+				} else {
+					this.prototypeExpression?.includeArgumentsOnInteractionAtPath(path, interaction, context);
+				}
+				return;
+			}
+		}
+		includeInteraction(interaction, context);
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

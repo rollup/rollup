@@ -211,10 +211,26 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
+	// TODO Lukas if we ever deoptimizeCache, then we would need to store the interactions
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	) {
+		const usedBranch = this.getUsedBranch();
+		if (!usedBranch) {
+			// TODO Lukas test
+			this.left.includeArgumentsOnInteractionAtPath(path, interaction, context);
+			this.right.includeArgumentsOnInteractionAtPath(path, interaction, context);
+		} else {
+			usedBranch.includeArgumentsOnInteractionAtPath(path, interaction, context);
+		}
+	}
+
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch || (usedBranch === this.right && this.left.shouldBeIncluded(context))) {
+		if (!usedBranch) {
 			this.left.includePath(path, context);
 			this.right.includePath(path, context);
 		} else {

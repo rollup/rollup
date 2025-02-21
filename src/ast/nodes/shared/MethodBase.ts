@@ -1,5 +1,5 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext } from '../../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -139,6 +139,43 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 			);
 		}
 		return this.getAccessedValue()[0].hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+
+	includeArgumentsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: InclusionContext
+	) {
+		if (path.length === 0) {
+			if (interaction.type === INTERACTION_ACCESSED) {
+				if (this.kind === 'get') {
+					return this.value.includeArgumentsOnInteractionAtPath(
+						EMPTY_PATH,
+						{
+							args: interaction.args,
+							type: INTERACTION_CALLED,
+							withNew: false
+						},
+						context
+					);
+				}
+				return;
+			} else if (interaction.type === INTERACTION_ASSIGNED) {
+				if (this.kind === 'set') {
+					return this.value.includeArgumentsOnInteractionAtPath(
+						EMPTY_PATH,
+						{
+							args: interaction.args,
+							type: INTERACTION_CALLED,
+							withNew: false
+						},
+						context
+					);
+				}
+				return;
+			}
+		}
+		this.getAccessedValue()[0].includeArgumentsOnInteractionAtPath(path, interaction, context);
 	}
 
 	protected getAccessedValue(): [expression: ExpressionEntity, isPure: boolean] {
