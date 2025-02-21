@@ -212,7 +212,10 @@ interface ModuleInfo extends ModuleOptions {
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
 
-export type CustomPluginOptions = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- this is an interface so that it can be extended by plugins
+export interface CustomPluginOptions {
+	[plugin: string]: any;
+}
 
 type LoggingFunctionWithPosition = (
 	log: RollupLog | string | (() => RollupLog | string),
