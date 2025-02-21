@@ -205,7 +205,8 @@
   "overrides": {
     "axios": "^1.7.9",
     "semver": "^7.7.1",
-    "readable-stream": "npm:@built-in/readable-stream@1"
+    "readable-stream": "npm:@built-in/readable-stream@1",
+    "esbuild": ">0.24.2"
   },
   "comments": {
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
