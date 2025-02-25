@@ -102,7 +102,7 @@ export default defineConfig({
 					},
 					{
 						link: '/javascript-api/',
-						text: 'Javascript API'
+						text: 'JavaScript API'
 					}
 				],
 				text: 'Getting started'
