@@ -450,19 +450,16 @@ function removeUnnecessaryDependentEntries(
 	// Remove entries from dependent entries if a chunk is already loaded without
 	// that entry.
 	let chunkMask = 1n;
-	const topLevelAwaitDynamicImporterSetByEntry = new Map<number, Set<Module>>();
+	const transitiveTopLevelAwaitingDynamicImportersByEntry = new Map<number, Set<Module>>();
 	for (const { dependentEntries } of chunkAtoms) {
 		const shouldBeRemovedEntries = new Set<number>();
 		const iteratedEntries = new Set<number>();
 		for (const entryIndex of dependentEntries) {
 			if ((alreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === chunkMask) {
-				const topLevelAwaitDynamicImporterSet = getOrCreate(
-					topLevelAwaitDynamicImporterSetByEntry,
+				const transitiveTopLevelAwaitingDynamicImporters = getOrCreate(
+					transitiveTopLevelAwaitingDynamicImportersByEntry,
 					entryIndex,
-					() =>
-						getTopLevelAwaitDynamicImporterSet(
-							allEntries[entryIndex].includedTopLevelAwaitDynamicImporters
-						)
+					() => getTransitiveTopLevelAwaitingDynamicImporters(allEntries[entryIndex])
 				);
 				let isExistedCircular = false;
 				for (const iteratedEntryIndex of iteratedEntries) {
@@ -473,7 +470,7 @@ function removeUnnecessaryDependentEntries(
 					isExistedCircular = includedModules.some(
 						includedModule =>
 							includedModule instanceof Module &&
-							topLevelAwaitDynamicImporterSet.has(includedModule)
+							transitiveTopLevelAwaitingDynamicImporters.has(includedModule)
 					);
 					if (isExistedCircular) break;
 				}
@@ -493,15 +490,18 @@ function removeUnnecessaryDependentEntries(
 	}
 }
 
-function getTopLevelAwaitDynamicImporterSet(includedTopLevelAwaitDynamicImporters: Module[]) {
-	const stack = [...includedTopLevelAwaitDynamicImporters];
-	const topLevelAwaitDynamicImporterSet = new Set(stack);
-	while (stack.length > 0) {
-		const includedTopLevelAwaitDynamicImporter = stack.pop()!;
-		topLevelAwaitDynamicImporterSet.add(includedTopLevelAwaitDynamicImporter);
-		stack.push(...includedTopLevelAwaitDynamicImporter.includedTopLevelAwaitDynamicImporters);
+function getTransitiveTopLevelAwaitingDynamicImporters(entry: Module) {
+	const transitiveTopLevelAwaitingDynamicImporters = new Set([
+		...entry.includedDirectTopLevelAwaitingDynamicImporters
+	]);
+	for (const {
+		includedDirectTopLevelAwaitingDynamicImporters
+	} of transitiveTopLevelAwaitingDynamicImporters) {
+		for (const includedTopLevelAwaitDynamicImporter of includedDirectTopLevelAwaitingDynamicImporters) {
+			transitiveTopLevelAwaitingDynamicImporters.add(includedTopLevelAwaitDynamicImporter);
+		}
 	}
-	return topLevelAwaitDynamicImporterSet;
+	return transitiveTopLevelAwaitingDynamicImporters;
 }
 
 function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
