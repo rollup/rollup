@@ -70,25 +70,30 @@ export async function rollupInternal(
 
 	await catchUnfinishedHookActions(graph.pluginDriver, async () => {
 		try {
-			try {
-				timeStart('initialize', 2);
-				await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
-				timeEnd('initialize', 2);
-				await graph.build();
-			} catch (error_: any) {
-				const watchFiles = Object.keys(graph.watchFiles);
-				if (watchFiles.length > 0) {
-					error_.watchFiles = watchFiles;
-				}
-				await graph.pluginDriver.hookParallel('buildEnd', [error_]);
-				throw error_;
-			}
-			await graph.pluginDriver.hookParallel('buildEnd', []);
+			timeStart('initialize', 2);
+			await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
+			timeEnd('initialize', 2);
+			await graph.build();
 		} catch (error_: any) {
+			const watchFiles = Object.keys(graph.watchFiles);
+			if (watchFiles.length > 0) {
+				error_.watchFiles = watchFiles;
+			}
+			try {
+				await graph.pluginDriver.hookParallel('buildEnd', [error_]);
+			} catch (buildEndError: any) {
+				await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]);
+				throw buildEndError;
+			}
 			await graph.pluginDriver.hookParallel('closeBundle', [error_]);
 			throw error_;
 		}
-		await graph.pluginDriver.hookParallel('closeBundle', []);
+		try {
+			await graph.pluginDriver.hookParallel('buildEnd', []);
+		} catch (buildEndError: any) {
+			await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]);
+			throw buildEndError;
+		}
 	});
 
 	timeEnd('BUILD', 1);
