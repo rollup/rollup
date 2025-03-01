@@ -1,14 +1,12 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
-import type { PluginDriver } from '../utils/PluginDriver';
-import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import { mkdir, writeFile } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import initWasm from '../utils/initWasm';
-import { getLogHandler } from '../utils/logHandler';
 import { getLogger } from '../utils/logger';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from '../utils/logging';
+import { getLogHandler } from '../utils/logHandler';
 import {
 	error,
 	logAlreadyClosed,
@@ -20,7 +18,9 @@ import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import { getOnLog, normalizeLog, normalizePluginOption } from '../utils/options/options';
 import { dirname, resolve } from '../utils/path';
-import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
+import type { PluginDriver } from '../utils/PluginDriver';
+import { getSortedValidatedPlugins } from '../utils/PluginDriver';
+import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginNames';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import type {
 	InputOptions,

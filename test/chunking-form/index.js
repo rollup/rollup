@@ -4,8 +4,8 @@ const path = require('node:path');
  */
 // @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
-const { compareLogs } = require('../utils');
-const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
+const { compareLogs } = require('../testHelpers');
+const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../testHelpers.js');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 

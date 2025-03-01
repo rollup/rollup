@@ -1,4 +1,4 @@
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'custom (plugin generated) code frame taking priority over pos generated one',

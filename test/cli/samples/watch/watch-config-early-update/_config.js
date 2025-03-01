@@ -1,6 +1,6 @@
 const { mkdirSync, unlinkSync } = require('node:fs');
 const path = require('node:path');
-const { wait, writeAndSync, writeAndRetry } = require('../../../../utils');
+const { wait, writeAndSync, writeAndRetry } = require('../../../../testHelpers');
 
 const configFile = path.join(__dirname, 'rollup.config.mjs');
 let stopUpdate;

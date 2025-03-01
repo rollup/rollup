@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { promises: fs } = require('node:fs');
-const { wait } = require('../../../utils');
+const { wait } = require('../../../testHelpers');
 
 const fsWriteFile = fs.writeFile;
 let currentWrites = 0;

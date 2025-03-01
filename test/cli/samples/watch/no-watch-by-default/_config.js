@@ -1,4 +1,4 @@
-const { assertIncludes } = require('../../../../utils');
+const { assertIncludes } = require('../../../../testHelpers');
 
 module.exports = defineTest({
 	description: 'does not watch if --watch is missing',

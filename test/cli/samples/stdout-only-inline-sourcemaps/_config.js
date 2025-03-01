@@ -1,4 +1,4 @@
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'fails when using non-inline sourcemaps when bundling to stdout',

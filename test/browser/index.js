@@ -14,7 +14,7 @@ const fixturify = require('fixturify');
  * @type {import('../../src/rollup/types')} Rollup
  */
 const { rollup } = require('../../browser/dist/rollup.browser.js');
-const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
+const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../testHelpers.js');
 
 runTestSuiteWithSamples(
 	'browser',

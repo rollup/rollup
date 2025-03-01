@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getObject } = require('../../../utils');
+const { getObject } = require('../../../testHelpers');
 
 module.exports = defineTest({
 	description: 'associates empty modules with chunks if tree-shaking is disabled for them',

@@ -4,7 +4,7 @@ const weak = require('weak-napi');
  * @type {import('../../src/rollup/types')} Rollup
  */
 const rollup = require('../..');
-const { wait } = require('../utils');
+const { wait } = require('../testHelpers');
 
 var shouldCollect = false;
 var isCollected = false;

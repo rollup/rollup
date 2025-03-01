@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { assertIncludes, assertDoesNotInclude, hasEsBuild } = require('../../../utils.js');
+const { assertIncludes, assertDoesNotInclude, hasEsBuild } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	skip: !hasEsBuild,

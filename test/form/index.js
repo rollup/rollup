@@ -11,7 +11,7 @@ const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
 	verifyAstPlugin
-} = require('../utils.js');
+} = require('../testHelpers.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
