@@ -5,7 +5,7 @@ const { outputFile, readdir, remove } = require('fs-extra');
  * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup.js');
-const { loader, wait } = require('../utils.js');
+const { loader, wait } = require('../testHelpers.js');
 
 const TEMP_DIR = path.join(__dirname, 'tmp');
 

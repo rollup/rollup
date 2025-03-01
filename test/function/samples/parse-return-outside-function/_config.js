@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { compareError } = require('../../../utils');
+const { compareError } = require('../../../testHelpers');
 
 module.exports = defineTest({
 	description: 'supports parsing return statements outside functions via options',

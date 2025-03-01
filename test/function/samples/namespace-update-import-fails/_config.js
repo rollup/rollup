@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../testHelpers.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({

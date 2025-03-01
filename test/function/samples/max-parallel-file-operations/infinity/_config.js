@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { promises: fs } = require('node:fs');
-const { wait } = require('../../../../utils');
+const { wait } = require('../../../../testHelpers');
 
 const fsReadFile = fs.readFile;
 let currentReads = 0;

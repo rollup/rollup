@@ -8,7 +8,7 @@ const { copy } = require('fs-extra');
  * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { atomicWriteFileSync, wait, withTimeout } = require('../utils');
+const { atomicWriteFileSync, wait, withTimeout } = require('../testHelpers');
 
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const TEMP_DIR = path.join(__dirname, '../_tmp');

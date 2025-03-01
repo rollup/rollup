@@ -1,4 +1,4 @@
-const { loader } = require('../../../utils.js');
+const { loader } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'bundles files for the browser',

@@ -8,7 +8,7 @@ const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
 	assertDirectoriesAreEqual
-} = require('../utils.js');
+} = require('../testHelpers.js');
 
 const cwd = process.cwd();
 const rollupBinary = `${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup`;

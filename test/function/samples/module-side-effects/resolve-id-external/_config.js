@@ -4,7 +4,7 @@ const path = require('node:path');
  * @type {string[]}
  */
 const sideEffects = [];
-const { getObject } = require('../../../../utils');
+const { getObject } = require('../../../../testHelpers');
 
 module.exports = defineTest({
 	description: 'does not include modules without used exports if moduleSideEffect is false',

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 const { loadConfigFile } = require('../../dist/loadConfigFile.js');
-const { compareError, hasEsBuild } = require('../utils');
+const { compareError, hasEsBuild } = require('../testHelpers');
 
 describe('loadConfigFile', () => {
 	const defaultConfigs = [

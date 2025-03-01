@@ -4,7 +4,7 @@
     "checkJs": true
   },
   "include": [
-    "./utils.js"
+    "./testHelpers.js"
   ],
   "references": [
     {

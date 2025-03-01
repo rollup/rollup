@@ -159,7 +159,7 @@
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-unicorn": "^56.0.1",
+    "eslint-plugin-unicorn": "^57.0.0",
     "eslint-plugin-vue": "^9.32.0",
     "fixturify": "^3.0.0",
     "flru": "^1.0.2",

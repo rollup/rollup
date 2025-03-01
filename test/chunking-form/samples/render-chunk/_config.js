@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { replaceDirectoryInStringifiedObject } = require('../../../utils');
+const { replaceDirectoryInStringifiedObject } = require('../../../testHelpers');
 
 module.exports = defineTest({
 	description:

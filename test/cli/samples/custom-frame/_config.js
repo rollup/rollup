@@ -1,4 +1,4 @@
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'errors with plugin generated code frames also contain stack',

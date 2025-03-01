@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 // @ts-expect-error file outside root
-const { getObject } = require('../../../utils');
+const { getObject } = require('../../../testHelpers');
 
 function getTestPlugin(index) {
 	const pluginName = `test-${index}`;
