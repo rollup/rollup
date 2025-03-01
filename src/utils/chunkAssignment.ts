@@ -178,7 +178,7 @@ export function getChunkAssignments(
 		allEntries
 	);
 	// This mutates the dependentEntries in chunkAtoms
-	removeUnnecessaryDependentEntries(chunkAtoms, alreadyLoadedAtomsByEntry);
+	removeUnnecessaryDependentEntries(chunkAtoms, alreadyLoadedAtomsByEntry, allEntries);
 	const { chunks, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
@@ -444,19 +444,64 @@ function getAlreadyLoadedAtomsByEntry(
  */
 function removeUnnecessaryDependentEntries(
 	chunkAtoms: ModulesWithDependentEntries[],
-	alreadyLoadedAtomsByEntry: bigint[]
+	alreadyLoadedAtomsByEntry: bigint[],
+	allEntries: readonly Module[]
 ) {
 	// Remove entries from dependent entries if a chunk is already loaded without
 	// that entry.
 	let chunkMask = 1n;
+	const transitiveTopLevelAwaitingDynamicImportersByEntry = new Map<number, Set<Module>>();
 	for (const { dependentEntries } of chunkAtoms) {
+		const shouldBeRemovedEntries = new Set<number>();
+		const iteratedEntries = new Set<number>();
 		for (const entryIndex of dependentEntries) {
 			if ((alreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === chunkMask) {
-				dependentEntries.delete(entryIndex);
+				const transitiveTopLevelAwaitingDynamicImporters = getOrCreate(
+					transitiveTopLevelAwaitingDynamicImportersByEntry,
+					entryIndex,
+					() => getTransitiveTopLevelAwaitingDynamicImporters(allEntries[entryIndex])
+				);
+				let isExistedCircular = false;
+				for (const iteratedEntryIndex of iteratedEntries) {
+					const includedModules = [
+						allEntries[iteratedEntryIndex],
+						...allEntries[iteratedEntryIndex].getDependenciesToBeIncluded()
+					];
+					isExistedCircular = includedModules.some(
+						includedModule =>
+							includedModule instanceof Module &&
+							transitiveTopLevelAwaitingDynamicImporters.has(includedModule)
+					);
+					if (isExistedCircular) break;
+				}
+				if (isExistedCircular) {
+					shouldBeRemovedEntries.clear();
+					break;
+				} else {
+					shouldBeRemovedEntries.add(entryIndex);
+				}
 			}
+			iteratedEntries.add(entryIndex);
+		}
+		for (const entryIndex of shouldBeRemovedEntries) {
+			dependentEntries.delete(entryIndex);
 		}
 		chunkMask <<= 1n;
 	}
+}
+
+function getTransitiveTopLevelAwaitingDynamicImporters(entry: Module) {
+	const transitiveTopLevelAwaitingDynamicImporters = new Set([
+		...entry.includedDirectTopLevelAwaitingDynamicImporters
+	]);
+	for (const {
+		includedDirectTopLevelAwaitingDynamicImporters
+	} of transitiveTopLevelAwaitingDynamicImporters) {
+		for (const includedTopLevelAwaitDynamicImporter of includedDirectTopLevelAwaitingDynamicImporters) {
+			transitiveTopLevelAwaitingDynamicImporters.add(includedTopLevelAwaitDynamicImporter);
+		}
+	}
+	return transitiveTopLevelAwaitingDynamicImporters;
 }
 
 function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
