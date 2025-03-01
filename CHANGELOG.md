@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.34.9
+
+_2025-03-01_
+
+### Bug Fixes
+
+- Support JSX modes in WASM (#5866)
+- Allow the CustomPluginOptions to be extended (#5850)
+
+### Pull Requests
+
+- [#5850](https://github.com/rollup/rollup/pull/5850): Revert CustomPluginOptions to be an interface (@sapphi-red, @lukastaegert)
+- [#5851](https://github.com/rollup/rollup/pull/5851): Javascript to JavaScript (@dasa, @lukastaegert)
+- [#5853](https://github.com/rollup/rollup/pull/5853): chore(deps): update dependency pinia to v3 (@renovate[bot])
+- [#5854](https://github.com/rollup/rollup/pull/5854): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5855](https://github.com/rollup/rollup/pull/5855): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5860](https://github.com/rollup/rollup/pull/5860): chore(deps): update dependency @shikijs/vitepress-twoslash to v3 (@renovate[bot])
+- [#5861](https://github.com/rollup/rollup/pull/5861): chore(deps): update dependency globals to v16 (@renovate[bot])
+- [#5863](https://github.com/rollup/rollup/pull/5863): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5864](https://github.com/rollup/rollup/pull/5864): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5866](https://github.com/rollup/rollup/pull/5866): Add jsx parameter to parseAsync in native.wasm.js (@TrickyPi)
+
 ## 4.34.8
 
 _2025-02-17_
