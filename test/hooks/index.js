@@ -1032,6 +1032,88 @@ describe('hooks', () => {
 			});
 	});
 
+	it('passes build error to the closeBundle hook', () => {
+		let buildError;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'some broken code' }),
+					{
+						closeBundle(error) {
+							buildError = error;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(
+					error.message,
+					`input (1:5): Expected ';', '}' or <eof> (Note that you need plugins to import files that are not JavaScript)`
+				);
+			})
+			.then(() => {
+				assert.ok(buildError);
+			});
+	});
+
+	it('passes buildEnd error to the closeBundle hook', () => {
+		let buildEndError;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'console.log(42);' }),
+					{
+						buildEnd() {
+							this.error('build end error');
+						},
+						closeBundle(error) {
+							buildEndError = error;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(error.message, '[plugin at position 2] build end error');
+			})
+			.then(() => {
+				assert.ok(buildEndError);
+			});
+	});
+
+	it('preserves the error chain', () => {
+		let buildEndError;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'console.log(42);' }),
+					{
+						transform() {
+							this.error('transform error');
+						},
+						buildEnd(error) {
+							throw new Error('build end error', { cause: error });
+						},
+						closeBundle(error) {
+							buildEndError = error;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(error.message, 'build end error');
+				assert.strictEqual(error.cause.message, '[plugin at position 2] input: transform error');
+			})
+			.then(() => {
+				assert.ok(buildEndError);
+			});
+	});
+
 	it('supports disabling sanitization for in-memory / in-browser / non-fs builds', () =>
 		rollup
 			.rollup({
