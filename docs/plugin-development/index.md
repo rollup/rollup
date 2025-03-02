@@ -276,6 +276,30 @@ See [Output Generation Hooks](#output-generation-hooks) for hooks that run durin
 
 Called when Rollup has finished bundling, but before `generate` or `write` is called; you can also return a Promise. If an error occurred during the build, it is passed on to this hook.
 
+::: warning
+
+Be aware that this hook has the ability to erase the error it receives. If you throw an error or use `this.error` in this hook, you need to be extra careful not to swallow the original error. If you do not intend to replace the build error with a new error, either log, rethrow or add the original error to the error chain:
+
+```js
+const plugin = {
+	name: 'my-plugin',
+	buildEnd(error) {
+		if (error) {
+			// Log the error
+			console.error(error);
+			// Rethrow the error
+			throw error;
+			// Add the error to the error chain
+			this.error({ message: 'An error occurred', cause: error });
+		}
+	}
+};
+```
+
+This precaution is not necessary if your `buildEnd` hook does not throw an error or call `this.error`.
+
+:::
+
 ### buildStart
 
 |  |  |
