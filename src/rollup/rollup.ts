@@ -82,6 +82,9 @@ export async function rollupInternal(
 			try {
 				await graph.pluginDriver.hookParallel('buildEnd', [error_]);
 			} catch (buildEndError: any) {
+				if (watchFiles.length > 0) {
+					buildEndError.watchFiles = watchFiles;
+				}
 				await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]);
 				throw buildEndError;
 			}
