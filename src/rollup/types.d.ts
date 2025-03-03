@@ -404,7 +404,7 @@ export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
 	buildEnd: (this: PluginContext, error?: Error) => void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => void;
-	closeBundle: (this: PluginContext) => void;
+	closeBundle: (this: PluginContext, error?: Error) => void;
 	closeWatcher: (this: PluginContext) => void;
 	generateBundle: (
 		this: PluginContext,

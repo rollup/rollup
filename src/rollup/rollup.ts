@@ -9,6 +9,7 @@ import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from '../utils/logging';
 import { getLogHandler } from '../utils/logHandler';
 import {
 	error,
+	getRollupError,
 	logAlreadyClosed,
 	logCannotEmitFromOptionsHook,
 	logMissingFileOrDirOption,
@@ -79,11 +80,47 @@ export async function rollupInternal(
 			if (watchFiles.length > 0) {
 				error_.watchFiles = watchFiles;
 			}
-			await graph.pluginDriver.hookParallel('buildEnd', [error_]);
-			await graph.pluginDriver.hookParallel('closeBundle', []);
+			try {
+				await graph.pluginDriver.hookParallel('buildEnd', [error_]);
+			} catch (buildEndError: any) {
+				// Create a compound error object to include both errors, based on the original error
+				// structuredClone cannot be used because properties might be non-enumerable
+				const compoundError = getRollupError({
+					binding: error_.binding,
+					cause: error_.cause,
+					code: error_.code,
+					exporter: error_.exporter,
+					frame: error_.frame,
+					hook: error_.hook,
+					id: error_.id,
+					ids: error_.ids,
+					loc: error_.loc,
+					message: `There was an error during the build:\n  ${error_.message}\nAdditionally, handling the error in the 'buildEnd' hook caused the following error:\n  ${buildEndError.message}`,
+					meta: error_.meta,
+					names: error_.names,
+					plugin: error_.plugin,
+					pluginCode: error_.pluginCode,
+					pos: error_.pos,
+					reexporter: error_.reexporter,
+					stack: error_.stack,
+					url: error_.url
+				});
+				Object.defineProperty(compoundError, 'watchFiles', {
+					value: error_.watchFiles,
+					writable: true
+				});
+				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]);
+				throw compoundError;
+			}
+			await graph.pluginDriver.hookParallel('closeBundle', [error_]);
 			throw error_;
 		}
-		await graph.pluginDriver.hookParallel('buildEnd', []);
+		try {
+			await graph.pluginDriver.hookParallel('buildEnd', []);
+		} catch (buildEndError: any) {
+			await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]);
+			throw buildEndError;
+		}
 	});
 
 	timeEnd('BUILD', 1);
