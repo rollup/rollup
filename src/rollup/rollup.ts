@@ -105,6 +105,10 @@ export async function rollupInternal(
 					stack: error_.stack,
 					url: error_.url
 				});
+				Object.defineProperty(compoundError, 'watchFiles', {
+					value: error_.watchFiles,
+					writable: true
+				});
 				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]);
 				throw compoundError;
 			}
