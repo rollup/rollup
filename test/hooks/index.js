@@ -1084,19 +1084,16 @@ describe('hooks', () => {
 			});
 	});
 
-	it('preserves the error chain', () => {
+	it('merges build and buildEnd errors', () => {
 		let buildEndError;
 		return rollup
 			.rollup({
 				input: 'input',
 				plugins: [
-					loader({ input: 'console.log(42);' }),
+					loader({ input: 'some broken code' }),
 					{
-						transform() {
-							this.error('transform error');
-						},
-						buildEnd(error) {
-							throw new Error('build end error', { cause: error });
+						buildEnd() {
+							this.error('build end error');
 						},
 						closeBundle(error) {
 							buildEndError = error;
@@ -1106,8 +1103,15 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.close())
 			.catch(error => {
-				assert.strictEqual(error.message, 'build end error');
-				assert.strictEqual(error.cause.message, '[plugin at position 2] input: transform error');
+				assert.strictEqual(
+					error.message,
+					'input (1:5): There was an error during the build:\n' +
+						"  input (1:5): Expected ';', '}' or <eof> (Note that you need plugins to import files that are not JavaScript)\n" +
+						"Additionally, handling the error in the 'buildEnd' hook caused the following error:\n" +
+						'  [plugin at position 2] build end error'
+				);
+				assert.strictEqual(error.frame, '1: some broken code\n        ^');
+				assert.strictEqual(error.cause.message, "Expected ';', '}' or <eof>");
 			})
 			.then(() => {
 				assert.ok(buildEndError);
