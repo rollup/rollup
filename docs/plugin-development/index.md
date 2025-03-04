@@ -877,13 +877,15 @@ Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-ban
 
 |  |  |
 | --: | :-- |
-| Type: | `closeBundle: () => Promise<void> \| void` |
+| Type: | `closeBundle: (error?: Error) => Promise<void> \| void` |
 | Kind: | async, parallel |
 | Previous: | [`buildEnd`](#buildend) if there was a build error, otherwise when [`bundle.close()`](../javascript-api/index.md#rollup-rollup) is called, in which case this would be the last hook to be triggered |
 
 Can be used to clean up any external service that may be running. Rollup's CLI will make sure this hook is called after each run, but it is the responsibility of users of the JavaScript API to manually call `bundle.close()` once they are done generating bundles. For that reason, any plugin relying on this feature should carefully mention this in its documentation.
 
 If a plugin wants to retain resources across builds in watch mode, they can check for [`this.meta.watchMode`](#this-meta) in this hook and perform the necessary cleanup for watch mode in [`closeWatcher`](#closewatcher).
+
+If an error occurs during build or the `buildEnd` hook, it is passed to this hook as first argument.
 
 ### footer
 
