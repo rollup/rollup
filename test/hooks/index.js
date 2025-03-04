@@ -1103,15 +1103,22 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.close())
 			.catch(error => {
+				// Ensure error correctly copies the original build error
+				assert.strictEqual(error.cause.message, "Expected ';', '}' or <eof>");
+				assert.strictEqual(error.code, 'PARSE_ERROR');
+				assert.strictEqual(error.frame, '1: some broken code\n        ^');
+				assert.strictEqual(error.id, 'input');
+				assert.deepStrictEqual(error.loc, { file: 'input', line: 1, column: 5 });
 				assert.strictEqual(
 					error.message,
-					'input (1:5): There was an error during the build:\n' +
+					'There was an error during the build:\n' +
 						"  input (1:5): Expected ';', '}' or <eof> (Note that you need plugins to import files that are not JavaScript)\n" +
 						"Additionally, handling the error in the 'buildEnd' hook caused the following error:\n" +
 						'  [plugin at position 2] build end error'
 				);
-				assert.strictEqual(error.frame, '1: some broken code\n        ^');
-				assert.strictEqual(error.cause.message, "Expected ';', '}' or <eof>");
+				assert.strictEqual(error.name, 'RollupError');
+				assert.strictEqual(error.pos, 5);
+				assert.ok(error.stack.startsWith(`${error.name}: ${error.message}\n`));
 			})
 			.then(() => {
 				assert.ok(buildEndError);
