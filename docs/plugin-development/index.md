@@ -885,7 +885,7 @@ Can be used to clean up any external service that may be running. Rollup's CLI w
 
 If a plugin wants to retain resources across builds in watch mode, they can check for [`this.meta.watchMode`](#this-meta) in this hook and perform the necessary cleanup for watch mode in [`closeWatcher`](#closewatcher).
 
-If an error occurs during build or the `buildEnd' hook, it is passed to this hook as first argument.
+If an error occurs during build or the `buildEnd` hook, it is passed to this hook as first argument.
 
 ### footer
 
