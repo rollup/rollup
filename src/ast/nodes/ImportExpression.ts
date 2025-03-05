@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type Chunk from '../../Chunk';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { AstNode, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
@@ -33,10 +34,23 @@ import {
 } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
-interface DynamicImportMechanism {
+interface DynamicImportMechanismStatic {
 	left: string;
 	right: string;
 }
+
+interface DynamicImportTargetInfo {
+	imports: string[];
+}
+
+// TODO: less confusing name?
+interface DynamicImportMechanismDynamic {
+	renderWithTargetInfo: (
+		targetInfo: DynamicImportTargetInfo | null
+	) => DynamicImportMechanismStatic;
+}
+
+type DynamicImportMechanism = DynamicImportMechanismStatic | DynamicImportMechanismDynamic;
 
 export default class ImportExpression extends NodeBase {
 	declare options: ExpressionNode | null;
@@ -52,6 +66,7 @@ export default class ImportExpression extends NodeBase {
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
+	private resolutionTargetChunk: Chunk | null = null;
 
 	// Do not bind attributes
 	bind(): void {
@@ -212,12 +227,25 @@ export default class ImportExpression extends NodeBase {
 			return;
 		}
 		if (this.mechanism) {
+			let left: string;
+			let right: string;
+			if ('renderWithTargetInfo' in this.mechanism) {
+				let targetInfo: DynamicImportTargetInfo | null = null;
+				if (this.resolutionTargetChunk) {
+					targetInfo = {
+						imports: this.resolutionTargetChunk.getImportedChunkFilenames()
+					};
+				}
+				({ left, right } = this.mechanism.renderWithTargetInfo(targetInfo));
+			} else {
+				({ left, right } = this.mechanism);
+			}
 			code.overwrite(
 				this.start,
 				findFirstOccurrenceOutsideComment(code.original, '(', this.start + 6) + 1,
-				this.mechanism.left
+				left
 			);
-			code.overwrite(this.end - 1, this.end, this.mechanism.right);
+			code.overwrite(this.end - 1, this.end, right);
 		}
 		if (this.resolutionString) {
 			code.overwrite(this.source.start, this.source.end, this.resolutionString);
@@ -255,6 +283,7 @@ export default class ImportExpression extends NodeBase {
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
+		resolutionTargetChunk: Chunk | null,
 		namespaceExportName: string | false | undefined,
 		attributes: string | null | true
 	): void {
@@ -262,6 +291,7 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = null;
 		this.resolution = resolution;
 		this.resolutionString = resolutionString;
+		this.resolutionTargetChunk = resolutionTargetChunk;
 		this.namespaceExportName = namespaceExportName;
 		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];

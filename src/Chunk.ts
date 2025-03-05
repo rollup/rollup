@@ -581,6 +581,10 @@ export default class Chunk {
 		return (this.preliminarySourcemapFileName = { fileName: sourcemapFileName, hashPlaceholder });
 	}
 
+	public getImportedChunkFilenames(): string[] {
+		return Array.from(this.dependencies, resolveFileName);
+	}
+
 	public getRenderedChunkInfo(): RenderedChunk {
 		if (this.renderedChunkInfo) {
 			return this.renderedChunkInfo;
@@ -596,7 +600,7 @@ export default class Chunk {
 				resolveFileName
 			),
 
-			imports: Array.from(this.dependencies, resolveFileName),
+			imports: this.getImportedChunkFilenames(),
 			modules: this.renderedModules,
 			referencedFiles: this.getReferencedFiles()
 		});
@@ -1329,6 +1333,7 @@ export default class Chunk {
 						pluginDriver,
 						accessedGlobalsByScope,
 						`'${(facadeChunk || chunk).getImportPath(fileName)}'`,
+						facadeChunk || chunk,
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0],
 						null
 					);
@@ -1348,6 +1353,7 @@ export default class Chunk {
 					pluginDriver,
 					accessedGlobalsByScope,
 					resolutionString,
+					null,
 					false,
 					attributes
 				);
