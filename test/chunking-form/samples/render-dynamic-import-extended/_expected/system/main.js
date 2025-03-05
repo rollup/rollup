@@ -3,8 +3,8 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			systemDynamicImportPreload('./generated-has-dependencies.js', ["generated-no-dependencies.js"]);
-			systemDynamicImportPreload('./generated-no-dependencies.js', []);
+			systemDynamicImportPreload('./generated-chain-3.js', ["generated-chain-2.js","generated-leaf.js"]);
+			systemDynamicImportPreload('./generated-chain-2.js', ["generated-leaf.js"]);
 			systemDynamicImportPreload(somethingElse, null);
 
 		})

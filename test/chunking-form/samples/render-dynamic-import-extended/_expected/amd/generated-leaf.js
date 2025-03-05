@@ -1,7 +1,7 @@
 define(['exports'], (function (exports) { 'use strict';
 
-	var fortyTwo = 42;
+	var three = 3;
 
-	exports.default = fortyTwo;
+	exports.three = three;
 
 }));

@@ -1,6 +1,11 @@
 module.exports = defineTest({
 	description: 'supports custom rendering for dynamic imports',
 	options: {
+		output: {
+			manualChunks(id) {
+				if (id.includes('leaf')) return 'leaf';
+			}
+		},
 		plugins: {
 			name: 'test-plugin',
 			renderDynamicImport({ format }) {

@@ -1,5 +1,5 @@
 'use strict';
 
-cjsDynamicImportPreload('./generated-has-dependencies.js', ["generated-no-dependencies.js"]);
-cjsDynamicImportPreload('./generated-no-dependencies.js', []);
+cjsDynamicImportPreload('./generated-chain-3.js', ["generated-chain-2.js","generated-leaf.js"]);
+cjsDynamicImportPreload('./generated-chain-2.js', ["generated-leaf.js"]);
 cjsDynamicImportPreload(somethingElse, null);

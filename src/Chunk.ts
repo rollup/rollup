@@ -626,17 +626,9 @@ export default class Chunk {
 		}
 	}
 
-	async render(): Promise<ChunkRenderResult> {
-		const {
-			dependencies,
-			exportMode,
-			facadeModule,
-			inputOptions: { onLog },
-			outputOptions,
-			pluginDriver,
-			snippets
-		} = this;
-		const { format, hoistTransitiveImports, preserveModules } = outputOptions;
+	inlineTransitiveImports(): void {
+		const { facadeModule, dependencies, outputOptions } = this;
+		const { hoistTransitiveImports, preserveModules } = outputOptions;
 
 		// for static and dynamic entry points, add transitive dependencies to this
 		// chunk's dependencies to avoid loading latency
@@ -645,6 +637,18 @@ export default class Chunk {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
 		}
+	}
+
+	async render(): Promise<ChunkRenderResult> {
+		const {
+			exportMode,
+			facadeModule,
+			inputOptions: { onLog },
+			outputOptions,
+			pluginDriver,
+			snippets
+		} = this;
+		const { format, preserveModules } = outputOptions;
 
 		const preliminaryFileName = this.getPreliminaryFileName();
 		const preliminarySourcemapFileName = this.getPreliminarySourcemapFileName();
