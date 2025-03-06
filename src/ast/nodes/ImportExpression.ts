@@ -308,6 +308,10 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = null;
 		this.resolution = resolution;
 		this.resolutionTarget = resolutionTarget;
+		if (resolutionTarget.type === 'chunk') {
+			// generate chunk file name here to preserve original behavior
+			resolutionTarget.targetChunk.getFileName();
+		}
 		this.namespaceExportName = namespaceExportName;
 		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
