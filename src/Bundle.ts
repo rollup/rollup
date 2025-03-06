@@ -71,6 +71,7 @@ export default class Bundle {
 			this.pluginDriver.setChunkInformation(this.facadeChunkByModule);
 			for (const chunk of chunks) {
 				chunk.generateExports();
+				chunk.inlineTransitiveImports();
 			}
 
 			timeEnd('generate chunks', 2);

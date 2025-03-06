@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type Chunk from '../../Chunk';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { AstNode, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
@@ -33,9 +34,32 @@ import {
 } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
-interface DynamicImportMechanism {
+interface DynamicImportMechanismStatic {
 	left: string;
 	right: string;
+}
+
+interface DynamicImportTargetInfo {
+	// names are placeholders if hashes are used
+	// chunkFilename: resolvedPath
+	resolvedImports: Record<string, string>;
+}
+
+type DynamicImportMechanismFunction = (
+	targetInfo: DynamicImportTargetInfo | null
+) => DynamicImportMechanismStatic;
+
+type DynamicImportMechanism = DynamicImportMechanismStatic | DynamicImportMechanismFunction;
+
+interface ResolvedTargetChunk {
+	type: 'chunk';
+	importerPath: string;
+	targetChunk: Chunk;
+}
+
+interface ResolvedTargetString {
+	type: 'string';
+	target: string;
 }
 
 export default class ImportExpression extends NodeBase {
@@ -51,7 +75,7 @@ export default class ImportExpression extends NodeBase {
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
-	private resolutionString: string | null = null;
+	private resolutionTarget: ResolvedTargetString | ResolvedTargetChunk | null = null;
 
 	// Do not bind attributes
 	bind(): void {
@@ -211,16 +235,38 @@ export default class ImportExpression extends NodeBase {
 			);
 			return;
 		}
-		if (this.mechanism) {
+		const { resolutionTarget, mechanism } = this;
+		let resolutionString: string | null = null;
+		if (resolutionTarget?.type === 'string' && resolutionTarget.target.length > 0) {
+			resolutionString = resolutionTarget.target;
+		} else if (resolutionTarget?.type === 'chunk') {
+			resolutionString = `'${resolutionTarget.targetChunk.getImportPath(resolutionTarget.importerPath)}'`;
+		}
+		if (mechanism) {
+			let left: string;
+			let right: string;
+			if (typeof mechanism === 'function') {
+				let targetInfo: DynamicImportTargetInfo | null = null;
+				if (resolutionTarget?.type === 'chunk') {
+					targetInfo = {
+						resolvedImports: resolutionTarget.targetChunk.getResolvedImports(
+							resolutionTarget.importerPath
+						)
+					};
+				}
+				({ left, right } = mechanism(targetInfo));
+			} else {
+				({ left, right } = mechanism);
+			}
 			code.overwrite(
 				this.start,
 				findFirstOccurrenceOutsideComment(code.original, '(', this.start + 6) + 1,
-				this.mechanism.left
+				left
 			);
-			code.overwrite(this.end - 1, this.end, this.mechanism.right);
+			code.overwrite(this.end - 1, this.end, right);
 		}
-		if (this.resolutionString) {
-			code.overwrite(this.source.start, this.source.end, this.resolutionString);
+		if (resolutionString !== null) {
+			code.overwrite(this.source.start, this.source.end, resolutionString);
 			if (this.namespaceExportName) {
 				const [left, right] = getDirectReturnFunction(['n'], {
 					functionReturn: true,
@@ -254,14 +300,18 @@ export default class ImportExpression extends NodeBase {
 		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
-		resolutionString: string,
+		resolutionTarget: ResolvedTargetString | ResolvedTargetChunk,
 		namespaceExportName: string | false | undefined,
 		attributes: string | null | true
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
 		this.resolution = resolution;
-		this.resolutionString = resolutionString;
+		this.resolutionTarget = resolutionTarget;
+		if (resolutionTarget.type === 'chunk') {
+			// generate chunk file name here to preserve original behavior
+			resolutionTarget.targetChunk.getFileName();
+		}
 		this.namespaceExportName = namespaceExportName;
 		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];

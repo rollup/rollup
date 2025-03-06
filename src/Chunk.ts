@@ -602,11 +602,33 @@ export default class Chunk {
 		});
 	}
 
+	getResolvedImports(importer: string): Record<string, string> {
+		return Object.fromEntries(
+			Array.from(this.dependencies, chunk => [
+				chunk.getFileName(),
+				`'${chunk.getImportPath(importer)}'`
+			])
+		);
+	}
+
 	getVariableExportName(variable: Variable): string {
 		if (this.outputOptions.preserveModules && variable instanceof NamespaceVariable) {
 			return '*';
 		}
 		return this.exportNamesByVariable.get(variable)![0];
+	}
+
+	inlineTransitiveImports(): void {
+		const { facadeModule, dependencies, outputOptions } = this;
+		const { hoistTransitiveImports, preserveModules } = outputOptions;
+
+		// for static and dynamic entry points, add transitive dependencies to this
+		// chunk's dependencies to avoid loading latency
+		if (hoistTransitiveImports && !preserveModules && facadeModule !== null) {
+			for (const dep of dependencies) {
+				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
+			}
+		}
 	}
 
 	link(): void {
@@ -624,7 +646,6 @@ export default class Chunk {
 
 	async render(): Promise<ChunkRenderResult> {
 		const {
-			dependencies,
 			exportMode,
 			facadeModule,
 			inputOptions: { onLog },
@@ -632,15 +653,7 @@ export default class Chunk {
 			pluginDriver,
 			snippets
 		} = this;
-		const { format, hoistTransitiveImports, preserveModules } = outputOptions;
-
-		// for static and dynamic entry points, add transitive dependencies to this
-		// chunk's dependencies to avoid loading latency
-		if (hoistTransitiveImports && !preserveModules && facadeModule !== null) {
-			for (const dep of dependencies) {
-				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
-			}
-		}
+		const { format, preserveModules } = outputOptions;
 
 		const preliminaryFileName = this.getPreliminaryFileName();
 		const preliminarySourcemapFileName = this.getPreliminarySourcemapFileName();
@@ -1328,7 +1341,11 @@ export default class Chunk {
 						snippets,
 						pluginDriver,
 						accessedGlobalsByScope,
-						`'${(facadeChunk || chunk).getImportPath(fileName)}'`,
+						{
+							importerPath: fileName,
+							targetChunk: facadeChunk || chunk,
+							type: 'chunk'
+						},
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0],
 						null
 					);
@@ -1347,7 +1364,10 @@ export default class Chunk {
 					snippets,
 					pluginDriver,
 					accessedGlobalsByScope,
-					resolutionString,
+					{
+						target: resolutionString,
+						type: 'string'
+					},
 					false,
 					attributes
 				);
