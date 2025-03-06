@@ -13,7 +13,7 @@ impl AstConverter<'_> {
     let mut keep_checking_directives = true;
     match body {
       ModuleItemsOrStatements::ModuleItems(module_items) => {
-        self.convert_item_list_with_state(
+        self.convert_item_list_with_state_and_insert_position(
           module_items,
           &mut keep_checking_directives,
           end_position + PROGRAM_BODY_OFFSET,
@@ -22,13 +22,14 @@ impl AstConverter<'_> {
               if let ModuleItem::Stmt(Stmt::Expr(expression)) = module_item {
                 if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
                   ast_converter.store_directive(expression, &string.value);
-                  return true;
+                  return None;
                 }
               };
             }
             *can_be_directive = false;
-            ast_converter.convert_module_item(module_item);
-            true
+            let mut module_item_insert_position = ast_converter.buffer.len() as u32 >> 2;
+            ast_converter.convert_module_item(module_item, &mut module_item_insert_position);
+            Some(module_item_insert_position)
           },
         );
       }
