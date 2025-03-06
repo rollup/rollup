@@ -581,10 +581,6 @@ export default class Chunk {
 		return (this.preliminarySourcemapFileName = { fileName: sourcemapFileName, hashPlaceholder });
 	}
 
-	public getImportedChunkFilenames(): string[] {
-		return Array.from(this.dependencies, resolveFileName);
-	}
-
 	public getRenderedChunkInfo(): RenderedChunk {
 		if (this.renderedChunkInfo) {
 			return this.renderedChunkInfo;
@@ -600,10 +596,19 @@ export default class Chunk {
 				resolveFileName
 			),
 
-			imports: this.getImportedChunkFilenames(),
+			imports: Array.from(this.dependencies, resolveFileName),
 			modules: this.renderedModules,
 			referencedFiles: this.getReferencedFiles()
 		});
+	}
+
+	getResolvedImports(importer: string): Record<string, string> {
+		return Object.fromEntries(
+			Array.from(this.dependencies, chunk => [
+				chunk.getFileName(),
+				`'${chunk.getImportPath(importer)}'`
+			])
+		);
 	}
 
 	getVariableExportName(variable: Variable): string {
@@ -611,19 +616,6 @@ export default class Chunk {
 			return '*';
 		}
 		return this.exportNamesByVariable.get(variable)![0];
-	}
-
-	link(): void {
-		this.dependencies = getStaticDependencies(
-			this,
-			this.orderedModules,
-			this.chunkByModule,
-			this.externalChunkByModule
-		);
-		for (const module of this.orderedModules) {
-			this.addImplicitlyLoadedBeforeFromModule(module);
-			this.setUpChunkImportsAndExportsForModule(module);
-		}
 	}
 
 	inlineTransitiveImports(): void {
@@ -636,6 +628,19 @@ export default class Chunk {
 			for (const dep of dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
+		}
+	}
+
+	link(): void {
+		this.dependencies = getStaticDependencies(
+			this,
+			this.orderedModules,
+			this.chunkByModule,
+			this.externalChunkByModule
+		);
+		for (const module of this.orderedModules) {
+			this.addImplicitlyLoadedBeforeFromModule(module);
+			this.setUpChunkImportsAndExportsForModule(module);
 		}
 	}
 
@@ -1336,8 +1341,11 @@ export default class Chunk {
 						snippets,
 						pluginDriver,
 						accessedGlobalsByScope,
-						`'${(facadeChunk || chunk).getImportPath(fileName)}'`,
-						facadeChunk || chunk,
+						{
+							importerPath: fileName,
+							targetChunk: facadeChunk || chunk,
+							type: 'chunk'
+						},
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0],
 						null
 					);
@@ -1356,8 +1364,10 @@ export default class Chunk {
 					snippets,
 					pluginDriver,
 					accessedGlobalsByScope,
-					resolutionString,
-					null,
+					{
+						target: resolutionString,
+						type: 'string'
+					},
 					false,
 					attributes
 				);

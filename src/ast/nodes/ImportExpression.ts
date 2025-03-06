@@ -40,17 +40,27 @@ interface DynamicImportMechanismStatic {
 }
 
 interface DynamicImportTargetInfo {
-	imports: string[];
+	// names are placeholders if hashes are used
+	// chunkFilename: resolvedPath
+	resolvedImports: Record<string, string>;
 }
 
-// TODO: less confusing name?
-interface DynamicImportMechanismDynamic {
-	renderWithTargetInfo: (
-		targetInfo: DynamicImportTargetInfo | null
-	) => DynamicImportMechanismStatic;
+type DynamicImportMechanismFunction = (
+	targetInfo: DynamicImportTargetInfo | null
+) => DynamicImportMechanismStatic;
+
+type DynamicImportMechanism = DynamicImportMechanismStatic | DynamicImportMechanismFunction;
+
+interface ResolvedTargetChunk {
+	type: 'chunk';
+	importerPath: string;
+	targetChunk: Chunk;
 }
 
-type DynamicImportMechanism = DynamicImportMechanismStatic | DynamicImportMechanismDynamic;
+interface ResolvedTargetString {
+	type: 'string';
+	target: string;
+}
 
 export default class ImportExpression extends NodeBase {
 	declare options: ExpressionNode | null;
@@ -65,8 +75,7 @@ export default class ImportExpression extends NodeBase {
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
-	private resolutionString: string | null = null;
-	private resolutionTargetChunk: Chunk | null = null;
+	private resolutionTarget: ResolvedTargetString | ResolvedTargetChunk | null = null;
 
 	// Do not bind attributes
 	bind(): void {
@@ -226,19 +235,28 @@ export default class ImportExpression extends NodeBase {
 			);
 			return;
 		}
-		if (this.mechanism) {
+		const { resolutionTarget, mechanism } = this;
+		let resolutionString: string | null = null;
+		if (resolutionTarget?.type === 'string' && resolutionTarget.target.length > 0) {
+			resolutionString = resolutionTarget.target;
+		} else if (resolutionTarget?.type === 'chunk') {
+			resolutionString = `'${resolutionTarget.targetChunk.getImportPath(resolutionTarget.importerPath)}'`;
+		}
+		if (mechanism) {
 			let left: string;
 			let right: string;
-			if ('renderWithTargetInfo' in this.mechanism) {
+			if (typeof mechanism === 'function') {
 				let targetInfo: DynamicImportTargetInfo | null = null;
-				if (this.resolutionTargetChunk) {
+				if (resolutionTarget?.type === 'chunk') {
 					targetInfo = {
-						imports: this.resolutionTargetChunk.getImportedChunkFilenames()
+						resolvedImports: resolutionTarget.targetChunk.getResolvedImports(
+							resolutionTarget.importerPath
+						)
 					};
 				}
-				({ left, right } = this.mechanism.renderWithTargetInfo(targetInfo));
+				({ left, right } = mechanism(targetInfo));
 			} else {
-				({ left, right } = this.mechanism);
+				({ left, right } = mechanism);
 			}
 			code.overwrite(
 				this.start,
@@ -247,8 +265,8 @@ export default class ImportExpression extends NodeBase {
 			);
 			code.overwrite(this.end - 1, this.end, right);
 		}
-		if (this.resolutionString) {
-			code.overwrite(this.source.start, this.source.end, this.resolutionString);
+		if (resolutionString !== null) {
+			code.overwrite(this.source.start, this.source.end, resolutionString);
 			if (this.namespaceExportName) {
 				const [left, right] = getDirectReturnFunction(['n'], {
 					functionReturn: true,
@@ -282,16 +300,14 @@ export default class ImportExpression extends NodeBase {
 		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
-		resolutionString: string,
-		resolutionTargetChunk: Chunk | null,
+		resolutionTarget: ResolvedTargetString | ResolvedTargetChunk,
 		namespaceExportName: string | false | undefined,
 		attributes: string | null | true
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
 		this.resolution = resolution;
-		this.resolutionString = resolutionString;
-		this.resolutionTargetChunk = resolutionTargetChunk;
+		this.resolutionTarget = resolutionTarget;
 		this.namespaceExportName = namespaceExportName;
 		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];

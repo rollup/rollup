@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	description: 'supports custom rendering for dynamic imports',
+	description: 'supports extended custom rendering for dynamic imports',
 	options: {
 		output: {
 			manualChunks(id) {
@@ -9,14 +9,10 @@ module.exports = defineTest({
 		plugins: {
 			name: 'test-plugin',
 			renderDynamicImport({ format }) {
-				return {
-					renderWithTargetInfo(renderedChunk) {
-						return {
-							left: `${format}DynamicImportPreload(`,
-							right: `, ${JSON.stringify(renderedChunk?.imports ?? null)})`
-						};
-					}
-				};
+				return targetInfo => ({
+					left: `${format}DynamicImportPreload(`,
+					right: `, ${JSON.stringify(targetInfo?.resolvedImports ?? null)})`
+				});
 			}
 		}
 	}
