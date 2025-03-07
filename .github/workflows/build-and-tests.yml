@@ -431,7 +431,7 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
       - name: Run Smoke Test
-        uses: uraimo/run-on-arch-action@v2
+        uses: uraimo/run-on-arch-action@v3
         with:
           arch: ${{ matrix.settings.arch }}
           distro: ${{ matrix.settings.distro }}
