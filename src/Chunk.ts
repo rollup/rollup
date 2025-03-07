@@ -165,6 +165,7 @@ function getGlobalName(
 export default class Chunk {
 	// placeholder declaration, only relevant for ExternalChunk
 	defaultVariableName?: undefined;
+	dependencies = new Set<Chunk | ExternalChunk>();
 	readonly entryModules: Module[] = [];
 	execIndex: number;
 	exportMode: 'none' | 'named' | 'default' = 'named';
@@ -174,7 +175,6 @@ export default class Chunk {
 	variableName = '';
 
 	private readonly accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
-	private dependencies = new Set<Chunk | ExternalChunk>();
 	private readonly dynamicEntryModules: Module[] = [];
 	private dynamicName: string | null = null;
 	private readonly exportNamesByVariable = new Map<Variable, string[]>();
@@ -1057,7 +1057,7 @@ export default class Chunk {
 		return (this.includedDynamicImports = includedDynamicImports);
 	}
 
-	private getPreRenderedChunkInfo(): PreRenderedChunk {
+	getPreRenderedChunkInfo(): PreRenderedChunk {
 		if (this.preRenderedChunkInfo) {
 			return this.preRenderedChunkInfo;
 		}
@@ -1334,7 +1334,9 @@ export default class Chunk {
 						accessedGlobalsByScope,
 						`'${(facadeChunk || chunk).getImportPath(fileName)}'`,
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0],
-						null
+						null,
+						this,
+						facadeChunk || chunk
 					);
 				}
 			} else {
@@ -1353,7 +1355,9 @@ export default class Chunk {
 					accessedGlobalsByScope,
 					resolutionString,
 					false,
-					attributes
+					attributes,
+					this,
+					null
 				);
 			}
 		}

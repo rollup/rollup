@@ -400,6 +400,22 @@ export type PluginImpl<O extends object = object, A = any> = (options?: O) => Pl
 
 export type OutputBundle = Record<string, OutputAsset | OutputChunk>;
 
+export type PreRenderedChunkWithFilename = PreRenderedChunk & { preliminaryFilename: string };
+
+export interface ImportedInternalChunk {
+	type: 'internal';
+	chunk: PreRenderedChunkWithFilename;
+	resolvedImportPath: string;
+}
+
+export interface ImportedExternalChunk {
+	type: 'external';
+	filename: string;
+	resolvedImportPath: string;
+}
+
+export type DynamicImportTargetChunk = ImportedInternalChunk | ImportedExternalChunk;
+
 export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
 	buildEnd: (this: PluginContext, error?: Error) => void;
@@ -425,6 +441,9 @@ export interface FunctionPluginHooks {
 			format: InternalModuleFormat;
 			moduleId: string;
 			targetModuleId: string | null;
+			chunk: PreRenderedChunkWithFilename;
+			targetChunk: PreRenderedChunkWithFilename | null;
+			getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
 		}
 	) => { left: string; right: string } | NullValue;
 	renderError: (this: PluginContext, error?: Error) => void;
