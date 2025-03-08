@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.35.0
+
+_2025-03-08_
+
+### Features
+
+- Pass build errors to the closeBundle hook (#5867)
+
+### Pull Requests
+
+- [#5852](https://github.com/rollup/rollup/pull/5852): chore(deps): update dependency eslint-plugin-unicorn to v57 (@renovate[bot], @lukastaegert)
+- [#5862](https://github.com/rollup/rollup/pull/5862): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#5867](https://github.com/rollup/rollup/pull/5867): feat(5858): make closeBundle hook receive the last error (@GauBen)
+- [#5872](https://github.com/rollup/rollup/pull/5872): chore(deps): update dependency builtin-modules to v5 (@renovate[bot])
+- [#5873](https://github.com/rollup/rollup/pull/5873): chore(deps): update uraimo/run-on-arch-action action to v3 (@renovate[bot])
+- [#5874](https://github.com/rollup/rollup/pull/5874): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.34.9
 
 _2025-03-01_
