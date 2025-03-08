@@ -1,7 +1,15 @@
 import type MagicString from 'magic-string';
+import type Chunk from '../../Chunk';
+import ExternalChunk from '../../ExternalChunk';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
-import type { AstNode, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
+import type {
+	AstNode,
+	DynamicImportTargetChunk,
+	GetInterop,
+	NormalizedOutputOptions,
+	PreRenderedChunkWithFilename
+} from '../../rollup/types';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
@@ -256,7 +264,9 @@ export default class ImportExpression extends NodeBase {
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
 		namespaceExportName: string | false | undefined,
-		attributes: string | null | true
+		attributes: string | null | true,
+		ownChunk: Chunk,
+		targetChunk: Chunk | null
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
@@ -271,7 +281,9 @@ export default class ImportExpression extends NodeBase {
 			exportMode,
 			options,
 			snippets,
-			pluginDriver
+			pluginDriver,
+			ownChunk,
+			targetChunk
 		));
 		if (helper) {
 			accessedGlobals.push(helper);
@@ -296,13 +308,41 @@ export default class ImportExpression extends NodeBase {
 			interop
 		}: NormalizedOutputOptions,
 		{ _, getDirectReturnFunction, getDirectReturnIifeLeft }: GenerateCodeSnippets,
-		pluginDriver: PluginDriver
+		pluginDriver: PluginDriver,
+		ownChunk: Chunk,
+		targetChunk: Chunk | null
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
+		function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFilename {
+			return { preliminaryFilename: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
+		}
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
+				chunk: getChunkInfoWithPath(ownChunk),
 				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
 				format,
+				getTargetChunkImports(): DynamicImportTargetChunk[] | null {
+					if (targetChunk === null) return null;
+					const chunkInfos: DynamicImportTargetChunk[] = [];
+					const importerPath = ownChunk.getFileName();
+					for (const dep of targetChunk.dependencies) {
+						if (dep instanceof ExternalChunk) {
+							chunkInfos.push({
+								filename: dep.getFileName(),
+								resolvedImportPath: `'${dep.getImportPath(importerPath)}'`,
+								type: 'external'
+							});
+						} else {
+							chunkInfos.push({
+								chunk: getChunkInfoWithPath(dep),
+								resolvedImportPath: `'${dep.getImportPath(importerPath)}'`,
+								type: 'internal'
+							});
+						}
+					}
+					return chunkInfos;
+				},
 				moduleId: this.scope.context.module.id,
+				targetChunk: targetChunk ? getChunkInfoWithPath(targetChunk) : null,
 				targetModuleId:
 					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
 			}
