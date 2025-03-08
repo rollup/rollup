@@ -327,6 +327,7 @@ describe('incremental', () => {
 				shouldTransformCachedModuleCalls++;
 				assert.strictEqual(ast.type, 'Program');
 				assert.deepStrictEqual(other, {
+					attributes: {},
 					code: modules[id],
 					moduleSideEffects: true,
 					syntheticNamedExports: false
