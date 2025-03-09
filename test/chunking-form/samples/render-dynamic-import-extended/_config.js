@@ -6,6 +6,7 @@ module.exports = defineTest({
 				if (id.includes('leaf')) return 'leaf';
 			}
 		},
+		external: ['external-module'],
 		plugins: {
 			name: 'test-plugin',
 			renderDynamicImport({ format, getTargetChunkImports }) {
