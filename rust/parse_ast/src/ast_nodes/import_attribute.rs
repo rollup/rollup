@@ -32,7 +32,7 @@ impl AstConverter<'_> {
   ) {
     match with {
       Some(ref with) => {
-        self.convert_item_list(
+        self.convert_item_list_with_out_state(
           &with.props,
           reference_position,
           |ast_converter, prop| match prop {

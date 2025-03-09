@@ -20,7 +20,7 @@ impl AstConverter<'_> {
       .index_converter
       .take_collected_annotations(AnnotationKind::Pure);
     if !annotations.is_empty() {
-      self.convert_item_list(
+      self.convert_item_list_with_out_state(
         &annotations,
         end_position + NEW_EXPRESSION_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
@@ -33,7 +33,7 @@ impl AstConverter<'_> {
     self.update_reference_position(end_position + NEW_EXPRESSION_CALLEE_OFFSET);
     self.convert_expression(&new_expression.callee);
     // arguments
-    self.convert_item_list(
+    self.convert_item_list_with_out_state(
       match &new_expression.args {
         Some(arguments) => arguments,
         None => &[],

@@ -35,7 +35,7 @@ impl AstConverter<'_> {
     // flags
     store_method_definition_flags!(self, end_position, static => is_static, computed => is_computed);
     // decorators
-    self.convert_item_list(
+    self.convert_item_list_with_out_state(
       &function.decorators,
       end_position + METHOD_DEFINITION_DECORATORS_OFFSET,
       |ast_convertor, decorator| {

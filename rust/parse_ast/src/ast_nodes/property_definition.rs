@@ -28,7 +28,7 @@ impl AstConverter<'_> {
     // flags
     store_property_definition_flags!(self, end_position, static => is_static, computed => is_computed);
     // decorators
-    self.convert_item_list(
+    self.convert_item_list_with_out_state(
       decorators,
       end_position + PROPERTY_DEFINITION_DECORATORS_OFFSET,
       |ast_converter, decorator| {
