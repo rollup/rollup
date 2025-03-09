@@ -22,7 +22,7 @@ impl AstConverter<'_> {
       .index_converter
       .take_collected_annotations(AnnotationKind::NoSideEffects);
     if !annotations.is_empty() {
-      self.convert_item_list(
+      self.convert_item_list_with_out_state(
         &annotations,
         end_position + ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
@@ -40,7 +40,7 @@ impl AstConverter<'_> {
       generator => arrow_expression.is_generator
     );
     // params
-    self.convert_item_list(
+    self.convert_item_list_with_out_state(
       &arrow_expression.params,
       end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET,
       |ast_converter, param| {

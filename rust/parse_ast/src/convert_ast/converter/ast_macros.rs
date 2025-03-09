@@ -365,10 +365,14 @@ macro_rules! store_jsx_element {
     $self.update_reference_position(end_position + 4);
     $self.$openingElement_converter(&$openingElement_value);
     // children
-    $self.convert_item_list(&$children_value, end_position + 8, |ast_converter, node| {
-      ast_converter.$children_converter(node);
-      true
-    });
+    $self.convert_item_list_with_out_state(
+      &$children_value,
+      end_position + 8,
+      |ast_converter, node| {
+        ast_converter.$children_converter(node);
+        true
+      },
+    );
     // closingElement
     if let Some(value) = $closingElement_value.as_ref() {
       $self.update_reference_position(end_position + 12);
@@ -388,10 +392,14 @@ macro_rules! store_jsx_fragment {
     $self.update_reference_position(end_position + 4);
     $self.$openingFragment_converter(&$openingFragment_value);
     // children
-    $self.convert_item_list(&$children_value, end_position + 8, |ast_converter, node| {
-      ast_converter.$children_converter(node);
-      true
-    });
+    $self.convert_item_list_with_out_state(
+      &$children_value,
+      end_position + 8,
+      |ast_converter, node| {
+        ast_converter.$children_converter(node);
+        true
+      },
+    );
     // closingFragment
     $self.update_reference_position(end_position + 12);
     $self.$closingFragment_converter(&$closingFragment_value);
@@ -559,7 +567,7 @@ macro_rules! store_object_expression {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&69u32.to_ne_bytes(), &$span, 8, false);
     // properties
-    $self.convert_item_list(
+    $self.convert_item_list_with_out_state(
       &$properties_value,
       end_position + 4,
       |ast_converter, node| {
@@ -578,7 +586,7 @@ macro_rules! store_object_pattern {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&70u32.to_ne_bytes(), &$span, 8, false);
     // properties
-    $self.convert_item_list(
+    $self.convert_item_list_with_out_state(
       &$properties_value,
       end_position + 4,
       |ast_converter, node| {
@@ -624,7 +632,7 @@ macro_rules! store_sequence_expression {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&77u32.to_ne_bytes(), &$span, 8, false);
     // expressions
-    $self.convert_item_list(
+    $self.convert_item_list_with_out_state(
       &$expressions_value,
       end_position + 4,
       |ast_converter, node| {
@@ -643,10 +651,14 @@ macro_rules! store_static_block {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&79u32.to_ne_bytes(), &$span, 8, false);
     // body
-    $self.convert_item_list(&$body_value, end_position + 4, |ast_converter, node| {
-      ast_converter.$body_converter(node);
-      true
-    });
+    $self.convert_item_list_with_out_state(
+      &$body_value,
+      end_position + 4,
+      |ast_converter, node| {
+        ast_converter.$body_converter(node);
+        true
+      },
+    );
     // end
     $self.add_end(end_position, &$span);
   };
@@ -673,7 +685,7 @@ macro_rules! store_switch_case {
       $self.$test_converter(value);
     }
     // consequent
-    $self.convert_item_list(
+    $self.convert_item_list_with_out_state(
       &$consequent_value,
       end_position + 8,
       |ast_converter, node| {
@@ -695,10 +707,14 @@ macro_rules! store_switch_statement {
     $self.update_reference_position(end_position + 4);
     $self.$discriminant_converter(&$discriminant_value);
     // cases
-    $self.convert_item_list(&$cases_value, end_position + 8, |ast_converter, node| {
-      ast_converter.$cases_converter(node);
-      true
-    });
+    $self.convert_item_list_with_out_state(
+      &$cases_value,
+      end_position + 8,
+      |ast_converter, node| {
+        ast_converter.$cases_converter(node);
+        true
+      },
+    );
     // end
     $self.add_end(end_position, &$span);
   };
