@@ -60,7 +60,7 @@ impl AstConverter<'_> {
     }
 
     // specifiers
-    self.convert_item_list(
+    self.convert_item_list_with_out_state(
       specifiers,
       end_position + EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET,
       |ast_converter, specifier| {

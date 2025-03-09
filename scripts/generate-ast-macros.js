@@ -60,7 +60,7 @@ const astMacros = astNodeNamesWithFieldOrder
 				case 'NodeList': {
 					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
 					fieldConverters += `
-    $self.convert_item_list(
+    $self.convert_item_list_with_out_state(
       &$${fieldName}_value,
 			end_position + ${reservedBytes},
 			|ast_converter, node| {

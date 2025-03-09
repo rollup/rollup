@@ -15,7 +15,7 @@ impl AstConverter<'_> {
       false,
     );
     // specifiers
-    self.convert_item_list(
+    self.convert_item_list_with_out_state(
       &import_declaration.specifiers,
       end_position + IMPORT_DECLARATION_SPECIFIERS_OFFSET,
       |ast_converter, import_specifier| {

@@ -104,7 +104,7 @@ impl<'a> AstConverter<'a> {
       .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
-  pub(crate) fn convert_item_list<T, F>(
+  pub(crate) fn convert_item_list_with_out_state<T, F>(
     &mut self,
     item_list: &[T],
     reference_position: usize,
@@ -112,122 +112,71 @@ impl<'a> AstConverter<'a> {
   ) where
     F: Fn(&mut AstConverter, &T) -> bool,
   {
-    // for an empty list, we leave the referenced position at zero
-    if item_list.is_empty() {
-      return;
-    }
-    self.update_reference_position(reference_position);
-    // store number of items in first position
-    self
-      .buffer
-      .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
-    let mut reference_position = self.buffer.len();
-    // make room for the reference positions of the items
-    self
-      .buffer
-      .resize(self.buffer.len() + item_list.len() * 4, 0);
-    for item in item_list {
-      let insert_position = (self.buffer.len() as u32) >> 2;
-      if convert_item(self, item) {
-        self.buffer[reference_position..reference_position + 4]
-          .copy_from_slice(&insert_position.to_ne_bytes());
-      }
-      reference_position += 4;
-    }
-  }
-
-  pub(crate) fn convert_item_list_with_out_reference<T, F>(
-    &mut self,
-    item_list: &[T],
-    convert_item: F,
-  ) where
-    F: Fn(&mut AstConverter, &T),
-  {
-    // for an empty list, we leave the referenced position at zero
-    if item_list.is_empty() {
-      return;
-    }
-    // store number of items in first position
-    self
-      .buffer
-      .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
-    let mut reference_position = self.buffer.len();
-    // make room for the reference positions of the items
-    self
-      .buffer
-      .resize(self.buffer.len() + item_list.len() * 4, 0);
-    for item in item_list {
-      let insert_position = (self.buffer.len() as u32) >> 2;
-      convert_item(self, item);
-      self.buffer[reference_position..reference_position + 4]
-        .copy_from_slice(&insert_position.to_ne_bytes());
-      reference_position += 4;
-    }
+    self.convert_item_list(
+      item_list,
+      Some(reference_position),
+      None,
+      |ast_converter, item, _state: Option<&mut ()>| (convert_item(ast_converter, item), None),
+    )
   }
 
   pub(crate) fn convert_item_list_with_state<T, S, F>(
     &mut self,
     item_list: &[T],
-    state: &mut S,
     reference_position: usize,
+    state: &mut S,
     convert_item: F,
   ) where
-    F: Fn(&mut AstConverter, &T, &mut S) -> bool,
+    F: Fn(&mut AstConverter, &T, &mut S) -> (bool, Option<u32>),
+  {
+    self.convert_item_list(
+      item_list,
+      Some(reference_position),
+      Some(state),
+      |ast_converter, item, state| convert_item(ast_converter, item, state.unwrap()),
+    )
+  }
+
+  fn convert_item_list<T, S, F>(
+    &mut self,
+    item_list: &[T],
+    reference_position: Option<usize>,
+    mut state: Option<&mut S>,
+    convert_item: F,
+  ) where
+    F: Fn(&mut AstConverter, &T, Option<&mut S>) -> (bool, Option<u32>),
   {
     // for an empty list, we leave the referenced position at zero
     if item_list.is_empty() {
       return;
     }
-    self.update_reference_position(reference_position);
+
+    if let Some(pos) = reference_position {
+      self.update_reference_position(pos);
+    }
+
     // store number of items in first position
     self
       .buffer
       .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
     let mut reference_position = self.buffer.len();
+
     // make room for the reference positions of the items
     self
       .buffer
       .resize(self.buffer.len() + item_list.len() * 4, 0);
+
     for item in item_list {
-      let insert_position = (self.buffer.len() as u32) >> 2;
-      if convert_item(self, item, state) {
+      let mut insert_position = self.buffer.len() as u32 >> 2;
+      let (should_update_reference_position, explicit_insert_position) =
+        convert_item(self, item, state.as_deref_mut());
+      if should_update_reference_position {
+        if let Some(explicit_insert_position) = explicit_insert_position {
+          insert_position = explicit_insert_position;
+        }
         self.buffer[reference_position..reference_position + 4]
           .copy_from_slice(&insert_position.to_ne_bytes());
       }
-      reference_position += 4;
-    }
-  }
-
-  pub(crate) fn convert_item_list_with_state_and_insert_position<T, S, F>(
-    &mut self,
-    item_list: &[T],
-    state: &mut S,
-    reference_position: usize,
-    convert_item: F,
-  ) where
-    F: Fn(&mut AstConverter, &T, &mut S) -> Option<u32>,
-  {
-    // for an empty list, we leave the referenced position at zero
-    if item_list.is_empty() {
-      return;
-    }
-    self.update_reference_position(reference_position);
-    // store number of items in first position
-    self
-      .buffer
-      .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
-    let mut reference_position = self.buffer.len();
-    // make room for the reference positions of the items
-    self
-      .buffer
-      .resize(self.buffer.len() + item_list.len() * 4, 0);
-    for item in item_list {
-      let mut insert_position = self.buffer.len() as u32 >> 2;
-      if let Some(explicit_insert_position) = convert_item(self, item, state) {
-        insert_position = explicit_insert_position;
-      }
-      self.buffer[reference_position..reference_position + 4]
-        .copy_from_slice(&insert_position.to_ne_bytes());
       reference_position += 4;
     }
   }
@@ -279,10 +228,13 @@ impl<'a> AstConverter<'a> {
   ) {
     if let Some(outside_class_span_decorators) = outside_class_span_decorators {
       *outside_class_span_decorators_insert_position = Some((self.buffer.len() as u32) >> 2);
-      self.convert_item_list_with_out_reference(
+      self.convert_item_list(
         outside_class_span_decorators,
-        |ast_converter, decorator| {
+        None,
+        None,
+        |ast_converter, decorator, _state: Option<&mut ()>| {
           ast_converter.store_decorator(decorator);
+          (true, None)
         },
       );
     }
