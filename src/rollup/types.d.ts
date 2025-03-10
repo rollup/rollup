@@ -102,6 +102,7 @@ export interface SourceMap {
 	sources: string[];
 	sourcesContent?: string[];
 	version: number;
+	debugId?: string;
 	toString(): string;
 	toUrl(): string;
 }
@@ -211,7 +212,10 @@ interface ModuleInfo extends ModuleOptions {
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
 
-export type CustomPluginOptions = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- this is an interface so that it can be extended by plugins
+export interface CustomPluginOptions {
+	[plugin: string]: any;
+}
 
 type LoggingFunctionWithPosition = (
 	log: RollupLog | string | (() => RollupLog | string),
@@ -400,7 +404,7 @@ export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
 	buildEnd: (this: PluginContext, error?: Error) => void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => void;
-	closeBundle: (this: PluginContext) => void;
+	closeBundle: (this: PluginContext, error?: Error) => void;
 	closeWatcher: (this: PluginContext) => void;
 	generateBundle: (
 		this: PluginContext,
@@ -968,6 +972,7 @@ export interface WatcherOptions {
 	exclude?: string | RegExp | (string | RegExp)[];
 	include?: string | RegExp | (string | RegExp)[];
 	skipWrite?: boolean;
+	onInvalidate?: (id: string) => void;
 }
 
 export interface RollupWatchOptions extends InputOptions {

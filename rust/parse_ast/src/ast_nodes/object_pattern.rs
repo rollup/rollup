@@ -3,7 +3,7 @@ use swc_ecma_ast::ObjectPat;
 use crate::convert_ast::converter::AstConverter;
 use crate::store_object_pattern;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_object_pattern(&mut self, object_pattern: &ObjectPat) {
     store_object_pattern!(
       self,

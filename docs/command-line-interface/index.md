@@ -363,7 +363,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   // file instead of process.cwd(). For more information:
   // https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
   const packageJson = JSON.parse(
-  	readFileSync(new URL('./package.json', import.meta.url))
+  	readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
   );
 
   // ...
@@ -478,6 +478,16 @@ The flags listed below are only available via the command line interface. All ot
 This option will force your configuration to be transpiled to CommonJS.
 
 This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
+
+### `--configImportAttributesKey <with | assert>`
+
+Controls the keyword Rollup uses for import attributes in your config file.
+
+```shell
+rollup --config rollup.config.ts --configPlugin typescript --configImportAttributesKey with
+```
+
+This option only available if the [`--configPlugin`](#configplugin-plugin) or [`--bundleConfigAsCjs`](#bundleconfigascjs) options are used.
 
 ### `--configPlugin <plugin>`
 

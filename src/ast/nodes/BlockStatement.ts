@@ -3,12 +3,18 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type IncludeChildren, type Node, StatementBase, type StatementNode } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	type Node,
+	onlyIncludeSelfNoDeoptimize,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -50,18 +56,14 @@ export default class BlockStatement extends StatementBase {
 		return false;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!(this.deoptimizeBody && this.directlyIncluded)) {
 			this.included = true;
 			this.directlyIncluded = true;
 			if (this.deoptimizeBody) includeChildrenRecursively = true;
 			for (const node of this.body) {
 				if (includeChildrenRecursively || node.shouldBeIncluded(context))
-					node.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+					node.include(context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -82,3 +84,6 @@ export default class BlockStatement extends StatementBase {
 		}
 	}
 }
+
+BlockStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+BlockStatement.prototype.applyDeoptimizations = doNotDeoptimize;

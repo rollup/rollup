@@ -1,0 +1,29 @@
+export function test(arg) {
+	if (arg.a) return test(arg.a);
+	if (arg.b) return test(arg.b);
+	if (arg.c) return test(arg.c);
+	if (arg.d) return test(arg.d);
+	if (arg.e) return test(arg.e);
+	if (arg.f) return test(arg.f);
+	if (arg.g) return test(arg.g);
+	if (arg.h) return test(arg.h);
+	if (arg.i) return test(arg.i);
+	if (arg.j) return test(arg.j);
+	if (arg.k) return test(arg.k);
+	if (arg.l) return test(arg.l);
+	if (arg.m) return test(arg.m);
+	if (arg.n) return test(arg.n);
+	if (arg.o) return test(arg.o);
+	if (arg.p) return test(arg.p);
+	if (arg.q) return test(arg.q);
+	if (arg.r) return test(arg.r);
+	if (arg.s) return test(arg.s);
+	if (arg.t) return test(arg.t);
+	if (arg.u) return test(arg.u);
+	if (arg.v) return test(arg.v);
+	if (arg.w) return test(arg.w);
+	if (arg.x) return test(arg.x);
+	if (arg.y) return test(arg.y);
+	if (arg.z) return test(arg.z);
+	return arg;
+}

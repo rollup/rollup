@@ -8,16 +8,18 @@ import {
 } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { NodeBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	declare alternate: ExpressionNode;
@@ -49,6 +51,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			if (this.included) {
+				unusedBranch.includePath(UNKNOWN_PATH, createInclusionContext());
+			}
 			const { expressionsToBeDeoptimized } = this;
 			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 			for (const expression of expressionsToBeDeoptimized) {
@@ -136,29 +141,36 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
-		if (includeChildrenRecursively || this.test.shouldBeIncluded(context) || usedBranch === null) {
-			this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-			this.consequent.includePath(path, context, includeChildrenRecursively);
-			this.alternate.includePath(path, context, includeChildrenRecursively);
+		if (usedBranch === null || includeChildrenRecursively || this.test.shouldBeIncluded(context)) {
+			this.test.include(context, includeChildrenRecursively);
+			this.consequent.include(context, includeChildrenRecursively);
+			this.alternate.include(context, includeChildrenRecursively);
 		} else {
-			usedBranch.includePath(path, context, includeChildrenRecursively);
+			usedBranch.include(context, includeChildrenRecursively);
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		this.included = true;
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null || this.test.shouldBeIncluded(context)) {
+			this.consequent.includePath(path, context);
+			this.alternate.includePath(path, context);
+		} else {
+			usedBranch.includePath(path, context);
+		}
+	}
+
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch) {
-			usedBranch.includeCallArguments(context, interaction);
+			usedBranch.includeCallArguments(interaction, context);
 		} else {
-			this.consequent.includeCallArguments(context, interaction);
-			this.alternate.includeCallArguments(context, interaction);
+			this.consequent.includeCallArguments(interaction, context);
+			this.alternate.includeCallArguments(interaction, context);
 		}
 	}
 
@@ -176,12 +188,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			renderedSurroundingElement
 		}: NodeRenderOptions = BLANK
 	): void {
-		const usedBranch = this.getUsedBranch();
 		if (this.test.included) {
 			this.test.render(code, options, { renderedSurroundingElement });
 			this.consequent.render(code, options);
 			this.alternate.render(code, options);
 		} else {
+			const usedBranch = this.getUsedBranch();
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
 			const inclusionStart = findNonWhiteSpace(
 				code.original,
@@ -211,9 +223,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			return this.usedBranch;
 		}
 		this.isBranchResolutionAnalysed = true;
-		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+		const testValue = tryCastLiteralValueToBoolean(
+			this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
+		);
 		return typeof testValue === 'symbol'
 			? null
 			: (this.usedBranch = testValue ? this.consequent : this.alternate);
 	}
 }
+
+ConditionalExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ConditionalExpression.prototype.applyDeoptimizations = doNotDeoptimize;

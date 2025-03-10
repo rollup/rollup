@@ -1,5 +1,4 @@
 import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
 import { NodeBase } from './shared/Node';
 
 export default class UnknownNode extends NodeBase {
@@ -7,7 +6,7 @@ export default class UnknownNode extends NodeBase {
 		return true;
 	}
 
-	includePath(path: ObjectPath, context: InclusionContext): void {
-		super.includePath(path, context, true);
+	include(context: InclusionContext): void {
+		super.include(context, true);
 	}
 }

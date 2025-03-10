@@ -3,7 +3,7 @@ const assert = require('node:assert');
  * @type {import('../../src/rollup/types')} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { executeBundle, getObject } = require('../utils.js');
+const { executeBundle, getObject } = require('../testHelpers.js');
 
 describe('incremental', () => {
 	let resolveIdCalls;

@@ -1,6 +1,6 @@
 const { unlinkSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
-const { atomicWriteFileSync } = require('../../../../utils');
+const { atomicWriteFileSync } = require('../../../../testHelpers');
 
 let configFile;
 const configContent =
@@ -31,7 +31,7 @@ module.exports = defineTest({
 	},
 	stderr(stderr) {
 		if (
-			!/^rollup v\d+\.\d+\.\d+(-\d+)?\nbundles main.js → _actual[/\\]main.js...\ncreated _actual[/\\]main.js in \d+ms\n$/.test(
+			!/^rollup v\d+\.\d+\.\d+(-\d+)?\nbundles main.js → _actual[/\\]main.js...\ncreated _actual[/\\]main.js in \d+ms\n\n\[\d+-\d+-\d+ \d+:\d+:\d+] waiting for changes...\n$/.test(
 				stderr
 			)
 		) {

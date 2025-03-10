@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'aggregates warnings of different types',

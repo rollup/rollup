@@ -1,5 +1,5 @@
 // @ts-expect-error not included in types
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'tries to load .js config file if package type is "module"',

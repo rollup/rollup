@@ -1,4 +1,4 @@
-const { loader } = require('../../../utils.js');
+const { loader } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'ignores queries and hashes for chunk names when preserving modules',

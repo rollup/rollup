@@ -14,7 +14,13 @@ import { type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];
@@ -67,11 +73,7 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const lastExpression = this.expressions[this.expressions.length - 1];
 		for (const expression of this.expressions) {
@@ -79,9 +81,15 @@ export default class SequenceExpression extends NodeBase {
 				includeChildrenRecursively ||
 				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
-			)
-				expression.includePath(path, context, includeChildrenRecursively);
+			) {
+				expression.include(context, includeChildrenRecursively);
+			}
 		}
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		this.included = true;
+		this.expressions[this.expressions.length - 1].includePath(path, context);
 	}
 
 	removeAnnotations(code: MagicString) {
@@ -127,3 +135,6 @@ export default class SequenceExpression extends NodeBase {
 		}
 	}
 }
+
+SequenceExpression.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+SequenceExpression.prototype.applyDeoptimizations = doNotDeoptimize;

@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { wait } = require('../../../utils');
+const { wait } = require('../../../testHelpers');
 
 const hooks = [
 	'banner',

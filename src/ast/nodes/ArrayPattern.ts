@@ -5,7 +5,7 @@ import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -87,8 +87,21 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 		let included = false;
 		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
 		for (const element of this.elements) {
-			included =
-				element?.includeDestructuredIfNecessary(context, includedPatternPath, init) || included;
+			if (element) {
+				element.included ||= included;
+				included =
+					element.includeDestructuredIfNecessary(context, includedPatternPath, init) || included;
+			}
+		}
+		if (included) {
+			// This is necessary so that if any pattern element is included, all are
+			// included for proper deconflicting
+			for (const element of this.elements) {
+				if (element && !element.included) {
+					element.included = true;
+					element.includeDestructuredIfNecessary(context, includedPatternPath, init);
+				}
+			}
 		}
 		return (this.included ||= included);
 	}
@@ -99,6 +112,8 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 		}
 	}
 }
+
+ArrayPattern.prototype.includeNode = onlyIncludeSelf;
 
 const getIncludedPatternPath = (destructuredInitPath: ObjectPath): ObjectPath =>
 	destructuredInitPath.at(-1) === UnknownKey

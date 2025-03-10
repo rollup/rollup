@@ -20,7 +20,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { type GenericEsTreeNode, NodeBase } from './shared/Node';
+import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 export type LiteralValueOrBigInt = LiteralValue | bigint;
@@ -37,7 +37,7 @@ export default class Literal<
 	declare type: NodeType.tLiteral;
 	declare value: T;
 
-	private declare members: Record<string, MemberDescription>;
+	declare private members: Record<string, MemberDescription>;
 
 	deoptimizeArgumentsOnInteractionAtPath(): void {}
 
@@ -107,3 +107,5 @@ export default class Literal<
 		}
 	}
 }
+
+Literal.prototype.includeNode = onlyIncludeSelf;

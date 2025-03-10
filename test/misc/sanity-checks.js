@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
-const { loader, compareError } = require('../utils.js');
+const { loader, compareError } = require('../testHelpers.js');
 
 describe('sanity checks', () => {
 	it('exists', () => {

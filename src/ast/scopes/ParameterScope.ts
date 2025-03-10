@@ -4,7 +4,7 @@ import type { NodeInteractionCalled } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
@@ -51,21 +51,22 @@ export default class ParameterScope extends ChildScope {
 		this.hasRest = hasRest;
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments({ args }: NodeInteractionCalled, context: InclusionContext): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;
 		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
-		const { args } = interaction;
 		let lastExplicitlyIncludedIndex = args.length - 1;
 		// If there is a SpreadElement, we need to include all arguments after it
 		// because we no longer know which argument corresponds to which parameter.
 		for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
-			if (args[argumentIndex] instanceof SpreadElement && !argumentIncluded) {
+			const argument = args[argumentIndex];
+			if (argument instanceof SpreadElement && !argumentIncluded) {
 				argumentIncluded = true;
 				lastExplicitlyIncludedIndex = argumentIndex - 1;
 			}
 			if (argumentIncluded) {
-				args[argumentIndex]!.includePath(UNKNOWN_PATH, context, false);
+				argument!.includePath(UNKNOWN_PATH, context);
+				argument!.include(context, false);
 			}
 		}
 		// Now we go backwards either starting from the last argument or before the
@@ -79,24 +80,25 @@ export default class ParameterScope extends ChildScope {
 					// handle empty destructuring to avoid destructuring undefined
 					argumentIncluded = true;
 				} else {
-					for (const variable of parameterVariables) {
-						if (variable.calledFromTryStatement) {
+					for (const parameterVariable of parameterVariables) {
+						if (parameterVariable.calledFromTryStatement) {
 							calledFromTryStatement = true;
 						}
-						if (variable.included) {
+						if (parameterVariable.included) {
 							argumentIncluded = true;
 							if (calledFromTryStatement) {
-								argument.includePath(UNKNOWN_PATH, context, true);
+								argument.include(context, true);
 							} else {
-								variable.includeArgumentPaths(argument, context);
+								parameterVariable.includeArgumentPaths(argument, context);
+								argument.include(context, false);
 							}
 						}
 					}
 				}
 			}
-			if (!argument.included && (argumentIncluded || argument.shouldBeIncluded(context))) {
+			if (argumentIncluded || argument.shouldBeIncluded(context)) {
 				argumentIncluded = true;
-				argument.includePath(EMPTY_PATH, context, calledFromTryStatement);
+				argument.include(context, calledFromTryStatement);
 			}
 		}
 	}

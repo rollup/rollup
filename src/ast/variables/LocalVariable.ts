@@ -14,6 +14,7 @@ import * as NodeType from '../nodes/NodeType';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
+	includeInteraction,
 	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
@@ -21,10 +22,11 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
+import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
-	EMPTY_PATH,
 	type EntityPathTracker,
-	IncludedPathTracker,
+	IncludedFullPathTracker,
 	type ObjectPath,
 	UNKNOWN_PATH,
 	UnknownKey
@@ -41,7 +43,7 @@ export default class LocalVariable extends Variable {
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: EntityPathTracker;
-	protected includedPathTracker = new IncludedPathTracker();
+	protected includedPathTracker: IncludedPathTracker = new IncludedFullPathTracker();
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -77,19 +79,20 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			deoptimizeInteraction(interaction);
 			return;
 		}
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() =>
+			() => {
 				this.init.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					[...this.initPath, ...path],
 					recursionTracker
-				),
+				);
+			},
 			undefined
 		);
 	}
@@ -110,7 +113,7 @@ export default class LocalVariable extends Variable {
 			}
 			this.init.deoptimizePath([...this.initPath, UnknownKey]);
 		} else {
-			this.init.deoptimizePath([...this.initPath, ...path]);
+			this.init.deoptimizePath(limitConcatenatedPathDepth(this.initPath, path));
 		}
 	}
 
@@ -119,7 +122,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UnknownValue;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -143,7 +146,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		if (this.isReassigned) {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -167,6 +170,9 @@ export default class LocalVariable extends Variable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (path.length + this.initPath.length > MAX_PATH_DEPTH) {
+			return true;
+		}
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
 				if (this.isReassigned) return true;
@@ -198,30 +204,37 @@ export default class LocalVariable extends Variable {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.includedPathTracker.includePathAndGetIfIncluded(path)) {
+			this.module.scope.context.requestTreeshakingPass();
+			if (!this.included) {
+				// This will reduce the number of tree-shaking passes by eagerly
+				// including inits. By pushing this here instead of directly including
+				// we avoid deep call stacks.
+				this.module.scope.context.newlyIncludedVariableInits.add(this.init);
+			}
 			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.includePath(EMPTY_PATH, context, false);
+				if (!declaration.included) declaration.include(context, false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
 					// in which case .include() might pull in more dead code
-					node.included = true;
+					node.includeNode(context);
 					if (node.type === NodeType.Program) break;
 					node = node.parent as Node;
 				}
 			}
 			// We need to make sure we include the correct path of the init
 			if (path.length > 0) {
-				this.init.includePath([...this.initPath, ...path], context, false);
+				this.init.includePath(limitConcatenatedPathDepth(this.initPath, path), context);
 				this.additionalInitializers?.forEach(initializer =>
-					initializer.includePath(UNKNOWN_PATH, context, false)
+					initializer.includePath(UNKNOWN_PATH, context)
 				);
 			}
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		if (
 			this.isReassigned ||
 			context.includedCallArguments.has(this.init) ||
@@ -229,12 +242,10 @@ export default class LocalVariable extends Variable {
 			// a specific path
 			this.initPath.length > 0
 		) {
-			for (const argument of interaction.args) {
-				argument?.includePath(UNKNOWN_PATH, context, false);
-			}
+			includeInteraction(interaction, context);
 		} else {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, interaction);
+			this.init.includeCallArguments(interaction, context);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

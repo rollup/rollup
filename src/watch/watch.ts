@@ -145,6 +145,7 @@ export class Task {
 	private skipWrite: boolean;
 	private watched = new Set<string>();
 	private readonly watcher: Watcher;
+	private readonly watchOptions: WatcherOptions;
 
 	constructor(watcher: Watcher, options: MergedRollupOptions) {
 		this.watcher = watcher;
@@ -157,10 +158,10 @@ export class Task {
 			return undefined as never;
 		});
 
-		const watchOptions: WatcherOptions = this.options.watch || {};
-		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
+		this.watchOptions = this.options.watch || {};
+		this.filter = createFilter(this.watchOptions.include, this.watchOptions.exclude);
 		this.fileWatcher = new FileWatcher(this, {
-			...watchOptions.chokidar,
+			...this.watchOptions.chokidar,
 			disableGlobbing: true,
 			ignoreInitial: true
 		});
@@ -181,6 +182,7 @@ export class Task {
 			}
 		}
 		this.watcher.invalidate({ event: details.event, id });
+		this.watchOptions.onInvalidate?.(id);
 	}
 
 	async run(): Promise<void> {

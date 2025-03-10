@@ -16,7 +16,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::AstConverter;
 use crate::store_method_definition_flags;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_method_definition(
     &mut self,
     span: &Span,

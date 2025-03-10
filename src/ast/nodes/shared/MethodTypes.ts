@@ -70,15 +70,13 @@ export class Method extends ExpressionEntity {
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		interaction: NodeInteraction,
+		{ args, type }: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		const { type } = interaction;
 		if (path.length > (type === INTERACTION_ACCESSED ? 1 : 0)) {
 			return true;
 		}
 		if (type === INTERACTION_CALLED) {
-			const { args } = interaction;
 			if (
 				this.description.mutatesSelfAsArray === true &&
 				args[0]?.hasEffectsOnInteractionAtPath(

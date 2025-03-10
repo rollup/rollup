@@ -19,7 +19,7 @@ export default class NewExpression extends NodeBase {
 	declare arguments: ExpressionNode[];
 	declare callee: ExpressionNode;
 	declare type: NodeType.tNewExpression;
-	private declare interaction: NodeInteractionCalled;
+	declare private interaction: NodeInteractionCalled;
 	/** Marked with #__PURE__ annotation */
 	declare annotationPure?: boolean;
 
@@ -41,19 +41,20 @@ export default class NewExpression extends NodeBase {
 		return path.length > 0 || type !== INTERACTION_ACCESSED;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
-			super.includePath(path, context, includeChildrenRecursively);
+			super.include(context, true);
 		} else {
-			this.included = true;
-			this.callee.includePath(UNKNOWN_PATH, context, false);
+			this.callee.include(context, false);
+			this.callee.includeCallArguments(this.interaction, context);
 		}
-		this.callee.includeCallArguments(context, this.interaction);
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.callee.includePath(UNKNOWN_PATH, context);
 	}
 
 	initialise(): void {
@@ -76,7 +77,7 @@ export default class NewExpression extends NodeBase {
 		renderCallArguments(code, options, this);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.callee.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,

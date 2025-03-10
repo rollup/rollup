@@ -1,5 +1,5 @@
 // @ts-expect-error not included in types
-const { hasEsBuild } = require('../../../utils');
+const { hasEsBuild } = require('../../../testHelpers');
 
 module.exports = defineTest({
 	skip: !hasEsBuild,

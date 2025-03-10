@@ -10,16 +10,16 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "2.16.13", default-features = false, features = ["napi4"] }
-napi-derive = "2.16.12"
+napi = { version = "2.16.16", default-features = false, features = ["napi4"] }
+napi-derive = "2.16.13"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
 
 [target.'cfg(not(any(target_os = "linux", target_os = "freebsd")))'.dependencies]
 mimalloc-rust = { version = "0.2.1" }
 
-[target.'cfg(any(all(target_os = "linux", not(all(target_env = "musl", target_arch = "aarch64"))), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
+[target.'cfg(any(all(target_os = "linux", not(all(target_env = "musl", target_arch = "aarch64")), not(target_arch = "loongarch64")), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
 mimalloc-rust = { version = "0.2.1", features = ["local-dynamic-tls"] }
 
 [build-dependencies]
-napi-build = "2.1.3"
+napi-build = "2.1.5"

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
-const { assertDoesNotInclude } = require('../../../utils');
-const { assertIncludes } = require('../../../utils.js');
+const { assertDoesNotInclude } = require('../../../testHelpers');
+const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description:

@@ -10,11 +10,13 @@ import type { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
 export const UnknownTruthyValue = Symbol('Unknown Truthy Value');
+export const UnknownFalsyValue = Symbol('Unknown Falsy Value');
 
 export type LiteralValueOrUnknown =
 	| LiteralValue
 	| typeof UnknownValue
 	| typeof UnknownTruthyValue
+	| typeof UnknownFalsyValue
 	| typeof SymbolToStringTag;
 
 export interface InclusionOptions {
@@ -75,19 +77,28 @@ export class ExpressionEntity implements WritableEntity {
 		return true;
 	}
 
-	includePath(
-		_path: ObjectPath,
-		_context: InclusionContext,
+	include(
+		context: InclusionContext,
 		_includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
 	): void {
+		if (!this.included) this.includeNode(context);
+	}
+
+	includeNode(_context: InclusionContext): void {
 		this.included = true;
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		for (const argument of interaction.args) {
-			argument?.includePath(UNKNOWN_PATH, context, false);
-		}
+	includePath(_path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
+	}
+	/* We are both including and including an unknown path here as the former
+	 * ensures that nested nodes are included while the latter ensures that all
+	 * paths of the expression are included.
+	 * */
+
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+		includeInteraction(interaction, context);
 	}
 
 	shouldBeIncluded(_context: InclusionContext): boolean {
@@ -106,5 +117,18 @@ export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: b
 export const deoptimizeInteraction = (interaction: NodeInteraction) => {
 	for (const argument of interaction.args) {
 		argument?.deoptimizePath(UNKNOWN_PATH);
+	}
+};
+
+export const includeInteraction = ({ args }: NodeInteraction, context: InclusionContext) => {
+	// We do not re-include the "this" argument as we expect this is already
+	// re-included at the call site
+	args[0]?.includePath(UNKNOWN_PATH, context);
+	for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
+		const argument = args[argumentIndex];
+		if (argument) {
+			argument.includePath(UNKNOWN_PATH, context);
+			argument.include(context, false);
+		}
 	}
 };

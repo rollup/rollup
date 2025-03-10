@@ -20,7 +20,12 @@ import {
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION
 } from './Expression';
-import { type ExpressionNode, NodeBase } from './Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
+} from './Node';
 import type { DeclarationPatternNode } from './Pattern';
 
 export default class MethodBase extends NodeBase implements DeoptimizableEntity {
@@ -136,8 +141,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.getAccessedValue()[0].hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	protected applyDeoptimizations() {}
-
 	protected getAccessedValue(): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {
@@ -155,3 +158,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.accessedValue;
 	}
 }
+
+MethodBase.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+MethodBase.prototype.applyDeoptimizations = doNotDeoptimize;

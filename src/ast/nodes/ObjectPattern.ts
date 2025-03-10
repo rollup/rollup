@@ -11,7 +11,7 @@ import * as NodeType from './NodeType';
 import type Property from './Property';
 import type RestElement from './RestElement';
 import type { ExpressionEntity } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -87,8 +87,21 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
-		let included = false;
-		for (const property of this.properties) {
+		if (!this.properties.length) return false;
+
+		const lastProperty = this.properties.at(-1)!;
+		const lastPropertyIncluded = lastProperty.includeDestructuredIfNecessary(
+			context,
+			destructuredInitPath,
+			init
+		);
+		const lastPropertyIsRestElement = lastProperty.type === NodeType.RestElement;
+
+		let included = lastPropertyIsRestElement ? lastPropertyIncluded : false;
+		for (const property of this.properties.slice(0, -1)) {
+			if (lastPropertyIsRestElement && lastPropertyIncluded) {
+				property.includeNode(context);
+			}
 			included =
 				property.includeDestructuredIfNecessary(context, destructuredInitPath, init) || included;
 		}
@@ -123,6 +136,7 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 			}
 		}
 	}
-
-	protected applyDeoptimizations() {}
 }
+
+ObjectPattern.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ObjectPattern.prototype.applyDeoptimizations = doNotDeoptimize;

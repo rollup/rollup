@@ -6,7 +6,7 @@ import type ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import type ImportSpecifier from './ImportSpecifier';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
 	declare attributes: ImportAttribute[];
@@ -30,8 +30,8 @@ export default class ImportDeclaration extends NodeBase {
 	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		code.remove(nodeRenderOptions!.start!, nodeRenderOptions!.end!);
 	}
-
-	protected applyDeoptimizations() {}
 }
 
 ImportDeclaration.prototype.needsBoundaries = true;
+ImportDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ImportDeclaration.prototype.applyDeoptimizations = doNotDeoptimize;

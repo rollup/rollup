@@ -1,6 +1,6 @@
 const { promises: fs } = require('node:fs');
 const path = require('node:path');
-const { loader } = require('../../../../utils.js');
+const { loader } = require('../../../../testHelpers.js');
 
 const fsReadFile = fs.readFile;
 

@@ -129,7 +129,7 @@ import { fileURLToPath } from 'node:url';
 export default {
 	input: Object.fromEntries(
 		globSync('src/**/*.js').map(file => [
-			// This remove `src/` as well as the file extension from each
+			// This removes `src/` as well as the file extension from each
 			// file, so e.g. src/nested/foo.js becomes nested/foo
 			path.relative(
 				'src',
@@ -928,7 +928,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 |     CLI: | `--externalImportAttributes`/`--no-externalImportAttributes` |
 | Default: | `true`                                                       |
 
-Whether to add import attributes to external imports in the output if the output format is `es`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
+Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
 
 ### output.generatedCode
 
@@ -1465,6 +1465,8 @@ function manualChunks(id) {
 	if (id.includes('node_modules')) {
 		return 'vendor';
 	}
+
+	return null;
 }
 ```
 
@@ -2864,6 +2866,7 @@ interface WatcherOptions {
 	exclude?: string | RegExp | (string | RegExp)[];
 	include?: string | RegExp | (string | RegExp)[];
 	skipWrite?: boolean;
+	onInvalidate?: (id: string) => void;
 }
 ```
 
@@ -2970,6 +2973,14 @@ export default {
 | Default: | `false`                                    |
 
 Whether to skip the `bundle.write()` step when a rebuild is triggered.
+
+### watch.onInvalidate
+
+|       |                        |
+| ----: | :--------------------- |
+| Type: | `(id: string) => void` |
+
+An optional function that will be called immediately every time a module changes that is part of the build. It receives the id of the changed module as argument. This is different from the [`watchChange`](../plugin-development/index.md#watchchange) plugin hook, which is only called once the running build has finished. This may for instance be used to prevent additional steps from being performed if we know another build will be started anyway once the current build finished. This callback may be called multiple times per build as it tracks every change.
 
 ## Deprecated options
 

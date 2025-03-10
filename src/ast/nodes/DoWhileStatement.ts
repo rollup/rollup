@@ -1,13 +1,14 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
+import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
+	onlyIncludeSelfNoDeoptimize,
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
-import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 
 export default class DoWhileStatement extends StatementBase {
 	declare body: StatementNode;
@@ -19,13 +20,12 @@ export default class DoWhileStatement extends StatementBase {
 		return hasLoopBodyEffects(context, this.body);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
 }
+
+DoWhileStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+DoWhileStatement.prototype.applyDeoptimizations = doNotDeoptimize;

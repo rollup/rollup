@@ -1,9 +1,5 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
@@ -23,7 +19,7 @@ import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { isStaticBlock } from '../StaticBlock';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
@@ -33,7 +29,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare id: Identifier | null;
 	declare superClass: ExpressionNode | null;
 	declare decorators: Decorator[];
-	private declare classConstructor: MethodDefinition | null;
+	declare private classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {
@@ -103,20 +99,14 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			: this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.superClass?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-		for (const decorator of this.decorators)
-			decorator.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
+		this.superClass?.include(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively);
+		for (const decorator of this.decorators) decorator.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
-			this.id.includePath(UNKNOWN_PATH, createInclusionContext());
+			this.id.include(context, includeChildrenRecursively);
 		}
 	}
 
@@ -132,7 +122,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.classConstructor = null;
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		for (const definition of this.body.body) {
 			if (
@@ -197,3 +187,5 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		));
 	}
 }
+
+ClassNode.prototype.includeNode = onlyIncludeSelf;

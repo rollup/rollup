@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const path = require('node:path');
 const { SourceMapConsumer } = require('source-map');
 const rollup = require('../../dist/rollup');
-const { loader } = require('../utils.js');
+const { loader } = require('../testHelpers.js');
 
 describe('in-memory sourcemaps', () => {
 	it('generates an in-memory sourcemap', async () => {

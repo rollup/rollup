@@ -1,6 +1,6 @@
 const { unlinkSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
-const { atomicWriteFileSync } = require('../../../../utils');
+const { atomicWriteFileSync } = require('../../../../testHelpers');
 
 let mainFile;
 

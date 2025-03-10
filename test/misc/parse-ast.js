@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { parseAst, parseAstAsync } = require('../../dist/parseAst');
-const { hasEsBuild } = require('../utils');
+const { hasEsBuild } = require('../testHelpers');
 
 describe('parseAst', () => {
 	it('parses an AST', async () => {

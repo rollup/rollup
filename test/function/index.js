@@ -10,7 +10,7 @@ const {
 	compareLogs,
 	runTestSuiteWithSamples,
 	verifyAstPlugin
-} = require('../utils.js');
+} = require('../testHelpers.js');
 
 function requireWithContext(code, context, exports) {
 	const module = { exports };

@@ -21,6 +21,8 @@ export interface PatternNode extends WritableEntity, Node {
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean;
+
+	includePath(path: ObjectPath, context: InclusionContext): void;
 }
 
 export interface DeclarationPatternNode extends PatternNode {

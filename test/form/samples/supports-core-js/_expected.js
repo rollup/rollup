@@ -9133,7 +9133,7 @@ function requireEs_number_minSafeInteger () {
 	// `Number.MIN_SAFE_INTEGER` constant
 	// https://tc39.es/ecma262/#sec-number.min_safe_integer
 	$({ target: 'Number', stat: true, nonConfigurable: true, nonWritable: true }, {
-	  MIN_SAFE_INTEGER: -0x1FFFFFFFFFFFFF
+	  MIN_SAFE_INTEGER: -9007199254740991
 	});
 	return es_number_minSafeInteger;
 }
@@ -9265,7 +9265,7 @@ function requireEs_number_toExponential () {
 	var stringSlice = uncurryThis(''.slice);
 
 	// Edge 17-
-	var ROUNDS_PROPERLY = nativeToExponential(-6.9e-11, 4) === '-6.9000e-11'
+	var ROUNDS_PROPERLY = nativeToExponential(-69e-12, 4) === '-6.9000e-11'
 	  // IE11- && Edge 14-
 	  && nativeToExponential(1.255, 2) === '1.25e+0'
 	  // FF86-, V8 ~ Chrome 49-50

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
-const { loader } = require('../utils.js');
+const { loader } = require('../testHelpers.js');
 
 describe('The bundle object', () => {
 	it('contains information about the generated chunks', () =>

@@ -12,7 +12,8 @@ import type { PluginDriver } from '../../utils/PluginDriver';
 import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
-import { type ObjectPath, UnknownKey } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
+import { UnknownKey } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import AwaitExpression from './AwaitExpression';
@@ -24,6 +25,7 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
@@ -157,25 +159,28 @@ export default class ImportExpression extends NodeBase {
 		return true;
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		if (!this.included) {
-			this.included = true;
-			this.scope.context.includeDynamicImport(this);
-			this.scope.addAccessedDynamicImport(this);
-			this.source.includePath(path, context, includeChildrenRecursively);
-		}
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode();
+		this.source.include(context, includeChildrenRecursively);
+	}
+
+	includeNode() {
+		this.included = true;
+		this.scope.context.includeDynamicImport(this);
+		this.scope.addAccessedDynamicImport(this);
+	}
+
+	includePath(path: ObjectPath): void {
+		if (!this.included) this.includeNode();
+		// Technically, this is not correct as dynamic imports return a Promise.
 		if (this.hasUnknownAccessedKey) return;
 		if (path[0] === UnknownKey) {
 			this.hasUnknownAccessedKey = true;
-			this.scope.context.includeDynamicImport(this);
 		} else if (typeof path[0] === 'string') {
 			this.accessedPropKey.add(path[0]);
-			this.scope.context.includeDynamicImport(this);
 		}
+		// Update included paths
+		this.scope.context.includeDynamicImport(this);
 	}
 
 	initialise(): void {
@@ -190,7 +195,8 @@ export default class ImportExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		const {
-			snippets: { _, getDirectReturnFunction, getObject, getPropertyAccess }
+			snippets: { _, getDirectReturnFunction, getObject, getPropertyAccess },
+			importAttributesKey
 		} = options;
 		if (this.inlineNamespace) {
 			const [left, right] = getDirectReturnFunction([], {
@@ -233,7 +239,7 @@ export default class ImportExpression extends NodeBase {
 			if (this.attributes) {
 				code.appendLeft(
 					this.end - 1,
-					`,${_}${getObject([['assert', this.attributes]], {
+					`,${_}${getObject([[importAttributesKey, this.attributes]], {
 						lineBreakIndent: null
 					})}`
 				);
@@ -278,8 +284,6 @@ export default class ImportExpression extends NodeBase {
 	setInternalResolution(inlineNamespace: NamespaceVariable): void {
 		this.inlineNamespace = inlineNamespace;
 	}
-
-	protected applyDeoptimizations() {}
 
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
@@ -385,6 +389,8 @@ export default class ImportExpression extends NodeBase {
 		return { helper: null, mechanism: null };
 	}
 }
+
+ImportExpression.prototype.applyDeoptimizations = doNotDeoptimize;
 
 function getInteropHelper(
 	resolution: Module | ExternalModule | string | null,

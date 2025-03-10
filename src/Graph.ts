@@ -1,4 +1,6 @@
 import flru from 'flru';
+import { createInclusionContext } from './ast/ExecutionContext';
+import type { ExpressionEntity } from './ast/nodes/shared/Expression';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/PathTracker';
 import type ExternalModule from './ExternalModule';
@@ -60,6 +62,7 @@ export default class Graph {
 	readonly moduleLoader: ModuleLoader;
 	readonly modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
+	readonly newlyIncludedVariableInits = new Set<ExpressionEntity>();
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	readonly pluginDriver: PluginDriver;
 	readonly pureFunctions: PureFunctions;
@@ -70,7 +73,7 @@ export default class Graph {
 	private readonly externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
 	private modules: Module[] = [];
-	private declare pluginCache?: Record<string, SerializablePluginCache>;
+	declare private pluginCache?: Record<string, SerializablePluginCache>;
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
@@ -167,6 +170,7 @@ export default class Graph {
 		}
 		if (this.options.treeshake) {
 			let treeshakingPass = 1;
+			this.newlyIncludedVariableInits.clear();
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				this.needsTreeshakingPass = false;
@@ -177,6 +181,10 @@ export default class Graph {
 							module.includeAllInBundle();
 						} else {
 							module.include();
+						}
+						for (const entity of this.newlyIncludedVariableInits) {
+							this.newlyIncludedVariableInits.delete(entity);
+							entity.include(createInclusionContext(), false);
 						}
 					}
 				}

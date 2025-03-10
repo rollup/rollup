@@ -3,7 +3,7 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
+import { UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import Identifier from './Identifier';
 import type Literal from './Literal';
@@ -12,6 +12,7 @@ import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -56,7 +57,6 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		return this.key.hasEffects(context) || this.value.hasEffects(context);
 	}
 
@@ -77,27 +77,31 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
+		const path = this.getPathInProperty(destructuredInitPath);
 		let included =
-			(this.value as PatternNode).includeDestructuredIfNecessary(
-				context,
-				this.getPathInProperty(destructuredInitPath),
-				init
-			) || this.included;
-		included ||= this.key.hasEffects(createHasEffectsContext());
-		if (included) {
-			this.key.includePath(EMPTY_PATH, context, false);
+			(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init) ||
+			this.included;
+		if ((included ||= this.key.hasEffects(createHasEffectsContext()))) {
+			this.key.include(context, false);
+			if (!this.value.included) {
+				this.value.included = true;
+				// Unfortunately, we need to include the value again now, so that any
+				// declared variables are properly included.
+				(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init);
+			}
 		}
 		return (this.included = included);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.key.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-		this.value.includePath(path, context, includeChildrenRecursively);
+		this.key.include(context, includeChildrenRecursively);
+		this.value.include(context, includeChildrenRecursively);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		this.included = true;
+		this.value.includePath(path, context);
 	}
 
 	markDeclarationReached(): void {
@@ -111,8 +115,6 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
 
-	protected applyDeoptimizations(): void {}
-
 	private getPathInProperty(destructuredInitPath: ObjectPath): ObjectPath {
 		return destructuredInitPath.at(-1) === UnknownKey
 			? destructuredInitPath
@@ -125,3 +127,6 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 					: [...destructuredInitPath, String((this.key as Literal).value)];
 	}
 }
+
+Property.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+Property.prototype.applyDeoptimizations = doNotDeoptimize;

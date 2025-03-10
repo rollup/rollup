@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getObject } = require('../../../utils');
+const { getObject } = require('../../../testHelpers');
 
 function getId(name) {
 	return path.join(__dirname, `${name}.js`);

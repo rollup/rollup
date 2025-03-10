@@ -5,7 +5,7 @@ const path = require('node:path');
 // @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
 // @ts-expect-error not included in types
-const { runTestSuiteWithSamples } = require('../utils.js');
+const { runTestSuiteWithSamples } = require('../testHelpers.js');
 
 runTestSuiteWithSamples(
 	'file hashes',

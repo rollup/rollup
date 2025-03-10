@@ -111,14 +111,10 @@ export default class CallExpression
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
-			super.includePath(path, context, includeChildrenRecursively);
+			super.include(context, true);
 			if (
 				includeChildrenRecursively === INCLUDE_PARAMETERS &&
 				this.callee instanceof Identifier &&
@@ -127,18 +123,15 @@ export default class CallExpression
 				this.callee.variable.markCalledFromTryStatement();
 			}
 		} else {
-			this.included = true;
-			// If the callee is a member expression and does not have a variable, its
-			// object will already be included via the first argument of the
-			// interaction in includeCallArguments. Including it again can lead to
-			// severe performance problems.
-			if (this.callee instanceof MemberExpression && !this.callee.variable) {
-				this.callee.property.includePath(UNKNOWN_PATH, context, false);
-			} else {
-				this.callee.includePath(UNKNOWN_PATH, context, false);
-			}
-			this.callee.includeCallArguments(context, this.interaction);
+			this.callee.include(context, false);
+			this.callee.includeCallArguments(this.interaction, context);
 		}
+	}
+
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.callee.includePath(UNKNOWN_PATH, context);
 	}
 
 	initialise() {
@@ -163,7 +156,7 @@ export default class CallExpression
 		renderCallArguments(code, options, this);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.callee.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,

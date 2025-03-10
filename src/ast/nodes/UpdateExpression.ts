@@ -13,14 +13,14 @@ import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { NodeBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare operator: '++' | '--';
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
-	private declare interaction: NodeInteractionAssigned;
+	declare private interaction: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
@@ -31,13 +31,8 @@ export default class UpdateExpression extends NodeBase {
 		return path.length > 1 || type !== INTERACTION_ACCESSED;
 	}
 
-	includePath(
-		_: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.included) this.includeNode(context);
 		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
 	}
 
@@ -86,7 +81,7 @@ export default class UpdateExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.argument.deoptimizePath(EMPTY_PATH);
 		if (this.argument instanceof Identifier) {
@@ -96,3 +91,5 @@ export default class UpdateExpression extends NodeBase {
 		this.scope.context.requestTreeshakingPass();
 	}
 }
+
+UpdateExpression.prototype.includeNode = onlyIncludeSelf;

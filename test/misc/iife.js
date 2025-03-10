@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { rollup } = require('../../dist/rollup');
-const { loader } = require('../utils.js');
-const { compareError } = require('../utils.js');
+const { loader } = require('../testHelpers.js');
+const { compareError } = require('../testHelpers.js');
 
 function runTestCode(code, globals) {
 	const globalsWithAssert = { ...globals, assert };

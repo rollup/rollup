@@ -5,7 +5,7 @@ const { outputFile, readdir, remove } = require('fs-extra');
  * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup.js');
-const { loader, wait } = require('../utils.js');
+const { loader, wait } = require('../testHelpers.js');
 
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
@@ -1029,6 +1029,99 @@ describe('hooks', () => {
 			})
 			.then(() => {
 				assert.ok(handledError);
+			});
+	});
+
+	it('passes build error to the closeBundle hook', () => {
+		let buildError;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'some broken code' }),
+					{
+						closeBundle(error) {
+							buildError = error;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(
+					error.message,
+					`input (1:5): Expected ';', '}' or <eof> (Note that you need plugins to import files that are not JavaScript)`
+				);
+			})
+			.then(() => {
+				assert.ok(buildError);
+			});
+	});
+
+	it('passes buildEnd error to the closeBundle hook', () => {
+		let buildEndError;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'console.log(42);' }),
+					{
+						buildEnd() {
+							this.error('build end error');
+						},
+						closeBundle(error) {
+							buildEndError = error;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(error.message, '[plugin at position 2] build end error');
+			})
+			.then(() => {
+				assert.ok(buildEndError);
+			});
+	});
+
+	it('merges build and buildEnd errors', () => {
+		let buildEndError;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'some broken code' }),
+					{
+						buildEnd() {
+							this.error('build end error');
+						},
+						closeBundle(error) {
+							buildEndError = error;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				// Ensure error correctly copies the original build error
+				assert.strictEqual(error.cause.message, "Expected ';', '}' or <eof>");
+				assert.strictEqual(error.code, 'PARSE_ERROR');
+				assert.strictEqual(error.frame, '1: some broken code\n        ^');
+				assert.strictEqual(error.id, 'input');
+				assert.deepStrictEqual(error.loc, { file: 'input', line: 1, column: 5 });
+				assert.strictEqual(
+					error.message,
+					'There was an error during the build:\n' +
+						"  input (1:5): Expected ';', '}' or <eof> (Note that you need plugins to import files that are not JavaScript)\n" +
+						"Additionally, handling the error in the 'buildEnd' hook caused the following error:\n" +
+						'  [plugin at position 2] build end error'
+				);
+				assert.strictEqual(error.name, 'RollupError');
+				assert.strictEqual(error.pos, 5);
+				assert.ok(error.stack.startsWith(`${error.name}: ${error.message}\n`));
+			})
+			.then(() => {
+				assert.ok(buildEndError);
 			});
 	});
 

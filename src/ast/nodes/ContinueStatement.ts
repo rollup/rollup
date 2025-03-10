@@ -1,12 +1,12 @@
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
-import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type IncludeChildren,
+	onlyIncludeSelfNoDeoptimize,
+	StatementBase
+} from './shared/Node';
 
 export default class ContinueStatement extends StatementBase {
 	declare label: Identifier | null;
@@ -24,10 +24,10 @@ export default class ContinueStatement extends StatementBase {
 		return false;
 	}
 
-	includePath(_: ObjectPath, context: InclusionContext): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (this.label) {
-			this.label.includePath(UNKNOWN_PATH, createInclusionContext());
+			this.label.include(context, includeChildrenRecursively);
 			context.includedLabels.add(this.label.name);
 		} else {
 			context.hasContinue = true;
@@ -35,3 +35,6 @@ export default class ContinueStatement extends StatementBase {
 		context.brokenFlow = true;
 	}
 }
+
+ContinueStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+ContinueStatement.prototype.applyDeoptimizations = doNotDeoptimize;

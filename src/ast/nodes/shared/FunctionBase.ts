@@ -22,10 +22,12 @@ import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
+	doNotDeoptimize,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
-	NodeBase
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { DeclarationPatternNode } from './Pattern';
@@ -58,6 +60,13 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 	set generator(value: boolean) {
 		this.flags = setFlag(this.flags, Flag.generator, value);
+	}
+
+	protected get hasCachedEffects(): boolean {
+		return isFlagSet(this.flags, Flag.hasEffects);
+	}
+	protected set hasCachedEffects(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasEffects, value);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -127,9 +136,8 @@ export default abstract class FunctionBase extends NodeBase {
 		if (path.length > 0 || interaction.type !== INTERACTION_CALLED) {
 			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
-
-		if (this.annotationNoSideEffects) {
-			return false;
+		if (this.hasCachedEffects) {
+			return true;
 		}
 
 		if (this.async) {
@@ -150,6 +158,7 @@ export default abstract class FunctionBase extends NodeBase {
 							context
 						)))
 			) {
+				this.hasCachedEffects = true;
 				return true;
 			}
 		}
@@ -165,8 +174,10 @@ export default abstract class FunctionBase extends NodeBase {
 						EMPTY_PATH,
 						interaction.args[index + 1] || UNDEFINED_EXPRESSION
 					))
-			)
+			) {
+				this.hasCachedEffects = true;
 				return true;
+			}
 		}
 		return false;
 	}
@@ -187,20 +198,15 @@ export default abstract class FunctionBase extends NodeBase {
 
 	private parameterVariableValuesDeoptimized = false;
 
-	includePath(
-		_path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		if (!(this.parameterVariableValuesDeoptimized || this.onlyFunctionCallUsed())) {
 			this.parameterVariableValuesDeoptimized = true;
 			this.scope.reassignAllParameters();
 		}
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 
@@ -247,9 +253,9 @@ export default abstract class FunctionBase extends NodeBase {
 		return super.parseNode(esTreeNode);
 	}
 
-	protected applyDeoptimizations() {}
-
 	protected abstract getObjectEntity(): ObjectEntity;
 }
 
 FunctionBase.prototype.preventChildBlockScope = true;
+FunctionBase.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+FunctionBase.prototype.applyDeoptimizations = doNotDeoptimize;

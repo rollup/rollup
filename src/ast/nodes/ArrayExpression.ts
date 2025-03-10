@@ -1,5 +1,5 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	type EntityPathTracker,
@@ -9,11 +9,11 @@ import {
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
+import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
 	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
@@ -66,7 +66,17 @@ export default class ArrayExpression extends NodeBase {
 		return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	protected applyDeoptimizations(): void {
+	includeNode(context: InclusionContext) {
+		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		for (const element of this.elements) {
+			if (element) {
+				element?.includePath(UNKNOWN_PATH, context);
+			}
+		}
+	}
+
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {

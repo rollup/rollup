@@ -4,8 +4,8 @@ import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import type { EntityPathTracker } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -13,13 +13,14 @@ import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { onlyIncludeSelf } from './shared/Node';
 import type TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;
 	declare tag: ExpressionNode;
 	declare type: NodeType.tTaggedTemplateExpression;
-	private declare args: ExpressionEntity[];
+	declare private args: ExpressionEntity[];
 
 	bind(): void {
 		super.bind();
@@ -44,23 +45,14 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		);
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.included) this.includeNode(context);
 		if (includeChildrenRecursively) {
-			super.includePath(path, context, includeChildrenRecursively);
+			super.include(context, true);
 		} else {
-			this.included = true;
-			this.tag.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-			this.quasi.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-		}
-		this.tag.includeCallArguments(context, this.interaction);
-		const [returnExpression] = this.getReturnExpression();
-		if (!returnExpression.included) {
-			returnExpression.includePath(UNKNOWN_PATH, context, false);
+			this.quasi.include(context, false);
+			this.tag.include(context, false);
+			this.tag.includeCallArguments(this.interaction, context);
 		}
 	}
 
@@ -82,7 +74,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.quasi.render(code, options);
 	}
 
-	protected applyDeoptimizations(): void {
+	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.tag.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,
@@ -107,3 +99,5 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		return this.returnExpression;
 	}
 }
+
+TaggedTemplateExpression.prototype.includeNode = onlyIncludeSelf;

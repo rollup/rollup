@@ -9,7 +9,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::AstConverter;
 use crate::store_assignment_expression;
 
-impl<'a> AstConverter<'a> {
+impl AstConverter<'_> {
   pub(crate) fn store_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
     store_assignment_expression!(
       self,

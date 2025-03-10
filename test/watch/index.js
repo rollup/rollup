@@ -8,7 +8,7 @@ const { copy } = require('fs-extra');
  * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { atomicWriteFileSync, wait, withTimeout } = require('../utils');
+const { atomicWriteFileSync, wait, withTimeout } = require('../testHelpers');
 
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const TEMP_DIR = path.join(__dirname, '../_tmp');
@@ -1438,6 +1438,44 @@ describe('rollup.watch', function () {
 			'END',
 			() => {
 				assert.strictEqual(readFileSync(OUTPUT_ID).toString().trim(), 'next');
+			}
+		]);
+	});
+
+	it('watches a file and triggers onInvalidate', async () => {
+		let onInvalidateCalled = false;
+		let onInvalidateId = '';
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					onInvalidateCalled = true;
+					onInvalidateId = id;
+				}
+			}
+		});
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(onInvalidateCalled, true);
+				assert.strictEqual(onInvalidateId, ENTRY_FILE);
 			}
 		]);
 	});
