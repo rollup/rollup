@@ -161,7 +161,9 @@ export function getChunkAssignments(
 		allEntries,
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByDynamicEntry,
-		dynamicImportsByEntry
+		dynamicImportsByEntry,
+		dynamicallyDependentEntriesByAwaitedDynamicEntry,
+		awaitedDynamicImportsByEntry
 	} = analyzeModuleGraph(entries);
 
 	// Each chunk is identified by its position in this array
@@ -177,8 +179,18 @@ export function getChunkAssignments(
 		dynamicImportsByEntry,
 		allEntries
 	);
+	const awaitedAlreadyLoadedAtomsByEntry = getAlreadyLoadedAtomsByEntry(
+		staticDependencyAtomsByEntry,
+		dynamicallyDependentEntriesByAwaitedDynamicEntry,
+		awaitedDynamicImportsByEntry,
+		allEntries
+	);
 	// This mutates the dependentEntries in chunkAtoms
-	removeUnnecessaryDependentEntries(chunkAtoms, alreadyLoadedAtomsByEntry, allEntries);
+	removeUnnecessaryDependentEntries(
+		chunkAtoms,
+		alreadyLoadedAtomsByEntry,
+		awaitedAlreadyLoadedAtomsByEntry
+	);
 	const { chunks, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
@@ -241,15 +253,21 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 	dependentEntriesByModule: Map<Module, Set<number>>;
 	dynamicImportsByEntry: readonly ReadonlySet<number>[];
 	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>;
+	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[];
+	dynamicallyDependentEntriesByAwaitedDynamicEntry: Map<number, Set<number>>;
 } {
 	const dynamicEntryModules = new Set<Module>();
+	const awaitedDynamicEntryModules = new Set<Module>();
 	const dependentEntriesByModule = new Map<Module, Set<number>>();
 	const allEntriesSet = new Set(entries);
 	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesSet.size);
+	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesSet.size);
 	let entryIndex = 0;
 	for (const currentEntry of allEntriesSet) {
 		const dynamicImportsForCurrentEntry = new Set<Module>();
+		const awaitedDynamicImportsForCurrentEntry = new Set<Module>();
 		dynamicImportModulesByEntry[entryIndex] = dynamicImportsForCurrentEntry;
+		awaitedDynamicImportModulesByEntry[entryIndex] = awaitedDynamicImportsForCurrentEntry;
 		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
@@ -267,6 +285,10 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					dynamicEntryModules.add(resolution);
 					allEntriesSet.add(resolution);
 					dynamicImportsForCurrentEntry.add(resolution);
+					if (resolution.includedDirectTopLevelAwaitingDynamicImporters.has(currentEntry)) {
+						awaitedDynamicEntryModules.add(resolution);
+						awaitedDynamicImportsForCurrentEntry.add(resolution);
+					}
 				}
 			}
 			for (const dependency of module.implicitlyLoadedBefore) {
@@ -279,18 +301,33 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 		entryIndex++;
 	}
 	const allEntries = [...allEntriesSet];
-	const { dynamicEntries, dynamicImportsByEntry } = getDynamicEntries(
+	const {
+		awaitedDynamicEntries,
+		awaitedDynamicImportsByEntry,
+		dynamicEntries,
+		dynamicImportsByEntry
+	} = getDynamicEntries(
 		allEntries,
 		dynamicEntryModules,
-		dynamicImportModulesByEntry
+		dynamicImportModulesByEntry,
+		awaitedDynamicEntryModules,
+		awaitedDynamicImportModulesByEntry
 	);
 	return {
 		allEntries,
+		awaitedDynamicImportsByEntry,
 		dependentEntriesByModule,
+		dynamicallyDependentEntriesByAwaitedDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
+			dependentEntriesByModule,
+			awaitedDynamicEntries,
+			allEntries,
+			dynamicEntry => dynamicEntry.includedDirectTopLevelAwaitingDynamicImporters
+		),
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
 			dynamicEntries,
-			allEntries
+			allEntries,
+			dynamicEntry => dynamicEntry.includedDynamicImporters
 		),
 		dynamicImportsByEntry
 	};
@@ -299,16 +336,42 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 function getDynamicEntries(
 	allEntries: Module[],
 	dynamicEntryModules: Set<Module>,
-	dynamicImportModulesByEntry: Set<Module>[]
+	dynamicImportModulesByEntry: Set<Module>[],
+	awaitedDynamicEntryModules: Set<Module>,
+	awaitedDynamicImportModulesByEntry: Set<Module>[]
 ) {
 	const entryIndexByModule = new Map<Module, number>();
 	const dynamicEntries = new Set<number>();
+	const awaitedDynamicEntries = new Set<number>();
 	for (const [entryIndex, entry] of allEntries.entries()) {
 		entryIndexByModule.set(entry, entryIndex);
 		if (dynamicEntryModules.has(entry)) {
 			dynamicEntries.add(entryIndex);
 		}
+		if (awaitedDynamicEntryModules.has(entry)) {
+			awaitedDynamicEntries.add(entryIndex);
+		}
 	}
+	const dynamicImportsByEntry = getDynamicImportsByEntry(
+		dynamicImportModulesByEntry,
+		entryIndexByModule
+	);
+	const awaitedDynamicImportsByEntry = getDynamicImportsByEntry(
+		awaitedDynamicImportModulesByEntry,
+		entryIndexByModule
+	);
+	return {
+		awaitedDynamicEntries,
+		awaitedDynamicImportsByEntry,
+		dynamicEntries,
+		dynamicImportsByEntry
+	};
+}
+
+function getDynamicImportsByEntry(
+	dynamicImportModulesByEntry: Set<Module>[],
+	entryIndexByModule: Map<Module, number>
+): Set<number>[] {
 	const dynamicImportsByEntry: Set<number>[] = new Array(dynamicImportModulesByEntry.length);
 	let index = 0;
 	for (const dynamicImportModules of dynamicImportModulesByEntry) {
@@ -318,13 +381,14 @@ function getDynamicEntries(
 		}
 		dynamicImportsByEntry[index++] = dynamicImports;
 	}
-	return { dynamicEntries, dynamicImportsByEntry };
+	return dynamicImportsByEntry;
 }
 
 function getDynamicallyDependentEntriesByDynamicEntry(
 	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>,
 	dynamicEntries: ReadonlySet<number>,
-	allEntries: readonly Module[]
+	allEntries: readonly Module[],
+	getDynamicImporters: (entry: Module) => Iterable<Module>
 ): Map<number, Set<number>> {
 	const dynamicallyDependentEntriesByDynamicEntry = new Map<number, Set<number>>();
 	for (const dynamicEntryIndex of dynamicEntries) {
@@ -335,7 +399,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 		);
 		const dynamicEntry = allEntries[dynamicEntryIndex];
 		for (const importer of concatLazy([
-			dynamicEntry.includedDynamicImporters,
+			getDynamicImporters(dynamicEntry),
 			dynamicEntry.implicitlyLoadedAfter
 		])) {
 			for (const entry of dependentEntriesByModule.get(importer)!) {
@@ -445,63 +509,23 @@ function getAlreadyLoadedAtomsByEntry(
 function removeUnnecessaryDependentEntries(
 	chunkAtoms: ModulesWithDependentEntries[],
 	alreadyLoadedAtomsByEntry: bigint[],
-	allEntries: readonly Module[]
+	awaitedAlreadyLoadedAtomsByEntry: bigint[]
 ) {
 	// Remove entries from dependent entries if a chunk is already loaded without
-	// that entry.
+	// that entry. Do not remove already loaded atoms where all dynamic imports
+	// are awaited to avoid cycles in the output.
 	let chunkMask = 1n;
-	const transitiveTopLevelAwaitingDynamicImportersByEntry = new Map<number, Set<Module>>();
 	for (const { dependentEntries } of chunkAtoms) {
-		const shouldBeRemovedEntries = new Set<number>();
-		const iteratedEntries = new Set<number>();
 		for (const entryIndex of dependentEntries) {
-			if ((alreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === chunkMask) {
-				const transitiveTopLevelAwaitingDynamicImporters = getOrCreate(
-					transitiveTopLevelAwaitingDynamicImportersByEntry,
-					entryIndex,
-					() => getTransitiveTopLevelAwaitingDynamicImporters(allEntries[entryIndex])
-				);
-				let isExistedCircular = false;
-				for (const iteratedEntryIndex of iteratedEntries) {
-					const includedModules = [
-						allEntries[iteratedEntryIndex],
-						...allEntries[iteratedEntryIndex].getDependenciesToBeIncluded()
-					];
-					isExistedCircular = includedModules.some(
-						includedModule =>
-							includedModule instanceof Module &&
-							transitiveTopLevelAwaitingDynamicImporters.has(includedModule)
-					);
-					if (isExistedCircular) break;
-				}
-				if (isExistedCircular) {
-					shouldBeRemovedEntries.clear();
-					break;
-				} else {
-					shouldBeRemovedEntries.add(entryIndex);
-				}
+			if (
+				(alreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === chunkMask &&
+				(awaitedAlreadyLoadedAtomsByEntry[entryIndex] & chunkMask) === 0n
+			) {
+				dependentEntries.delete(entryIndex);
 			}
-			iteratedEntries.add(entryIndex);
-		}
-		for (const entryIndex of shouldBeRemovedEntries) {
-			dependentEntries.delete(entryIndex);
 		}
 		chunkMask <<= 1n;
 	}
-}
-
-function getTransitiveTopLevelAwaitingDynamicImporters(entry: Module) {
-	const transitiveTopLevelAwaitingDynamicImporters = new Set([
-		...entry.includedDirectTopLevelAwaitingDynamicImporters
-	]);
-	for (const {
-		includedDirectTopLevelAwaitingDynamicImporters
-	} of transitiveTopLevelAwaitingDynamicImporters) {
-		for (const includedTopLevelAwaitDynamicImporter of includedDirectTopLevelAwaitingDynamicImporters) {
-			transitiveTopLevelAwaitingDynamicImporters.add(includedTopLevelAwaitDynamicImporter);
-		}
-	}
-	return transitiveTopLevelAwaitingDynamicImporters;
 }
 
 function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
