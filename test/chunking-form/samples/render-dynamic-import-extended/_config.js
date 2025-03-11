@@ -13,10 +13,7 @@ module.exports = defineTest({
 				const transitiveImports = getTargetChunkImports();
 				const resolvedImports = transitiveImports
 					? Object.fromEntries(
-							getTargetChunkImports().map(chunk => [
-								chunk.type === 'internal' ? chunk.chunk.preliminaryFilename : chunk.filename,
-								chunk.resolvedImportPath
-							])
+							getTargetChunkImports().map(chunk => [chunk.fileName, chunk.resolvedImportPath])
 						)
 					: null;
 				return {

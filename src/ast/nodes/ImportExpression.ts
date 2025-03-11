@@ -46,6 +46,10 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
+function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFilename {
+	return { preliminaryFileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
+}
+
 export default class ImportExpression extends NodeBase {
 	declare options: ExpressionNode | null;
 	inlineNamespace: NamespaceVariable | null = null;
@@ -312,9 +316,6 @@ export default class ImportExpression extends NodeBase {
 		ownChunk: Chunk,
 		targetChunk: Chunk | null
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
-		function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFilename {
-			return { preliminaryFilename: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
-		}
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
 				chunk: getChunkInfoWithPath(ownChunk),
@@ -327,13 +328,14 @@ export default class ImportExpression extends NodeBase {
 					for (const dep of targetChunk.dependencies) {
 						if (dep instanceof ExternalChunk) {
 							chunkInfos.push({
-								filename: dep.getFileName(),
+								fileName: dep.getFileName(),
 								resolvedImportPath: `'${dep.getImportPath(importerPath)}'`,
 								type: 'external'
 							});
 						} else {
 							chunkInfos.push({
-								chunk: getChunkInfoWithPath(dep),
+								chunk: dep.getPreRenderedChunkInfo(),
+								fileName: dep.getFileName(),
 								resolvedImportPath: `'${dep.getImportPath(importerPath)}'`,
 								type: 'internal'
 							});

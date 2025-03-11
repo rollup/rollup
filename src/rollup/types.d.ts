@@ -400,17 +400,18 @@ export type PluginImpl<O extends object = object, A = any> = (options?: O) => Pl
 
 export type OutputBundle = Record<string, OutputAsset | OutputChunk>;
 
-export type PreRenderedChunkWithFilename = PreRenderedChunk & { preliminaryFilename: string };
+export type PreRenderedChunkWithFilename = PreRenderedChunk & { preliminaryFileName: string };
 
 export interface ImportedInternalChunk {
 	type: 'internal';
-	chunk: PreRenderedChunkWithFilename;
+	fileName: string;
 	resolvedImportPath: string;
+	chunk: PreRenderedChunk;
 }
 
 export interface ImportedExternalChunk {
 	type: 'external';
-	filename: string;
+	fileName: string;
 	resolvedImportPath: string;
 }
 
