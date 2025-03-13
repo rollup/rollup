@@ -8,7 +8,7 @@ import type {
 	DynamicImportTargetChunk,
 	GetInterop,
 	NormalizedOutputOptions,
-	PreRenderedChunkWithFilename
+	PreRenderedChunkWithFileName
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
@@ -46,7 +46,7 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFilename {
+function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 	return { fileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
 }
 

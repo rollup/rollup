@@ -400,7 +400,7 @@ export type PluginImpl<O extends object = object, A = any> = (options?: O) => Pl
 
 export type OutputBundle = Record<string, OutputAsset | OutputChunk>;
 
-export type PreRenderedChunkWithFilename = PreRenderedChunk & { fileName: string };
+export type PreRenderedChunkWithFileName = PreRenderedChunk & { fileName: string };
 
 export interface ImportedInternalChunk {
 	type: 'internal';
@@ -442,8 +442,8 @@ export interface FunctionPluginHooks {
 			format: InternalModuleFormat;
 			moduleId: string;
 			targetModuleId: string | null;
-			chunk: PreRenderedChunkWithFilename;
-			targetChunk: PreRenderedChunkWithFilename | null;
+			chunk: PreRenderedChunkWithFileName;
+			targetChunk: PreRenderedChunkWithFileName | null;
 			getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
 		}
 	) => { left: string; right: string } | NullValue;
