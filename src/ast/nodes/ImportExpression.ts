@@ -24,7 +24,6 @@ import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -42,12 +41,6 @@ interface DynamicImportMechanism {
 export default class ImportExpression extends NodeBase {
 	declare options: ExpressionNode | null;
 	inlineNamespace: NamespaceVariable | null = null;
-	get isFollowingTopLevelAwait(): boolean {
-		return isFlagSet(this.flags, Flag.isFollowingTopLevelAwait);
-	}
-	set isFollowingTopLevelAwait(value: boolean) {
-		this.flags = setFlag(this.flags, Flag.isFollowingTopLevelAwait, value);
-	}
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;
@@ -63,6 +56,10 @@ export default class ImportExpression extends NodeBase {
 	// Do not bind attributes
 	bind(): void {
 		this.source.bind();
+	}
+
+	get isFollowingTopLevelAwait() {
+		return this.parent instanceof AwaitExpression && this.parent.isTopLevelAwait;
 	}
 
 	/**
@@ -173,9 +170,6 @@ export default class ImportExpression extends NodeBase {
 
 	includeNode() {
 		this.included = true;
-		if (this.parent instanceof AwaitExpression && this.parent.isTopLevelAwait) {
-			this.isFollowingTopLevelAwait = true;
-		}
 		this.scope.context.includeDynamicImport(this);
 		this.scope.addAccessedDynamicImport(this);
 	}
