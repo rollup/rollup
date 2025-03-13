@@ -9,7 +9,7 @@ module.exports = defineTest({
 		external: ['external-module'],
 		plugins: {
 			name: 'test-plugin',
-			renderDynamicImport({ format, getTargetChunkImports }) {
+			renderDynamicImport({ format, chunk, targetChunk, getTargetChunkImports }) {
 				const transitiveImports = getTargetChunkImports();
 				const resolvedImports = transitiveImports
 					? Object.fromEntries(
@@ -18,7 +18,7 @@ module.exports = defineTest({
 					: null;
 				return {
 					left: `${format}DynamicImportPreload(`,
-					right: `, ${JSON.stringify(resolvedImports)})`
+					right: `, ${JSON.stringify(resolvedImports)}, ${JSON.stringify(chunk?.fileName ?? null)}, ${JSON.stringify(targetChunk?.fileName ?? null)})`
 				};
 			}
 		}

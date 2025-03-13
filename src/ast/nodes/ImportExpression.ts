@@ -47,7 +47,7 @@ interface DynamicImportMechanism {
 }
 
 function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFilename {
-	return { preliminaryFileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
+	return { fileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
 }
 
 export default class ImportExpression extends NodeBase {
