@@ -64,6 +64,10 @@ export interface TestConfigChunkingForm extends TestConfigBase {
 	 */
 	expectedWarnings?: string[];
 	/**
+	 * Output formats.
+	 */
+	formats?: string[];
+	/**
 	 * Assert the expected logs.
 	 */
 	logs?: RollupLog[];

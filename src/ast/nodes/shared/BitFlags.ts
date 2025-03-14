@@ -25,7 +25,8 @@ export const enum Flag {
 	expression = 1 << 23,
 	destructuringDeoptimized = 1 << 24,
 	hasDeoptimizedCache = 1 << 25,
-	hasEffects = 1 << 26
+	hasEffects = 1 << 26,
+	isTopLevelAwait = 1 << 27
 }
 
 export function isFlagSet(flags: number, flag: Flag): boolean {

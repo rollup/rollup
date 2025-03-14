@@ -58,6 +58,10 @@ export default class ImportExpression extends NodeBase {
 		this.source.bind();
 	}
 
+	get isFollowingTopLevelAwait() {
+		return this.parent instanceof AwaitExpression && this.parent.isTopLevelAwait;
+	}
+
 	/**
 	 * Get imported variables for deterministic usage, valid cases are:
 	 *

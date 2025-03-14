@@ -240,6 +240,7 @@ export default class Module {
 	shebang: undefined | string;
 	readonly importers: string[] = [];
 	readonly includedDynamicImporters: Module[] = [];
+	readonly includedDirectTopLevelAwaitingDynamicImporters = new Set<Module>();
 	readonly includedImports = new Set<Variable>();
 	readonly info: ModuleInfo;
 	isExecuted = false;
@@ -1365,6 +1366,9 @@ export default class Module {
 		if (resolution instanceof Module) {
 			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);
+				if (node.isFollowingTopLevelAwait) {
+					resolution.includedDirectTopLevelAwaitingDynamicImporters.add(this);
+				}
 			}
 
 			const importedNames = this.options.treeshake
