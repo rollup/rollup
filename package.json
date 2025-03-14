@@ -203,7 +203,7 @@
     "yargs-parser": "^21.1.1"
   },
   "overrides": {
-    "axios": "^1.8.2",
+    "axios": "^1.8.3",
     "semver": "^7.7.1",
     "readable-stream": "npm:@built-in/readable-stream@1",
     "esbuild": ">0.24.2"
