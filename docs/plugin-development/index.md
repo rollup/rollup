@@ -1059,12 +1059,38 @@ type renderDynamicImportHook = (options: {
 	format: string;
 	moduleId: string;
 	targetModuleId: string | null;
+	chunk: PreRenderedChunkWithFileName;
+	targetChunk: PreRenderedChunkWithFileName;
+	getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
 }) => { left: string; right: string } | null;
+
+type PreRenderedChunkWithFileName = PreRenderedChunk & { fileName: string };
+
+type DynamicImportTargetChunk =
+	| ImportedInternalChunk
+	| ImportedExternalChunk;
+
+interface ImportedInternalChunk {
+	type: 'internal';
+	fileName: string;
+	resolvedImportPath: string;
+	chunk: PreRenderedChunk;
+}
+
+interface ImportedExternalChunk {
+	type: 'external';
+	fileName: string;
+	resolvedImportPath: string;
+}
 ```
+
+See the [`chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) option for the `PreRenderedChunk` type.
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
-`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id, otherwise it will be `null`. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string.
+`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id, otherwise it will be `null`. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
+
+The `PreRenderedChunkWithFileName` type is identical to the `PreRenderedChunk` type except for the addition of the `fileName` field, which contains the path and file name of the chunk. `fileName` may contain a placeholder if the chunk file name format contains a hash.
 
 The following code will replace all dynamic imports with a custom handler, adding `import.meta.url` as a second argument to allow the handler to resolve relative imports correctly:
 
@@ -1115,6 +1141,51 @@ function retainImportExpressionPlugin() {
 	};
 }
 ```
+
+When a dynamic import occurs, the browser will fetch the requested module and parse it. If the target module is discovered to have imports and they have not already been fetched, the browser must perform more network requests before it can execute the module. This will incur the latency of an additional network round trip. For static modules, Rollup will hoist transitive dependencies ([`hoistTransitiveDependencies`](../configuration-options/index.md#output-hoisttransitiveimports)) to prevent this from occuring. However, dependency hoisting is currently not automatically performed for dynamic imports.
+
+The following plugin can achieve similar preloading behavior for dynamic imports:
+
+```js twoslash
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+function dynamicImportDependencyPreloader() {
+	return {
+		name: 'dynamic-import-dependency-preloader',
+		renderDynamicImport({ getTargetChunkImports }) {
+			const transitiveImports = getTargetChunkImports();
+			if (transitiveImports && transitiveImports.length > 0) {
+				const preload = getTargetChunkImports()
+					.map(
+						chunk => `\t/* preload */ import(${chunk.resolvedImportPath})`
+					)
+					.join(',\n');
+				return {
+					left: `(\n${preload},\n\timport(`,
+					right: `)\n)`
+				};
+			} else {
+				return null;
+			}
+		}
+	};
+}
+```
+
+<!-- prettier-ignore-start -->
+```js
+// input
+import('./lib.js');
+
+// output
+(
+	/* preload */ import('./dependency-1.js'),
+	/* preload */ import('./dependency-2.js'),
+	import('./lib.js');
+);
+```
+<!-- prettier-ignore-end -->
 
 Note that when this hook rewrites dynamic imports in non-ES formats, no interop code to make sure that e.g. the default export is available as `.default` is generated. It is the responsibility of the plugin to make sure the rewritten dynamic import returns a Promise that resolves to a proper namespace object.
 
