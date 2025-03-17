@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.36.0
+
+_2025-03-17_
+
+### Features
+
+- Extend `renderDynamicImport` hook to provide information about static dependencies of the imported module (#5870)
+- Export several additional types used by Vite (#5879)
+
+### Bug Fixes
+
+- Do not merge chunks if that would create a top-level await cycle between chunks (#5843)
+
+### Pull Requests
+
+- [#5843](https://github.com/rollup/rollup/pull/5843): avoiding top level await circular (@TrickyPi, @lukastaegert)
+- [#5870](https://github.com/rollup/rollup/pull/5870): draft for extended renderDynamicImport hook (@iczero, @lukastaegert)
+- [#5876](https://github.com/rollup/rollup/pull/5876): Update axios overrides to 1.8.2 (@vadym-khodak)
+- [#5877](https://github.com/rollup/rollup/pull/5877): chore(deps): update dependency eslint-plugin-vue to v10 (@renovate[bot])
+- [#5878](https://github.com/rollup/rollup/pull/5878): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5879](https://github.com/rollup/rollup/pull/5879): fix: export types (@sxzz)
+
 ## 4.35.0
 
 _2025-03-08_
