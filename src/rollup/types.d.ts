@@ -190,7 +190,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
-interface ModuleInfo extends ModuleOptions {
+export interface ModuleInfo extends ModuleOptions {
 	ast: ProgramNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
@@ -280,7 +280,7 @@ export interface ResolvedId extends ModuleOptions {
 
 export type ResolvedIdMap = Record<string, ResolvedId>;
 
-interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
+export interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean | 'absolute' | 'relative';
 	id: string;
 	resolvedBy?: string;
@@ -504,7 +504,7 @@ type MakeAsync<Function_> = Function_ extends (
 	: never;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
+export type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
