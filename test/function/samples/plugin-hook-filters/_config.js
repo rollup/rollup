@@ -14,6 +14,7 @@ const s = {
 	resolveId: {
 		'./bar.js': [
 			'resolveId-{}',
+			'resolveId-{ id: {} }',
 			"resolveId-{ id: { include: '*.js' } }",
 			'resolveId-{ id: { include: /\\.js$/ } }',
 			"resolveId-{ id: { exclude: 'foo.js' } }",
@@ -21,6 +22,7 @@ const s = {
 		],
 		'./baz.js': [
 			'resolveId-{}',
+			'resolveId-{ id: {} }',
 			"resolveId-{ id: { include: '*.js' } }",
 			'resolveId-{ id: { include: /\\.js$/ } }',
 			"resolveId-{ id: { exclude: 'foo.js' } }",
@@ -28,6 +30,7 @@ const s = {
 		],
 		'./foo.js': [
 			'resolveId-{}',
+			'resolveId-{ id: {} }',
 			"resolveId-{ id: 'foo.js' }",
 			"resolveId-{ id: [ 'foo.js' ] }",
 			"resolveId-{ id: { include: '*.js' } }",
@@ -79,6 +82,7 @@ const s = {
 
 const plugins = [];
 addPlugin('resolveId', {});
+addPlugin('resolveId', { id: {} });
 addPlugin('resolveId', { id: 'foo.js' });
 addPlugin('resolveId', { id: ['foo.js'] });
 addPlugin('resolveId', { id: { include: '*.js' } });
