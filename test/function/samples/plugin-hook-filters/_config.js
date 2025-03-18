@@ -140,6 +140,5 @@ module.exports = {
 			message: 'Generated an empty chunk: "main".',
 			names: ['main']
 		}
-	],
-	solo: true
+	]
 };
