@@ -38,6 +38,12 @@
         "major"
       ],
       "enabled": false
+    },
+    {
+      "matchDepTypes": [
+        "action"
+      ],
+      "pinDigests": true
     }
   ],
   "automerge": false,
