@@ -29,7 +29,7 @@ impl AstConverter<'_> {
       .index_converter
       .take_collected_annotations(AnnotationKind::Pure);
     if !annotations.is_empty() {
-      self.convert_item_list_with_out_state(
+      self.convert_item_list(
         &annotations,
         end_position + CALL_EXPRESSION_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
@@ -58,7 +58,7 @@ impl AstConverter<'_> {
       StoredCallee::Super(callee_super) => self.store_super_element(callee_super),
     }
     // arguments
-    self.convert_item_list_with_out_state(
+    self.convert_item_list(
       arguments,
       end_position + CALL_EXPRESSION_ARGUMENTS_OFFSET,
       |ast_converter, argument| {

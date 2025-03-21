@@ -14,7 +14,7 @@ impl AstConverter<'_> {
       .filter(|class_member| !matches!(class_member, ClassMember::Empty(_)))
       .collect();
     // body
-    self.convert_item_list_with_out_state(
+    self.convert_item_list(
       &class_members_filtered,
       end_position + CLASS_BODY_BODY_OFFSET,
       |ast_converter, class_member| {

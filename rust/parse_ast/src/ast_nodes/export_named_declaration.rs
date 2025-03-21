@@ -21,17 +21,18 @@ impl AstConverter<'_> {
   ) {
     let (
       mut outside_class_span_decorators_insert_position,
-      is_decorators_before_export,
-      is_decorators_after_export,
+      are_decorators_before_export,
+      are_decorators_after_export,
       outside_class_span_decorators,
-    ) = get_outside_class_span_decorators_info(span, || {
-      if let Some(Decl::Class(class_declaration)) = declaration {
-        return Some(&class_declaration.class);
-      }
-      None
-    });
+    ) = get_outside_class_span_decorators_info(
+      span,
+      match declaration {
+        Some(Decl::Class(class_declaration)) => Some(&class_declaration.class),
+        _ => None,
+      },
+    );
 
-    if is_decorators_before_export {
+    if are_decorators_before_export {
       self.store_outside_class_span_decorators(
         outside_class_span_decorators,
         &mut outside_class_span_decorators_insert_position,
@@ -52,7 +53,7 @@ impl AstConverter<'_> {
       },
     );
 
-    if is_decorators_after_export {
+    if are_decorators_after_export {
       self.store_outside_class_span_decorators(
         outside_class_span_decorators,
         &mut outside_class_span_decorators_insert_position,
@@ -60,7 +61,7 @@ impl AstConverter<'_> {
     }
 
     // specifiers
-    self.convert_item_list_with_out_state(
+    self.convert_item_list(
       specifiers,
       end_position + EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET,
       |ast_converter, specifier| {

@@ -104,7 +104,7 @@ impl<'a> AstConverter<'a> {
       .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
-  pub(crate) fn convert_item_list_with_out_state<T, F>(
+  pub(crate) fn convert_item_list<T, F>(
     &mut self,
     item_list: &[T],
     reference_position: usize,
@@ -112,7 +112,7 @@ impl<'a> AstConverter<'a> {
   ) where
     F: Fn(&mut AstConverter, &T) -> bool,
   {
-    self.convert_item_list(
+    self.convert_item_list_internal(
       item_list,
       Some(reference_position),
       None,
@@ -129,7 +129,7 @@ impl<'a> AstConverter<'a> {
   ) where
     F: Fn(&mut AstConverter, &T, &mut S) -> (bool, Option<u32>),
   {
-    self.convert_item_list(
+    self.convert_item_list_internal(
       item_list,
       Some(reference_position),
       Some(state),
@@ -137,7 +137,7 @@ impl<'a> AstConverter<'a> {
     )
   }
 
-  fn convert_item_list<T, S, F>(
+  fn convert_item_list_internal<T, S, F>(
     &mut self,
     item_list: &[T],
     reference_position: Option<usize>,
@@ -228,7 +228,7 @@ impl<'a> AstConverter<'a> {
   ) {
     if let Some(outside_class_span_decorators) = outside_class_span_decorators {
       *outside_class_span_decorators_insert_position = Some((self.buffer.len() as u32) >> 2);
-      self.convert_item_list(
+      self.convert_item_list_internal(
         outside_class_span_decorators,
         None,
         None,
@@ -824,25 +824,22 @@ pub(crate) fn update_reference_position(buffer: &mut [u8], reference_position: u
     .copy_from_slice(&insert_position.to_ne_bytes());
 }
 
-pub(crate) fn get_outside_class_span_decorators_info<'a, F>(
+pub(crate) fn get_outside_class_span_decorators_info<'a>(
   span: &Span,
-  get_class: F,
-) -> (Option<u32>, bool, bool, Option<&'a Vec<Decorator>>)
-where
-  F: FnOnce() -> Option<&'a Class>,
-{
-  let mut is_decorators_before_export = false;
-  let mut is_decorators_after_export = false;
+  class: Option<&'a Class>,
+) -> (Option<u32>, bool, bool, Option<&'a Vec<Decorator>>) {
+  let mut are_decorators_before_export = false;
+  let mut are_decorators_after_export = false;
   let mut outside_class_span_decorators = None;
 
-  if let Some(class) = get_class() {
+  if let Some(class) = class {
     if !class.decorators.is_empty() {
       let decorator_start_boundary = class.decorators[0].span.lo.0 - 1;
       if decorator_start_boundary < span.lo.0 - 1 {
-        is_decorators_before_export = true;
+        are_decorators_before_export = true;
         outside_class_span_decorators = Some(&class.decorators);
       } else if decorator_start_boundary < class.span.lo.0 - 1 {
-        is_decorators_after_export = true;
+        are_decorators_after_export = true;
         outside_class_span_decorators = Some(&class.decorators);
       }
     }
@@ -850,8 +847,8 @@ where
 
   (
     None,
-    is_decorators_before_export,
-    is_decorators_after_export,
+    are_decorators_before_export,
+    are_decorators_after_export,
     outside_class_span_decorators,
   )
 }

@@ -62,7 +62,7 @@ impl AstConverter<'_> {
     self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();
     if !invalid_annotations.is_empty() {
-      self.convert_item_list_with_out_state(
+      self.convert_item_list(
         &invalid_annotations,
         end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {

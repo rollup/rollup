@@ -58,7 +58,7 @@ impl AstConverter<'_> {
         .index_converter
         .take_collected_annotations(AnnotationKind::NoSideEffects);
       if !annotations.is_empty() {
-        self.convert_item_list_with_out_state(
+        self.convert_item_list(
           &annotations,
           end_position + FUNCTION_DECLARATION_ANNOTATIONS_OFFSET,
           |ast_converter, annotation| {
@@ -74,7 +74,7 @@ impl AstConverter<'_> {
       self.convert_identifier(ident);
     }
     // params
-    self.convert_item_list_with_out_state(
+    self.convert_item_list(
       parameters,
       end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
       |ast_converter, param| {

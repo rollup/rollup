@@ -39,7 +39,7 @@ impl AstConverter<'_> {
       kind == &STRING_CONST,
     );
     // declarations
-    self.convert_item_list_with_out_state(
+    self.convert_item_list(
       decls,
       end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
       |ast_converter, variable_declarator| {

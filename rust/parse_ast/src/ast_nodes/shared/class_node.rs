@@ -31,7 +31,7 @@ impl AstConverter<'_> {
         ..end_position + CLASS_DECLARATION_DECORATORS_OFFSET + 4]
         .copy_from_slice(&outside_class_span_decorators_insert_position.to_ne_bytes());
     } else {
-      self.convert_item_list_with_out_state(
+      self.convert_item_list(
         &class.decorators,
         end_position + CLASS_DECLARATION_DECORATORS_OFFSET,
         |ast_converter, decorator| {
