@@ -31,14 +31,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: 22
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             node_modules
@@ -213,9 +213,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 22
@@ -226,7 +226,7 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
       - name: Restore Cargo cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -236,7 +236,7 @@ jobs:
             rust/target/
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
-      - uses: goto-bus-stop/setup-zig@v2
+      - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
         if: ${{ matrix.settings.zig }}
         with:
           version: 0.10.1
@@ -246,7 +246,7 @@ jobs:
         shell: bash
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -258,14 +258,14 @@ jobs:
         run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts
       - name: Save Node dependencies cache
         if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
             ~/.npm
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Build in docker
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
@@ -277,7 +277,7 @@ jobs:
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -287,14 +287,14 @@ jobs:
             rust/target/
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload wasm artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: bindings-${{ matrix.settings.name }}
           path: ${{ matrix.settings.path }}
           if-no-files-found: error
         if: ${{ matrix.settings.is-wasm-build }}
       - name: Upload napi artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
@@ -319,9 +319,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Restore Cargo cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -333,7 +333,7 @@ jobs:
           restore-keys: ${{ matrix.settings.target }}-cargo
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -341,7 +341,7 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: node-modules-${{ runner.os }}
       - name: Build
-        uses: cross-platform-actions/action@v0.27.0
+        uses: cross-platform-actions/action@fe0167d8082ac584754ef3ffb567fded22642c7d #v0.27.0
         with:
           operating_system: ${{ matrix.settings.name }}
           architecture: ${{ matrix.settings.architecture }}
@@ -353,7 +353,7 @@ jobs:
             npm run build:napi -- --release --target ${{ matrix.settings.target }}
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -363,7 +363,7 @@ jobs:
             rust/target/
           key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload napi artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
@@ -410,10 +410,10 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -426,12 +426,12 @@ jobs:
       - name: Build JS
         run: npm run build:cjs
       - name: Download napi artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
       - name: Run Smoke Test
-        uses: uraimo/run-on-arch-action@v3
+        uses: uraimo/run-on-arch-action@4141da824ffb5eda88d221d9cf835f6a61ed98d9 # v3.0.0
         with:
           arch: ${{ matrix.settings.arch }}
           distro: ${{ matrix.settings.distro }}
@@ -503,15 +503,15 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -522,12 +522,12 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
       - name: Download napi artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: bindings-${{ matrix.settings.target }}
           path: .
       - name: Download wasm artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: bindings-wasm
       - name: Build and test Rollup
@@ -535,7 +535,7 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         if: matrix.coverage
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -558,18 +558,18 @@ jobs:
     if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -580,7 +580,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           path: artifacts
       - name: Copy wasm files

@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{matrix.settings.ref}}
       - name: Install Toolchain
@@ -38,7 +38,7 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - name: Restore Cargo cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -49,12 +49,12 @@ jobs:
           key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: 22
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -66,7 +66,7 @@ jobs:
       - name: Build artefacts 123
         run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: ${{ matrix.settings.name }}
           path: dist/
@@ -80,7 +80,7 @@ jobs:
     name: Report Performance
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: refs/pull/${{ github.event.number }}/merge
       - name: Install Toolchain
@@ -89,7 +89,7 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - name: Restore Cargo cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -100,12 +100,12 @@ jobs:
           key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: 22
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path:  |
             node_modules
@@ -115,7 +115,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           path: _benchmark
       - name: Change rollup import in internal benchmark
@@ -125,14 +125,14 @@ jobs:
       - name: Run internal benchmark
         run: node --expose-gc scripts/perf-report/index.js
       - name: Find Performance report
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: findPerformanceReport
         with:
           issue-number: ${{ github.event.number }}
           comment-author: 'github-actions[bot]'
           body-includes: 'Performance report'
       - name: Create or update Performance report
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         id: createOrUpdatePerformanceReport
         with:
           comment-id: ${{ steps.findPerformanceReport.outputs.comment-id }}
