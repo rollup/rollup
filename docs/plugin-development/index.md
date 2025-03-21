@@ -93,7 +93,7 @@ To interact with the build process, your plugin object includes "hooks". Hooks a
 - `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is `async`, subsequent hooks of this kind will wait until the current hook is resolved.
 - `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is `async`, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Instead of a function, hooks can also be objects. In that case, the actual hook function (or value for `banner/footer/intro/outro`) must be specified as `handler`. This allows you to provide additional optional properties that change hook execution:
+Instead of a function, hooks can also be objects. In that case, the actual hook function (or value for `banner/footer/intro/outro`) must be specified as `handler`. This allows you to provide additional optional properties that change hook execution or skip hook execution:
 
 - `order: "pre" | "post" | null`<br> If there are several plugins implementing this hook, either run this plugin first (`"pre"`), last (`"post"`), or in the user-specified position (no value or `null`).
 
@@ -139,6 +139,42 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
   			async handler({ dir }) {
   				const topLevelFiles = await readdir(path.resolve(dir));
   				console.log(topLevelFiles);
+  			}
+  		}
+  	};
+  }
+  ```
+
+- `filter`<br> Run this plugin hook only when the specified filter returns true. This property is only available for `resolveId`, `load`, `transform`. The `code` filter is only available for `transform` hook. The `id` filter supports [picomatch patterns](https://github.com/micromatch/picomatch#globbing-features).
+
+  ```ts
+  type StringOrRegExp = string | RegExp;
+  type StringFilter =
+  	| MaybeArray<StringOrRegExp>
+  	| {
+  			include?: MaybeArray<StringOrRegExp>;
+  			exclude?: MaybeArray<StringOrRegExp>;
+  	  };
+
+  interface HookFilter {
+  	id?: StringFilter;
+  	code?: StringFilter;
+  }
+  ```
+
+  ```js twoslash
+  /** @returns {import('rollup').Plugin} */
+  // ---cut---
+  export default function jsxAdditionalTransform() {
+  	return {
+  		name: 'jsxAdditionalTransform',
+  		transform: {
+  			filter: {
+  				id: '*.jsx',
+  				code: '<Custom'
+  			},
+  			handler(code) {
+  				// transform <Custom /> here
   			}
   		}
   	};
