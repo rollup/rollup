@@ -25,6 +25,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
     import_attributes: true,
     explicit_resource_management: true,
     decorators: true,
+    decorators_before_export: true,
     jsx,
     ..Default::default()
   });

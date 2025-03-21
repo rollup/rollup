@@ -29,12 +29,12 @@ impl AstConverter<'_> {
     let mut previous_element_end = jsx_opening_element.name.span().hi.0;
     self.convert_item_list_with_state(
       &jsx_opening_element.attrs,
-      &mut previous_element_end,
       end_position + JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
+      &mut previous_element_end,
       |ast_converter, jsx_attribute, previous_end| {
         ast_converter.convert_jsx_attribute_or_spread(jsx_attribute, *previous_end);
         *previous_end = jsx_attribute.span().hi.0;
-        true
+        (true, None)
       },
     );
     // end

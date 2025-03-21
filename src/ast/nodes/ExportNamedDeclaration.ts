@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type ClassDeclaration from './ClassDeclaration';
+import ClassDeclaration from './ClassDeclaration';
 import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
 import type ImportAttribute from './ImportAttribute';
@@ -41,7 +41,18 @@ export default class ExportNamedDeclaration extends NodeBase {
 		if (this.declaration === null) {
 			code.remove(start, end);
 		} else {
-			code.remove(this.start, this.declaration.start);
+			let endBoundary = this.declaration.start;
+			// the start of the decorator may be before the start of the class declaration
+			if (this.declaration instanceof ClassDeclaration) {
+				const decorators = this.declaration.decorators;
+				for (const decorator of decorators) {
+					endBoundary = Math.min(endBoundary, decorator.start);
+				}
+				if (endBoundary <= this.start) {
+					endBoundary = this.declaration.start;
+				}
+			}
+			code.remove(this.start, endBoundary);
 			(this.declaration as Node).render(code, options, { end, start });
 		}
 	}
