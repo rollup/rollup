@@ -27,7 +27,7 @@ runTestSuiteWithSamples(
 				const logs = [];
 				after(() => config.logs && compareLogs(logs, config.logs));
 
-				for (const format of FORMATS) {
+				for (const format of config.formats || FORMATS) {
 					it('generates ' + format, async () => {
 						process.chdir(directory);
 						const warnings = [];

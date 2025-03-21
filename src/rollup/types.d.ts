@@ -190,7 +190,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
-interface ModuleInfo extends ModuleOptions {
+export interface ModuleInfo extends ModuleOptions {
 	ast: ProgramNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
@@ -280,7 +280,7 @@ export interface ResolvedId extends ModuleOptions {
 
 export type ResolvedIdMap = Record<string, ResolvedId>;
 
-interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
+export interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean | 'absolute' | 'relative';
 	id: string;
 	resolvedBy?: string;
@@ -400,6 +400,23 @@ export type PluginImpl<O extends object = object, A = any> = (options?: O) => Pl
 
 export type OutputBundle = Record<string, OutputAsset | OutputChunk>;
 
+export type PreRenderedChunkWithFileName = PreRenderedChunk & { fileName: string };
+
+export interface ImportedInternalChunk {
+	type: 'internal';
+	fileName: string;
+	resolvedImportPath: string;
+	chunk: PreRenderedChunk;
+}
+
+export interface ImportedExternalChunk {
+	type: 'external';
+	fileName: string;
+	resolvedImportPath: string;
+}
+
+export type DynamicImportTargetChunk = ImportedInternalChunk | ImportedExternalChunk;
+
 export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
 	buildEnd: (this: PluginContext, error?: Error) => void;
@@ -425,6 +442,9 @@ export interface FunctionPluginHooks {
 			format: InternalModuleFormat;
 			moduleId: string;
 			targetModuleId: string | null;
+			chunk: PreRenderedChunkWithFileName;
+			targetChunk: PreRenderedChunkWithFileName | null;
+			getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
 		}
 	) => { left: string; right: string } | NullValue;
 	renderError: (this: PluginContext, error?: Error) => void;
@@ -504,7 +524,7 @@ type MakeAsync<Function_> = Function_ extends (
 	: never;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
+export type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
