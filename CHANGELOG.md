@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.37.0
+
+_2025-03-23_
+
+### Features
+
+- Support Musl Linux on Riscv64 architectures (#5726)
+- Handles class decorators placed before the `export` keyword (#5871)
+
+### Bug Fixes
+
+- Log Rust panic messages to the console when using the WASM build (#5875)
+
+### Pull Requests
+
+- [#5726](https://github.com/rollup/rollup/pull/5726): Add support for linux riscv64 musl (@fossdd, @leso-kn)
+- [#5871](https://github.com/rollup/rollup/pull/5871): feat: support decorators before or after export (@TrickyPi)
+- [#5875](https://github.com/rollup/rollup/pull/5875): capture Rust panic messages and output them to the console. (@luyahan, @lukastaegert)
+- [#5883](https://github.com/rollup/rollup/pull/5883): Pin digest of 3rd party actions (@re-taro)
+- [#5885](https://github.com/rollup/rollup/pull/5885): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.36.0
 
 _2025-03-17_
