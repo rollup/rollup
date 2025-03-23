@@ -1,8 +1,10 @@
 'use strict';
 
-var otherEntry = require('./generated-main.js');
+let a = {};
+let b = {};
 
+let c = {};
 
-
-exports.b = otherEntry.b;
-exports.c = otherEntry.c;
+exports.a = a;
+exports.b = b;
+exports.c = c;

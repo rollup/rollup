@@ -1,12 +1,17 @@
-System.register(['./generated-main3.js'], (function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			exports({ main1: module.m, second: module.a, shared: module.s });
-		}],
 		execute: (function () {
 
+			const second = exports("second", 1);
 
+			const shared = exports("shared", second + 'shared');
+
+			const main1 = exports("main1", 1);
+
+			const main2 = exports("m", 2);
+
+			const main3 = exports("a", 3);
 
 		})
 	};
