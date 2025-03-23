@@ -184,6 +184,22 @@ jobs:
               rustup target add riscv64gc-unknown-linux-gnu &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
+            target: riscv64gc-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              apk add binutils-riscv64 &&
+              mkdir -p /sysroot-riscv64/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-riscv64/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch riscv64 --root /sysroot-riscv64 gcc musl-dev &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-riscv64/usr/lib/gcc/riscv64-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-riscv64/usr/lib
+                -C linker=riscv64-alpine-linux-musl-ld
+                " &&
+              rustup target add riscv64gc-unknown-linux-musl &&
+              npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
+          - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             setup: |
               sudo apt-get update
