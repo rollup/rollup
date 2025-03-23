@@ -21,20 +21,20 @@ impl AstConverter<'_> {
     let mut keep_checking_directives = check_directive;
     self.convert_item_list_with_state(
       &block_statement.stmts,
-      &mut keep_checking_directives,
       end_position + BLOCK_STATEMENT_BODY_OFFSET,
+      &mut keep_checking_directives,
       |ast_converter, statement, can_be_directive| {
         if *can_be_directive {
           if let Stmt::Expr(expression) = statement {
             if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
               ast_converter.store_directive(expression, &string.value);
-              return true;
+              return (true, None);
             }
           }
         }
         *can_be_directive = false;
         ast_converter.convert_statement(statement);
-        true
+        (true, None)
       },
     );
     // end

@@ -1,10 +1,10 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
-  ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread, JSXAttrValue,
-  JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName, ModuleItem,
-  NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
-  SimpleAssignTarget, Stmt, VarDeclOrExpr,
+  AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
+  ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
+  JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
+  ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
+  PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
@@ -112,56 +112,68 @@ impl<'a> AstConverter<'a> {
   ) where
     F: Fn(&mut AstConverter, &T) -> bool,
   {
-    // for an empty list, we leave the referenced position at zero
-    if item_list.is_empty() {
-      return;
-    }
-    self.update_reference_position(reference_position);
-    // store number of items in first position
-    self
-      .buffer
-      .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
-    let mut reference_position = self.buffer.len();
-    // make room for the reference positions of the items
-    self
-      .buffer
-      .resize(self.buffer.len() + item_list.len() * 4, 0);
-    for item in item_list {
-      let insert_position = (self.buffer.len() as u32) >> 2;
-      if convert_item(self, item) {
-        self.buffer[reference_position..reference_position + 4]
-          .copy_from_slice(&insert_position.to_ne_bytes());
-      }
-      reference_position += 4;
-    }
+    self.convert_item_list_internal(
+      item_list,
+      Some(reference_position),
+      None,
+      |ast_converter, item, _state: Option<&mut ()>| (convert_item(ast_converter, item), None),
+    )
   }
 
   pub(crate) fn convert_item_list_with_state<T, S, F>(
     &mut self,
     item_list: &[T],
-    state: &mut S,
     reference_position: usize,
+    state: &mut S,
     convert_item: F,
   ) where
-    F: Fn(&mut AstConverter, &T, &mut S) -> bool,
+    F: Fn(&mut AstConverter, &T, &mut S) -> (bool, Option<u32>),
+  {
+    self.convert_item_list_internal(
+      item_list,
+      Some(reference_position),
+      Some(state),
+      |ast_converter, item, state| convert_item(ast_converter, item, state.unwrap()),
+    )
+  }
+
+  fn convert_item_list_internal<T, S, F>(
+    &mut self,
+    item_list: &[T],
+    reference_position: Option<usize>,
+    mut state: Option<&mut S>,
+    convert_item: F,
+  ) where
+    F: Fn(&mut AstConverter, &T, Option<&mut S>) -> (bool, Option<u32>),
   {
     // for an empty list, we leave the referenced position at zero
     if item_list.is_empty() {
       return;
     }
-    self.update_reference_position(reference_position);
+
+    if let Some(pos) = reference_position {
+      self.update_reference_position(pos);
+    }
+
     // store number of items in first position
     self
       .buffer
       .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
     let mut reference_position = self.buffer.len();
+
     // make room for the reference positions of the items
     self
       .buffer
       .resize(self.buffer.len() + item_list.len() * 4, 0);
+
     for item in item_list {
-      let insert_position = (self.buffer.len() as u32) >> 2;
-      if convert_item(self, item, state) {
+      let mut insert_position = self.buffer.len() as u32 >> 2;
+      let (should_update_reference_position, explicit_insert_position) =
+        convert_item(self, item, state.as_deref_mut());
+      if should_update_reference_position {
+        if let Some(explicit_insert_position) = explicit_insert_position {
+          insert_position = explicit_insert_position;
+        }
         self.buffer[reference_position..reference_position + 4]
           .copy_from_slice(&insert_position.to_ne_bytes());
       }
@@ -209,6 +221,25 @@ impl<'a> AstConverter<'a> {
     }
   }
 
+  pub(crate) fn store_outside_class_span_decorators(
+    &mut self,
+    outside_class_span_decorators: Option<&Vec<Decorator>>,
+    outside_class_span_decorators_insert_position: &mut Option<u32>,
+  ) {
+    if let Some(outside_class_span_decorators) = outside_class_span_decorators {
+      *outside_class_span_decorators_insert_position = Some((self.buffer.len() as u32) >> 2);
+      self.convert_item_list_internal(
+        outside_class_span_decorators,
+        None,
+        None,
+        |ast_converter, decorator, _state: Option<&mut ()>| {
+          ast_converter.store_decorator(decorator);
+          (true, None)
+        },
+      );
+    }
+  }
+
   pub(crate) fn convert_class_member(&mut self, class_member: &ClassMember) {
     match class_member {
       ClassMember::ClassProp(class_property) => self.convert_class_property(class_property),
@@ -225,7 +256,11 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub(crate) fn convert_declaration(&mut self, declaration: &Decl) {
+  pub(crate) fn convert_declaration(
+    &mut self,
+    declaration: &Decl,
+    outside_class_span_decorators_insert_position: Option<u32>,
+  ) {
     match declaration {
       Decl::Var(variable_declaration) => {
         self.store_variable_declaration(&VariableDeclaration::Var(variable_declaration))
@@ -235,7 +270,10 @@ impl<'a> AstConverter<'a> {
         &TYPE_FUNCTION_DECLARATION,
         Some(&function_declaration.ident),
       ),
-      Decl::Class(class_declaration) => self.store_class_declaration(class_declaration),
+      Decl::Class(class_declaration) => self.store_class_declaration(
+        class_declaration,
+        outside_class_span_decorators_insert_position,
+      ),
       Decl::Using(using_declaration) => {
         self.store_variable_declaration(&VariableDeclaration::Using(using_declaration))
       }
@@ -246,7 +284,11 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
+  fn convert_export_named_declaration(
+    &mut self,
+    export_named_declaration: &NamedExport,
+    module_item_insert_position: &mut u32,
+  ) {
     match export_named_declaration.specifiers.first() {
       Some(ExportSpecifier::Namespace(export_namespace_specifier)) => self
         .store_export_all_declaration(
@@ -261,6 +303,7 @@ impl<'a> AstConverter<'a> {
         export_named_declaration.src.as_deref(),
         None,
         &export_named_declaration.with,
+        Some(module_item_insert_position),
       ),
       Some(ExportSpecifier::Default(_)) => panic!("Unexpected default export specifier"),
     }
@@ -297,7 +340,7 @@ impl<'a> AstConverter<'a> {
         self.convert_call_expression(call_expression, false, false);
       }
       Expr::Class(class_expression) => {
-        self.store_class_expression(class_expression, &TYPE_CLASS_EXPRESSION);
+        self.store_class_expression(class_expression, &TYPE_CLASS_EXPRESSION, None);
       }
       Expr::Cond(conditional_expression) => {
         self.store_conditional_expression(conditional_expression);
@@ -520,20 +563,27 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_module_declaration(&mut self, module_declaration: &ModuleDecl) {
+  fn convert_module_declaration(
+    &mut self,
+    module_declaration: &ModuleDecl,
+    module_item_insert_position: &mut u32,
+  ) {
     match module_declaration {
       ModuleDecl::ExportDecl(export_declaration) => {
-        self.convert_export_declaration(export_declaration)
+        self.convert_export_declaration(export_declaration, module_item_insert_position)
       }
-      ModuleDecl::ExportNamed(export_named) => self.convert_export_named_declaration(export_named),
+      ModuleDecl::ExportNamed(export_named) => {
+        self.convert_export_named_declaration(export_named, module_item_insert_position)
+      }
       ModuleDecl::Import(import_declaration) => self.store_import_declaration(import_declaration),
-      ModuleDecl::ExportDefaultExpr(export_default_expression) => {
-        self.convert_export_default_expression(export_default_expression)
-      }
+      ModuleDecl::ExportDefaultExpr(export_default_expression) => self
+        .convert_export_default_expression(export_default_expression, module_item_insert_position),
       ModuleDecl::ExportAll(export_all) => self.convert_export_all(export_all),
-      ModuleDecl::ExportDefaultDecl(export_default_declaration) => {
-        self.convert_export_default_declaration(export_default_declaration)
-      }
+      ModuleDecl::ExportDefaultDecl(export_default_declaration) => self
+        .convert_export_default_declaration(
+          export_default_declaration,
+          module_item_insert_position,
+        ),
       ModuleDecl::TsImportEquals(_) => unimplemented!("Cannot convert ModuleDecl::TsImportEquals"),
       ModuleDecl::TsExportAssignment(_) => {
         unimplemented!("Cannot convert ModuleDecl::TsExportAssignment")
@@ -551,11 +601,15 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub(crate) fn convert_module_item(&mut self, module_item: &ModuleItem) {
+  pub(crate) fn convert_module_item(
+    &mut self,
+    module_item: &ModuleItem,
+    module_item_insert_position: &mut u32,
+  ) {
     match module_item {
       ModuleItem::Stmt(statement) => self.convert_statement(statement),
       ModuleItem::ModuleDecl(module_declaration) => {
-        self.convert_module_declaration(module_declaration);
+        self.convert_module_declaration(module_declaration, module_item_insert_position);
       }
     }
   }
@@ -709,7 +763,7 @@ impl<'a> AstConverter<'a> {
       Stmt::Break(break_statement) => self.store_break_statement(break_statement),
       Stmt::Block(block_statement) => self.store_block_statement(block_statement, false),
       Stmt::Continue(continue_statement) => self.store_continue_statement(continue_statement),
-      Stmt::Decl(declaration) => self.convert_declaration(declaration),
+      Stmt::Decl(declaration) => self.convert_declaration(declaration, None),
       Stmt::Debugger(debugger_statement) => self.store_debugger_statement(debugger_statement),
       Stmt::DoWhile(do_while_statement) => self.store_do_while_statement(do_while_statement),
       Stmt::Empty(empty_statement) => self.store_empty_statement(empty_statement),
@@ -768,4 +822,33 @@ pub(crate) fn update_reference_position(buffer: &mut [u8], reference_position: u
   let insert_position = (buffer.len() as u32) >> 2;
   buffer[reference_position..reference_position + 4]
     .copy_from_slice(&insert_position.to_ne_bytes());
+}
+
+pub(crate) fn get_outside_class_span_decorators_info<'a>(
+  span: &Span,
+  class: Option<&'a Class>,
+) -> (Option<u32>, bool, bool, Option<&'a Vec<Decorator>>) {
+  let mut are_decorators_before_export = false;
+  let mut are_decorators_after_export = false;
+  let mut outside_class_span_decorators = None;
+
+  if let Some(class) = class {
+    if !class.decorators.is_empty() {
+      let decorator_start_boundary = class.decorators[0].span.lo.0 - 1;
+      if decorator_start_boundary < span.lo.0 - 1 {
+        are_decorators_before_export = true;
+        outside_class_span_decorators = Some(&class.decorators);
+      } else if decorator_start_boundary < class.span.lo.0 - 1 {
+        are_decorators_after_export = true;
+        outside_class_span_decorators = Some(&class.decorators);
+      }
+    }
+  }
+
+  (
+    None,
+    are_decorators_before_export,
+    are_decorators_after_export,
+    outside_class_span_decorators,
+  )
 }

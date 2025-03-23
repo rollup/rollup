@@ -15,40 +15,42 @@ impl AstConverter<'_> {
       ModuleItemsOrStatements::ModuleItems(module_items) => {
         self.convert_item_list_with_state(
           module_items,
-          &mut keep_checking_directives,
           end_position + PROGRAM_BODY_OFFSET,
+          &mut keep_checking_directives,
           |ast_converter, module_item, can_be_directive| {
             if *can_be_directive {
               if let ModuleItem::Stmt(Stmt::Expr(expression)) = module_item {
                 if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
                   ast_converter.store_directive(expression, &string.value);
-                  return true;
+                  return (true, None);
                 }
               };
+              *can_be_directive = false;
             }
-            *can_be_directive = false;
-            ast_converter.convert_module_item(module_item);
-            true
+
+            let mut module_item_insert_position = ast_converter.buffer.len() as u32 >> 2;
+            ast_converter.convert_module_item(module_item, &mut module_item_insert_position);
+            (true, Some(module_item_insert_position))
           },
         );
       }
       ModuleItemsOrStatements::Statements(statements) => {
         self.convert_item_list_with_state(
           statements,
-          &mut keep_checking_directives,
           end_position + PROGRAM_BODY_OFFSET,
+          &mut keep_checking_directives,
           |ast_converter, statement, can_be_directive| {
             if *can_be_directive {
               if let Stmt::Expr(expression) = statement {
                 if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
                   ast_converter.store_directive(expression, &string.value);
-                  return true;
+                  return (true, None);
                 }
               };
+              *can_be_directive = false;
             }
-            *can_be_directive = false;
             ast_converter.convert_statement(statement);
-            true
+            (true, None)
           },
         );
       }
