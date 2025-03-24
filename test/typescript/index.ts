@@ -52,7 +52,7 @@ const _pluginHooks: rollup.Plugin = {
 const _pluginHookFilters: rollup.Plugin = {
 	load: {
 		filter: {
-			// @ts-expect-error 'code' filter is not supported for resolveId
+			// @ts-expect-error 'code' filter is not supported for load
 			code: 'bar',
 			id: 'foo'
 		},
