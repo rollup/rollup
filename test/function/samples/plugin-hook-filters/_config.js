@@ -10,7 +10,7 @@ for (const hook of hooks) {
 	calledHooks[hook] = {};
 }
 
-const s = {
+const expectedCalledHooks = {
 	resolveId: {
 		'./bar.js': [
 			'resolveId-{}',
@@ -144,7 +144,7 @@ module.exports = {
 	},
 	exports() {
 		for (const hook of hooks) {
-			assert.deepStrictEqual(calledHooks[hook], s[hook], hook);
+			assert.deepStrictEqual(calledHooks[hook], expectedCalledHooks[hook], hook);
 		}
 	},
 	warnings: [
