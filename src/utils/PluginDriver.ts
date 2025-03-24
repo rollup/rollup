@@ -300,23 +300,6 @@ export class PluginDriver {
 		);
 	}
 
-	private getCompiledTransformFilter(filter: HookFilter): TransformHookFilter | undefined {
-		if (!this.compiledPluginFilters.transformFilter.has(filter)) {
-			this.compiledPluginFilters.transformFilter.set(
-				filter,
-				createFilterForTransform(filter.id, filter.code)
-			);
-		}
-		return this.compiledPluginFilters.transformFilter.get(filter);
-	}
-
-	private getCompiledIdOnlyFilter(filter: HookFilter): PluginFilter | undefined {
-		if (!this.compiledPluginFilters.idOnlyFilter.has(filter)) {
-			this.compiledPluginFilters.idOnlyFilter.set(filter, createFilterForId(filter.id));
-		}
-		return this.compiledPluginFilters.idOnlyFilter.get(filter);
-	}
-
 	/**
 	 * Run an async plugin hook and return the result.
 	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks`
@@ -351,14 +334,18 @@ export class PluginDriver {
 			if (hookName === 'transform') {
 				const filter = hook.filter as HookFilter;
 				const hookParameters = parameters as Parameters<FunctionPluginHooks['transform']>;
-				const compiledFilter = this.getCompiledTransformFilter(filter);
+				const compiledFilter = getOrCreate(this.compiledPluginFilters.transformFilter, filter, () =>
+					createFilterForTransform(filter.id, filter.code)
+				);
 				if (compiledFilter && !compiledFilter(hookParameters[1], hookParameters[0])) {
 					return Promise.resolve();
 				}
 			} else if (hookName === 'resolveId' || hookName === 'load') {
 				const filter = hook.filter;
 				const hookParameters = parameters as Parameters<FunctionPluginHooks['load' | 'resolveId']>;
-				const compiledFilter = this.getCompiledIdOnlyFilter(filter);
+				const compiledFilter = getOrCreate(this.compiledPluginFilters.idOnlyFilter, filter, () =>
+					createFilterForId(filter.id)
+				);
 				if (compiledFilter && !compiledFilter(hookParameters[0])) {
 					return Promise.resolve();
 				}
