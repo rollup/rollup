@@ -20,12 +20,18 @@ interface NormalizedStringFilter {
 function patternToIdFilter(pattern: StringOrRegExp): PluginFilter {
 	if (pattern instanceof RegExp) {
 		return (id: string) => {
-			const result = pattern.test(id);
+			const normalizedId = normalize(id);
+			const result = pattern.test(normalizedId);
 			pattern.lastIndex = 0;
 			return result;
 		};
 	}
-	return picomatch(pattern, { dot: true });
+	const cwd = process.cwd();
+	const matcher = picomatch(pattern, { dot: true });
+	return (id: string) => {
+		const normalizedId = normalize(relative(cwd, id));
+		return matcher(normalizedId);
+	};
 }
 
 function patternToCodeFilter(pattern: StringOrRegExp): PluginFilter {
@@ -80,14 +86,7 @@ function createIdFilter(filter: StringFilter | undefined): PluginFilterWithFallb
 	const { exclude, include } = normalizeFilter(filter);
 	const excludeFilter = exclude?.map(patternToIdFilter);
 	const includeFilter = include?.map(patternToIdFilter);
-	const f = createFilter(excludeFilter, includeFilter);
-	const cwd = process.cwd();
-	return f
-		? id => {
-				const normalizedId = normalize(relative(cwd, id));
-				return f(normalizedId);
-			}
-		: undefined;
+	return createFilter(excludeFilter, includeFilter);
 }
 
 function createCodeFilter(filter: StringFilter | undefined): PluginFilterWithFallback | undefined {
