@@ -141,6 +141,12 @@ export default class CallExpression
 		options: RenderOptions,
 		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
+		this.callee.render(code, options, {
+			isCalleeOfRenderedParent: true,
+			renderedSurroundingElement
+		});
+		renderCallArguments(code, options, this);
+
 		if (this.callee instanceof Identifier) {
 			const variable = this.scope.findVariable(this.callee.name);
 
@@ -154,11 +160,6 @@ export default class CallExpression
 				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
 			}
 		}
-		this.callee.render(code, options, {
-			isCalleeOfRenderedParent: true,
-			renderedSurroundingElement
-		});
-		renderCallArguments(code, options, this);
 	}
 
 	applyDeoptimizations() {
