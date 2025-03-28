@@ -36,6 +36,7 @@ const expectedCalledHooks = {
 		'foo.js': [
 			'load-{}',
 			'load-{ id: {} }',
+			"load-{ id: 'foo.js' }",
 			"load-{ id: '**/foo.js' }",
 			"load-{ id: [ '**/foo.js' ] }",
 			"load-{ id: { include: '**/*.js' } }",
@@ -86,6 +87,7 @@ addPlugin('resolveId', { id: /foo\.js$/ });
 addPlugin('resolveId', { id: { exclude: /foo\.js$/ } });
 addPlugin('load', {});
 addPlugin('load', { id: {} });
+addPlugin('load', { id: 'foo.js' });
 addPlugin('load', { id: '**/foo.js' });
 addPlugin('load', { id: ['**/foo.js'] });
 addPlugin('load', { id: { include: '**/*.js' } });
