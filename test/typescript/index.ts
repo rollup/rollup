@@ -63,7 +63,7 @@ const _pluginHookFilters: rollup.Plugin = {
 		filter: {
 			// @ts-expect-error 'code' filter is not supported for resolveId
 			code: 'bar',
-			id: 'foo'
+			id: /foo/
 		},
 		handler(_source) {}
 	},
