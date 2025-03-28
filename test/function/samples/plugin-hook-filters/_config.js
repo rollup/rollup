@@ -12,44 +12,44 @@ for (const hook of hooks) {
 
 const expectedCalledHooks = {
 	resolveId: {
-		'./bar.js': [
-			'resolveId-{}',
-			'resolveId-{ id: {} }',
-			"resolveId-{ id: { include: '*.js' } }",
-			'resolveId-{ id: { include: /\\.js$/ } }',
-			"resolveId-{ id: { exclude: 'foo.js' } }",
-			"resolveId-{ id: { include: '*.js', exclude: 'foo.*' } }"
-		],
-		'./baz.js': [
-			'resolveId-{}',
-			'resolveId-{ id: {} }',
-			"resolveId-{ id: { include: '*.js' } }",
-			'resolveId-{ id: { include: /\\.js$/ } }',
-			"resolveId-{ id: { exclude: 'foo.js' } }",
-			"resolveId-{ id: { include: '*.js', exclude: 'foo.*' } }"
-		],
-		'./foo.js': [
-			'resolveId-{}',
-			'resolveId-{ id: {} }',
-			"resolveId-{ id: 'foo.js' }",
-			"resolveId-{ id: [ 'foo.js' ] }",
-			"resolveId-{ id: { include: '*.js' } }",
-			'resolveId-{ id: { include: /\\.js$/ } }',
-			"resolveId-{ id: { exclude: 'ba*.js' } }",
-			'resolveId-{ id: { exclude: /ba.*\\.js$/ } }',
-			'resolveId-{ id: { exclude: [ /ba.*\\.js$/ ] } }',
-			"resolveId-{ id: { include: 'foo.js', exclude: 'bar.js' } }"
-		]
+		'./bar.js': ['resolveId-{}', 'resolveId-{ id: { exclude: /foo\\.js$/ } }'],
+		'./baz.js': ['resolveId-{}', 'resolveId-{ id: { exclude: /foo\\.js$/ } }'],
+		'./foo.js': ['resolveId-{}', 'resolveId-{ id: /foo\\.js$/ }']
 	},
 	load: {
-		'bar.js': ['load-{}', "load-{ id: { exclude: 'foo.js' } }"],
-		'baz.js': ['load-{}', "load-{ id: { exclude: 'foo.js' } }"],
-		'foo.js': ['load-{}', "load-{ id: 'foo.js' }"]
+		'bar.js': [
+			'load-{}',
+			'load-{ id: {} }',
+			"load-{ id: { include: '**/*.js' } }",
+			'load-{ id: { include: /\\.js$/ } }',
+			"load-{ id: { exclude: '**/foo.js' } }",
+			"load-{ id: { include: '**/*.js', exclude: '**/foo.*' } }"
+		],
+		'baz.js': [
+			'load-{}',
+			'load-{ id: {} }',
+			"load-{ id: { include: '**/*.js' } }",
+			'load-{ id: { include: /\\.js$/ } }',
+			"load-{ id: { exclude: '**/foo.js' } }",
+			"load-{ id: { include: '**/*.js', exclude: '**/foo.*' } }"
+		],
+		'foo.js': [
+			'load-{}',
+			'load-{ id: {} }',
+			"load-{ id: '**/foo.js' }",
+			"load-{ id: [ '**/foo.js' ] }",
+			"load-{ id: { include: '**/*.js' } }",
+			'load-{ id: { include: /\\.js$/ } }',
+			"load-{ id: { exclude: '**/ba*.js' } }",
+			'load-{ id: { exclude: /ba.*\\.js$/ } }',
+			'load-{ id: { exclude: [ /ba.*\\.js$/ ] } }',
+			"load-{ id: { include: '**/foo.js', exclude: '**/bar.js' } }"
+		]
 	},
 	transform: {
 		'bar.js': [
 			'transform-{}',
-			"transform-{ id: { exclude: 'foo.js' } }",
+			"transform-{ id: { exclude: '**/foo.js' } }",
 			"transform-{ code: { exclude: 'import.meta.a' } }",
 			'transform-{ code: { exclude: /import\\.\\w+\\.a/ } }',
 			'transform-{ code: { exclude: [ /import\\.\\w+\\.a/ ] } }',
@@ -57,7 +57,7 @@ const expectedCalledHooks = {
 		],
 		'baz.js': [
 			'transform-{}',
-			"transform-{ id: { exclude: 'foo.js' } }",
+			"transform-{ id: { exclude: '**/foo.js' } }",
 			"transform-{ code: 'import.meta.a' }",
 			"transform-{ code: [ 'import.meta.a' ] }",
 			"transform-{ code: { include: 'import.meta.a' } }",
@@ -67,39 +67,39 @@ const expectedCalledHooks = {
 		],
 		'foo.js': [
 			'transform-{}',
-			"transform-{ id: 'foo.js' }",
+			"transform-{ id: '**/foo.js' }",
 			"transform-{ code: 'import.meta.a' }",
 			"transform-{ code: [ 'import.meta.a' ] }",
 			"transform-{ code: { include: 'import.meta.a' } }",
 			'transform-{ code: { include: /import\\.\\w+\\.a/ } }',
 			'transform-{ code: { include: [ /import\\.\\w+\\.a/ ] } }',
 			"transform-{ code: { include: 'import.meta.a', exclude: 'import.meta.b' } }",
-			"transform-{ id: { exclude: 'ba*.js' }, code: 'import.meta.a' }",
-			"transform-{ id: { include: 'foo.js', exclude: 'ba*.js' }, code: 'import.meta.b' }"
+			"transform-{ id: { exclude: '**/ba*.js' }, code: 'import.meta.a' }",
+			"transform-{\n  id: { include: '**/foo.js', exclude: '**/ba*.js' },\n  code: 'import.meta.b'\n}"
 		]
 	}
 };
 
 const plugins = [];
 addPlugin('resolveId', {});
-addPlugin('resolveId', { id: {} });
-addPlugin('resolveId', { id: 'foo.js' });
-addPlugin('resolveId', { id: ['foo.js'] });
-addPlugin('resolveId', { id: { include: '*.js' } });
-addPlugin('resolveId', { id: { include: /\.js$/ } });
-addPlugin('resolveId', { id: { exclude: 'foo.js' } });
-addPlugin('resolveId', { id: { exclude: 'ba*.js' } });
-addPlugin('resolveId', { id: { exclude: /ba.*\.js$/ } });
-addPlugin('resolveId', { id: { exclude: [/ba.*\.js$/] } });
-addPlugin('resolveId', { id: { include: 'foo.js', exclude: 'bar.js' } });
-// exclude has higher priority so it does not match foo.js
-addPlugin('resolveId', { id: { include: '*.js', exclude: 'foo.*' } });
+addPlugin('resolveId', { id: /foo\.js$/ });
+addPlugin('resolveId', { id: { exclude: /foo\.js$/ } });
 addPlugin('load', {});
-addPlugin('load', { id: 'foo.js' });
-addPlugin('load', { id: { exclude: 'foo.js' } });
+addPlugin('load', { id: {} });
+addPlugin('load', { id: '**/foo.js' });
+addPlugin('load', { id: ['**/foo.js'] });
+addPlugin('load', { id: { include: '**/*.js' } });
+addPlugin('load', { id: { include: /\.js$/ } });
+addPlugin('load', { id: { exclude: '**/foo.js' } });
+addPlugin('load', { id: { exclude: '**/ba*.js' } });
+addPlugin('load', { id: { exclude: /ba.*\.js$/ } });
+addPlugin('load', { id: { exclude: [/ba.*\.js$/] } });
+addPlugin('load', { id: { include: '**/foo.js', exclude: '**/bar.js' } });
+// exclude has higher priority so it does not match foo.js
+addPlugin('load', { id: { include: '**/*.js', exclude: '**/foo.*' } });
 addPlugin('transform', {});
-addPlugin('transform', { id: 'foo.js' });
-addPlugin('transform', { id: { exclude: 'foo.js' } });
+addPlugin('transform', { id: '**/foo.js' });
+addPlugin('transform', { id: { exclude: '**/foo.js' } });
 addPlugin('transform', { code: 'import.meta.a' });
 addPlugin('transform', { code: ['import.meta.a'] });
 addPlugin('transform', { code: { include: 'import.meta.a' } });
@@ -111,8 +111,11 @@ addPlugin('transform', { code: { exclude: [/import\.\w+\.a/] } });
 addPlugin('transform', { code: { include: 'import.meta.a', exclude: 'import.meta.b' } });
 // exclude has higher priority so it does not match import.meta.a
 addPlugin('transform', { code: { include: /import\.meta\.\w+/, exclude: /import\.\w+\.a/ } });
-addPlugin('transform', { id: { exclude: 'ba*.js' }, code: 'import.meta.a' });
-addPlugin('transform', { id: { include: 'foo.js', exclude: 'ba*.js' }, code: 'import.meta.b' });
+addPlugin('transform', { id: { exclude: '**/ba*.js' }, code: 'import.meta.a' });
+addPlugin('transform', {
+	id: { include: '**/foo.js', exclude: '**/ba*.js' },
+	code: 'import.meta.b'
+});
 
 function addPlugin(hook, filter) {
 	const name = `${hook}-${util.inspect(filter)}`;

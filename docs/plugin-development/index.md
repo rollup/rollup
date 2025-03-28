@@ -145,15 +145,15 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
   }
   ```
 
-- `filter`<br> Run this plugin hook only when the specified filter returns true. This property is only available for `resolveId`, `load`, `transform`. The `code` filter is only available for `transform` hook. The `id` filter supports [picomatch patterns](https://github.com/micromatch/picomatch#globbing-features).
+- `filter`<br> Run this plugin hook only when the specified filter returns true. This property is only available for `resolveId`, `load`, `transform`. The `code` filter is only available for `transform` hook. The `id` filter supports [picomatch patterns](https://github.com/micromatch/picomatch#globbing-features) except for `resolveId` hook.
 
   ```ts
   type StringOrRegExp = string | RegExp;
-  type StringFilter =
-  	| MaybeArray<StringOrRegExp>
+  type StringFilter<Value = StringOrRegExp> =
+  	| MaybeArray<Value>
   	| {
-  			include?: MaybeArray<StringOrRegExp>;
-  			exclude?: MaybeArray<StringOrRegExp>;
+  			include?: MaybeArray<Value>;
+  			exclude?: MaybeArray<Value>;
   	  };
 
   interface HookFilter {

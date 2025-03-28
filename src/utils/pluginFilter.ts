@@ -1,7 +1,7 @@
 import picomatch from 'picomatch';
 import type { StringFilter, StringOrRegExp } from '../rollup/types';
 import { ensureArray } from './ensureArray';
-import { normalize, relative } from './path';
+import { isAbsolute, normalize, resolve } from './path';
 
 const FALLBACK_TRUE = 1;
 const FALLBACK_FALSE = 0;
@@ -17,6 +17,15 @@ interface NormalizedStringFilter {
 	exclude?: StringOrRegExp[];
 }
 
+function getMatcherString(glob: string, cwd: string) {
+	if (glob.startsWith('**') || isAbsolute(glob)) {
+		return normalize(glob);
+	}
+
+	const resolved = resolve(cwd, glob);
+	return normalize(resolved);
+}
+
 function patternToIdFilter(pattern: StringOrRegExp): PluginFilter {
 	if (pattern instanceof RegExp) {
 		return (id: string) => {
@@ -27,9 +36,10 @@ function patternToIdFilter(pattern: StringOrRegExp): PluginFilter {
 		};
 	}
 	const cwd = process.cwd();
-	const matcher = picomatch(pattern, { dot: true });
+	const glob = getMatcherString(pattern, cwd);
+	const matcher = picomatch(glob, { dot: true });
 	return (id: string) => {
-		const normalizedId = normalize(relative(cwd, id));
+		const normalizedId = normalize(id);
 		return matcher(normalizedId);
 	};
 }

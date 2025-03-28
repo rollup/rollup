@@ -274,11 +274,11 @@ export interface PluginContextMeta {
 
 export type StringOrRegExp = string | RegExp;
 
-export type StringFilter =
-	| MaybeArray<StringOrRegExp>
+export type StringFilter<Value = StringOrRegExp> =
+	| MaybeArray<Value>
 	| {
-			include?: MaybeArray<StringOrRegExp>;
-			exclude?: MaybeArray<StringOrRegExp>;
+			include?: MaybeArray<Value>;
+			exclude?: MaybeArray<Value>;
 	  };
 
 export interface HookFilter {
@@ -542,10 +542,12 @@ export type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | 
 
 export type HookFilterExtension<K extends keyof FunctionPluginHooks> = K extends 'transform'
 	? { filter?: HookFilter }
-	: K extends 'load' | 'resolveId'
+	: K extends 'load'
 		? { filter?: Pick<HookFilter, 'id'> }
-		: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-			{};
+		: K extends 'resolveId'
+			? { filter?: { id: StringFilter<RegExp> } }
+			: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+				{};
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
