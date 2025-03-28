@@ -14,6 +14,7 @@ impl AstConverter<'_> {
     node_type: &[u8; 4],
     identifier: Option<&Ident>,
     class: &Class,
+    outside_class_span_decorators_insert_position: Option<u32>,
   ) {
     let end_position = self.add_type_and_start(
       node_type,
@@ -23,14 +24,23 @@ impl AstConverter<'_> {
     );
     let mut body_start_search = class.span.lo.0 - 1;
     // decorators
-    self.convert_item_list(
-      &class.decorators,
-      end_position + CLASS_DECLARATION_DECORATORS_OFFSET,
-      |ast_converter, decorator| {
-        ast_converter.store_decorator(decorator);
-        true
-      },
-    );
+    if let Some(outside_class_span_decorators_insert_position) =
+      outside_class_span_decorators_insert_position
+    {
+      self.buffer[end_position + CLASS_DECLARATION_DECORATORS_OFFSET
+        ..end_position + CLASS_DECLARATION_DECORATORS_OFFSET + 4]
+        .copy_from_slice(&outside_class_span_decorators_insert_position.to_ne_bytes());
+    } else {
+      self.convert_item_list(
+        &class.decorators,
+        end_position + CLASS_DECLARATION_DECORATORS_OFFSET,
+        |ast_converter, decorator| {
+          ast_converter.store_decorator(decorator);
+          true
+        },
+      );
+    }
+
     if !class.decorators.is_empty() {
       body_start_search = class.decorators.last().unwrap().span.hi.0 - 1;
     }

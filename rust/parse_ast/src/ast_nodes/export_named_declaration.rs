@@ -6,7 +6,8 @@ use crate::convert_ast::converter::ast_constants::{
   EXPORT_NAMED_DECLARATION_RESERVED_BYTES, EXPORT_NAMED_DECLARATION_SOURCE_OFFSET,
   EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET, TYPE_EXPORT_NAMED_DECLARATION,
 };
-use crate::convert_ast::converter::AstConverter;
+
+use crate::convert_ast::converter::{get_outside_class_span_decorators_info, AstConverter};
 
 impl AstConverter<'_> {
   pub(crate) fn store_export_named_declaration(
@@ -16,7 +17,31 @@ impl AstConverter<'_> {
     src: Option<&Str>,
     declaration: Option<&Decl>,
     with: &Option<Box<ObjectLit>>,
+    module_item_insert_position: Option<&mut u32>,
   ) {
+    let (
+      mut outside_class_span_decorators_insert_position,
+      are_decorators_before_export,
+      are_decorators_after_export,
+      outside_class_span_decorators,
+    ) = get_outside_class_span_decorators_info(
+      span,
+      match declaration {
+        Some(Decl::Class(class_declaration)) => Some(&class_declaration.class),
+        _ => None,
+      },
+    );
+
+    if are_decorators_before_export {
+      self.store_outside_class_span_decorators(
+        outside_class_span_decorators,
+        &mut outside_class_span_decorators_insert_position,
+      );
+      if let Some(module_item_insert_position) = module_item_insert_position {
+        *module_item_insert_position = (self.buffer.len() as u32) >> 2;
+      }
+    }
+
     let end_position = self.add_type_and_start(
       &TYPE_EXPORT_NAMED_DECLARATION,
       span,
@@ -27,6 +52,14 @@ impl AstConverter<'_> {
         _ => false,
       },
     );
+
+    if are_decorators_after_export {
+      self.store_outside_class_span_decorators(
+        outside_class_span_decorators,
+        &mut outside_class_span_decorators_insert_position,
+      );
+    }
+
     // specifiers
     self.convert_item_list(
       specifiers,
@@ -39,7 +72,7 @@ impl AstConverter<'_> {
     // declaration
     if let Some(declaration) = declaration {
       self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET);
-      self.convert_declaration(declaration);
+      self.convert_declaration(declaration, outside_class_span_decorators_insert_position);
     }
     // source
     if let Some(src) = src {
@@ -55,13 +88,18 @@ impl AstConverter<'_> {
     self.add_end(end_position, span);
   }
 
-  pub(crate) fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
+  pub(crate) fn convert_export_declaration(
+    &mut self,
+    export_declaration: &ExportDecl,
+    module_item_insert_position: &mut u32,
+  ) {
     self.store_export_named_declaration(
       &export_declaration.span,
       &[],
       None,
       Some(&export_declaration.decl),
       &None,
+      Some(module_item_insert_position),
     );
   }
 }
