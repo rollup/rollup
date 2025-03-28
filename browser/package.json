@@ -20,7 +20,7 @@
   },
   "homepage": "https://rollupjs.org/",
   "dependencies": {
-    "@types/estree": "1.0.6"
+    "@types/estree": "1.0.7"
   },
   "files": [
     "dist/**/*.wasm",

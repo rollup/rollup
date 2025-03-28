@@ -9,7 +9,7 @@ parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
 js-sys = "0.3.77"
 getrandom = { version = "0.2.15", features = ["js"] }
-console_error_panic_hook = "0.1"
+console_error_panic_hook = "0.1.7"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
