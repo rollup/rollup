@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.38.0
+
+_2025-03-29_
+
+### Features
+
+- Support `.filter` option in `resolveId`, `load` and `transform` hooks (#5882)
+
+### Pull Requests
+
+- [#5882](https://github.com/rollup/rollup/pull/5882): Add support for hook filters (@sapphi-red)
+- [#5894](https://github.com/rollup/rollup/pull/5894): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5895](https://github.com/rollup/rollup/pull/5895): chore(deps): update dependency eslint-plugin-unicorn to v58 (@renovate[bot])
+
 ## 4.37.0
 
 _2025-03-23_
