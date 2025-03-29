@@ -1,12 +1,12 @@
-System.register(['./generated-main.js'], (function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			exports({ b: module.b, c: module.c });
-		}],
 		execute: (function () {
 
+			let a = exports("a", {});
+			let b = exports("b", {});
 
+			let c = exports("c", {});
 
 		})
 	};

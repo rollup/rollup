@@ -198,6 +198,8 @@ export default class Chunk {
 	private readonly renderedModules: Record<string, RenderedModule> = Object.create(null);
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
+	/** Modules with 'allow-extension' that should have preserved exports within the chunk */
+	private allowExtensionModules = new Set<Module>();
 
 	constructor(
 		private readonly orderedModules: readonly Module[],
@@ -375,6 +377,18 @@ export default class Chunk {
 				remainingExports.delete(variable);
 			}
 		}
+
+		for (const module of this.allowExtensionModules) {
+			const exportNamesByVariable = module.getExportNamesByVariable();
+			for (const [variable, exportNames] of exportNamesByVariable) {
+				this.exportNamesByVariable.set(variable, [...exportNames]);
+				for (const exportName of exportNames) {
+					this.exportsByName.set(exportName, variable);
+				}
+				remainingExports.delete(variable);
+			}
+		}
+
 		if (this.outputOptions.minifyInternalExports) {
 			assignExportsToMangledNames(remainingExports, this.exportsByName, this.exportNamesByVariable);
 		} else {
@@ -395,17 +409,25 @@ export default class Chunk {
 		const exposedVariables = new Set<Variable>(
 			this.dynamicEntryModules.map(({ namespace }) => namespace)
 		);
+
 		for (const module of entryModules) {
-			if (module.preserveSignature) {
-				for (const exportedVariable of module.getExportNamesByVariable().keys()) {
-					// We need to expose all entry exports from this chunk
-					if (this.chunkByModule.get(exportedVariable.module as Module) === this) {
-						exposedVariables.add(exportedVariable);
+			if (module.preserveSignature === 'allow-extension') {
+				const canPreserveExports = this.canPreserveModuleExports(module);
+
+				if (canPreserveExports) {
+					this.allowExtensionModules.add(module);
+
+					if (!this.facadeModule) {
+						this.facadeModule = module;
+						this.strictFacade = false;
+						this.assignFacadeName({}, module, this.outputOptions.preserveModules);
 					}
+					this.facadeChunkByModule.set(module, this);
+
+					continue;
 				}
 			}
-		}
-		for (const module of entryModules) {
+
 			const requiredFacades: FacadeName[] = Array.from(
 				new Set(
 					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
@@ -486,7 +508,32 @@ export default class Chunk {
 		if (!this.outputOptions.preserveModules) {
 			this.addNecessaryImportsForFacades();
 		}
+
 		return facades;
+	}
+
+	private canPreserveModuleExports(module: Module): boolean {
+		const exportNamesByVariable = module.getExportNamesByVariable();
+
+		// Check for conflicts - an export name is a conflict if it points to a different module or definition
+		for (const [variable, exportNames] of exportNamesByVariable) {
+			for (const exportName of exportNames) {
+				const existingVariable = this.exportsByName.get(exportName);
+				// It's ok if the same export name in two modules references the exact same variable
+				if (existingVariable && existingVariable !== variable) {
+					return false;
+				}
+			}
+		}
+
+		// No actual conflicts found, add export names for future conflict checks
+		for (const [variable, exportNames] of exportNamesByVariable) {
+			for (const exportName of exportNames) {
+				this.exportsByName.set(exportName, variable);
+			}
+		}
+
+		return true;
 	}
 
 	getChunkName(): string {

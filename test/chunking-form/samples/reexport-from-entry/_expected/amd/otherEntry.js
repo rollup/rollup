@@ -1,8 +1,12 @@
-define(['exports', './generated-main'], (function (exports, otherEntry) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
+	let a = {};
+	let b = {};
 
+	let c = {};
 
-	exports.b = otherEntry.b;
-	exports.c = otherEntry.c;
+	exports.a = a;
+	exports.b = b;
+	exports.c = c;
 
 }));

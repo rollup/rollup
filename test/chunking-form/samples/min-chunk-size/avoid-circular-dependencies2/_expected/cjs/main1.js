@@ -1,9 +1,17 @@
 'use strict';
 
-var main1 = require('./generated-main3.js');
+const second = 1;
 
+const shared = second + 'shared';
 
+const main1 = 1;
 
-exports.main1 = main1.main1;
-exports.second = main1.second;
-exports.shared = main1.shared;
+const main2 = 2;
+
+const main3 = 3;
+
+exports.main1 = main1;
+exports.main2 = main2;
+exports.main3 = main3;
+exports.second = second;
+exports.shared = shared;

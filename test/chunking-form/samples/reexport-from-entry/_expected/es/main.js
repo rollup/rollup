@@ -1,1 +1,1 @@
-export { a, c } from './generated-main.js';
+export { a, c } from './otherEntry.js';
