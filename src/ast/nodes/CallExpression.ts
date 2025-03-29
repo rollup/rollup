@@ -33,6 +33,9 @@ export default class CallExpression
 	/** Marked with #__PURE__ annotation */
 	declare annotationPure?: boolean;
 
+	private _evalWarned = false;
+	private _namespaceWarned = false;
+
 	get optional(): boolean {
 		return isFlagSet(this.flags, Flag.optional);
 	}
@@ -42,17 +45,6 @@ export default class CallExpression
 
 	bind(): void {
 		super.bind();
-		if (this.callee instanceof Identifier) {
-			const variable = this.scope.findVariable(this.callee.name);
-
-			if (variable.isNamespace) {
-				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
-			}
-
-			if (this.callee.name === 'eval') {
-				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
-			}
-		}
 		this.interaction = {
 			args: [
 				this.callee instanceof MemberExpression && !this.callee.variable
@@ -149,6 +141,19 @@ export default class CallExpression
 		options: RenderOptions,
 		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
+		if (this.callee instanceof Identifier) {
+			const variable = this.scope.findVariable(this.callee.name);
+
+			if (!this._namespaceWarned && variable.isNamespace) {
+				this._namespaceWarned = true;
+				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
+			}
+
+			if (!this._evalWarned && this.callee.name === 'eval') {
+				this._evalWarned = true;
+				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
+			}
+		}
 		this.callee.render(code, options, {
 			isCalleeOfRenderedParent: true,
 			renderedSurroundingElement
