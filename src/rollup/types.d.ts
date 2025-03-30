@@ -272,6 +272,20 @@ export interface PluginContextMeta {
 	watchMode: boolean;
 }
 
+export type StringOrRegExp = string | RegExp;
+
+export type StringFilter<Value = StringOrRegExp> =
+	| MaybeArray<Value>
+	| {
+			include?: MaybeArray<Value>;
+			exclude?: MaybeArray<Value>;
+	  };
+
+export interface HookFilter {
+	id?: StringFilter;
+	code?: StringFilter;
+}
+
 export interface ResolvedId extends ModuleOptions {
 	external: boolean | 'absolute';
 	id: string;
@@ -526,11 +540,20 @@ type MakeAsync<Function_> = Function_ extends (
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
 
+export type HookFilterExtension<K extends keyof FunctionPluginHooks> = K extends 'transform'
+	? { filter?: HookFilter }
+	: K extends 'load'
+		? { filter?: Pick<HookFilter, 'id'> }
+		: K extends 'resolveId'
+			? { filter?: { id: StringFilter<RegExp> } }
+			: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+				{};
+
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
 		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K],
 		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-		K extends ParallelPluginHooks ? { sequential?: boolean } : {}
+		HookFilterExtension<K> & (K extends ParallelPluginHooks ? { sequential?: boolean } : {})
 	>;
 };
 
