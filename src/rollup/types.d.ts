@@ -545,7 +545,7 @@ export type HookFilterExtension<K extends keyof FunctionPluginHooks> = K extends
 	: K extends 'load'
 		? { filter?: Pick<HookFilter, 'id'> }
 		: K extends 'resolveId'
-			? { filter?: { id: StringFilter<RegExp> } }
+			? { filter?: { id?: StringFilter<RegExp> } }
 			: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 				{};
 
