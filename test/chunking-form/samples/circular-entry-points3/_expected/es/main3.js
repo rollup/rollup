@@ -1,1 +1,1 @@
-export { C } from './generated-main3.js';
+export { C } from './main2.js';

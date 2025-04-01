@@ -1,1 +1,6 @@
-export { b, c } from './generated-main.js';
+let a = {};
+let b = {};
+
+let c = {};
+
+export { a, b, c };

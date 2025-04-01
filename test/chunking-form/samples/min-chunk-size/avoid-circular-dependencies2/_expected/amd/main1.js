@@ -1,9 +1,19 @@
-define(['exports', './generated-main3'], (function (exports, main1) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
+	const second = 1;
 
+	const shared = second + 'shared';
 
-	exports.main1 = main1.main1;
-	exports.second = main1.second;
-	exports.shared = main1.shared;
+	const main1 = 1;
+
+	const main2 = 2;
+
+	const main3 = 3;
+
+	exports.main1 = main1;
+	exports.main2 = main2;
+	exports.main3 = main3;
+	exports.second = second;
+	exports.shared = shared;
 
 }));
