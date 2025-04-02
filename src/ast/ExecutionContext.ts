@@ -20,6 +20,7 @@ interface ControlFlowContext {
 
 export interface InclusionContext extends ControlFlowContext {
 	includedCallArguments: Set<Entity>;
+	withinTopLevelAwait: boolean;
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
@@ -38,7 +39,8 @@ export function createInclusionContext(): InclusionContext {
 		hasBreak: false,
 		hasContinue: false,
 		includedCallArguments: new Set(),
-		includedLabels: new Set()
+		includedLabels: new Set(),
+		withinTopLevelAwait: false
 	};
 }
 
