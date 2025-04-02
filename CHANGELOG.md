@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 4.39.0
+
+_2025-04-02_
+
+### Features
+
+- Do not create separate facade chunks if a chunk would contain several entry modules that allow export extension if there are no export name conflicts (#5891)
+
+### Bug Fixes
+
+- Mark the `id` property as optional in the filter for the `resolveId` hook (#5896)
+
+### Pull Requests
+
+- [#5891](https://github.com/rollup/rollup/pull/5891): chunk: merge allow-extension modules (@wmertens, @lukastaegert)
+- [#5893](https://github.com/rollup/rollup/pull/5893): chore(deps): update dependency vite to v6.2.4 [security] (@renovate[bot])
+- [#5896](https://github.com/rollup/rollup/pull/5896): fix: resolveId id filter is optional (@sapphi-red)
+
 ## 4.38.0
 
 _2025-03-29_
