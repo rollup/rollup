@@ -33,8 +33,12 @@ export default class CallExpression
 	/** Marked with #__PURE__ annotation */
 	declare annotationPure?: boolean;
 
-	private _evalWarned = false;
-	private _namespaceWarned = false;
+	private get hasCheckedForWarnings(): boolean {
+		return isFlagSet(this.flags, Flag.checkedForWarnings);
+	}
+	private set hasCheckedForWarnings(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.checkedForWarnings, value);
+	}
 
 	get optional(): boolean {
 		return isFlagSet(this.flags, Flag.optional);
@@ -147,16 +151,13 @@ export default class CallExpression
 		});
 		renderCallArguments(code, options, this);
 
-		if (this.callee instanceof Identifier) {
+		if (this.callee instanceof Identifier && !this.hasCheckedForWarnings) {
+			this.hasCheckedForWarnings = true;
 			const variable = this.scope.findVariable(this.callee.name);
-
-			if (!this._namespaceWarned && variable.isNamespace) {
-				this._namespaceWarned = true;
+			if (variable.isNamespace) {
 				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
 			}
-
-			if (!this._evalWarned && this.callee.name === 'eval') {
-				this._evalWarned = true;
+			if (this.callee.name === 'eval') {
 				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
 			}
 		}

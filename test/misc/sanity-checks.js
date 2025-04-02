@@ -23,13 +23,14 @@ describe('sanity checks', () => {
 
 	it('node API passes warning and default handler to custom onwarn function', async () => {
 		let parameters;
-		await rollup.rollup({
+		const bundle = await rollup.rollup({
 			input: 'x',
 			plugins: [loader({ x: `eval(42);` })],
 			onwarn(warning, onwarn) {
 				parameters = [warning, onwarn];
 			}
 		});
+		await bundle.generate({ format: 'es' });
 		assert.equal(parameters[0].code, 'EVAL');
 		assert.equal(
 			parameters[0].message,
