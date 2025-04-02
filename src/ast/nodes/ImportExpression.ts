@@ -32,6 +32,7 @@ import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -65,13 +66,17 @@ export default class ImportExpression extends NodeBase {
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
 
+	get withinTopLevelAwait() {
+		return isFlagSet(this.flags, Flag.withinTopLevelAwait);
+	}
+
+	set withinTopLevelAwait(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.withinTopLevelAwait, value);
+	}
+
 	// Do not bind attributes
 	bind(): void {
 		this.source.bind();
-	}
-
-	get isFollowingTopLevelAwait() {
-		return this.parent instanceof AwaitExpression && this.parent.isTopLevelAwait;
 	}
 
 	/**
@@ -176,18 +181,19 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		this.source.include(context, includeChildrenRecursively);
 	}
 
-	includeNode() {
+	includeNode(context: InclusionContext) {
 		this.included = true;
+		this.withinTopLevelAwait = context.withinTopLevelAwait;
 		this.scope.context.includeDynamicImport(this);
 		this.scope.addAccessedDynamicImport(this);
 	}
 
-	includePath(path: ObjectPath): void {
-		if (!this.included) this.includeNode();
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
 		// Technically, this is not correct as dynamic imports return a Promise.
 		if (this.hasUnknownAccessedKey) return;
 		if (path[0] === UnknownKey) {

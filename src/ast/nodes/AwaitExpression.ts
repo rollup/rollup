@@ -24,7 +24,10 @@ export default class AwaitExpression extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) this.includeNode(context);
-		this.argument.include(context, includeChildrenRecursively);
+		this.argument.include(
+			{ ...context, withinTopLevelAwait: this.isTopLevelAwait },
+			includeChildrenRecursively
+		);
 	}
 
 	includeNode(context: InclusionContext) {
@@ -40,13 +43,13 @@ export default class AwaitExpression extends NodeBase {
 			this.isTopLevelAwait = true;
 		}
 		// Thenables need to be included
-		this.argument.includePath(THEN_PATH, context);
+		this.argument.includePath(THEN_PATH, { ...context, withinTopLevelAwait: this.isTopLevelAwait });
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
-		this.argument.includePath(path, context);
+		this.argument.includePath(path, { ...context, withinTopLevelAwait: this.isTopLevelAwait });
 	}
 }
 
