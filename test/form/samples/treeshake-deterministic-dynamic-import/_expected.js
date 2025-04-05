@@ -22,6 +22,7 @@ async function entry() {
 (await Promise.resolve().then(function () { return sub2; })).bar2();
   const { foo2 } = await Promise.resolve().then(function () { return sub2; });
   const { foo3 } = await Promise.resolve().then(function () { return sub2; });
+  Promise.resolve().then(function () { return sub2; }).then((m) => m.baz2);
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
 
