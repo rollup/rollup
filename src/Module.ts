@@ -1366,7 +1366,7 @@ export default class Module {
 		if (resolution instanceof Module) {
 			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);
-				if (node.isFollowingTopLevelAwait) {
+				if (node.withinTopLevelAwait) {
 					resolution.includedDirectTopLevelAwaitingDynamicImporters.add(this);
 				}
 			}
