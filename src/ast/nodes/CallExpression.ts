@@ -33,6 +33,13 @@ export default class CallExpression
 	/** Marked with #__PURE__ annotation */
 	declare annotationPure?: boolean;
 
+	private get hasCheckedForWarnings(): boolean {
+		return isFlagSet(this.flags, Flag.checkedForWarnings);
+	}
+	private set hasCheckedForWarnings(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.checkedForWarnings, value);
+	}
+
 	get optional(): boolean {
 		return isFlagSet(this.flags, Flag.optional);
 	}
@@ -42,17 +49,6 @@ export default class CallExpression
 
 	bind(): void {
 		super.bind();
-		if (this.callee instanceof Identifier) {
-			const variable = this.scope.findVariable(this.callee.name);
-
-			if (variable.isNamespace) {
-				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
-			}
-
-			if (this.callee.name === 'eval') {
-				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
-			}
-		}
 		this.interaction = {
 			args: [
 				this.callee instanceof MemberExpression && !this.callee.variable
@@ -154,6 +150,17 @@ export default class CallExpression
 			renderedSurroundingElement
 		});
 		renderCallArguments(code, options, this);
+
+		if (this.callee instanceof Identifier && !this.hasCheckedForWarnings) {
+			this.hasCheckedForWarnings = true;
+			const variable = this.scope.findVariable(this.callee.name);
+			if (variable.isNamespace) {
+				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
+			}
+			if (this.callee.name === 'eval') {
+				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
+			}
+		}
 	}
 
 	applyDeoptimizations() {
