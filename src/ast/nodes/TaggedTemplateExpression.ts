@@ -9,6 +9,7 @@ import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
@@ -22,16 +23,15 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare type: NodeType.tTaggedTemplateExpression;
 	declare private args: ExpressionEntity[];
 
+	private get hasCheckedForWarnings(): boolean {
+		return isFlagSet(this.flags, Flag.checkedForWarnings);
+	}
+	private set hasCheckedForWarnings(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.checkedForWarnings, value);
+	}
+
 	bind(): void {
 		super.bind();
-		if (this.tag.type === NodeType.Identifier) {
-			const name = (this.tag as Identifier).name;
-			const variable = this.scope.findVariable(name);
-
-			if (variable.isNamespace) {
-				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(name), this.start);
-			}
-		}
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -72,6 +72,17 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	render(code: MagicString, options: RenderOptions): void {
 		this.tag.render(code, options, { isCalleeOfRenderedParent: true });
 		this.quasi.render(code, options);
+
+		if (!this.hasCheckedForWarnings && this.tag.type === NodeType.Identifier) {
+			this.hasCheckedForWarnings = true;
+
+			const name = (this.tag as Identifier).name;
+			const variable = this.scope.findVariable(name);
+
+			if (variable.isNamespace) {
+				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(name), this.start);
+			}
+		}
 	}
 
 	applyDeoptimizations() {
