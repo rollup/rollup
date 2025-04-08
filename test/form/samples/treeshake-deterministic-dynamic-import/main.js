@@ -36,6 +36,8 @@ export async function entry() {
 
   await import('./bail-6.js').then(function({ named6, ...args }) { })
 
+  await import('./bail-6.js').then((m) => globalThis.named6)
+
   const promises = [
     import('./bail-7.js'),
     import('./bail-8.js'),

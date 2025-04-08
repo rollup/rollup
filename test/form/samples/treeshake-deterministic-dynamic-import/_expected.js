@@ -51,6 +51,8 @@ async function entry() {
 
   await Promise.resolve().then(function () { return bail6$1; }).then(function({ named6, ...args }) { });
 
+  await Promise.resolve().then(function () { return bail6$1; }).then((m) => globalThis.named6);
+
   [
     Promise.resolve().then(function () { return bail7$1; }),
     Promise.resolve().then(function () { return bail8$1; }),
