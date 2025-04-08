@@ -713,6 +713,10 @@ export default class Module {
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
+		if (includeNamespaceMembers) {
+			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
+		}
+
 		if (this.allExportsIncluded) return;
 		this.allExportsIncluded = true;
 		if (!this.isExecuted) {
@@ -741,10 +745,6 @@ export default class Module {
 					variable.module.reexported = true;
 				}
 			}
-		}
-
-		if (includeNamespaceMembers) {
-			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
