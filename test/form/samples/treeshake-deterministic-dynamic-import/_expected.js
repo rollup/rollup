@@ -22,6 +22,7 @@ async function entry() {
 (await Promise.resolve().then(function () { return sub2; })).bar2();
   const { foo2 } = await Promise.resolve().then(function () { return sub2; });
   const { foo3 } = await Promise.resolve().then(function () { return sub2; });
+  Promise.resolve().then(function () { return sub2; }).then((m) => m.baz2);
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
 
@@ -49,6 +50,8 @@ async function entry() {
   Promise.resolve().then(function () { return bail5$1; }).then(foo);
 
   await Promise.resolve().then(function () { return bail6$1; }).then(function({ named6, ...args }) { });
+
+  await Promise.resolve().then(function () { return bail6$1; }).then((m) => globalThis.named6);
 
   [
     Promise.resolve().then(function () { return bail7$1; }),
