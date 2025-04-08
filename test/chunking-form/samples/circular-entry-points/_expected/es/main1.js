@@ -1,1 +1,1 @@
-export { a as p } from './generated-main1.js';
+export { a as p } from './main2.js';

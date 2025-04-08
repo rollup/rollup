@@ -8,6 +8,7 @@ import type {
 	EmitFile,
 	FirstPluginHooks,
 	FunctionPluginHooks,
+	HookFilter,
 	InputPluginHooks,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -30,6 +31,12 @@ import {
 	logPluginError
 } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
+import {
+	createFilterForId,
+	createFilterForTransform,
+	type PluginFilter,
+	type TransformHookFilter
+} from './pluginFilter';
 
 /**
  * Coerce a promise union to always be a promise.
@@ -79,6 +86,10 @@ export class PluginDriver {
 	private readonly plugins: readonly Plugin[];
 	private readonly sortedPlugins = new Map<AsyncPluginHooks, Plugin[]>();
 	private readonly unfulfilledActions = new Set<HookAction>();
+	private readonly compiledPluginFilters = {
+		idOnlyFilter: new WeakMap<Pick<HookFilter, 'id'>, PluginFilter | undefined>(),
+		transformFilter: new WeakMap<HookFilter, TransformHookFilter | undefined>()
+	};
 
 	constructor(
 		private readonly graph: Graph,
@@ -318,6 +329,28 @@ export class PluginDriver {
 		// We always filter for plugins that support the hook before running it
 		const hook = plugin[hookName];
 		const handler = typeof hook === 'object' ? hook.handler : hook;
+
+		if (typeof hook === 'object' && 'filter' in hook && hook.filter) {
+			if (hookName === 'transform') {
+				const filter = hook.filter as HookFilter;
+				const hookParameters = parameters as Parameters<FunctionPluginHooks['transform']>;
+				const compiledFilter = getOrCreate(this.compiledPluginFilters.transformFilter, filter, () =>
+					createFilterForTransform(filter.id, filter.code)
+				);
+				if (compiledFilter && !compiledFilter(hookParameters[1], hookParameters[0])) {
+					return Promise.resolve();
+				}
+			} else if (hookName === 'resolveId' || hookName === 'load') {
+				const filter = hook.filter;
+				const hookParameters = parameters as Parameters<FunctionPluginHooks['load' | 'resolveId']>;
+				const compiledFilter = getOrCreate(this.compiledPluginFilters.idOnlyFilter, filter, () =>
+					createFilterForId(filter.id)
+				);
+				if (compiledFilter && !compiledFilter(hookParameters[0])) {
+					return Promise.resolve();
+				}
+			}
+		}
 
 		let context = this.pluginContexts.get(plugin)!;
 		if (replaceContext) {

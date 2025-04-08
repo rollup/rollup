@@ -1,6 +1,6 @@
 'use strict';
 
-var otherEntry = require('./generated-main.js');
+var otherEntry = require('./otherEntry.js');
 
 
 

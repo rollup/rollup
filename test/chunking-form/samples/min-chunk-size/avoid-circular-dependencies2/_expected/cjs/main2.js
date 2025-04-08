@@ -1,6 +1,6 @@
 'use strict';
 
-var main1 = require('./generated-main3.js');
+var main1 = require('./main1.js');
 
 
 

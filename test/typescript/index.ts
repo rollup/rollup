@@ -49,6 +49,33 @@ const _pluginHooks: rollup.Plugin = {
 	}
 };
 
+const _pluginHookFilters: rollup.Plugin = {
+	load: {
+		filter: {
+			// @ts-expect-error 'code' filter is not supported for load
+			code: 'bar',
+			id: 'foo'
+		},
+		handler(_source) {}
+	},
+	name: 'test',
+	resolveId: {
+		filter: {
+			// @ts-expect-error 'code' filter is not supported for resolveId
+			code: 'bar',
+			id: /foo/
+		},
+		handler(_source) {}
+	},
+	transform: {
+		filter: {
+			code: 'bar',
+			id: 'foo'
+		},
+		handler(_code) {}
+	}
+};
+
 const _amdOutputOptions: rollup.OutputOptions['amd'][] = [
 	{},
 	{
