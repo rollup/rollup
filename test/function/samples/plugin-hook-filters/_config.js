@@ -76,7 +76,7 @@ const expectedCalledHooks = {
 			'transform-{ code: { include: [ /import\\.\\w+\\.a/ ] } }',
 			"transform-{ code: { include: 'import.meta.a', exclude: 'import.meta.b' } }",
 			"transform-{ id: { exclude: '**/ba*.js' }, code: 'import.meta.a' }",
-			"transform-{\n  id: { include: '**/foo.js', exclude: '**/ba*.js' },\n  code: 'import.meta.b'\n}"
+			"transform-{\n  id: { include: '**/foo.js', exclude: '**/ba*.js' },\n  code: 'import.meta.a'\n}"
 		]
 	}
 };
@@ -116,7 +116,7 @@ addPlugin('transform', { code: { include: /import\.meta\.\w+/, exclude: /import\
 addPlugin('transform', { id: { exclude: '**/ba*.js' }, code: 'import.meta.a' });
 addPlugin('transform', {
 	id: { include: '**/foo.js', exclude: '**/ba*.js' },
-	code: 'import.meta.b'
+	code: 'import.meta.a'
 });
 
 function addPlugin(hook, filter) {
