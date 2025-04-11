@@ -1229,9 +1229,9 @@ dependencies = [
 
 [[package]]
 name = "swc_compiler_base"
-version = "15.0.0"
+version = "17.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "806774262e8cc665d986364c109bdaa91eeadebf71402df6894c7c3c2be92795"
+checksum = "dc96c4a212a3120deeefbc180bd7a4fed3d076af87d452d0b5773cc98b3934f6"
 dependencies = [
  "anyhow",
  "base64",
@@ -1301,9 +1301,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_codegen"
-version = "8.1.0"
+version = "10.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f131ade75f9a3cfea38dbce11893f5636b0954de973ad29a2556124322a08372"
+checksum = "b85453d346d0642f296c2b3aa204886a6ae2b9652262c3468d6f4556c1ed020d"
 dependencies = [
  "ascii",
  "compact_str",
@@ -1324,9 +1324,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_codegen_macros"
-version = "1.0.1"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ac2ff0957329e0dfcde86a1ac465382e189bf42a5989720d3476bea78eaa31a"
+checksum = "e99e1931669a67c83e2c2b4375674f6901d1480994a76aa75b23f1389e6c5076"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1336,9 +1336,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_minifier"
-version = "14.0.0"
+version = "16.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb6c3ea74a80bf1d21bba94f823aa9e90f903b81b345f99c1595faf87d732c63"
+checksum = "96929d4669712d21609fbd1ba24461c964d93ed23702bd87cc530f4b307ecc34"
 dependencies = [
  "arrayvec",
  "indexmap",
