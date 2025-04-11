@@ -3,12 +3,6 @@ import type { StringFilter, StringOrRegExp } from '../rollup/types';
 import { ensureArray } from './ensureArray';
 import { isAbsolute, normalize, resolve } from './path';
 
-const FALLBACK_TRUE = 1;
-const FALLBACK_FALSE = 0;
-type FallbackValues = typeof FALLBACK_TRUE | typeof FALLBACK_FALSE;
-
-type PluginFilterWithFallback = (input: string) => boolean | FallbackValues;
-
 export type PluginFilter = (input: string) => boolean;
 export type TransformHookFilter = (id: string, code: string) => boolean;
 
@@ -58,7 +52,7 @@ function patternToCodeFilter(pattern: StringOrRegExp): PluginFilter {
 function createFilter(
 	exclude: PluginFilter[] | undefined,
 	include: PluginFilter[] | undefined
-): PluginFilterWithFallback | undefined {
+): PluginFilter | undefined {
 	if (!exclude && !include) {
 		return;
 	}
@@ -70,7 +64,7 @@ function createFilter(
 		if (include?.some(filter => filter(input))) {
 			return true;
 		}
-		return !!include && include.length > 0 ? FALLBACK_FALSE : FALLBACK_TRUE;
+		return !(include && include.length > 0);
 	};
 }
 
@@ -82,7 +76,7 @@ function normalizeFilter(filter: StringFilter): NormalizedStringFilter {
 	}
 	if (Array.isArray(filter)) {
 		return {
-			include: ensureArray(filter)
+			include: filter
 		};
 	}
 	return {
@@ -91,7 +85,7 @@ function normalizeFilter(filter: StringFilter): NormalizedStringFilter {
 	};
 }
 
-function createIdFilter(filter: StringFilter | undefined): PluginFilterWithFallback | undefined {
+function createIdFilter(filter: StringFilter | undefined): PluginFilter | undefined {
 	if (!filter) return;
 	const { exclude, include } = normalizeFilter(filter);
 	const excludeFilter = exclude?.map(patternToIdFilter);
@@ -99,7 +93,7 @@ function createIdFilter(filter: StringFilter | undefined): PluginFilterWithFallb
 	return createFilter(excludeFilter, includeFilter);
 }
 
-function createCodeFilter(filter: StringFilter | undefined): PluginFilterWithFallback | undefined {
+function createCodeFilter(filter: StringFilter | undefined): PluginFilter | undefined {
 	if (!filter) return;
 	const { exclude, include } = normalizeFilter(filter);
 	const excludeFilter = exclude?.map(patternToCodeFilter);
@@ -122,18 +116,14 @@ export function createFilterForTransform(
 	return (id, code) => {
 		let fallback = true;
 		if (idFilterFunction) {
-			const idResult = idFilterFunction(id);
-			if (typeof idResult === 'boolean') {
-				return idResult;
-			}
-			fallback &&= !!idResult;
+			fallback &&= idFilterFunction(id);
 		}
+		if (!fallback) {
+			return false;
+		}
+
 		if (codeFilterFunction) {
-			const codeResult = codeFilterFunction(code);
-			if (typeof codeResult === 'boolean') {
-				return codeResult;
-			}
-			fallback &&= !!codeResult;
+			fallback &&= codeFilterFunction(code);
 		}
 		return fallback;
 	};
