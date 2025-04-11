@@ -76,7 +76,7 @@ function normalizeFilter(filter: StringFilter): NormalizedStringFilter {
 	}
 	if (Array.isArray(filter)) {
 		return {
-			include: ensureArray(filter)
+			include: filter
 		};
 	}
 	return {
