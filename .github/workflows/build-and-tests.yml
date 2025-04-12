@@ -224,6 +224,11 @@ jobs:
             build: >-
               set -e &&
               npm run build:napi -- --release --target loongarch64-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: loongarch64-unknown-linux-musl
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target loongarch64-unknown-linux-musl
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
