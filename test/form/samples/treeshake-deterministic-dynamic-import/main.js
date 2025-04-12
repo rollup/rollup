@@ -7,6 +7,7 @@ export async function entry() {
   ;(await import('./sub2.js')).bar2()
   const { foo2 } = await import('./sub2.js');
   const { foo3 } = await import('./sub2.js');
+  import('./sub2.js').then((m) => m.baz2)
   import('./sub2.js').then(({ baz2 }) => baz2)
   import('./sub2.js').then(function({ reexported }) { reexported })
 
@@ -34,6 +35,8 @@ export async function entry() {
   import('./bail-5.js').then(foo)
 
   await import('./bail-6.js').then(function({ named6, ...args }) { })
+
+  await import('./bail-6.js').then((m) => globalThis.named6)
 
   const promises = [
     import('./bail-7.js'),

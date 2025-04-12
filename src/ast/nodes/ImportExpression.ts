@@ -82,9 +82,10 @@ export default class ImportExpression extends NodeBase {
 	/**
 	 * Get imported variables for deterministic usage, valid cases are:
 	 *
-	 * - `const { foo } = await import('bar')`.
-	 * - `(await import('bar')).foo`
-	 * - `import('bar').then(({ foo }) => {})`
+	 * 1. `const { foo } = await import('bar')`.
+	 * 2. `(await import('bar')).foo`
+	 * 3. `import('bar').then((m) => m.foo)`
+	 * 4. `import('bar').then(({ foo }) => {})`
 	 *
 	 * Returns empty array if it's side-effect only import.
 	 * Returns undefined if it's not fully deterministic.
@@ -127,7 +128,6 @@ export default class ImportExpression extends NodeBase {
 			return;
 		}
 
-		// Case 3: import('bar').then(({ foo }) => {})
 		if (parent1 instanceof MemberExpression) {
 			const callExpression = parent1.parent;
 			const property = parent1.property;
@@ -153,23 +153,51 @@ export default class ImportExpression extends NodeBase {
 				return EMPTY_ARRAY;
 			}
 
-			const argument = callExpression.arguments[0];
+			const thenCallback = callExpression.arguments[0];
 
 			if (
 				callExpression.arguments.length !== 1 ||
-				!(argument instanceof ArrowFunctionExpression || argument instanceof FunctionExpression)
+				!(
+					thenCallback instanceof ArrowFunctionExpression ||
+					thenCallback instanceof FunctionExpression
+				)
 			) {
 				return;
 			}
 
 			// Side-effect only: import('bar').then(() => {})
-			if (argument.params.length === 0) {
+			if (thenCallback.params.length === 0) {
 				return EMPTY_ARRAY;
 			}
 
-			const declaration = argument.params[0];
-			if (argument.params.length === 1 && declaration instanceof ObjectPattern) {
-				return getDeterministicObjectDestructure(declaration);
+			if (thenCallback.params.length === 1) {
+				// Promises .then() can only have one argument so only look at first one
+				const declaration = thenCallback.params[0];
+
+				// Case 3: import('bar').then(m => m.foo)
+				if (declaration instanceof Identifier) {
+					const starName = declaration.name;
+					const memberExpression = thenCallback.body;
+					if (
+						!(memberExpression instanceof MemberExpression) ||
+						memberExpression.computed ||
+						!(memberExpression.property instanceof Identifier)
+					) {
+						return;
+					}
+
+					const returnVariable = memberExpression.object;
+					if (!(returnVariable instanceof Identifier) || returnVariable.name !== starName) {
+						return;
+					}
+
+					return [memberExpression.property.name];
+				}
+
+				// Case 4: import('bar').then(({ foo }) => {})
+				if (declaration instanceof ObjectPattern) {
+					return getDeterministicObjectDestructure(declaration);
+				}
 			}
 
 			return;
