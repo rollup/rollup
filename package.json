@@ -140,7 +140,7 @@
     "@shikijs/vitepress-twoslash": "^3.2.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "^18.19.85",
-    "@types/picomatch": "^3.0.2",
+    "@types/picomatch": "^4.0.0",
     "@types/semver": "^7.7.0",
     "@types/yargs-parser": "^21.0.3",
     "@vue/language-server": "^2.2.8",
