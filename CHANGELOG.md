@@ -1,5 +1,34 @@
 # rollup changelog
 
+## 4.40.0
+
+_2025-04-12_
+
+### Features
+
+- Only show `eval` warnings on first render and only when the call is not tree-shaken (#5892)
+- Tree-shake non-included dynamic import members when the handler just maps to one named export (#5898)
+
+### Bug Fixes
+
+- Consider dynamic imports nested within top-level-awaited dynamic import expressions to be awaited as well (#5900)
+- Fix namespace rendering when tree-shaking is disabled (#5908)
+- When using multiple transform hook filters, all of them need to be satisfied together (#5909)
+
+### Pull Requests
+
+- [#5892](https://github.com/rollup/rollup/pull/5892): Warn when eval or namespace calls are rendered, not when they are parsed (@SunsetFi, @lukastaegert)
+- [#5898](https://github.com/rollup/rollup/pull/5898): feat: treeshake dynamic import chained member expression (@privatenumber, @lukastaegert)
+- [#5900](https://github.com/rollup/rollup/pull/5900): consider the dynamic import within a TLA call expression as a TLA import (@TrickyPi)
+- [#5904](https://github.com/rollup/rollup/pull/5904): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5905](https://github.com/rollup/rollup/pull/5905): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5908](https://github.com/rollup/rollup/pull/5908): Fix `treeshake: false` breaking destructured namespace imports (@Skn0tt)
+- [#5909](https://github.com/rollup/rollup/pull/5909): Correct the behavior when multiple transform filter options are specified (@sapphi-red)
+- [#5915](https://github.com/rollup/rollup/pull/5915): chore(deps): update dependency @types/picomatch to v4 (@renovate[bot])
+- [#5916](https://github.com/rollup/rollup/pull/5916): fix(deps): update rust crate swc_compiler_base to v17 (@renovate[bot])
+- [#5917](https://github.com/rollup/rollup/pull/5917): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5918](https://github.com/rollup/rollup/pull/5918): chore(deps): update dependency vite to v6.2.6 [security] (@renovate[bot], @lukastaegert)
+
 ## 4.39.0
 
 _2025-04-02_
