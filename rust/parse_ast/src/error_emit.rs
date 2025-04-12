@@ -29,7 +29,7 @@ pub(crate) struct ErrorEmitter {
 }
 
 impl Emitter for ErrorEmitter {
-  fn emit(&mut self, db: &DiagnosticBuilder<'_>) {
+  fn emit(&mut self, db: &mut DiagnosticBuilder<'_>) {
     if db.level == Level::Error {
       let mut buffer = Vec::new();
       let mut pos: u32 = 0;
