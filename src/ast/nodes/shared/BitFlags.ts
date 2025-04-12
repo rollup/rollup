@@ -27,7 +27,8 @@ export const enum Flag {
 	hasDeoptimizedCache = 1 << 25,
 	hasEffects = 1 << 26,
 	isTopLevelAwait = 1 << 27,
-	checkedForWarnings = 1 << 28
+	withinTopLevelAwait = 1 << 28,
+	checkedForWarnings = 1 << 29
 }
 
 export function isFlagSet(flags: number, flag: Flag): boolean {
