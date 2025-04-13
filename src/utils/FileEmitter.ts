@@ -14,7 +14,7 @@ import { BuildPhase } from './buildPhase';
 import type { GetHash } from './crypto';
 import { getHash64, hasherByType } from './crypto';
 import { getOrCreate } from './getOrCreate';
-import { DEFAULT_HASH_SIZE } from './hashPlaceholders';
+import { DEFAULT_HASH_SIZE, MAX_HASH_SIZE } from './hashPlaceholders';
 import { LOGLEVEL_WARN } from './logging';
 import {
 	error,
@@ -82,7 +82,8 @@ function generateAssetFileName(
 			{
 				ext: () => extname(emittedName).slice(1),
 				extname: () => extname(emittedName),
-				hash: size => sourceHash.slice(0, Math.max(0, size || DEFAULT_HASH_SIZE)),
+				hash: size =>
+					sourceHash.slice(0, Math.min(Math.max(0, size || DEFAULT_HASH_SIZE), MAX_HASH_SIZE)),
 				name: () =>
 					emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
 			}
