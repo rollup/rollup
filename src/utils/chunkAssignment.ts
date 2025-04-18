@@ -285,9 +285,12 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					dynamicEntryModules.add(resolution);
 					allEntriesSet.add(resolution);
 					dynamicImportsForCurrentEntry.add(resolution);
-					if (resolution.includedDirectTopLevelAwaitingDynamicImporters.has(currentEntry)) {
-						awaitedDynamicEntryModules.add(resolution);
-						awaitedDynamicImportsForCurrentEntry.add(resolution);
+					for (const includedDirectTopLevelAwaitingDynamicImporter of resolution.includedDirectTopLevelAwaitingDynamicImporters) {
+						if (modulesToHandle.has(includedDirectTopLevelAwaitingDynamicImporter)) {
+							awaitedDynamicEntryModules.add(resolution);
+							awaitedDynamicImportsForCurrentEntry.add(resolution);
+							break;
+						}
 					}
 				}
 			}
