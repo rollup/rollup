@@ -1230,9 +1230,9 @@ dependencies = [
 
 [[package]]
 name = "swc_compiler_base"
-version = "17.0.0"
+version = "18.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc96c4a212a3120deeefbc180bd7a4fed3d076af87d452d0b5773cc98b3934f6"
+checksum = "3516918cdce803f6c175aeefefbf3a05b4064eadc2a772f98da63d4282f85497"
 dependencies = [
  "anyhow",
  "base64",
