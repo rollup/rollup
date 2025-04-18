@@ -14,7 +14,7 @@ module.exports = defineTest({
 			entryFileNames: ({ name }) =>
 				name === 'main1' ? '[name]-[hash:8].js' : '[name]-[hash:10].js',
 			chunkFileNames: '[name]-[hash:14].js',
-			assetFileNames: '[name]-[hash:18][extname]'
+			assetFileNames: '[name]-[hash:22][extname]'
 		}
 	}
 });
