@@ -243,6 +243,7 @@
       "require": "./dist/parseAst.js",
       "import": "./dist/es/parseAst.js"
     },
-    "./dist/*": "./dist/*"
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
   }
 }
