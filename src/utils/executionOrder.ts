@@ -30,25 +30,33 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 	const parents = new Map<Module | ExternalModule, Module | null>();
 	const orderedModules: Module[] = [];
 
+	const handleSyncLoadedModule = (module: Module | ExternalModule, parent: Module) => {
+		if (parents.has(module)) {
+			if (!analysedModules.has(module)) {
+				cyclePaths.push(getCyclePath(module as Module, parent, parents));
+			}
+			return;
+		}
+		parents.set(module, parent);
+		analyseModule(module);
+	};
+
 	const analyseModule = (module: Module | ExternalModule) => {
 		if (module instanceof Module) {
 			for (const dependency of module.dependencies) {
-				if (parents.has(dependency)) {
-					if (!analysedModules.has(dependency)) {
-						cyclePaths.push(getCyclePath(dependency as Module, module, parents));
-					}
-					continue;
-				}
-				parents.set(dependency, module);
-				analyseModule(dependency);
+				handleSyncLoadedModule(dependency, module);
 			}
 
 			for (const dependency of module.implicitlyLoadedBefore) {
 				dynamicImports.add(dependency);
 			}
-			for (const { resolution } of module.dynamicImports) {
+			for (const { resolution, node } of module.dynamicImports) {
 				if (resolution instanceof Module) {
-					dynamicImports.add(resolution);
+					if (node.withinTopLevelAwait) {
+						handleSyncLoadedModule(resolution, module);
+					} else {
+						dynamicImports.add(resolution);
+					}
 				}
 			}
 			orderedModules.push(module);
