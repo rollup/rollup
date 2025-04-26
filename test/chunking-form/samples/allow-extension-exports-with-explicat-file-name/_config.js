@@ -1,6 +1,6 @@
 const preserveSignature = 'allow-extension';
 module.exports = defineTest({
-	description: 'generate the separate chunk for the entry module with explicated chunk file name',
+	description: 'generate the separate chunk for the entry module with explicated file name',
 	options: {
 		input: 'main',
 		output: {

@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	description: 'generate the separate chunk for the entry module with explicated chunk name',
+	description: 'generate a separate chunk for the entry module with explicit name in input options',
 	options: {
 		input: {
 			main: './main.js',
