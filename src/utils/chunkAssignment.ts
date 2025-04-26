@@ -268,12 +268,12 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 		const awaitedDynamicImportsForCurrentEntry = new Set<Module>();
 		dynamicImportModulesByEntry[entryIndex] = dynamicImportsForCurrentEntry;
 		awaitedDynamicImportModulesByEntry[entryIndex] = awaitedDynamicImportsForCurrentEntry;
-		const modulesToHandle = new Set([currentEntry]);
-		for (const module of modulesToHandle) {
+		const staticDependencies = new Set([currentEntry]);
+		for (const module of staticDependencies) {
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
-					modulesToHandle.add(dependency);
+					staticDependencies.add(dependency);
 				}
 			}
 			for (const { resolution } of module.dynamicImports) {
@@ -286,7 +286,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					allEntriesSet.add(resolution);
 					dynamicImportsForCurrentEntry.add(resolution);
 					for (const includedDirectTopLevelAwaitingDynamicImporter of resolution.includedDirectTopLevelAwaitingDynamicImporters) {
-						if (modulesToHandle.has(includedDirectTopLevelAwaitingDynamicImporter)) {
+						if (staticDependencies.has(includedDirectTopLevelAwaitingDynamicImporter)) {
 							awaitedDynamicEntryModules.add(resolution);
 							awaitedDynamicImportsForCurrentEntry.add(resolution);
 							break;
