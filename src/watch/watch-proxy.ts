@@ -1,5 +1,10 @@
 import { handleError } from '../../cli/logging';
-import type { MaybeArray, RollupOptions, RollupWatcher } from '../rollup/types';
+import type {
+	MaybeArray,
+	MergedRollupOptions,
+	RollupOptions,
+	RollupWatcher
+} from '../rollup/types';
 import { ensureArray } from '../utils/ensureArray';
 import { error, logInvalidOption } from '../utils/logs';
 import { mergeOptions } from '../utils/options/mergeOptions';
@@ -17,6 +22,23 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 	return emitter;
 }
 
+function checkWatchConfig(config: MergedRollupOptions[]): boolean {
+	for (const item of config) {
+		if (item.input && item.output) {
+			const input = typeof item.input === 'string' ? ensureArray(item.input) : item.input;
+			const output = ensureArray(item.output);
+			for (const index in input) {
+				const inputPath = input[index as keyof typeof input] as string;
+				const subPath = output.some(o => o.dir && inputPath?.startsWith(o.dir));
+				if (subPath) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: RollupWatcher) {
 	const optionsList = await Promise.all(
 		ensureArray(configs).map(config => mergeOptions(config, true))
@@ -29,6 +51,11 @@ async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: Rollup
 				URL_WATCH,
 				'there must be at least one config where "watch" is not set to "false"'
 			)
+		);
+	}
+	if (!checkWatchConfig(watchOptionsList)) {
+		return error(
+			logInvalidOption('watch', URL_WATCH, 'the input should not be inside the output dir')
 		);
 	}
 	await loadFsEvents();
