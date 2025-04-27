@@ -1,0 +1,1 @@
+export { fooInOtherEntry } from './otherEntry';
