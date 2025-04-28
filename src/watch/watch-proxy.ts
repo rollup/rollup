@@ -37,8 +37,11 @@ function checkWatchConfig(config: MergedRollupOptions[]): void {
 			for (const index in input) {
 				const inputPath = input[index as keyof typeof input] as string;
 				const subPath = output.find(o => {
-					const _outPath = o.dir ? withTrailingSlash(o.dir) : '';
-					const _inputPath = typeof inputPath === 'string' ? withTrailingSlash(inputPath) : '';
+					if (!o.dir || typeof inputPath !== 'string') {
+						return false;
+					}
+					const _outPath = withTrailingSlash(o.dir);
+					const _inputPath = withTrailingSlash(inputPath);
 					return _inputPath.startsWith(_outPath);
 				});
 				if (subPath) {
