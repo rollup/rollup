@@ -87,8 +87,8 @@ export default function umd(
 	const factoryParameters = trimmedImports.map(m => m.name);
 
 	if (
-		(namedExportsMode || (hasExports && exports[0]?.local === 'exports.default')) &&
-		(hasExports || noConflict)
+		(hasExports || noConflict) &&
+		(namedExportsMode || (hasExports && exports[0]?.local === 'exports.default'))
 	) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
