@@ -36,7 +36,7 @@ function checkWatchConfig(config: MergedRollupOptions[]): void {
 			const output = ensureArray(item.output);
 			for (const index in input) {
 				const inputPath = input[index as keyof typeof input] as string;
-				const subPath = output.some(o => {
+				const subPath = output.find(o => {
 					const _outPath = o.dir ? withTrailingSlash(o.dir) : '';
 					const _inputPath = typeof inputPath === 'string' ? withTrailingSlash(inputPath) : '';
 					return _inputPath.startsWith(_outPath);
@@ -46,7 +46,7 @@ function checkWatchConfig(config: MergedRollupOptions[]): void {
 						logInvalidOption(
 							'watch',
 							URL_WATCH,
-							`the input "${inputPath}" is a subpath of the output "${output}"`
+							`the input "${inputPath}" is a subpath of the output "${subPath.dir}"`
 						)
 					);
 				}
