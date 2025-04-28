@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { handleError } from '../../cli/logging';
 import type {
 	MaybeArray,
@@ -23,9 +22,11 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 	return emitter;
 }
 
-function isSubPath(parent: string, child: string): boolean {
-	const relative = path.relative(parent, child);
-	return !!relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+function withTrailingSlash(path: string): string {
+	if (path[path.length - 1] !== '/') {
+		return `${path}/`;
+	}
+	return path;
 }
 
 function checkWatchConfig(config: MergedRollupOptions[]): void {
@@ -35,7 +36,11 @@ function checkWatchConfig(config: MergedRollupOptions[]): void {
 			const output = ensureArray(item.output);
 			for (const index in input) {
 				const inputPath = input[index as keyof typeof input] as string;
-				const subPath = output.some(o => o.dir && isSubPath(o.dir, inputPath));
+				const subPath = output.some(o => {
+					const _outPath = o.dir ? withTrailingSlash(o.dir) : '';
+					const _inputPath = typeof inputPath === 'string' ? withTrailingSlash(inputPath) : '';
+					return _inputPath.startsWith(_outPath);
+				});
 				if (subPath) {
 					error(
 						logInvalidOption(
