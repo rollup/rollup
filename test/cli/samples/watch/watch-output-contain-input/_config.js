@@ -7,7 +7,7 @@ module.exports = defineTest({
 	stderr(stderr) {
 		assertIncludes(
 			stderr,
-			'[!] RollupError: Invalid value for option "watch" - the output dir should not contain the input path.'
+			'[!] RollupError: Invalid value for option "watch" - the input should not be inside the output dir.'
 		);
 	}
 });
