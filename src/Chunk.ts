@@ -414,7 +414,11 @@ export default class Chunk {
 			if (module.preserveSignature === 'allow-extension') {
 				const canPreserveExports = this.canPreserveModuleExports(module);
 
-				if (canPreserveExports) {
+				if (
+					canPreserveExports &&
+					!module.chunkFileNames.size &&
+					module.chunkNames.every(({ isUserDefined }) => !isUserDefined)
+				) {
 					this.allowExtensionModules.add(module);
 
 					if (!this.facadeModule) {

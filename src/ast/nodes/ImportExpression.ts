@@ -33,6 +33,8 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
+import FunctionNode from './shared/FunctionNode';
+import type { Node } from './shared/Node';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -209,19 +211,18 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode(context);
+		if (!this.included) this.includeNode();
 		this.source.include(context, includeChildrenRecursively);
 	}
 
-	includeNode(context: InclusionContext) {
+	includeNode() {
 		this.included = true;
-		this.withinTopLevelAwait = context.withinTopLevelAwait;
 		this.scope.context.includeDynamicImport(this);
 		this.scope.addAccessedDynamicImport(this);
 	}
 
-	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.included) this.includeNode(context);
+	includePath(path: ObjectPath): void {
+		if (!this.included) this.includeNode();
 		// Technically, this is not correct as dynamic imports return a Promise.
 		if (this.hasUnknownAccessedKey) return;
 		if (path[0] === UnknownKey) {
@@ -236,6 +237,25 @@ export default class ImportExpression extends NodeBase {
 	initialise(): void {
 		super.initialise();
 		this.scope.context.addDynamicImport(this);
+		let parent = this.parent;
+		let withinAwaitExpression = false;
+		let withinTopLevelAwait = false;
+		do {
+			if (
+				withinAwaitExpression &&
+				(parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
+			) {
+				withinTopLevelAwait = false;
+			}
+			if (parent instanceof AwaitExpression) {
+				withinAwaitExpression = true;
+				withinTopLevelAwait = true;
+			}
+		} while ((parent = (parent as Node).parent as Node));
+
+		if (withinAwaitExpression && withinTopLevelAwait) {
+			this.withinTopLevelAwait = true;
+		}
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
