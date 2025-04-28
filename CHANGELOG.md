@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.40.1
+
+_2025-04-28_
+
+### Bug Fixes
+
+- Limit hash size for asset file names to the supported 21 (#5921)
+- Do not inline user-defined entry chunks or chunks with explicit file name (#5923)
+- Avoid top-level-await cycles when non-entry chunks use top-level await (#5930)
+- Expose package.json via exports (#5931)
+
+### Pull Requests
+
+- [#5921](https://github.com/rollup/rollup/pull/5921): fix(assetFileNames): reduce max hash size to 21 (@shulaoda)
+- [#5923](https://github.com/rollup/rollup/pull/5923): fix: generate the separate chunk for the entry module with explicated chunk filename or name (@TrickyPi)
+- [#5926](https://github.com/rollup/rollup/pull/5926): fix(deps): update rust crate swc_compiler_base to v18 (@renovate[bot])
+- [#5927](https://github.com/rollup/rollup/pull/5927): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5928](https://github.com/rollup/rollup/pull/5928): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5930](https://github.com/rollup/rollup/pull/5930): Avoid chunks TLA dynamic import circular when TLA dynamic import used in non-entry modules (@TrickyPi)
+- [#5931](https://github.com/rollup/rollup/pull/5931): chore: add new `./package.json` entry (@JounQin, @lukastaegert)
+- [#5936](https://github.com/rollup/rollup/pull/5936): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.40.0
 
 _2025-04-12_
