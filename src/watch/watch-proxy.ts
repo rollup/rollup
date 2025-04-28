@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { handleError } from '../../cli/logging';
 import type {
 	MaybeArray,
@@ -22,21 +23,31 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 	return emitter;
 }
 
-function checkWatchConfig(config: MergedRollupOptions[]): boolean {
+function isSubPath(parent: string, child: string): boolean {
+	const relative = path.relative(parent, child);
+	return !!relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+function checkWatchConfig(config: MergedRollupOptions[]): void {
 	for (const item of config) {
 		if (item.input && item.output) {
 			const input = typeof item.input === 'string' ? ensureArray(item.input) : item.input;
 			const output = ensureArray(item.output);
 			for (const index in input) {
 				const inputPath = input[index as keyof typeof input] as string;
-				const subPath = output.some(o => o.dir && inputPath.startsWith?.(o.dir));
+				const subPath = output.some(o => o.dir && isSubPath(o.dir, inputPath));
 				if (subPath) {
-					return false;
+					error(
+						logInvalidOption(
+							'watch',
+							URL_WATCH,
+							`the input "${inputPath}" is a subpath of the output "${output}"`
+						)
+					);
 				}
 			}
 		}
 	}
-	return true;
 }
 
 async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: RollupWatcher) {
@@ -53,11 +64,7 @@ async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: Rollup
 			)
 		);
 	}
-	if (!checkWatchConfig(watchOptionsList)) {
-		return error(
-			logInvalidOption('watch', URL_WATCH, 'the input should not be inside the output dir')
-		);
-	}
+	checkWatchConfig(watchOptionsList);
 	await loadFsEvents();
 	const { Watcher } = await import('./watch');
 	new Watcher(watchOptionsList, emitter);
