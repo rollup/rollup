@@ -17,7 +17,6 @@ import type {
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
-import { readFile } from './utils/fs';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -282,7 +281,7 @@ export class ModuleLoader {
 				const content = await this.pluginDriver.hookFirst('load', [id]);
 				if (content !== null) return content;
 				this.graph.watchFiles[id] = true;
-				return await readFile(id, 'utf8');
+				return await this.options.fs.readFile(id, 'utf8');
 			});
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;
@@ -674,7 +673,8 @@ export class ModuleLoader {
 			null,
 			EMPTY_OBJECT,
 			true,
-			EMPTY_OBJECT
+			EMPTY_OBJECT,
+			this.options.fs
 		);
 		if (resolveIdResult == null) {
 			return error(
