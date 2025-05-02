@@ -8,6 +8,9 @@ let maxReads = 0;
 
 module.exports = defineTest({
 	description: 'maxParallelFileOps not set',
+	options: {
+		fs
+	},
 	before() {
 		fs.readFile = async (path, options) => {
 			currentReads++;

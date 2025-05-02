@@ -21,6 +21,8 @@ import {
 	warnUnknownOptions
 } from './options';
 
+import * as fs from '../fs';
+
 export interface CommandConfigObject {
 	[key: string]: unknown;
 	external: (string | RegExp)[];
@@ -50,6 +52,7 @@ export async function normalizeInputOptions(
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
+		fs: config.fs ?? fs,
 		input: getInput(config),
 		jsx: getJsx(config),
 		logLevel,
