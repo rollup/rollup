@@ -1,11 +1,13 @@
 import type { ModuleLoaderResolveId } from '../ModuleLoader';
-import type { CustomPluginOptions, FsModule, Plugin, ResolveIdResult } from '../rollup/types';
+import type { CustomPluginOptions, Plugin, ResolveIdResult, RollupFsModule } from '../rollup/types';
 import { lstat, readdir, realpath } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import type { PluginDriver } from './PluginDriver';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 
-const realFs = { lstat, readdir, realpath };
+type ResolveIdFsModule = Pick<RollupFsModule, 'lstat' | 'readdir' | 'realpath'>;
+
+const realFs = { lstat, readdir, realpath } as ResolveIdFsModule;
 
 export async function resolveId(
 	source: string,
@@ -17,7 +19,7 @@ export async function resolveId(
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
 	attributes: Record<string, string>,
-	fs?: FsModule
+	fs?: ResolveIdFsModule
 ): Promise<ResolveIdResult> {
 	const fsModule = fs ?? realFs;
 	const pluginResult = await resolveIdViaPlugins(
@@ -66,7 +68,7 @@ export async function resolveId(
 async function addJsExtensionIfNecessary(
 	file: string,
 	preserveSymlinks: boolean,
-	fs: FsModule
+	fs: ResolveIdFsModule
 ): Promise<string | undefined> {
 	return (
 		(await findFile(file, preserveSymlinks, fs)) ??
@@ -78,7 +80,7 @@ async function addJsExtensionIfNecessary(
 async function findFile(
 	file: string,
 	preserveSymlinks: boolean,
-	fs: FsModule
+	fs: ResolveIdFsModule
 ): Promise<string | undefined> {
 	try {
 		const stats = await fs.lstat(file);

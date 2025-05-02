@@ -281,7 +281,7 @@ export class ModuleLoader {
 				const content = await this.pluginDriver.hookFirst('load', [id]);
 				if (content !== null) return content;
 				this.graph.watchFiles[id] = true;
-				return await this.options.fs.readFile(id, 'utf8');
+				return (await this.options.fs.readFile(id, 'utf8')) as string;
 			});
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;

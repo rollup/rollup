@@ -3,7 +3,8 @@ import type {
 	InputOptions,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
-	RollupBuild
+	RollupBuild,
+	RollupFsModule
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
@@ -51,7 +52,7 @@ export async function normalizeInputOptions(
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
-		fs: config.fs ?? fs,
+		fs: config.fs ?? (fs as RollupFsModule),
 		input: getInput(config),
 		jsx: getJsx(config),
 		logLevel,

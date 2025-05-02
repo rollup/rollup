@@ -671,7 +671,7 @@ export interface InputOptions {
 	experimentalCacheExpiry?: number;
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
-	fs?: FsModule;
+	fs?: RollupFsModule;
 	input?: InputOption;
 	jsx?: false | JsxPreset | JsxOptions;
 	logLevel?: LogLevelOption;
@@ -714,7 +714,7 @@ export interface NormalizedInputOptions {
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
-	fs: FsModule;
+	fs: RollupFsModule;
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';
@@ -1106,4 +1106,71 @@ export type RollupOptionsFunction = (
 	commandLineArguments: Record<string, any>
 ) => MaybePromise<RollupOptions | RollupOptions[]>;
 
-type FsModule = any;
+export interface RollupFsModule {
+	appendFile(
+		path: string | ArrayBuffer | ArrayBufferView,
+		data: string | ArrayBuffer | ArrayBufferView,
+		options?: { encoding?: string | null; mode?: number | string; flag?: string }
+	): Promise<void>;
+
+	copyFile(
+		source: string | ArrayBuffer | ArrayBufferView,
+		destination: string | ArrayBuffer | ArrayBufferView,
+		mode?: number
+	): Promise<void>;
+
+	mkdir(path: string, options?: { recursive?: boolean; mode?: number | string }): Promise<void>;
+
+	mkdtemp(prefix: string, options?: { encoding?: string | null }): Promise<string>;
+
+	readdir(
+		path: string,
+		options?: { encoding?: string | null; withFileTypes?: false }
+	): Promise<string[]>;
+
+	readFile(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { encoding?: string | null; flag?: string } | string
+	): Promise<string | ArrayBuffer>;
+
+	realpath(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { encoding?: string | null }
+	): Promise<string>;
+
+	rename(
+		oldPath: string | ArrayBuffer | ArrayBufferView,
+		newPath: string | ArrayBuffer | ArrayBufferView
+	): Promise<void>;
+
+	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+
+	stat(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { bigint?: boolean }
+	): Promise<RollupFileStats>;
+
+	lstat(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { bigint?: boolean }
+	): Promise<RollupFileStats>;
+
+	unlink(path: string | ArrayBuffer | ArrayBufferView): Promise<void>;
+
+	writeFile(
+		path: string | ArrayBuffer | ArrayBufferView,
+		data: string | ArrayBuffer | ArrayBufferView,
+		options?: { encoding?: string | null; mode?: number | string; flag?: string }
+	): Promise<void>;
+}
+
+export interface RollupFileStats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	size: number;
+	mtime: Date;
+	ctime: Date;
+	atime: Date;
+	birthtime: Date;
+}
