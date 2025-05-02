@@ -265,6 +265,7 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: LoggingFunction;
+	fs: RollupFsModule;
 }
 
 export interface PluginContextMeta {
