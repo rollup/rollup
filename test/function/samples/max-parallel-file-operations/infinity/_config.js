@@ -9,7 +9,8 @@ let maxReads = 0;
 module.exports = defineTest({
 	description: 'maxParallelFileOps set to infinity',
 	options: {
-		maxParallelFileOps: 0
+		maxParallelFileOps: 0,
+		fs
 	},
 	before() {
 		fs.readFile = async (path, options) => {

@@ -171,6 +171,7 @@
     "lint-staged": "^16.1.0",
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.17",
+    "memfs": "^4.17.0",
     "mocha": "^11.5.0",
     "nodemon": "^3.1.10",
     "nyc": "^17.1.0",

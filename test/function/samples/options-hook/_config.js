@@ -10,7 +10,10 @@ module.exports = defineTest({
 			{
 				name: 'test-plugin',
 				buildStart(options) {
-					assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
+					// The fs option is not json stringifiable
+					const { fs, ...restOptions } = options;
+					assert.ok(fs);
+					assert.deepStrictEqual(JSON.parse(JSON.stringify(restOptions)), {
 						context: 'undefined',
 						experimentalCacheExpiry: 10,
 						experimentalLogSideEffects: false,

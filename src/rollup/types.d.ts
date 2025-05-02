@@ -671,6 +671,7 @@ export interface InputOptions {
 	experimentalCacheExpiry?: number;
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
+	fs?: FsModule;
 	input?: InputOption;
 	jsx?: false | JsxPreset | JsxOptions;
 	logLevel?: LogLevelOption;
@@ -713,6 +714,7 @@ export interface NormalizedInputOptions {
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
+	fs: FsModule;
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';
@@ -1103,3 +1105,5 @@ export function defineConfig(optionsFunction: RollupOptionsFunction): RollupOpti
 export type RollupOptionsFunction = (
 	commandLineArguments: Record<string, any>
 ) => MaybePromise<RollupOptions | RollupOptions[]>;
+
+type FsModule = any;
