@@ -2851,6 +2851,103 @@ Whether to collect performance timings. When used from the command line or a con
 
 For each key, the first number represents the elapsed time while the second represents the change in memory consumption, and the third represents the total memory consumption after this step. The order of these steps is the order used by `Object.keys`. Top level keys start with `#` and contain the timings of nested steps, i.e. in the example above, the 698ms of the `# BUILD` step include the 538ms of the `## parse modules` step.
 
+### fs
+
+|          |                    |
+| -------: | :----------------- |
+|    Type: | `RollupFsModule`   |
+| Default: | `node:fs.promises` |
+
+If you want to use a custom file system module, you can set this option to an object that implements the same API as the `RollupFsModule` interface. This is useful if you want to use a different file system implementation, such as `memfs` or `browserfs`, or if you want to mock the file system for testing purposes.
+
+```typescript
+interface RollupFsModule {
+	appendFile(
+		path: string | ArrayBuffer | ArrayBufferView,
+		data: string | ArrayBuffer | ArrayBufferView,
+		options?: {
+			encoding?: string | null;
+			mode?: number | string;
+			flag?: string;
+		}
+	): Promise<void>;
+
+	copyFile(
+		source: string | ArrayBuffer | ArrayBufferView,
+		destination: string | ArrayBuffer | ArrayBufferView,
+		mode?: number
+	): Promise<void>;
+
+	mkdir(
+		path: string,
+		options?: { recursive?: boolean; mode?: number | string }
+	): Promise<void>;
+
+	mkdtemp(
+		prefix: string,
+		options?: { encoding?: string | null }
+	): Promise<string>;
+
+	readdir(
+		path: string,
+		options?: { encoding?: string | null; withFileTypes?: false }
+	): Promise<string[]>;
+
+	readFile(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { encoding?: string | null; flag?: string } | string
+	): Promise<string | ArrayBuffer>;
+
+	realpath(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { encoding?: string | null }
+	): Promise<string>;
+
+	rename(
+		oldPath: string | ArrayBuffer | ArrayBufferView,
+		newPath: string | ArrayBuffer | ArrayBufferView
+	): Promise<void>;
+
+	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+
+	stat(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { bigint?: boolean }
+	): Promise<RollupFileStats>;
+
+	lstat(
+		path: string | ArrayBuffer | ArrayBufferView,
+		options?: { bigint?: boolean }
+	): Promise<RollupFileStats>;
+
+	unlink(path: string | ArrayBuffer | ArrayBufferView): Promise<void>;
+
+	writeFile(
+		path: string | ArrayBuffer | ArrayBufferView,
+		data: string | ArrayBuffer | ArrayBufferView,
+		options?: {
+			encoding?: string | null;
+			mode?: number | string;
+			flag?: string;
+		}
+	): Promise<void>;
+}
+
+interface RollupFileStats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	size: number;
+	mtime: Date;
+	ctime: Date;
+	atime: Date;
+	birthtime: Date;
+}
+```
+
+````js twoslash
+
+
 ## watch
 
 |          |                           |
@@ -2869,11 +2966,11 @@ interface WatcherOptions {
 	skipWrite?: boolean;
 	onInvalidate?: (id: string) => void;
 }
-```
+````
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
-```js twoslash
+````js twoslash
 // rollup.config.js
 // ---cut-start---
 /** @type {import('rollup').RollupOptions[]} */
@@ -2889,7 +2986,7 @@ export default [
 		output: { file: 'bundle.es.js', format: 'es' }
 	}
 ];
-```
+````
 
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
 
