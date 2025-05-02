@@ -479,6 +479,37 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	it('watches a file in code-splitting mode cover the last slash of path', async () => {
+		await copy(path.join(SAMPLES_DIR, 'code-splitting'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: [path.join(INPUT_DIR, 'main1.js'), path.join(INPUT_DIR, 'main2.js')],
+			output: {
+				dir: OUTPUT_DIR + '/',
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(path.join(OUTPUT_DIR, 'main1.js')), 21);
+				assert.strictEqual(run(path.join(OUTPUT_DIR, 'main2.js')), 42);
+				atomicWriteFileSync(path.join(INPUT_DIR, 'shared.js'), 'export const value = 22;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(path.join(OUTPUT_DIR, 'main1.js')), 22);
+				assert.strictEqual(run(path.join(OUTPUT_DIR, 'main2.js')), 44);
+			}
+		]);
+	});
+
 	it('watches a file in code-splitting mode with an input object', async () => {
 		await copy(path.join(SAMPLES_DIR, 'code-splitting'), INPUT_DIR);
 		watcher = rollup.watch({

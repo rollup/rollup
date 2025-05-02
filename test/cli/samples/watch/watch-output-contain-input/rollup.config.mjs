@@ -7,12 +7,4 @@ export default [
 			format: 'es'
 		}
 	},
-	{
-		input: 'main.js',
-		watch: true,
-		output: {
-			dir: 'main/',
-			format: 'es'
-		}
-	}
 ];
