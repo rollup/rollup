@@ -699,8 +699,10 @@ export default class Chunk {
 
 		const preliminaryFileName = this.getPreliminaryFileName();
 		const preliminarySourcemapFileName = this.getPreliminarySourcemapFileName();
+		console.time('render modules')
 		const { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait } =
 			this.renderModules(preliminaryFileName.fileName);
+		console.timeEnd('render modules')
 
 		const renderedDependencies = [...this.getRenderedDependencies().values()];
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
@@ -1286,7 +1288,10 @@ export default class Chunk {
 		const { _, cnst, n } = snippets;
 		this.setDynamicImportResolutions(fileName);
 		this.setImportMetaResolutions(fileName);
+		console.time('set identifier render resolutions')
+		// TODO: for already cached modules that have not been changed, maybe we can use the same variables and stuff and only reanlyze those that were changed.
 		this.setIdentifierRenderResolutions();
+		console.timeEnd('set identifier render resolutions')
 
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		const indent = getIndentString(orderedModules, outputOptions);
@@ -1309,6 +1314,7 @@ export default class Chunk {
 		};
 
 		let usesTopLevelAwait = false;
+		console.time('order modules')
 		for (const module of orderedModules) {
 			let renderedLength = 0;
 			let source: MagicString | undefined;
@@ -1354,6 +1360,7 @@ export default class Chunk {
 				renderedLength
 			};
 		}
+		console.timeEnd('order modules')
 
 		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
 
@@ -1471,6 +1478,7 @@ export default class Chunk {
 			}
 		}
 
+		console.time('deconflict chunk')
 		deconflictChunk(
 			this.orderedModules,
 			this.getDependenciesToBeDeconflicted(
@@ -1491,6 +1499,7 @@ export default class Chunk {
 			this.accessedGlobalsByScope,
 			this.includedNamespaces
 		);
+		console.timeEnd('deconflict chunk')
 	}
 
 	private setImportMetaResolutions(fileName: string) {
