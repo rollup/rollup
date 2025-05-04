@@ -172,6 +172,7 @@ export default async function transform(
 	return {
 		ast,
 		code,
+		safeVariableNames: null,
 		customTransformCache,
 		originalCode,
 		originalSourcemap,
