@@ -137,7 +137,6 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 }
 
 export function initialiseTimers(inputOptions: NormalizedInputOptions): void {
-	console.log('inputOptions.perf', inputOptions.perf);
 	if (inputOptions.perf) {
 		timers = new Map();
 		timeStart = timeStartImpl;
