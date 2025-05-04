@@ -69,10 +69,7 @@ export function deconflictChunk(
 			accessedGlobalsByScope
 		);
 	}
-	console.log(includedNamespaces)
-	console.time('deconflict top level variables')
 	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
-	console.timeEnd('deconflict top level variables')
 
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
@@ -221,7 +218,6 @@ function deconflictTopLevelVariables(
 	modules: readonly Module[],
 	includedNamespaces: ReadonlySet<Module>
 ): void {
-	console.log('includedNamespaces', includedNamespaces)
 	for (const module of modules) {
 		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
