@@ -1,4 +1,4 @@
-define(['module', 'require', 'external'], (function (module, require, external) { 'use strict';
+define(['module', 'require', 'exports', 'external'], (function (module, require, exports, external) { 'use strict';
 
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
