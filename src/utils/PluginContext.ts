@@ -61,6 +61,7 @@ export function getPluginContext(
 		error(error_): never {
 			return error(logPluginError(normalizeLog(error_), plugin.name));
 		},
+		fs: options.fs,
 		getFileName: fileEmitter.getFileName,
 		getModuleIds: () => graph.modulesById.keys(),
 		getModuleInfo: graph.getModuleInfo,

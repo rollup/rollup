@@ -69,7 +69,7 @@ export async function mergeOptions(
 	warnUnknownOptions(
 		command,
 		[
-			...Object.keys(inputOptions),
+			...Object.keys(inputOptions).filter(option => option !== 'fs'),
 			...Object.keys(outputOptions[0]).filter(
 				option => option !== 'sourcemapIgnoreList' && option !== 'sourcemapPathTransform'
 			),
@@ -135,6 +135,7 @@ function mergeInputOptions(
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry'),
 		experimentalLogSideEffects: getOption('experimentalLogSideEffects'),
 		external: getExternal(config, overrides),
+		fs: getOption('fs'),
 		input: getOption('input') || [],
 		jsx: getObjectOption(
 			config,
