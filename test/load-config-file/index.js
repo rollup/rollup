@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 const { loadConfigFile } = require('../../dist/loadConfigFile.js');
-const { compareError, hasEsBuild } = require('../testHelpers');
+const { compareError, compareSpecialError, hasEsBuild } = require('../testHelpers');
 
 describe('loadConfigFile', () => {
 	const defaultConfigs = [
@@ -86,7 +86,7 @@ describe('loadConfigFile', () => {
 		} catch (error) {
 			caughtError = error;
 		}
-		compareError(caughtError, {
+		compareSpecialError(caughtError, {
 			cause: {
 				message: "Unexpected token 'export'"
 			},

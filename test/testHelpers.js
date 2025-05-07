@@ -98,6 +98,26 @@ exports.compareError = function compareError(actual, expected) {
 };
 
 /**
+ * @param {RollupError} actual
+ * @param {RollupError} expected
+ */
+exports.compareSpecialError = function compareSpecialError(actual, expected) {
+	actual = normaliseError(actual);
+	if (expected.frame) {
+		expected.frame = deindent(expected.frame);
+	}
+	if (!actual.cause && expected.cause) {
+		// @ts-expect-error test the bug node 22.12.0 and 24.0.0
+		assert.strictEqual(actual.message, expected.cause.message);
+	} else {
+		assert.deepEqual(actual, expected);
+	}
+	if (actual.stack) {
+		assert.ok(actual.stack.includes(expected.message));
+	}
+};
+
+/**
  * @param {(RollupLog & {level: LogLevel})[]} actual
  * @param {(RollupLog & {level: LogLevel})[]} expected
  */
