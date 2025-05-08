@@ -37,8 +37,7 @@ export function resolveIdViaPlugins(
 					}) !== -1
 				) {
 					// This means that the plugin recursively called itself
-					// Thus returning null in purpose of fallback to default behavior of `resolveId` plugin hook.
-					// FYI: https://rollupjs.org/plugin-development/#resolveid:~:text=Returning%20null%20defers%20to%20other%20resolveId%20functions%20and%20eventually%20the%20default%20resolution%20behavior.
+					// Thus returning Promise.resolve(null) in purpose of fallback to default behavior of `resolveId` plugin hook.
 					return Promise.resolve(null);
 				}
 				return moduleLoaderResolveId(
