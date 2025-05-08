@@ -24,7 +24,6 @@ export function resolveIdViaPlugins(
 		}
 		replaceContext = (pluginContext, plugin): PluginContext => ({
 			...pluginContext,
-			// @ts-expect-error returns null instead of Promise.resolve(null) by design
 			resolve: (source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) => {
 				skipSelf ??= true;
 				if (
@@ -40,7 +39,7 @@ export function resolveIdViaPlugins(
 					// This means that the plugin recursively called itself
 					// Thus returning null in purpose of fallback to default behavior of `resolveId` plugin hook.
 					// FYI: https://rollupjs.org/plugin-development/#resolveid:~:text=Returning%20null%20defers%20to%20other%20resolveId%20functions%20and%20eventually%20the%20default%20resolution%20behavior.
-					return null;
+					return Promise.resolve(null);
 				}
 				return moduleLoaderResolveId(
 					source,

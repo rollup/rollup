@@ -5,9 +5,9 @@ module.exports = defineTest({
 		plugins: [
 			{
 				name: 'r1',
-				resolveId(id) {
+				async resolveId(id) {
 					const importer = 'foo';
-					return this.resolve(id, importer) ?? 'success';
+					return (await this.resolve(id, importer)) ?? 'success';
 				},
 				load(id) {
 					if (id === 'success') {
