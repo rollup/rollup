@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.40.2
+
+_2025-05-06_
+
+### Bug Fixes
+
+- Create correct IIFE/AMD/UMD bundles when using a mutable default export (#5934)
+- Fix execution order when using top-level await for dynamic imports with inlineDynamicImports (#5937)
+- Throw when the output is watched in watch mode (#5939)
+
+### Pull Requests
+
+- [#5934](https://github.com/rollup/rollup/pull/5934): fix(exports): avoid "exports is not defined" `ReferenceError` (@dasa)
+- [#5937](https://github.com/rollup/rollup/pull/5937): consider TLA imports have higher execution priority (@TrickyPi)
+- [#5939](https://github.com/rollup/rollup/pull/5939): fix: watch mode input should not be an output subpath (@btea)
+- [#5940](https://github.com/rollup/rollup/pull/5940): chore(deps): update dependency vite to v6.3.4 [security] (@renovate[bot])
+- [#5941](https://github.com/rollup/rollup/pull/5941): chore(deps): update dependency eslint-plugin-unicorn to v59 (@renovate[bot])
+- [#5942](https://github.com/rollup/rollup/pull/5942): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5943](https://github.com/rollup/rollup/pull/5943): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.40.1
 
 _2025-04-28_

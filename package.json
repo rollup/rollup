@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "4.40.1",
+  "version": "4.40.2",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -159,7 +159,7 @@
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
-    "eslint-plugin-unicorn": "^58.0.0",
+    "eslint-plugin-unicorn": "^59.0.0",
     "eslint-plugin-vue": "^10.0.1",
     "fixturify": "^3.0.0",
     "flru": "^1.0.2",

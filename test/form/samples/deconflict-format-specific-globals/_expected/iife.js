@@ -1,4 +1,4 @@
-var bundle = (function (external) {
+var bundle = (function (exports, external) {
 	'use strict';
 
 	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
@@ -53,4 +53,4 @@ var bundle = (function (external) {
 
 	return exports.default;
 
-})(external);
+})({}, external);

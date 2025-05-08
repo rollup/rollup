@@ -62,7 +62,7 @@ export default function iife(
 		log(LOGLEVEL_WARN, logMissingNameOptionForIifeExport());
 	}
 
-	if (namedExportsMode && hasExports) {
+	if (hasExports && (namedExportsMode || exports[0]?.local === 'exports.default')) {
 		if (extend) {
 			deps.unshift(
 				`this${keypath(name!, getPropertyAccess)}${_}=${_}this${keypath(
