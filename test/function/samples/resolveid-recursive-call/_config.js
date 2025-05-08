@@ -6,7 +6,6 @@ module.exports = defineTest({
 			{
 				name: 'r1',
 				resolveId(id) {
-					console.log('r1', id);
 					const importer = 'foo';
 					return this.resolve(id, importer) ?? 'success';
 				},
@@ -19,7 +18,6 @@ module.exports = defineTest({
 			{
 				name: 'r2',
 				resolveId(id) {
-					console.log('r2', id);
 					const importer = 'bar';
 					return this.resolve(id, importer);
 				}
