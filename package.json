@@ -179,7 +179,7 @@
     "pinia": "^3.0.2",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
-    "pretty-bytes": "^6.1.1",
+    "pretty-bytes": "^7.0.0",
     "pretty-ms": "^9.2.0",
     "requirejs": "^2.3.7",
     "rollup": "^4.40.1",
