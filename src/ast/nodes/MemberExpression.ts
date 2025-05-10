@@ -19,6 +19,7 @@ import {
 	INTERACTION_ASSIGNED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../NodeInteractions';
+import { isAwaitExpressionNode, isImportExpressionNode } from '../utils/identifyNode';
 import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
 	EMPTY_PATH,
@@ -33,6 +34,7 @@ import {
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
+import LocalVariable from '../variables/LocalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
@@ -45,6 +47,7 @@ import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
 	includeInteraction,
+	includeInteractionWithoutThis,
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -418,7 +421,22 @@ export default class MemberExpression
 		if (this.variable) {
 			this.variable.includeCallArguments(interaction, context);
 		} else {
-			includeInteraction(interaction, context);
+			if (
+				isImportExpressionNode(this.object) ||
+				/**
+				 * const c = await import('foo')
+				 * c.foo();
+				 */
+				(this.object.variable &&
+					!this.object.variable.isReassigned &&
+					this.object.variable instanceof LocalVariable &&
+					isAwaitExpressionNode(this.object.variable.init) &&
+					isImportExpressionNode(this.object.variable.init.argument))
+			) {
+				includeInteractionWithoutThis(interaction, context);
+			} else {
+				includeInteraction(interaction, context);
+			}
 		}
 	}
 

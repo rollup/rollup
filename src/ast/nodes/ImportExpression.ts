@@ -86,8 +86,7 @@ export default class ImportExpression extends NodeBase {
 	 *
 	 * 1. `const { foo } = await import('bar')`.
 	 * 2. `(await import('bar')).foo`
-	 * 3. `import('bar').then((m) => m.foo)`
-	 * 4. `import('bar').then(({ foo }) => {})`
+	 * 3. `import('bar').then(({ foo }) => {})`
 	 *
 	 * Returns empty array if it's side-effect only import.
 	 * Returns undefined if it's not fully deterministic.
@@ -172,37 +171,12 @@ export default class ImportExpression extends NodeBase {
 				return EMPTY_ARRAY;
 			}
 
-			if (thenCallback.params.length === 1) {
-				// Promises .then() can only have one argument so only look at first one
-				const declaration = thenCallback.params[0];
-
-				// Case 3: import('bar').then(m => m.foo)
-				if (declaration instanceof Identifier) {
-					const starName = declaration.name;
-					const memberExpression = thenCallback.body;
-					if (
-						!(memberExpression instanceof MemberExpression) ||
-						memberExpression.computed ||
-						!(memberExpression.property instanceof Identifier)
-					) {
-						return;
-					}
-
-					const returnVariable = memberExpression.object;
-					if (!(returnVariable instanceof Identifier) || returnVariable.name !== starName) {
-						return;
-					}
-
-					return [memberExpression.property.name];
-				}
-
-				// Case 4: import('bar').then(({ foo }) => {})
-				if (declaration instanceof ObjectPattern) {
-					return getDeterministicObjectDestructure(declaration);
-				}
+			const declaration = thenCallback.params[0];
+			if (thenCallback.params.length === 1 && declaration instanceof ObjectPattern) {
+				return getDeterministicObjectDestructure(declaration);
 			}
 
-			return;
+			return this.hasUnknownAccessedKey ? undefined : [...this.accessedPropKey];
 		}
 	}
 
