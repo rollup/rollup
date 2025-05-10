@@ -514,7 +514,7 @@ jobs:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
             node: '24.0.0'
-            command: 'ci:coverage'
+            command: 'ci:test:all'
             additionalName: ' with Coverage'
             coverage: true
           - settings:
