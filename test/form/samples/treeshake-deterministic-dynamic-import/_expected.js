@@ -23,6 +23,12 @@ async function entry() {
   const { foo2 } = await Promise.resolve().then(function () { return sub2; });
   const { foo3 } = await Promise.resolve().then(function () { return sub2; });
   Promise.resolve().then(function () { return sub2; }).then((m) => m.baz2);
+  Promise.resolve().then(function () { return sub2; }).then(m=>{
+    function f(m){
+      console.log(m.baz2);
+    }
+    f(m);
+  });
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
 
@@ -65,6 +71,11 @@ async function entry() {
   {
     const [name11] = await Promise.resolve().then(function () { return bail11$1; });
   }
+
+  {
+    const sub2$1 = await Promise.resolve().then(function () { return sub2; });
+    sub2$1.foo2();
+  }  
 }
 
 function foo1() {

@@ -120,10 +120,17 @@ export const deoptimizeInteraction = (interaction: NodeInteraction) => {
 	}
 };
 
-export const includeInteraction = ({ args }: NodeInteraction, context: InclusionContext) => {
+export const includeInteraction = (interaction: NodeInteraction, context: InclusionContext) => {
 	// We do not re-include the "this" argument as we expect this is already
 	// re-included at the call site
-	args[0]?.includePath(UNKNOWN_PATH, context);
+	interaction.args[0]?.includePath(UNKNOWN_PATH, context);
+	includeInteractionWithoutThis(interaction, context);
+};
+
+export const includeInteractionWithoutThis = (
+	{ args }: NodeInteraction,
+	context: InclusionContext
+) => {
 	for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
 		const argument = args[argumentIndex];
 		if (argument) {
