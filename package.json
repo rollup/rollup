@@ -168,7 +168,7 @@
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "is-reference": "^3.0.3",
-    "lint-staged": "^15.5.1",
+    "lint-staged": "^16.0.0",
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.17",
     "mocha": "^11.2.2",
