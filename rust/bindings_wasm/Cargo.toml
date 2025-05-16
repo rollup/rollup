@@ -13,3 +13,7 @@ console_error_panic_hook = "0.1.7"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+# Fix for rust 1.87.0, see https://github.com/rustwasm/wasm-pack/issues/1441#issuecomment-2886461752
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
