@@ -3,7 +3,7 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 use swc_common::sync::Lrc;
 use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
 use swc_compiler_base::parse_js;
-use swc_compiler_base::IsModule;
+use swc_config::is_module::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsSyntax, Syntax};
 
