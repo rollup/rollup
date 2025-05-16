@@ -26,6 +26,20 @@ export function resolveIdViaPlugins(
 			...pluginContext,
 			resolve: (source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) => {
 				skipSelf ??= true;
+				if (
+					skipSelf &&
+					skip.findIndex(skippedCall => {
+						return (
+							skippedCall.plugin === plugin &&
+							skippedCall.source === source &&
+							skippedCall.importer === importer
+						);
+					}) !== -1
+				) {
+					// This means that the plugin recursively called itself
+					// Thus returning Promise.resolve(null) in purpose of fallback to default behavior of `resolveId` plugin hook.
+					return Promise.resolve(null);
+				}
 				return moduleLoaderResolveId(
 					source,
 					importer,
