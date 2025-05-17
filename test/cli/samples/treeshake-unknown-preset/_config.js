@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'overrides the treeshake option when using presets',
-	command: 'rollup main.js --format es --treeshake unknown',
+	spawnArgs: ['main.js', '--format', 'es', '--treeshake', 'unknown'],
 	error: () => true,
 	stderr: stderr => {
 		assertIncludes(

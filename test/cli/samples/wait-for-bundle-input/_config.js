@@ -6,7 +6,7 @@ let mainFile;
 
 module.exports = defineTest({
 	description: 'waits for bundle input',
-	command: 'rollup -c --waitForBundleInput',
+	spawnArgs: ['-c', '--waitForBundleInput'],
 	before() {
 		mainFile = path.resolve(__dirname, 'main.js');
 	},

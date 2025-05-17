@@ -3,7 +3,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'correctly adds locations to plugin warnings',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	stderr: stderr => {
 		assertIncludes(
 			stderr.replaceAll(__dirname + path.sep, 'CWD/'),

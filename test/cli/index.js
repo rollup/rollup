@@ -59,18 +59,18 @@ async function runTest(config) {
 			killSignal: 'SIGKILL'
 		};
 		const childProcess = config.spawnArgs
-			? spawn('node', [rollupBinary, ...config.spawnArgs], spawnOptions)
+			? spawn('node', [config.spawnScript || rollupBinary, ...config.spawnArgs], spawnOptions)
 			: exec(config.command.replace(/(^| )rollup($| )/g, ` node ${rollupBinary} `), spawnOptions);
 
 		childProcess.stdout.on('data', data => {
-			stdout += data;
+			stdout += String(data);
 		});
 
 		childProcess.stderr.on('data', async data => {
-			stderr += data;
+			stderr += String(data);
 			if (config.abortOnStderr) {
 				try {
-					if (await config.abortOnStderr(data)) {
+					if (await config.abortOnStderr(String(data))) {
 						childProcess.kill('SIGTERM');
 					}
 				} catch (error) {

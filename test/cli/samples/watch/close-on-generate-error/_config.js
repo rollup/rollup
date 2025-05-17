@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'closes the bundle on generate errors',
-	command: 'rollup -cw',
+	spawnArgs: ['-cw'],
 	abortOnStderr(data) {
 		if (data.includes('Bundle closed')) {
 			return true;

@@ -22,6 +22,13 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import {
+	isArrowFunctionExpressionNode,
+	isCallExpressionNode,
+	isIdentifierNode,
+	isImportExpressionNode,
+	isMemberExpressionNode
+} from '../utils/identifyNode';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
@@ -49,7 +56,7 @@ export default class LocalVariable extends Variable {
 	constructor(
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
-		private init: ExpressionEntity,
+		public init: ExpressionEntity,
 		/** if this is non-empty, the actual init is this path of this.init */
 		protected initPath: ObjectPath,
 		context: AstContext,
@@ -222,6 +229,22 @@ export default class LocalVariable extends Variable {
 					node.includeNode(context);
 					if (node.type === NodeType.Program) break;
 					node = node.parent as Node;
+				}
+				/**
+				 * import('foo').then(m => {
+				 *   console.log(m.foo)
+				 * })
+				 */
+				if (
+					this.kind === 'parameter' &&
+					isArrowFunctionExpressionNode(declaration.parent) &&
+					isCallExpressionNode(declaration.parent.parent) &&
+					isMemberExpressionNode(declaration.parent.parent.callee) &&
+					isIdentifierNode(declaration.parent.parent.callee.property) &&
+					declaration.parent.parent.callee.property.name === 'then' &&
+					isImportExpressionNode(declaration.parent.parent.callee.object)
+				) {
+					declaration.parent.parent.callee.object.includePath(path);
 				}
 			}
 			// We need to make sure we include the correct path of the init
