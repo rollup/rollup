@@ -3,7 +3,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'displays warnings from plugins',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	env: { FORCE_COLOR: undefined, NO_COLOR: true },
 	stderr: stderr => {
 		assertIncludes(

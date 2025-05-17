@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'displays warnings when a config is loaded',
-	command: 'rollup -c --bundleConfigAsCjs',
+	spawnArgs: ['-c', '--bundleConfigAsCjs'],
 	stderr: stderr =>
 		assertIncludes(
 			stderr,

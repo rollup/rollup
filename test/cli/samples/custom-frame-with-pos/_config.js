@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'custom (plugin generated) code frame taking priority over pos generated one',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	error: () => true,
 	stderr: stderr =>
 		assertIncludes(

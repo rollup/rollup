@@ -3,7 +3,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'aggregates warnings of different types',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	stderr: stderr => {
 		assertIncludes(
 			stderr,

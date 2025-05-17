@@ -7,7 +7,7 @@ let configFile;
 module.exports = defineTest({
 	description: 'keeps watching the config file in case the initial file contains an error',
 	retry: true,
-	command: 'rollup -cw',
+	spawnArgs: ['-cw'],
 	before() {
 		configFile = path.join(__dirname, 'rollup.config.mjs');
 		writeFileSync(configFile, 'throw new Error("Config contains initial errors");');
