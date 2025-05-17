@@ -6,7 +6,7 @@ let mainFile;
 
 module.exports = defineTest({
 	description: 'recovers from errors during bundling',
-	command: 'rollup -cw --bundleConfigAsCjs',
+	spawnArgs: ['-cw', '--bundleConfigAsCjs'],
 	before() {
 		mainFile = path.resolve(__dirname, 'main.js');
 		writeFileSync(mainFile, '<=>');

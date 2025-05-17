@@ -5,7 +5,7 @@ function toggleCase(s) {
 module.exports = defineTest({
 	onlyWindows: true,
 	description: "can load config with cwd that doesn't match realpath",
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	cwd: __dirname.replace(/^[a-z]:\\/i, toggleCase),
 	execute: true
 });
