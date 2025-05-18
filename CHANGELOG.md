@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.41.0
+
+_2025-05-18_
+
+### Features
+
+- Detect named exports in more dynamic import scenarios (#5954)
+
+### Pull Requests
+
+- [#5949](https://github.com/rollup/rollup/pull/5949): ci: use node 24 (@btea, @lukastaegert)
+- [#5951](https://github.com/rollup/rollup/pull/5951): chore(deps): update dependency pretty-bytes to v7 (@renovate[bot])
+- [#5952](https://github.com/rollup/rollup/pull/5952): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#5953](https://github.com/rollup/rollup/pull/5953): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5954](https://github.com/rollup/rollup/pull/5954): enhance tree-shaking for dynamic imports (@TrickyPi, @renovate[bot], @lukastaegert)
+- [#5957](https://github.com/rollup/rollup/pull/5957): chore(deps): update dependency lint-staged to v16 (@renovate[bot], @lukastaegert)
+- [#5958](https://github.com/rollup/rollup/pull/5958): fix(deps): update rust crate swc_compiler_base to v20 (@renovate[bot], @lukastaegert)
+- [#5959](https://github.com/rollup/rollup/pull/5959): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5960](https://github.com/rollup/rollup/pull/5960): Use spawn to run CLI tests (@lukastaegert)
+
 ## 4.40.2
 
 _2025-05-06_
