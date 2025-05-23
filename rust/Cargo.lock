@@ -167,9 +167,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.22"
+version = "1.2.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32db95edf998450acc7881c932f94cd9b05c87b4b2599e8bab064753da4acfd1"
+checksum = "5f4ac86a9e5bc1e2b3449ab9d7d3a6a405e3d1bb28d7b9be8614f55846ae3766"
 dependencies = [
  "shlex",
 ]
@@ -415,9 +415,9 @@ checksum = "00210d6893afc98edb752b664b8890f0ef174c8adbb8d0be9710fa66fbbf72d3"
 
 [[package]]
 name = "icu_properties"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2549ca8c7241c82f59c80ba2a6f415d931c5b58d24fb8412caa1a1f02c49139a"
+checksum = "016c619c1eeb94efb86809b015c58f479963de65bdb6253345c1a1276f22e32b"
 dependencies = [
  "displaydoc",
  "icu_collections",
@@ -431,9 +431,9 @@ dependencies = [
 
 [[package]]
 name = "icu_properties_data"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8197e866e47b68f8f7d95249e172903bec06004b18b2937f1095d40a0c57de04"
+checksum = "298459143998310acd25ffe6810ed544932242d3f07083eee1084d83a71bd632"
 
 [[package]]
 name = "icu_provider"
@@ -596,9 +596,9 @@ dependencies = [
 
 [[package]]
 name = "napi-build"
-version = "2.1.6"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28acfa557c083f6e254a786e01ba253fc56f18ee000afcd4f79af735f73a6da"
+checksum = "03acbfa4f156a32188bfa09b86dc11a431b5725253fc1fc6f6df5bed273382c4"
 
 [[package]]
 name = "napi-derive"
@@ -950,9 +950,9 @@ checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
 name = "rustversion"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 
 [[package]]
 name = "ryu"
@@ -1053,9 +1053,9 @@ dependencies = [
 
 [[package]]
 name = "sourcemap"
-version = "9.2.0"
+version = "9.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd430118acc9fdd838557649b9b43fd0a78e3834d84a283b466f8e84720d6101"
+checksum = "bdee719193ae5c919a3ee43f64c2c0dd87f9b9a451d67918a2a5ec2e3c70561c"
 dependencies = [
  "base64-simd",
  "bitvec",
@@ -1652,9 +1652,13 @@ checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 
 [[package]]
 name = "uuid"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "458f7a779bf54acc9f347480ac654f68407d3aab21269a6e3c9f922acd9e2da9"
+checksum = "3cf4199d1e5d15ddd86a694e4d0dffa9c323ce759fea589f00fef9d81cc1931d"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "version_check"

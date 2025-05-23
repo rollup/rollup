@@ -357,7 +357,7 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: node-modules-${{ runner.os }}
       - name: Build
-        uses: cross-platform-actions/action@fe0167d8082ac584754ef3ffb567fded22642c7d #v0.27.0
+        uses: cross-platform-actions/action@97419d18f6470332677e345e9df97cdc71244ead # v0.28.0
         with:
           operating_system: ${{ matrix.settings.name }}
           architecture: ${{ matrix.settings.architecture }}
@@ -550,7 +550,7 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.4.2
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
         if: matrix.coverage
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
