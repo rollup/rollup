@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.41.1
+
+_2025-05-24_
+
+### Bug Fixes
+
+- If a plugin calls `this.resolve` with `skipSelf: true`, subsequent calls when handling this by the same plugin with same parameters will return `null` to avoid infinite recursions (#5945)
+
+### Pull Requests
+
+- [#5945](https://github.com/rollup/rollup/pull/5945): Avoid recursively calling a plugin's resolveId hook with same id and importer (@younggglcy, @lukastaegert)
+- [#5963](https://github.com/rollup/rollup/pull/5963): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5964](https://github.com/rollup/rollup/pull/5964): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.41.0
 
 _2025-05-18_
