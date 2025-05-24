@@ -3,8 +3,18 @@ const { assertIncludes } = require('../../../../testHelpers.js');
 module.exports = defineTest({
 	description: 'event hook shell commands write to stderr',
 	retry: true,
-	command:
-		'node wrapper.js -cw --watch.onStart "echo start" --watch.onBundleStart "echo bundleStart" --watch.onBundleEnd "echo bundleEnd" --watch.onEnd "echo end"',
+	spawnScript: 'wrapper.js',
+	spawnArgs: [
+		'-cw',
+		'--watch.onStart',
+		'echo start',
+		'--watch.onBundleStart',
+		'echo bundleStart',
+		'--watch.onBundleEnd',
+		'echo bundleEnd',
+		'--watch.onEnd',
+		'echo end'
+	],
 	abortOnStderr(data) {
 		process.stderr.write(data);
 		if (data.includes('waiting for changes')) {

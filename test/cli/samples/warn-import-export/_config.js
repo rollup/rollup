@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'warns about import and export related issues',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	stderr: stderr => {
 		assertIncludes(
 			stderr,

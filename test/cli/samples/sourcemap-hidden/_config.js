@@ -3,7 +3,7 @@ const { readFileSync, unlinkSync } = require('node:fs');
 
 module.exports = defineTest({
 	description: 'omits sourcemap comments',
-	command: 'rollup -i main.js -f es -m hidden -o output.js',
+	spawnArgs: ['-i', 'main.js', '-f', 'es', '-m', 'hidden', '-o', 'output.js'],
 	test() {
 		assert.equal(readFileSync('output.js', 'utf8').trim(), 'console.log( 42 );');
 		unlinkSync('output.js');

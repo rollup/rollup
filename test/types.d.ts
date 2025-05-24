@@ -111,6 +111,10 @@ export interface TestConfigCli extends TestConfigBase {
 	 * Run rollup as a child process with the given arguments.
 	 */
 	spawnArgs?: string[];
+	/**
+	 * Instead of Rollup, run this Node script when spawning a child process.
+	 */
+	spawnScript?: string;
 	cwd?: string;
 	/**
 	 * Environment variables to set for the test.

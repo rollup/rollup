@@ -7,7 +7,7 @@ let stopUpdate;
 
 module.exports = defineTest({
 	description: 'immediately reloads the config file if a change happens while it is parsed',
-	command: 'rollup -cw',
+	spawnArgs: ['-cw'],
 	before() {
 		// This test writes a config file that prints a message to stderr which signals to the test that
 		// the config files has been parsed, at which point the test replaces the config file. The
