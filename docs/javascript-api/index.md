@@ -320,13 +320,13 @@ const watchOptions = {
 	...inputOptions,
 	output: [outputOptions],
 	watch: {
+		allowInputInsideOutputPath,
 		buildDelay,
 		chokidar,
 		clearScreen,
 		skipWrite,
 		exclude,
-		include,
-		allowInputInsideOutputPath
+		include
 	}
 };
 ```
