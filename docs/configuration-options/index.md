@@ -2867,6 +2867,7 @@ interface WatcherOptions {
 	include?: string | RegExp | (string | RegExp)[];
 	skipWrite?: boolean;
 	onInvalidate?: (id: string) => void;
+	allowInputInsideOutputPath?: boolean;
 }
 ```
 
@@ -2973,6 +2974,16 @@ export default {
 | Default: | `false`                                    |
 
 Whether to skip the `bundle.write()` step when a rebuild is triggered.
+
+### watch.allowInputInsideOutputPath
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| CLI: | `--watch.allowInputInsideOutputPath`/`--no-watch.allowInputInsideOutputPath` |
+| Default: | `false` |
+
+Whether the input path is allowed to be a subpath of the output path.
 
 ### watch.onInvalidate
 

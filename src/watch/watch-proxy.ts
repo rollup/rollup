@@ -31,6 +31,9 @@ function withTrailingSlash(path: string): string {
 
 function checkWatchConfig(config: MergedRollupOptions[]): void {
 	for (const item of config) {
+		if (typeof item.watch !== 'boolean' && item.watch?.allowInputInsideOutputPath) {
+			break;
+		}
 		if (item.input && item.output) {
 			const input = typeof item.input === 'string' ? ensureArray(item.input) : item.input;
 			const output = ensureArray(item.output);

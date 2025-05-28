@@ -1016,6 +1016,7 @@ export interface WatcherOptions {
 	include?: string | RegExp | (string | RegExp)[];
 	skipWrite?: boolean;
 	onInvalidate?: (id: string) => void;
+	allowInputInsideOutputPath?: boolean;
 }
 
 export interface RollupWatchOptions extends InputOptions {

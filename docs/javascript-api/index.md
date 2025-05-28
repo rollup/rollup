@@ -325,7 +325,8 @@ const watchOptions = {
 		clearScreen,
 		skipWrite,
 		exclude,
-		include
+		include,
+		allowInputInsideOutputPath
 	}
 };
 ```

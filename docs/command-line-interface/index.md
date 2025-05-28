@@ -139,7 +139,8 @@ export default {
 		clearScreen,
 		exclude,
 		include,
-		skipWrite
+		skipWrite,
+		allowInputInsideOutputPath
 	}
 };
 ```
@@ -469,6 +470,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --watch.onError <cmd>       Shell command to run on `"ERROR"` event
 --watch.onStart <cmd>       Shell command to run on `"START"` event
 --watch.skipWrite           Do not write files to disk when watching
+--watch.allowInputInsideOutputPath Whether the input path is allowed to be a subpath of the output path
 ```
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](../configuration-options/index.md) for details.

@@ -100,6 +100,7 @@ Basic options:
 --watch.onError <cmd>       Shell command to run on `"ERROR"` event
 --watch.onStart <cmd>       Shell command to run on `"START"` event
 --watch.skipWrite           Do not write files to disk when watching
+--watch.allowInputInsideOutputPath Whether the input path is allowed to be a subpath of the output path
 
 Examples:
 
