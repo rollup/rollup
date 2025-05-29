@@ -114,9 +114,13 @@ export default class UnaryExpression extends NodeBase {
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
+		// Check if the argument is an identifier that should be preserved as a reference for readability
+		const shouldPreserveArgument =
+			this.argument instanceof Identifier && this.argument.variable?.included;
 		if (
 			typeof this.getRenderedLiteralValue(includeChildrenRecursively) === 'symbol' ||
-			this.argument.shouldBeIncluded(context)
+			this.argument.shouldBeIncluded(context) ||
+			shouldPreserveArgument
 		) {
 			this.argument.include(context, includeChildrenRecursively);
 			this.renderedLiteralValue = UnknownValue;
