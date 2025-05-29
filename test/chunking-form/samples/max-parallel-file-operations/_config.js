@@ -10,7 +10,8 @@ module.exports = defineTest({
 	description: 'maxParallelFileOps limits write operations',
 	options: {
 		maxParallelFileOps: 3,
-		output: { preserveModules: true }
+		output: { preserveModules: true },
+		fs
 	},
 	before() {
 		fs.writeFile = async (path, content) => {

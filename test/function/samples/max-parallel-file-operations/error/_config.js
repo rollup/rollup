@@ -10,7 +10,8 @@ module.exports = defineTest({
 		input: 'main',
 		plugins: loader({
 			main: `import {foo} from './dep';`
-		})
+		}),
+		fs
 	},
 	before() {
 		fs.readFile = (path, options) => {
