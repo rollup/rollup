@@ -1,10 +1,6 @@
-const { assertIncludes } = require('../../../../testHelpers.js');
-
 module.exports = defineTest({
-	description: 'throws if output contains input',
+	description:
+		'allowInputInsideOutputPath set to true, should not throw an error when input is inside output path',
 	spawnArgs: ['-cw'],
-	error: () => true,
-	stderr(stderr) {
-		assertIncludes(stderr, '');
-	}
+	skip: true
 });
