@@ -1111,7 +1111,7 @@ export interface RollupFsModule {
 	appendFile(
 		path: string | ArrayBuffer | ArrayBufferView,
 		data: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: string | null; mode?: number | string; flag?: string }
+		options?: { encoding?: BufferEncoding | null; mode?: number; flag?: string }
 	): Promise<void>;
 
 	copyFile(
@@ -1122,21 +1122,23 @@ export interface RollupFsModule {
 
 	mkdir(path: string, options?: { recursive?: boolean; mode?: number | string }): Promise<void>;
 
-	mkdtemp(prefix: string, options?: { encoding?: string | null }): Promise<string>;
+	mkdtemp(prefix: string, options?: { encoding?: BufferEncoding | null }): Promise<string>;
 
 	readdir(
 		path: string,
-		options?: { encoding?: string | null; withFileTypes?: false }
+		options?: { encoding?: BufferEncoding | null; withFileTypes?: false }
 	): Promise<string[]>;
 
 	readFile(
-		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: string | null; flag?: string } | string
+		path: string,
+		options?:
+			| { encoding?: BufferEncoding | null; flag?: string; signal?: AbortSignal }
+			| BufferEncoding
 	): Promise<string | ArrayBuffer>;
 
 	realpath(
 		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: string | null }
+		options?: { encoding?: BufferEncoding | null } | BufferEncoding
 	): Promise<string>;
 
 	rename(
@@ -1161,7 +1163,7 @@ export interface RollupFsModule {
 	writeFile(
 		path: string | ArrayBuffer | ArrayBufferView,
 		data: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: string | null; mode?: number | string; flag?: string }
+		options?: { encoding?: BufferEncoding | null; mode?: number | string; flag?: string }
 	): Promise<void>;
 }
 
@@ -1175,3 +1177,14 @@ export interface RollupFileStats {
 	atime: Date;
 	birthtime: Date;
 }
+
+export type BufferEncoding =
+	| 'ascii'
+	| 'utf8'
+	| 'utf16le'
+	| 'ucs2'
+	| 'base64'
+	| 'base64url'
+	| 'latin1'
+	| 'binary'
+	| 'hex';

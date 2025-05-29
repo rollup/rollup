@@ -2866,8 +2866,8 @@ interface RollupFsModule {
 		path: string | ArrayBuffer | ArrayBufferView,
 		data: string | ArrayBuffer | ArrayBufferView,
 		options?: {
-			encoding?: string | null;
-			mode?: number | string;
+			encoding?: BufferEncoding | null;
+			mode?: number;
 			flag?: string;
 		}
 	): Promise<void>;
@@ -2885,22 +2885,28 @@ interface RollupFsModule {
 
 	mkdtemp(
 		prefix: string,
-		options?: { encoding?: string | null }
+		options?: { encoding?: BufferEncoding | null }
 	): Promise<string>;
 
 	readdir(
 		path: string,
-		options?: { encoding?: string | null; withFileTypes?: false }
+		options?: { encoding?: BufferEncoding | null; withFileTypes?: false }
 	): Promise<string[]>;
 
 	readFile(
-		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: string | null; flag?: string } | string
+		path: string,
+		options?:
+			| {
+					encoding?: BufferEncoding | null;
+					flag?: string;
+					signal?: AbortSignal;
+			  }
+			| BufferEncoding
 	): Promise<string | ArrayBuffer>;
 
 	realpath(
 		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: string | null }
+		options?: { encoding?: BufferEncoding | null } | BufferEncoding
 	): Promise<string>;
 
 	rename(
@@ -2926,7 +2932,7 @@ interface RollupFsModule {
 		path: string | ArrayBuffer | ArrayBufferView,
 		data: string | ArrayBuffer | ArrayBufferView,
 		options?: {
-			encoding?: string | null;
+			encoding?: BufferEncoding | null;
 			mode?: number | string;
 			flag?: string;
 		}
@@ -2943,10 +2949,18 @@ interface RollupFileStats {
 	atime: Date;
 	birthtime: Date;
 }
+
+type BufferEncoding =
+	| 'ascii'
+	| 'utf8'
+	| 'utf16le'
+	| 'ucs2'
+	| 'base64'
+	| 'base64url'
+	| 'latin1'
+	| 'binary'
+	| 'hex';
 ```
-
-````js twoslash
-
 
 ## watch
 
@@ -2966,11 +2980,11 @@ interface WatcherOptions {
 	skipWrite?: boolean;
 	onInvalidate?: (id: string) => void;
 }
-````
+```
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
-````js twoslash
+```js twoslash
 // rollup.config.js
 // ---cut-start---
 /** @type {import('rollup').RollupOptions[]} */
@@ -2986,7 +3000,7 @@ export default [
 		output: { file: 'bundle.es.js', format: 'es' }
 	}
 ];
-````
+```
 
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
 
