@@ -1009,6 +1009,7 @@ export interface ChokidarOptions {
 export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
 
 export interface WatcherOptions {
+	allowInputInsideOutputPath?: boolean;
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;
