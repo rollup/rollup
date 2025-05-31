@@ -312,6 +312,7 @@ export default class Module {
 			ast: null,
 			attributes,
 			code: null,
+			safeVariableNames: null,
 			get dynamicallyImportedIdResolutions() {
 				return dynamicImports
 					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
@@ -832,6 +833,7 @@ export default class Module {
 		sourcemapChain,
 		transformDependencies,
 		transformFiles,
+		safeVariableNames,
 		...moduleOptions
 	}: TransformModuleJSON & {
 		resolvedIds?: ResolvedIdMap;
@@ -844,6 +846,7 @@ export default class Module {
 		}
 
 		this.info.code = code;
+		this.info.safeVariableNames = safeVariableNames;
 		this.originalCode = originalCode;
 
 		// We need to call decodedSourcemap on the input in case they were hydrated from json in the cache and don't
@@ -953,6 +956,7 @@ export default class Module {
 	toJSON(): ModuleJSON {
 		return {
 			ast: this.info.ast!,
+			safeVariableNames: this.info.safeVariableNames,
 			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
