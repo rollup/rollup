@@ -31,7 +31,8 @@
     },
     {
       "matchPackageNames": [
-        "@types/node"
+        "@types/node",
+        "yargs-parser"
       ],
       "matchUpdateTypes": [
         "major"
