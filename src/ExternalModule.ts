@@ -35,7 +35,6 @@ export default class ExternalModule {
 			ast: null,
 			attributes,
 			code: null,
-			safeVariableNames: null,
 			dynamicallyImportedIdResolutions: EMPTY_ARRAY,
 			dynamicallyImportedIds: EMPTY_ARRAY,
 			get dynamicImporters() {
@@ -57,6 +56,7 @@ export default class ExternalModule {
 			isIncluded: null,
 			meta,
 			moduleSideEffects,
+			safeVariableNames: null,
 			syntheticNamedExports: false
 		};
 	}

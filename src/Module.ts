@@ -312,7 +312,6 @@ export default class Module {
 			ast: null,
 			attributes,
 			code: null,
-			safeVariableNames: null,
 			get dynamicallyImportedIdResolutions() {
 				return dynamicImports
 					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
@@ -388,6 +387,7 @@ export default class Module {
 			},
 			meta: { ...meta },
 			moduleSideEffects,
+			safeVariableNames: null,
 			syntheticNamedExports
 		};
 	}
@@ -964,11 +964,9 @@ export default class Module {
 	toJSON(): ModuleJSON {
 		return {
 			ast: this.info.ast!,
-			safeVariableNames: this.info.safeVariableNames,
 			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
-
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
 			meta: this.info.meta,
@@ -976,6 +974,7 @@ export default class Module {
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
+			safeVariableNames: this.info.safeVariableNames,
 			sourcemapChain: this.sourcemapChain,
 			syntheticNamedExports: this.info.syntheticNamedExports,
 			transformDependencies: this.transformDependencies,
