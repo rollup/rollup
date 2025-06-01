@@ -219,6 +219,12 @@ function deconflictTopLevelVariables(
 	includedNamespaces: ReadonlySet<Module>
 ): void {
 	for (const module of modules) {
+		for (const safeVariableName of Object.values(module.info.safeVariableNames ?? {})) {
+			usedNames.add(safeVariableName);
+		}
+	}
+
+	for (const module of modules) {
 		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
 			const cachedSafeVariableName = module.info.safeVariableNames?.[variable.name];
