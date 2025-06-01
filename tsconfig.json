@@ -2,16 +2,16 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": true,
-		"lib": ["ES2022", "ESNext.Disposable", "DOM"],
+		"lib": ["ES2020", "DOM"],
 		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"moduleResolution": "node",
 		"noEmitOnError": true,
 		"noUnusedParameters": true,
 		"pretty": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ES2022",
+		"target": "ES2020",
 		"useDefineForClassFields": false,
 		"paths": {
 			"rollup": ["./node_modules/rollup"]
