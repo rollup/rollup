@@ -25,5 +25,6 @@
     "ghcr.io/devcontainers-extra/features/ripgrep:1": {
       "version": "latest"
     }
-  }
+  },
+  "remoteUser": "codespace"
 }
