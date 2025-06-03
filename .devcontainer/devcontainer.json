@@ -1,4 +1,29 @@
 {
   "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {}
+  "features": {
+    "ghcr.io/eitsupi/devcontainer-features/go-task:1": {
+      "version": "3"
+    },
+    "ghcr.io/shyim/devcontainers-features/php:0": {
+      "installComposer": true,
+      "version": "8.3"
+    },
+    "ghcr.io/cirolosapio/devcontainers-features/alpine-aws-cli:0": {},
+    "ghcr.io/audacioustux/devcontainers/aws-sam-cli:1": {},
+    "ghcr.io/jpawlowski/devcontainer-features/powershell-extended:2": {
+      "updateModulesHelp": true,
+      "installOhMyPosh": true,
+      "installOhMyPoshConfig": true,
+      "version": "latest",
+      "installMethod": "package",
+      "updatePSResourceGet": "release",
+      "updatePSReadLine": "release"
+    },
+    "ghcr.io/devcontainers-extra/features/circleci-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers-extra/features/ripgrep:1": {
+      "version": "latest"
+    }
+  }
 }
