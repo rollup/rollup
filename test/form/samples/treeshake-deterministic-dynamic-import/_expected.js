@@ -29,6 +29,12 @@ async function entry() {
     }
     f(m);
   });
+  Promise.resolve().then(function () { return sub2; }).then(function(m){
+    function f(m){
+      console.log(m.baz2);
+    }
+    f(m);
+  });
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
 
