@@ -72,11 +72,11 @@ async function runTest(config) {
 			if (config.abortOnStderr) {
 				try {
 					if (await config.abortOnStderr(String(data))) {
-						setTimeout(() => childProcess.kill('SIGTERM'));
+						childProcess.kill('SIGTERM');
 					}
 				} catch (error) {
+					childProcess.kill('SIGTERM');
 					reject(error);
-					childProcess.kill('SIGKILL');
 				}
 			}
 		});
