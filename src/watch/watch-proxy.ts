@@ -9,8 +9,8 @@ import { ensureArray } from '../utils/ensureArray';
 import { error, logInvalidOption } from '../utils/logs';
 import { mergeOptions } from '../utils/options/mergeOptions';
 import { URL_WATCH } from '../utils/urls';
-import { WatchEmitter } from './WatchEmitter';
 import { loadFsEvents } from './fsevents-importer';
+import { WatchEmitter } from './WatchEmitter';
 
 export default function watch(configs: RollupOptions[] | RollupOptions): RollupWatcher {
 	const emitter = new WatchEmitter() as RollupWatcher;
@@ -22,7 +22,7 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 	return emitter;
 }
 
-function withTrailingSlash(path: string): string {
+function ensureTrailingSlash(path: string): string {
 	if (path[path.length - 1] !== '/') {
 		return `${path}/`;
 	}
@@ -31,25 +31,26 @@ function withTrailingSlash(path: string): string {
 
 function checkWatchConfig(config: MergedRollupOptions[]): void {
 	for (const item of config) {
+		if (typeof item.watch !== 'boolean' && item.watch?.allowInputInsideOutputPath) {
+			break;
+		}
 		if (item.input && item.output) {
 			const input = typeof item.input === 'string' ? ensureArray(item.input) : item.input;
-			const output = ensureArray(item.output);
+			const outputs = ensureArray(item.output);
 			for (const index in input) {
-				const inputPath = input[index as keyof typeof input] as string;
-				const subPath = output.find(o => {
-					if (!o.dir || typeof inputPath !== 'string') {
-						return false;
-					}
-					const _outPath = withTrailingSlash(o.dir);
-					const _inputPath = withTrailingSlash(inputPath);
-					return _inputPath.startsWith(_outPath);
-				});
-				if (subPath) {
+				const inputPath = input[index as keyof typeof input];
+				if (typeof inputPath !== 'string') {
+					continue;
+				}
+				const outputWithInputAsSubPath = outputs.find(
+					({ dir }) => dir && ensureTrailingSlash(inputPath).startsWith(ensureTrailingSlash(dir))
+				);
+				if (outputWithInputAsSubPath) {
 					error(
 						logInvalidOption(
 							'watch',
 							URL_WATCH,
-							`the input "${inputPath}" is a subpath of the output "${subPath.dir}"`
+							`the input "${inputPath}" is a subpath of the output "${outputWithInputAsSubPath.dir}"`
 						)
 					);
 				}

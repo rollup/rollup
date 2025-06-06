@@ -2860,6 +2860,7 @@ For each key, the first number represents the elapsed time while the second repr
 
 ```typescript
 interface WatcherOptions {
+	allowInputInsideOutputPath?: boolean;
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;
@@ -2891,6 +2892,16 @@ export default [
 ```
 
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
+
+### watch.allowInputInsideOutputPath
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| CLI: | `--watch.allowInputInsideOutputPath`/`--no-watch.allowInputInsideOutputPath` |
+| Default: | `false` |
+
+Whether the input path is allowed to be a subpath of the output path.
 
 ### watch.buildDelay
 
