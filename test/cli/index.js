@@ -27,8 +27,8 @@ runTestSuiteWithSamples(
 	 * @param {import('../types').TestConfigCli} config
 	 */
 	(directory, config) => {
-		for (let run = 0; run < (config.repeat || 1); run++) {
-			const description = `${path.basename(directory)}: ${config.description}${run > 0 ? ` (run ${run + 1})` : ''}`;
+		for (let iteration = 0; iteration < (config.repeat || 1); iteration++) {
+			const description = `${path.basename(directory)}: ${config.description}${iteration > 0 ? ` (run ${iteration + 1})` : ''}`;
 			(config.skip ? it.skip : config.solo ? it.only : it)(description, async () => {
 				process.chdir(config.cwd || directory);
 				try {
