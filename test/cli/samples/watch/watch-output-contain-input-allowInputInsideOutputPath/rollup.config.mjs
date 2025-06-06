@@ -1,11 +1,11 @@
 export default [
 	{
-		input: 'main.js',
+		input: {'out': 'output/main.js'},
 		watch: {
 			allowInputInsideOutputPath: true,
 		},
 		output: {
-			dir: 'main.js',
+			dir: 'output',
 			format: 'es'
 		}
 	},
