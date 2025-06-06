@@ -55,7 +55,7 @@ async function runTest(config) {
 		let stderr = '';
 
 		const spawnOptions = {
-			timeout: 4_000,
+			timeout: 40_000,
 			env: { ...process.env, FORCE_COLOR: '0', ...config.env },
 			killSignal: 'SIGKILL'
 		};

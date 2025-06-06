@@ -8,7 +8,10 @@ module.exports = defineTest({
 	spawnArgs: ['-cw', '--watch.onError', 'echo error'],
 	abortOnStderr(data) {
 		if (data.includes('waiting for changes')) {
+			console.log('ABORTING on stderr:', data, '======');
 			return true;
+		} else {
+			console.log('NOT aborting on stderr:', data, '======');
 		}
 	},
 	stderr(stderr) {
