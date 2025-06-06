@@ -25,6 +25,7 @@ import type { VariableKind } from '../nodes/shared/VariableKinds';
 import {
 	isArrowFunctionExpressionNode,
 	isCallExpressionNode,
+	isFunctionExpressionNode,
 	isIdentifierNode,
 	isImportExpressionNode,
 	isMemberExpressionNode
@@ -237,7 +238,8 @@ export default class LocalVariable extends Variable {
 				 */
 				if (
 					this.kind === 'parameter' &&
-					isArrowFunctionExpressionNode(declaration.parent) &&
+					(isArrowFunctionExpressionNode(declaration.parent) ||
+						isFunctionExpressionNode(declaration.parent)) &&
 					isCallExpressionNode(declaration.parent.parent) &&
 					isMemberExpressionNode(declaration.parent.parent.callee) &&
 					isIdentifierNode(declaration.parent.parent.callee.property) &&
