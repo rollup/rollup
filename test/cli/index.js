@@ -23,12 +23,13 @@ runTestSuiteWithSamples(
 	'cli',
 	path.resolve(__dirname, 'samples'),
 	/**
+	 * @param {string} directory
 	 * @param {import('../types').TestConfigCli} config
 	 */
 	(directory, config) => {
-		(config.skip ? it.skip : config.solo ? it.only : it)(
-			path.basename(directory) + ': ' + config.description,
-			async () => {
+		for (let run = 0; run < (config.repeat || 1); run++) {
+			const description = `${path.basename(directory)}: ${config.description}${run > 0 ? ` (run ${run + 1})` : ''}`;
+			(config.skip ? it.skip : config.solo ? it.only : it)(description, async () => {
 				process.chdir(config.cwd || directory);
 				try {
 					await runTest(config);
@@ -39,8 +40,8 @@ runTestSuiteWithSamples(
 					}
 					throw error;
 				}
-			}
-		).timeout(80_000);
+			}).timeout(80_000);
+		}
 	},
 	() => process.chdir(cwd)
 );
