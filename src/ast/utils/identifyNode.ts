@@ -1,6 +1,7 @@
 import type ArrowFunctionExpression from '../nodes/ArrowFunctionExpression';
 import type AwaitExpression from '../nodes/AwaitExpression';
 import type CallExpression from '../nodes/CallExpression';
+import type FunctionExpression from '../nodes/FunctionExpression';
 import type Identifier from '../nodes/Identifier';
 import type ImportExpression from '../nodes/ImportExpression';
 import type MemberExpression from '../nodes/MemberExpression';
@@ -20,6 +21,10 @@ export function isPropertyNode(node: unknown): node is Property {
 
 export function isArrowFunctionExpressionNode(node: unknown): node is ArrowFunctionExpression {
 	return node instanceof NodeBase && node.type === nodeType.ArrowFunctionExpression;
+}
+
+export function isFunctionExpressionNode(node: unknown): node is FunctionExpression {
+	return node instanceof NodeBase && node.type === nodeType.FunctionExpression;
 }
 
 export function isCallExpressionNode(node: unknown): node is CallExpression {

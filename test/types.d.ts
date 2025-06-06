@@ -133,11 +133,12 @@ export interface TestConfigCli extends TestConfigBase {
 	 * Run assertions against the exports of the bundle after executing it.
 	 */
 	exports?: (exportObject: any) => void | Promise<void>;
+	repeat?: number;
 	/**
 	 * Run assertions against the generated code when bundling to stdout.
 	 */
 	result?: (code: string) => void;
-	retry?: number;
+	retry?: boolean;
 	/**
 	 * Display generated output in console.
 	 */

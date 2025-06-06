@@ -23,12 +23,13 @@ runTestSuiteWithSamples(
 	'cli',
 	path.resolve(__dirname, 'samples'),
 	/**
+	 * @param {string} directory
 	 * @param {import('../types').TestConfigCli} config
 	 */
 	(directory, config) => {
-		(config.skip ? it.skip : config.solo ? it.only : it)(
-			path.basename(directory) + ': ' + config.description,
-			async () => {
+		for (let iteration = 0; iteration < (config.repeat || 1); iteration++) {
+			const description = `${path.basename(directory)}: ${config.description}${iteration > 0 ? ` (run ${iteration + 1})` : ''}`;
+			(config.skip ? it.skip : config.solo ? it.only : it)(description, async () => {
 				process.chdir(config.cwd || directory);
 				try {
 					await runTest(config);
@@ -39,8 +40,8 @@ runTestSuiteWithSamples(
 					}
 					throw error;
 				}
-			}
-		).timeout(80_000);
+			}).timeout(80_000);
+		}
 	},
 	() => process.chdir(cwd)
 );
@@ -106,7 +107,9 @@ async function runTest(config) {
 					}
 				}
 				if (childProcess.signalCode === 'SIGKILL') {
-					return reject(new Error('Test aborted due to timeout.'));
+					return reject(
+						new Error(`Test aborted due to timeout.\nstdout: ${stdout}\n\nstderr: ${stderr}\n`)
+					);
 				}
 
 				if ('stderr' in config) {
