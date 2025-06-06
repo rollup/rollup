@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.42.0
+
+_2025-06-06_
+
+### Features
+
+- Add option to allow the input to be located in the output in watch mode (#5966)
+
+### Pull Requests
+
+- [#5966](https://github.com/rollup/rollup/pull/5966): feat: watch mode add `allowInputInsideOutputPath` option (@btea, @lukastaegert)
+
 ## 4.41.2
 
 _2025-06-06_
