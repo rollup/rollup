@@ -72,11 +72,9 @@ async function runTest(config) {
 			if (config.abortOnStderr) {
 				try {
 					if (await config.abortOnStderr(String(data))) {
-						console.log('TRYING TO KILL');
-						childProcess.kill('SIGTERM');
+						setTimeout(() => childProcess.kill('SIGTERM'));
 					}
 				} catch (error) {
-					console.log('TRYING TO KILL FOR ERROR', error);
 					reject(error);
 					childProcess.kill('SIGKILL');
 				}
