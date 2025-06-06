@@ -7,7 +7,7 @@ module.exports = defineTest({
 	async abortOnStderr(data) {
 		if (data.includes('waiting for changes')) {
 			// Wait a little for the child process to complete the command
-			await wait(300);
+			await wait(CHILD_PROCESS_COMPLETION_DELAY_MS);
 			return true;
 		}
 	},
