@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.41.2
+
+_2025-06-06_
+
+### Bug Fixes
+
+- Detect named export usages in dynamic imports with `then` and non-arrow function expressions (#5977)
+- Do not replace usages of constant variables with their values for readability (#5968)
+
+### Pull Requests
+
+- [#5968](https://github.com/rollup/rollup/pull/5968): fix: preserve constant identifiers in unary expressions instead of magic numbers (@OmkarJ13, @lukastaegert)
+- [#5969](https://github.com/rollup/rollup/pull/5969): chore(deps): update dependency yargs-parser to v22 (@renovate[bot], @lukastaegert)
+- [#5970](https://github.com/rollup/rollup/pull/5970): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5971](https://github.com/rollup/rollup/pull/5971): chore(deps): lock file maintenance (@renovate[bot])
+- [#5976](https://github.com/rollup/rollup/pull/5976): Update README.md (@ftlno, @lukastaegert)
+- [#5977](https://github.com/rollup/rollup/pull/5977): fix: consider function expression in thenable when tree-shaking dynamic imports (@TrickyPi)
+- [#5981](https://github.com/rollup/rollup/pull/5981): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5982](https://github.com/rollup/rollup/pull/5982): Debug/fix watch pipeline (@lukastaegert)
+
 ## 4.41.1
 
 _2025-05-24_

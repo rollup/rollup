@@ -10,7 +10,7 @@ anyhow = "1.0.98"
 swc_atoms = "5.0.0"
 swc_compiler_base = "22.0.0"
 swc_config = "3.0.0"
-swc_common = { version = "11.0.0", features = ["parking_lot"] }
+swc_common = { version = "11.0.3", features = ["parking_lot"] }
 swc_ecma_ast = "11.0.0"
-swc_ecma_parser = "14.0.0"
-parking_lot = "0.12.3"
+swc_ecma_parser = "14.0.1"
+parking_lot = "0.12.4"

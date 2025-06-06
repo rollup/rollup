@@ -14,6 +14,12 @@ export async function entry() {
     }
     f(m);
   })
+  import('./sub2.js').then(function(m){
+    function f(m){
+      console.log(m.baz2)
+    }
+    f(m);
+  })
   import('./sub2.js').then(({ baz2 }) => baz2)
   import('./sub2.js').then(function({ reexported }) { reexported })
 
