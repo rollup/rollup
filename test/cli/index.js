@@ -55,7 +55,7 @@ async function runTest(config) {
 		let stderr = '';
 
 		const spawnOptions = {
-			timeout: 40_000,
+			timeout: 4_000,
 			env: { ...process.env, FORCE_COLOR: '0', ...config.env },
 			killSignal: 'SIGKILL'
 		};
@@ -107,7 +107,9 @@ async function runTest(config) {
 					}
 				}
 				if (childProcess.signalCode === 'SIGKILL') {
-					return reject(new Error('Test aborted due to timeout.'));
+					return reject(
+						new Error(`Test aborted due to timeout.\nstdout: ${stdout}\n\nstderr: ${stderr}\n`)
+					);
 				}
 
 				if ('stderr' in config) {
