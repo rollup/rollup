@@ -167,7 +167,8 @@ const inputOptions = {
 	// experimental
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
-	perf
+	perf,
+	fs
 };
 ```
 
