@@ -1109,73 +1109,46 @@ export type RollupOptionsFunction = (
 
 export interface RollupFsModule {
 	appendFile(
-		path: string | ArrayBuffer | ArrayBufferView,
-		data: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: BufferEncoding | null; mode?: number; flag?: string }
-	): Promise<void>;
-
-	copyFile(
-		source: string | ArrayBuffer | ArrayBufferView,
-		destination: string | ArrayBuffer | ArrayBufferView,
-		mode?: number
-	): Promise<void>;
-
-	mkdir(path: string, options?: { recursive?: boolean; mode?: number | string }): Promise<void>;
-
-	mkdtemp(prefix: string, options?: { encoding?: BufferEncoding | null }): Promise<string>;
-
-	readdir(
 		path: string,
-		options?: { encoding?: BufferEncoding | null; withFileTypes?: false }
-	): Promise<string[]>;
+		data: string | Uint8Array,
+		options?: { encoding?: BufferEncoding | null; mode?: string | number; flag?: string | number }
+	): Promise<void>;
+
+	copyFile(source: string, destination: string, mode?: string | number): Promise<void>;
+
+	mkdir(path: string, options?: { recursive?: boolean; mode?: string | number }): Promise<void>;
+
+	mkdtemp(prefix: string): Promise<string>;
+
+	readdir(path: string, options?: { withFileTypes?: false }): Promise<string[]>;
+	readdir(path: string, options?: { withFileTypes: true }): Promise<RollupDirectoryEntry[]>;
 
 	readFile(
 		path: string,
-		options?:
-			| { encoding?: BufferEncoding | null; flag?: string; signal?: AbortSignal }
-			| BufferEncoding
-	): Promise<string | ArrayBuffer>;
-
-	realpath(
-		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: BufferEncoding | null } | BufferEncoding
+		options?: { encoding?: null; flag?: string | number; signal?: AbortSignal }
+	): Promise<Uint8Array>;
+	readFile(
+		path: string,
+		options?: { encoding: BufferEncoding; flag?: string | number; signal?: AbortSignal }
 	): Promise<string>;
 
-	rename(
-		oldPath: string | ArrayBuffer | ArrayBufferView,
-		newPath: string | ArrayBuffer | ArrayBufferView
-	): Promise<void>;
+	realpath(path: string): Promise<string>;
+
+	rename(oldPath: string, newPath: string): Promise<void>;
 
 	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
 
-	stat(
-		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { bigint?: boolean }
-	): Promise<RollupFileStats>;
+	stat(path: string): Promise<RollupFileStats>;
 
-	lstat(
-		path: string | ArrayBuffer | ArrayBufferView,
-		options?: { bigint?: boolean }
-	): Promise<RollupFileStats>;
+	lstat(path: string): Promise<RollupFileStats>;
 
-	unlink(path: string | ArrayBuffer | ArrayBufferView): Promise<void>;
+	unlink(path: string): Promise<void>;
 
 	writeFile(
-		path: string | ArrayBuffer | ArrayBufferView,
-		data: string | ArrayBuffer | ArrayBufferView,
-		options?: { encoding?: BufferEncoding | null; mode?: number | string; flag?: string }
+		path: string,
+		data: string | Uint8Array,
+		options?: { encoding?: BufferEncoding | null; mode?: string | number; flag?: string | number }
 	): Promise<void>;
-}
-
-export interface RollupFileStats {
-	isFile(): boolean;
-	isDirectory(): boolean;
-	isSymbolicLink(): boolean;
-	size: number;
-	mtime: Date;
-	ctime: Date;
-	atime: Date;
-	birthtime: Date;
 }
 
 export type BufferEncoding =
@@ -1188,3 +1161,21 @@ export type BufferEncoding =
 	| 'latin1'
 	| 'binary'
 	| 'hex';
+
+export interface RollupDirectoryEntry {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	name: string;
+}
+
+export interface RollupFileStats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	size: number;
+	mtime: Date;
+	ctime: Date;
+	atime: Date;
+	birthtime: Date;
+}
