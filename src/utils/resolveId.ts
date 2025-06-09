@@ -2,7 +2,7 @@ import type { ModuleLoaderResolveId } from '../ModuleLoader';
 import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { lstat, readdir, realpath } from './fs';
-import { basename, dirname, isAbsolute, resolve } from './path';
+import { basename, dirname, isAbsolute, normalize, resolve } from './path';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 
 export async function resolveId(
@@ -53,7 +53,7 @@ export async function resolveId(
 	// resolve call and require no special handing on our part.
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
-		importer ? resolve(dirname(importer), source) : resolve(source),
+		importer ? normalize(resolve(dirname(importer), source)) : normalize(resolve(source)),
 		preserveSymlinks
 	);
 }
