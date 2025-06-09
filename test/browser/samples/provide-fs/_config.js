@@ -9,10 +9,7 @@ module.exports = defineTest({
 	options: {
 		fs: vol.promises,
 		plugins: {
-			name: 'test',
-			resolveId(source) {
-				return source;
-			}
+			name: 'test'
 		}
 	}
 });
