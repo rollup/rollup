@@ -244,6 +244,7 @@ export interface PluginContext extends MinimalPluginContext {
 	debug: LoggingFunction;
 	emitFile: EmitFile;
 	error: (error: RollupError | string) => never;
+	fs: RollupFsModule;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
@@ -265,7 +266,6 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: LoggingFunction;
-	fs: RollupFsModule;
 }
 
 export interface PluginContextMeta {
@@ -701,6 +701,7 @@ export interface NormalizedInputOptions {
 	experimentalCacheExpiry: number;
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
+	fs: RollupFsModule;
 	input: string[] | Record<string, string>;
 	jsx: false | NormalizedJsxOptions;
 	logLevel: LogLevelOption;
@@ -715,7 +716,6 @@ export interface NormalizedInputOptions {
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
-	fs: RollupFsModule;
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';

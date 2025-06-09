@@ -227,7 +227,8 @@ export class ModuleLoader {
 							skip,
 							customOptions,
 							typeof isEntry === 'boolean' ? isEntry : !importer,
-							attributes
+							attributes,
+							this.options.fs
 						),
 				importer,
 				source

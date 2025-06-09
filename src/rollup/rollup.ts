@@ -310,17 +310,14 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 async function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: NormalizedOutputOptions,
-	inputOptions: NormalizedInputOptions
+	{ fs: { mkdir, writeFile } }: NormalizedInputOptions
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
 
 	// 'recursive: true' does not throw if the folder structure, or parts of it, already exist
-	await inputOptions.fs.mkdir(dirname(fileName), { recursive: true });
+	await mkdir(dirname(fileName), { recursive: true });
 
-	return inputOptions.fs.writeFile(
-		fileName,
-		outputFile.type === 'asset' ? outputFile.source : outputFile.code
-	);
+	return writeFile(fileName, outputFile.type === 'asset' ? outputFile.source : outputFile.code);
 }
 
 /**
