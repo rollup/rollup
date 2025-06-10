@@ -2853,12 +2853,12 @@ For each key, the first number represents the elapsed time while the second repr
 
 ### fs
 
-|          |                    |
-| -------: | :----------------- |
-|    Type: | `RollupFsModule`   |
-| Default: | `node:fs.promises` |
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `RollupFsModule`                                     |
+| Default: | `node:fs.promises` in NodeJS, no default in browsers |
 
-If you want to use a custom file system module, you can set this option to an object that implements the same API as the `RollupFsModule` interface. This is useful if you want to use a different file system implementation, such as `memfs` or `browserfs`, or if you want to mock the file system for testing purposes.
+If you want to use a custom file system module, you can set this option to an object that implements the same API as the `RollupFsModule` interface. This is useful if you want to use a different file system implementation such as [`memfs`](https://www.npmjs.com/package/memfs), if you want to mock the file system for testing purposes, or if you use the [browser build](../browser/index.md) of Rollup.
 
 ```typescript
 interface RollupFsModule {

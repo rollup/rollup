@@ -7,9 +7,6 @@ const vol = Volume.fromJSON({
 module.exports = defineTest({
 	description: 'allows to provide an in-memory fs via option',
 	options: {
-		fs: vol.promises,
-		plugins: {
-			name: 'test'
-		}
+		fs: vol.promises
 	}
 });
