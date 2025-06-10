@@ -32,7 +32,7 @@ and for the UMD build
 <script src="https://unpkg.com/@rollup/browser/dist/rollup.browser.js"></script>
 ```
 
-which will create a global variable `window.rollup`.
+which will create a global variable `window.rollup`. Note that in each case, you need to make sure that the file `dist/bindings_wasm_bg.wasm` from the `@rollup/browser` package is served next to where the browser build is served.
 
 As the browser build cannot access the file system, you either need to provide an [in-memory file system](#using-an-in-memory-file-system) via the [`fs`](../configuration-options/index.md#fs) option, or you need to [provide plugins](#using-plugins-to-resolve-and-load-modules) that resolve and load all modules you want to bundle.
 
