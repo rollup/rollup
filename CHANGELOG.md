@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.43.0
+
+_2025-06-11_
+
+### Features
+
+- Provide new `fs` option and `this.fs` API to replace file system (#5944)
+
+### Pull Requests
+
+- [#5944](https://github.com/rollup/rollup/pull/5944): feat(options): Add an option for overriding the file system module in the JS API (@EggDice, @lukastaegert)
+
 ## 4.42.0
 
 _2025-06-06_
