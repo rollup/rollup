@@ -70,6 +70,7 @@ export function deconflictChunk(
 		);
 	}
 	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
+
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
@@ -218,7 +219,19 @@ function deconflictTopLevelVariables(
 	includedNamespaces: ReadonlySet<Module>
 ): void {
 	for (const module of modules) {
+		for (const safeVariableName of Object.values(module.info.safeVariableNames ?? {})) {
+			usedNames.add(safeVariableName);
+		}
+	}
+
+	for (const module of modules) {
+		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
+			const cachedSafeVariableName = module.info.safeVariableNames?.[variable.name];
+			if (cachedSafeVariableName) {
+				variable.setRenderNames(null, cachedSafeVariableName);
+				continue;
+			}
 			if (
 				variable.included &&
 				// this will only happen for exports in some formats
@@ -231,6 +244,7 @@ function deconflictTopLevelVariables(
 					null,
 					getSafeName(variable.name, usedNames, variable.forbiddenNames)
 				);
+				module.info.safeVariableNames[variable.name] = variable.renderName!;
 			}
 		}
 		if (includedNamespaces.has(module)) {
