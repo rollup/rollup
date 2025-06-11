@@ -2851,6 +2851,107 @@ Whether to collect performance timings. When used from the command line or a con
 
 For each key, the first number represents the elapsed time while the second represents the change in memory consumption, and the third represents the total memory consumption after this step. The order of these steps is the order used by `Object.keys`. Top level keys start with `#` and contain the timings of nested steps, i.e. in the example above, the 698ms of the `# BUILD` step include the 538ms of the `## parse modules` step.
 
+### fs
+
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `RollupFsModule`                                     |
+| Default: | `node:fs.promises` in NodeJS, no default in browsers |
+
+If you want to use a custom file system module, you can set this option to an object that implements the same API as the `RollupFsModule` interface. This is useful if you want to use a different file system implementation such as [`memfs`](https://www.npmjs.com/package/memfs), if you want to mock the file system for testing purposes, or if you use the [browser build](../browser/index.md) of Rollup.
+
+```typescript
+interface RollupFsModule {
+	appendFile(
+		path: string,
+		data: string | Uint8Array,
+		options?: {
+			encoding?: BufferEncoding | null;
+			mode?: string | number;
+			flag?: string | number;
+		}
+	): Promise<void>;
+
+	copyFile(
+		source: string,
+		destination: string,
+		mode?: string | number
+	): Promise<void>;
+
+	mkdir(
+		path: string,
+		options?: { recursive?: boolean; mode?: string | number }
+	): Promise<void>;
+
+	mkdtemp(prefix: string): Promise<string>;
+
+	readdir(
+		path: string,
+		options?: { withFileTypes?: boolean }
+	): Promise<(string | RollupDirectoryEntry)[]>;
+
+	readFile(
+		path: string,
+		options?: {
+			encoding?: BufferEncoding | null;
+			flag?: string | number;
+			signal?: AbortSignal;
+		}
+	): Promise<string | Uint8Array>;
+
+	realpath(path: string): Promise<string>;
+
+	rename(oldPath: string, newPath: string): Promise<void>;
+
+	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+
+	stat(path: string): Promise<RollupFileStats>;
+
+	lstat(path: string): Promise<RollupFileStats>;
+
+	unlink(path: string): Promise<void>;
+
+	writeFile(
+		path: string,
+		data: string | ArrayBuffer | ArrayBufferView,
+		options?: {
+			encoding?: BufferEncoding | null;
+			mode?: string | number;
+			flag?: string | number;
+		}
+	): Promise<void>;
+}
+
+type BufferEncoding =
+	| 'ascii'
+	| 'utf8'
+	| 'utf16le'
+	| 'ucs2'
+	| 'base64'
+	| 'base64url'
+	| 'latin1'
+	| 'binary'
+	| 'hex';
+
+export interface RollupDirectoryEntry {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	name: string;
+}
+
+interface RollupFileStats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	size: number;
+	mtime: Date;
+	ctime: Date;
+	atime: Date;
+	birthtime: Date;
+}
+```
+
 ## watch
 
 |          |                           |

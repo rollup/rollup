@@ -244,6 +244,7 @@ export interface PluginContext extends MinimalPluginContext {
 	debug: LoggingFunction;
 	emitFile: EmitFile;
 	error: (error: RollupError | string) => never;
+	fs: RollupFsModule;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
@@ -671,6 +672,7 @@ export interface InputOptions {
 	experimentalCacheExpiry?: number;
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
+	fs?: RollupFsModule;
 	input?: InputOption;
 	jsx?: false | JsxPreset | JsxOptions;
 	logLevel?: LogLevelOption;
@@ -699,6 +701,7 @@ export interface NormalizedInputOptions {
 	experimentalCacheExpiry: number;
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
+	fs: RollupFsModule;
 	input: string[] | Record<string, string>;
 	jsx: false | NormalizedJsxOptions;
 	logLevel: LogLevelOption;
@@ -1103,3 +1106,76 @@ export function defineConfig(optionsFunction: RollupOptionsFunction): RollupOpti
 export type RollupOptionsFunction = (
 	commandLineArguments: Record<string, any>
 ) => MaybePromise<RollupOptions | RollupOptions[]>;
+
+export interface RollupFsModule {
+	appendFile(
+		path: string,
+		data: string | Uint8Array,
+		options?: { encoding?: BufferEncoding | null; mode?: string | number; flag?: string | number }
+	): Promise<void>;
+
+	copyFile(source: string, destination: string, mode?: string | number): Promise<void>;
+
+	mkdir(path: string, options?: { recursive?: boolean; mode?: string | number }): Promise<void>;
+
+	mkdtemp(prefix: string): Promise<string>;
+
+	readdir(path: string, options?: { withFileTypes?: false }): Promise<string[]>;
+	readdir(path: string, options?: { withFileTypes: true }): Promise<RollupDirectoryEntry[]>;
+
+	readFile(
+		path: string,
+		options?: { encoding?: null; flag?: string | number; signal?: AbortSignal }
+	): Promise<Uint8Array>;
+	readFile(
+		path: string,
+		options?: { encoding: BufferEncoding; flag?: string | number; signal?: AbortSignal }
+	): Promise<string>;
+
+	realpath(path: string): Promise<string>;
+
+	rename(oldPath: string, newPath: string): Promise<void>;
+
+	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+
+	stat(path: string): Promise<RollupFileStats>;
+
+	lstat(path: string): Promise<RollupFileStats>;
+
+	unlink(path: string): Promise<void>;
+
+	writeFile(
+		path: string,
+		data: string | Uint8Array,
+		options?: { encoding?: BufferEncoding | null; mode?: string | number; flag?: string | number }
+	): Promise<void>;
+}
+
+export type BufferEncoding =
+	| 'ascii'
+	| 'utf8'
+	| 'utf16le'
+	| 'ucs2'
+	| 'base64'
+	| 'base64url'
+	| 'latin1'
+	| 'binary'
+	| 'hex';
+
+export interface RollupDirectoryEntry {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	name: string;
+}
+
+export interface RollupFileStats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	size: number;
+	mtime: Date;
+	ctime: Date;
+	atime: Date;
+	birthtime: Date;
+}

@@ -1596,6 +1596,14 @@ function myPlugin() {
 
 When used in the `transform` hook, the `id` of the current module will also be added and a `position` can be supplied. This is a character index or file location which will be used to augment the log with `pos`, `loc` (a standard `{ file, line, column }` object) and `frame` (a snippet of code showing the location).
 
+### this.fs
+
+|       |                  |
+| ----: | :--------------- |
+| Type: | `RollupFsModule` |
+
+Provides abstract access to the file system. For the `RollupFsModule` type, see the documentation of the [`fs` option](../configuration-options/index.md#fs). If plugins use this instead of directly importing `node:fs`, then they can be used in browser builds that provide an in-memory file system via the `fs` option.
+
 ### this.getCombinedSourcemap
 
 |       |                   |

@@ -193,7 +193,7 @@ function getDummyLogSection(headline, pr) {
  */
 async function installDependenciesAndLint() {
 	await runWithEcho('npm', ['ci', '--ignore-scripts']);
-	await runWithEcho('npm', ['audit']);
+	await runWithEcho('npm', ['audit', '--audit-level', 'moderate']);
 	await runWithEcho('npm', ['run', 'ci:lint']);
 }
 

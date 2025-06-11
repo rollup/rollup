@@ -1,7 +1,6 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
-import { mkdir, writeFile } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import initWasm from '../utils/initWasm';
 import { getLogger } from '../utils/logger';
@@ -215,7 +214,7 @@ async function handleGenerateWrite(
 			}
 			await Promise.all(
 				Object.values(generated).map(chunk =>
-					graph.fileOperationQueue.run(() => writeOutputFile(chunk, outputOptions))
+					graph.fileOperationQueue.run(() => writeOutputFile(chunk, outputOptions, inputOptions))
 				)
 			);
 			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
@@ -310,7 +309,8 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 
 async function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
-	outputOptions: NormalizedOutputOptions
+	outputOptions: NormalizedOutputOptions,
+	{ fs: { mkdir, writeFile } }: NormalizedInputOptions
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
 
