@@ -15,8 +15,8 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
-				resolveId(id) {
-					return id;
+				resolveId() {
+					return ID_MAIN;
 				},
 				load() {
 					return {
