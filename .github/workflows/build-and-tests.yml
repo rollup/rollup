@@ -51,7 +51,7 @@ jobs:
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
-        run: npm audit --audit-level moderate
+        run: npm audit
       - name: Optional Dependencies
         run: npm run test:package
       - name: CLI Docs
