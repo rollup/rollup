@@ -176,11 +176,8 @@ const getMaxParallelFileOps = (
 	config: InputOptions
 ): NormalizedInputOptions['maxParallelFileOps'] => {
 	const maxParallelFileOps = config.maxParallelFileOps;
-	if (typeof maxParallelFileOps === 'number') {
-		if (maxParallelFileOps <= 0) return Infinity;
-		return maxParallelFileOps;
-	}
-	return 20;
+	if (typeof maxParallelFileOps !== 'number' || maxParallelFileOps <= 0) return Infinity;
+	return maxParallelFileOps;
 };
 
 const getModuleContext = (
