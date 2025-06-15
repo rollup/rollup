@@ -637,9 +637,9 @@ Note that when a relative path is directly marked as "external" using the [`exte
 | -------: | :------------------------------ |
 |    Type: | `number`                        |
 |     CLI: | `--maxParallelFileOps <number>` |
-| Default: | 20                              |
+| Default: | `Infinity`                      |
 
-Limits the number of files rollup will open in parallel when reading modules or writing chunks. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows.
+Limits the number of files rollup will open in parallel when reading modules or writing chunks. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows. If you set the limit too low and use plugins that rely on the [`this.load`](../plugin-development/index.md#this-load) context function, such as the `commonjs` plugin, then it can happen that builds stall without an error message as it limits the number of parallel `load` calls.
 
 ### onLog
 

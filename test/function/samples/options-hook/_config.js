@@ -11,8 +11,9 @@ module.exports = defineTest({
 				name: 'test-plugin',
 				buildStart(options) {
 					// The fs option is not json stringifiable
-					const { fs, ...restOptions } = options;
+					const { fs, maxParallelFileOps, ...restOptions } = options;
 					assert.ok(fs);
+					assert.strictEqual(maxParallelFileOps, Infinity);
 					assert.deepStrictEqual(JSON.parse(JSON.stringify(restOptions)), {
 						context: 'undefined',
 						experimentalCacheExpiry: 10,
@@ -21,7 +22,6 @@ module.exports = defineTest({
 						jsx: false,
 						logLevel: 'info',
 						makeAbsoluteExternalsRelative: 'ifRelativeSource',
-						maxParallelFileOps: 20,
 						perf: false,
 						plugins: [
 							{
