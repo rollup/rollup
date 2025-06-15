@@ -32,7 +32,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
 
   let filename = FileName::Anon;
   let file = cm.new_source_file(filename.into(), code);
-  let code_reference = Lrc::clone(&file.src);
+  let code_reference = file.src.clone();
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let result = catch_unwind(AssertUnwindSafe(|| {
