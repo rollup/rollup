@@ -22,4 +22,4 @@ mimalloc-rust = { version = "0.2.1" }
 mimalloc-rust = { version = "0.2.1", features = ["local-dynamic-tls"] }
 
 [build-dependencies]
-napi-build = "2.2.0"
+napi-build = "2.2.1"
