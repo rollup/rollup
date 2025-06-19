@@ -43,7 +43,7 @@ export default function amd(
 	const parameters = dependencies.map(m => m.name);
 	const { n, getNonArrowFunctionIntro, _ } = snippets;
 
-	if (namedExportsMode && hasExports) {
+	if (hasExports && (namedExportsMode || exports[0]?.local === 'exports.default')) {
 		parameters.unshift(`exports`);
 		deps.unshift(`'exports'`);
 	}

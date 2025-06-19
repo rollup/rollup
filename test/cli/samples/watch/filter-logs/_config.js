@@ -2,8 +2,12 @@ const { assertIncludes } = require('../../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'filters logs via CLI in watch mode',
-	command:
-		'rollup --config --watch --filterLogs="pluginCode:FIRST,pluginCode:SECOND" --filterLogs=pluginCode:THIRD',
+	spawnArgs: [
+		'--config',
+		'--watch',
+		'--filterLogs=pluginCode:FIRST,pluginCode:SECOND',
+		'--filterLogs=pluginCode:THIRD'
+	],
 	env: {
 		FORCE_COLOR: undefined,
 		NO_COLOR: true,

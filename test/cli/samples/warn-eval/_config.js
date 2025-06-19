@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'warns when eval is used',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	stderr: stderr =>
 		assertIncludes(
 			stderr,

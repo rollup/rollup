@@ -1,5 +1,5 @@
 module.exports = defineTest({
 	description: 'uses cjs config file which returns a Promise',
-	command: 'rollup --config rollup.config.cjs',
+	spawnArgs: ['--config', 'rollup.config.cjs'],
 	execute: true
 });

@@ -911,7 +911,7 @@ export function logRedeclarationError(name: string): RollupLog {
 export function logReservedNamespace(namespace: string): RollupLog {
 	return {
 		code: RESERVED_NAMESPACE,
-		message: `You have overided reserved namespace "${namespace}"`
+		message: `You have overridden reserved namespace "${namespace}"`
 	};
 }
 

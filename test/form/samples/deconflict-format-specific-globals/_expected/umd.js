@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('external')) :
-	typeof define === 'function' && define.amd ? define(['external'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.bundle = factory(global.external));
-})(this, (function (external) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(exports, require('external')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.bundle = factory(global.bundle = {}, global.external));
+})(this, (function (exports, external) { 'use strict';
 
 	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }

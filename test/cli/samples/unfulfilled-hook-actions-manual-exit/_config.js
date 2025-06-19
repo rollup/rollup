@@ -5,7 +5,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 module.exports = defineTest({
 	description:
 		'does not show unfulfilled hook actions when exiting manually with a non-zero exit code',
-	command: 'rollup -c --silent',
+	spawnArgs: ['-c', '--silent'],
 	after(error) {
 		assert.strictEqual(error && error.code, 1);
 	},

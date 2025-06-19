@@ -15,9 +15,7 @@ import type {
 	ResolvedId,
 	ResolveIdResult
 } from './rollup/types';
-import type { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
-import { readFile } from './utils/fs';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -39,6 +37,7 @@ import {
 	getAttributesFromImportExpression
 } from './utils/parseImportAttributes';
 import { isAbsolute, isRelative, resolve } from './utils/path';
+import type { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import stripBom from './utils/stripBom';
@@ -228,7 +227,8 @@ export class ModuleLoader {
 							skip,
 							customOptions,
 							typeof isEntry === 'boolean' ? isEntry : !importer,
-							attributes
+							attributes,
+							this.options.fs
 						),
 				importer,
 				source
@@ -282,7 +282,7 @@ export class ModuleLoader {
 				const content = await this.pluginDriver.hookFirst('load', [id]);
 				if (content !== null) return content;
 				this.graph.watchFiles[id] = true;
-				return await readFile(id, 'utf8');
+				return (await this.options.fs.readFile(id, { encoding: 'utf8' })) as string;
 			});
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;
@@ -674,7 +674,8 @@ export class ModuleLoader {
 			null,
 			EMPTY_OBJECT,
 			true,
-			EMPTY_OBJECT
+			EMPTY_OBJECT,
+			this.options.fs
 		);
 		if (resolveIdResult == null) {
 			return error(

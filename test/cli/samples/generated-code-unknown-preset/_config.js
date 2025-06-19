@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'overrides the generatedCode option when using presets',
-	command: 'rollup main.js --format es --generatedCode unknown',
+	spawnArgs: ['main.js', '--format', 'es', '--generatedCode', 'unknown'],
 	error: () => true,
 	stderr: stderr => {
 		assertIncludes(

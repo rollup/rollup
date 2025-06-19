@@ -118,6 +118,10 @@ export default defineConfig({
 						text: 'ES Module Syntax'
 					},
 					{
+						link: '/browser/',
+						text: 'Running Rollup in a Browser'
+					},
+					{
 						link: '/faqs/',
 						text: 'Frequently Asked Questions'
 					},

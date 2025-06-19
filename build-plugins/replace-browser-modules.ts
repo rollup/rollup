@@ -5,15 +5,7 @@ import type { Plugin } from 'vite';
 
 const resolve = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
 
-const JS_REPLACED_MODULES = [
-	'fs',
-	'hookActions',
-	'path',
-	'performance',
-	'process',
-	'resolveId',
-	'initWasm'
-];
+const JS_REPLACED_MODULES = ['fs', 'hookActions', 'path', 'performance', 'process', 'initWasm'];
 
 type ModulesMap = [string, string][];
 

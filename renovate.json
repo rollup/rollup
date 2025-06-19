@@ -25,14 +25,14 @@
         "node",
         "npm",
         "fsevents",
-        "core-js",
-        "getrandom"
+        "core-js"
       ],
       "enabled": false
     },
     {
       "matchPackageNames": [
-        "@types/node"
+        "@types/node",
+        "yargs-parser"
       ],
       "matchUpdateTypes": [
         "major"

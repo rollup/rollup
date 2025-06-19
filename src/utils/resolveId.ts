@@ -1,8 +1,7 @@
 import type { ModuleLoaderResolveId } from '../ModuleLoader';
-import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../rollup/types';
-import type { PluginDriver } from './PluginDriver';
-import { lstat, readdir, realpath } from './fs';
+import type { CustomPluginOptions, Plugin, ResolveIdResult, RollupFsModule } from '../rollup/types';
 import { basename, dirname, isAbsolute, resolve } from './path';
+import type { PluginDriver } from './PluginDriver';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 
 export async function resolveId(
@@ -14,7 +13,8 @@ export async function resolveId(
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	attributes: Record<string, string>
+	attributes: Record<string, string>,
+	fs: RollupFsModule
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -54,30 +54,36 @@ export async function resolveId(
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
 		importer ? resolve(dirname(importer), source) : resolve(source),
-		preserveSymlinks
+		preserveSymlinks,
+		fs
 	);
 }
 
 async function addJsExtensionIfNecessary(
 	file: string,
-	preserveSymlinks: boolean
+	preserveSymlinks: boolean,
+	fs: RollupFsModule
 ): Promise<string | undefined> {
 	return (
-		(await findFile(file, preserveSymlinks)) ??
-		(await findFile(file + '.mjs', preserveSymlinks)) ??
-		(await findFile(file + '.js', preserveSymlinks))
+		(await findFile(file, preserveSymlinks, fs)) ??
+		(await findFile(file + '.mjs', preserveSymlinks, fs)) ??
+		(await findFile(file + '.js', preserveSymlinks, fs))
 	);
 }
 
-async function findFile(file: string, preserveSymlinks: boolean): Promise<string | undefined> {
+async function findFile(
+	file: string,
+	preserveSymlinks: boolean,
+	fs: RollupFsModule
+): Promise<string | undefined> {
 	try {
-		const stats = await lstat(file);
+		const stats = await fs.lstat(file);
 		if (!preserveSymlinks && stats.isSymbolicLink())
-			return await findFile(await realpath(file), preserveSymlinks);
+			return await findFile(await fs.realpath(file), preserveSymlinks, fs);
 		if ((preserveSymlinks && stats.isSymbolicLink()) || stats.isFile()) {
 			// check case
 			const name = basename(file);
-			const files = await readdir(dirname(file));
+			const files = await fs.readdir(dirname(file));
 
 			if (files.includes(name)) return file;
 		}

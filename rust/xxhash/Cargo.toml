@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 base-encode = "0.3.1"
-xxhash-rust = { version = "0.8.14", features = ["xxh3"] }
+xxhash-rust = { version = "0.8.15", features = ["xxh3"] }

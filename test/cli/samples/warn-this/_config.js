@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'warns "this" is used on the top level',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	stderr: stderr =>
 		assertIncludes(
 			stderr,

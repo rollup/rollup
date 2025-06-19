@@ -7,7 +7,7 @@ let third;
 
 module.exports = defineTest({
 	description: 'waits for multiple named bundle inputs',
-	command: 'rollup -c --waitForBundleInput',
+	spawnArgs: ['-c', '--waitForBundleInput'],
 	before() {
 		second = path.resolve(__dirname, 'second.js');
 		third = path.resolve(__dirname, 'third.js');

@@ -1,17 +1,36 @@
 const { loader } = require('../../../testHelpers.js');
+const assert = require('node:assert/strict');
+
+const logs = [];
 
 module.exports = defineTest({
-	description: 'fails if a dependency cannot be resolved',
+	description: 'warns if a dependency cannot be resolved',
 	options: {
-		plugins: loader({
-			main: `import {foo} from 'dep';
+		onLog(level, log) {
+			logs.push({ level, log });
+		},
+		plugins: [
+			loader({
+				main: `import {foo} from 'dep';
 console.log(foo);`
-		})
-	},
-	error: {
-		code: 'NO_FS_IN_BROWSER',
-		message:
-			'Cannot access the file system (via "path.resolve") when using the browser build of Rollup. Make sure you supply a plugin with custom resolveId and load hooks to Rollup.',
-		url: 'https://rollupjs.org/plugin-development/#a-simple-example'
+			}),
+			{
+				buildEnd() {
+					assert.deepEqual(logs, [
+						{
+							level: 'warn',
+							log: {
+								code: 'UNRESOLVED_IMPORT',
+								exporter: 'dep',
+								id: 'main',
+								message:
+									'"dep" is imported by "main", but could not be resolved – treating it as an external dependency.',
+								url: 'https://rollupjs.org/troubleshooting/#warning-treating-module-as-external-dependency'
+							}
+						}
+					]);
+				}
+			}
+		]
 	}
 });

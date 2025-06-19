@@ -2,8 +2,11 @@ const assert = require('node:assert');
 
 module.exports = defineTest({
 	description: 'filters logs via CLI',
-	command:
-		'rollup --config --filterLogs="pluginCode:FIRST,pluginCode:SECOND" --filterLogs=pluginCode:THIRD',
+	spawnArgs: [
+		'--config',
+		'--filterLogs="pluginCode:FIRST,pluginCode:SECOND"',
+		'--filterLogs=pluginCode:THIRD'
+	],
 	env: {
 		FORCE_COLOR: undefined,
 		NO_COLOR: true,

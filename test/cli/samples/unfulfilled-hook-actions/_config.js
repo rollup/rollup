@@ -3,7 +3,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'show errors with non-zero exit code for unfulfilled async plugin actions on exit',
-	command: 'rollup -c --silent',
+	spawnArgs: ['-c', '--silent'],
 	after(error) {
 		// exit code check has to be here as error(err) is only called upon failure
 		assert.strictEqual(error && error.code, 1);

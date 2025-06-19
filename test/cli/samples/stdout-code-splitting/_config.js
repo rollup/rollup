@@ -6,9 +6,17 @@ const STANDARD = '\u001B[22m\u001B[39m';
 module.exports = defineTest({
 	description: 'bundles multiple files to stdout while adding file names',
 	skipIfWindows: true,
-	command:
-		'node wrapper.js -i main1.js -i main2.js -f es ' +
-		`-p '{buildStart(){this.emitFile({type: "asset",source:"Hello"})}}'`,
+	spawnScript: 'wrapper.js',
+	spawnArgs: [
+		'-i',
+		'main1.js',
+		'-i',
+		'main2.js',
+		'-f',
+		'es',
+		'-p',
+		'{buildStart(){this.emitFile({type: "asset",source:"Hello"})}}'
+	],
 	env: { FORCE_COLOR: '1', TERM: 'xterm' },
 	result(code) {
 		assert.equal(

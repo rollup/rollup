@@ -8,6 +8,18 @@ export async function entry() {
   const { foo2 } = await import('./sub2.js');
   const { foo3 } = await import('./sub2.js');
   import('./sub2.js').then((m) => m.baz2)
+  import('./sub2.js').then(m=>{
+    function f(m){
+      console.log(m.baz2)
+    }
+    f(m);
+  })
+  import('./sub2.js').then(function(m){
+    function f(m){
+      console.log(m.baz2)
+    }
+    f(m);
+  })
   import('./sub2.js').then(({ baz2 }) => baz2)
   import('./sub2.js').then(function({ reexported }) { reexported })
 
@@ -50,4 +62,9 @@ export async function entry() {
   {
     const [name11] = await import('./bail-11.js');
   }
+
+  {
+    const sub2 = await import('./sub2.js');
+    sub2.foo2();
+  }  
 }

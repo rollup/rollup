@@ -11,7 +11,7 @@ const REGULAR = '\u001B[22m';
 module.exports = defineTest({
 	description: 'displays logs',
 	skipIfWindows: true,
-	command: 'rollup --config',
+	spawnArgs: ['--config'],
 	env: { FORCE_COLOR: '1', TERM: 'xterm' },
 	stderr(stderr) {
 		assert.strictEqual(

@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'prints error cause',
-	command: 'rollup --config rollup.config.mjs',
+	spawnArgs: ['--config', 'rollup.config.mjs'],
 	// We expect an error and want to make assertions about the output
 	error: () => true,
 	stderr: stderr => {

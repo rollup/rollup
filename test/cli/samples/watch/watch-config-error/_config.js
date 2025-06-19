@@ -6,7 +6,7 @@ let configFile;
 
 module.exports = defineTest({
 	description: 'keeps watching the config file in case the config is changed to an invalid state',
-	command: 'rollup -cw',
+	spawnArgs: ['-cw'],
 	before() {
 		configFile = path.resolve(__dirname, 'rollup.config.mjs');
 		writeFileSync(

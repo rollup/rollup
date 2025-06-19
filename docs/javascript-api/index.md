@@ -167,7 +167,8 @@ const inputOptions = {
 	// experimental
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
-	perf
+	perf,
+	fs
 };
 ```
 
@@ -320,6 +321,7 @@ const watchOptions = {
 	...inputOptions,
 	output: [outputOptions],
 	watch: {
+		allowInputInsideOutputPath,
 		buildDelay,
 		chokidar,
 		clearScreen,

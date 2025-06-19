@@ -1,5 +1,103 @@
 # rollup changelog
 
+## 4.43.0
+
+_2025-06-11_
+
+### Features
+
+- Provide new `fs` option and `this.fs` API to replace file system (#5944)
+
+### Pull Requests
+
+- [#5944](https://github.com/rollup/rollup/pull/5944): feat(options): Add an option for overriding the file system module in the JS API (@EggDice, @lukastaegert)
+
+## 4.42.0
+
+_2025-06-06_
+
+### Features
+
+- Add option to allow the input to be located in the output in watch mode (#5966)
+
+### Pull Requests
+
+- [#5966](https://github.com/rollup/rollup/pull/5966): feat: watch mode add `allowInputInsideOutputPath` option (@btea, @lukastaegert)
+
+## 4.41.2
+
+_2025-06-06_
+
+### Bug Fixes
+
+- Detect named export usages in dynamic imports with `then` and non-arrow function expressions (#5977)
+- Do not replace usages of constant variables with their values for readability (#5968)
+
+### Pull Requests
+
+- [#5968](https://github.com/rollup/rollup/pull/5968): fix: preserve constant identifiers in unary expressions instead of magic numbers (@OmkarJ13, @lukastaegert)
+- [#5969](https://github.com/rollup/rollup/pull/5969): chore(deps): update dependency yargs-parser to v22 (@renovate[bot], @lukastaegert)
+- [#5970](https://github.com/rollup/rollup/pull/5970): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5971](https://github.com/rollup/rollup/pull/5971): chore(deps): lock file maintenance (@renovate[bot])
+- [#5976](https://github.com/rollup/rollup/pull/5976): Update README.md (@ftlno, @lukastaegert)
+- [#5977](https://github.com/rollup/rollup/pull/5977): fix: consider function expression in thenable when tree-shaking dynamic imports (@TrickyPi)
+- [#5981](https://github.com/rollup/rollup/pull/5981): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5982](https://github.com/rollup/rollup/pull/5982): Debug/fix watch pipeline (@lukastaegert)
+
+## 4.41.1
+
+_2025-05-24_
+
+### Bug Fixes
+
+- If a plugin calls `this.resolve` with `skipSelf: true`, subsequent calls when handling this by the same plugin with same parameters will return `null` to avoid infinite recursions (#5945)
+
+### Pull Requests
+
+- [#5945](https://github.com/rollup/rollup/pull/5945): Avoid recursively calling a plugin's resolveId hook with same id and importer (@younggglcy, @lukastaegert)
+- [#5963](https://github.com/rollup/rollup/pull/5963): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5964](https://github.com/rollup/rollup/pull/5964): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
+## 4.41.0
+
+_2025-05-18_
+
+### Features
+
+- Detect named exports in more dynamic import scenarios (#5954)
+
+### Pull Requests
+
+- [#5949](https://github.com/rollup/rollup/pull/5949): ci: use node 24 (@btea, @lukastaegert)
+- [#5951](https://github.com/rollup/rollup/pull/5951): chore(deps): update dependency pretty-bytes to v7 (@renovate[bot])
+- [#5952](https://github.com/rollup/rollup/pull/5952): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#5953](https://github.com/rollup/rollup/pull/5953): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5954](https://github.com/rollup/rollup/pull/5954): enhance tree-shaking for dynamic imports (@TrickyPi, @renovate[bot], @lukastaegert)
+- [#5957](https://github.com/rollup/rollup/pull/5957): chore(deps): update dependency lint-staged to v16 (@renovate[bot], @lukastaegert)
+- [#5958](https://github.com/rollup/rollup/pull/5958): fix(deps): update rust crate swc_compiler_base to v20 (@renovate[bot], @lukastaegert)
+- [#5959](https://github.com/rollup/rollup/pull/5959): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5960](https://github.com/rollup/rollup/pull/5960): Use spawn to run CLI tests (@lukastaegert)
+
+## 4.40.2
+
+_2025-05-06_
+
+### Bug Fixes
+
+- Create correct IIFE/AMD/UMD bundles when using a mutable default export (#5934)
+- Fix execution order when using top-level await for dynamic imports with inlineDynamicImports (#5937)
+- Throw when the output is watched in watch mode (#5939)
+
+### Pull Requests
+
+- [#5934](https://github.com/rollup/rollup/pull/5934): fix(exports): avoid "exports is not defined" `ReferenceError` (@dasa)
+- [#5937](https://github.com/rollup/rollup/pull/5937): consider TLA imports have higher execution priority (@TrickyPi)
+- [#5939](https://github.com/rollup/rollup/pull/5939): fix: watch mode input should not be an output subpath (@btea)
+- [#5940](https://github.com/rollup/rollup/pull/5940): chore(deps): update dependency vite to v6.3.4 [security] (@renovate[bot])
+- [#5941](https://github.com/rollup/rollup/pull/5941): chore(deps): update dependency eslint-plugin-unicorn to v59 (@renovate[bot])
+- [#5942](https://github.com/rollup/rollup/pull/5942): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5943](https://github.com/rollup/rollup/pull/5943): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.40.1
 
 _2025-04-28_

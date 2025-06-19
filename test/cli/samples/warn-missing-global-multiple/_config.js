@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
 	description: 'warns when there are multiple missing globals',
-	command: 'rollup -c',
+	spawnArgs: ['-c'],
 	stderr: stderr =>
 		assertIncludes(
 			stderr,

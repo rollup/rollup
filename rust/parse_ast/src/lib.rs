@@ -3,7 +3,7 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 use swc_common::sync::Lrc;
 use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
 use swc_compiler_base::parse_js;
-use swc_compiler_base::IsModule;
+use swc_config::is_module::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsSyntax, Syntax};
 
@@ -32,7 +32,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
 
   let filename = FileName::Anon;
   let file = cm.new_source_file(filename.into(), code);
-  let code_reference = Lrc::clone(&file.src);
+  let code_reference = file.src.clone();
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let result = catch_unwind(AssertUnwindSafe(|| {
