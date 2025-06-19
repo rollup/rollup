@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 4.44.0
+
+_2025-06-19_
+
+### Features
+
+- Remove limit on `maxParallelFileOps` as this could break watch mode with the commonjs plugin (#5986)
+
+### Bug Fixes
+
+- Provide better source mappings when coarse intermediate maps are used (#5985)
+
+### Pull Requests
+
+- [#5984](https://github.com/rollup/rollup/pull/5984): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5985](https://github.com/rollup/rollup/pull/5985): Improve approximation of coarse sourcemap segments (@TrickyPi)
+- [#5986](https://github.com/rollup/rollup/pull/5986): Remove limit on max parallel file ops (@lukastaegert)
+
 ## 4.43.0
 
 _2025-06-11_
