@@ -55,7 +55,7 @@
     "build:bootstrap": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --forceExit && shx rm -rf dist-build",
     "build:bootstrap:cjs": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && shx rm -rf dist-build",
     "build:docs": "vitepress build docs",
-    "build:ast-converters": "node scripts/generate-ast-converters.js",
+    "build:ast-converters": "vite-node scripts/generate-ast-converters.ts",
     "preview:docs": "vitepress preview docs",
     "ci:artifacts": "napi artifacts",
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
@@ -107,9 +107,6 @@
     "url": "https://github.com/rollup/rollup/issues"
   },
   "homepage": "https://rollupjs.org/",
-  "dependencies": {
-    "@types/estree": "1.0.6"
-  },
   "devDependenciesComments": {
     "core-js": "We only update manually as every update requires a snapshot update"
   },
@@ -192,6 +189,7 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.22.0",
     "vite": "^6.0.11",
+    "vite-node": "^2.1.2",
     "vitepress": "^1.6.3",
     "vue": "^3.5.13",
     "vue-tsc": "^2.2.0",

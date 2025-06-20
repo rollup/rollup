@@ -1,4 +1,4 @@
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
@@ -8,12 +8,15 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
+import type { SpreadElementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
-export default class SpreadElement extends NodeBase {
-	declare argument: ExpressionNode;
-	declare type: NodeType.tSpreadElement;
+export default class SpreadElement extends NodeBase<ast.SpreadElement> {
+	parent!: SpreadElementParent;
+	argument!: nodes.Expression;
+	type!: NodeType.tSpreadElement;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

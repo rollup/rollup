@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
@@ -13,19 +14,25 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
+import type * as nodes from './node-unions';
+import type { ConditionalExpressionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
-	declare alternate: ExpressionNode;
-	declare consequent: ExpressionNode;
-	declare test: ExpressionNode;
-	declare type: NodeType.tConditionalExpression;
+export default class ConditionalExpression
+	extends NodeBase<ast.ConditionalExpression>
+	implements DeoptimizableEntity
+{
+	parent!: ConditionalExpressionParent;
+	alternate!: nodes.Expression;
+	consequent!: nodes.Expression;
+	test!: nodes.Expression;
+	type!: NodeType.tConditionalExpression;
 
 	get isBranchResolutionAnalysed(): boolean {
 		return isFlagSet(this.flags, Flag.isBranchResolutionAnalysed);
@@ -35,7 +42,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private usedBranch: ExpressionNode | null = null;
+	private usedBranch: nodes.Expression | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

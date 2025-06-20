@@ -1,17 +1,16 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { type InclusionContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
+import type { ThrowStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import {
-	type ExpressionNode,
-	type IncludeChildren,
-	onlyIncludeSelf,
-	StatementBase
-} from './shared/Node';
+import { type IncludeChildren, NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class ThrowStatement extends StatementBase {
-	declare argument: ExpressionNode;
-	declare type: NodeType.tThrowStatement;
+export default class ThrowStatement extends NodeBase<ast.ThrowStatement> {
+	parent!: ThrowStatementParent;
+	argument!: nodes.Expression;
+	type!: NodeType.tThrowStatement;
 
 	hasEffects(): boolean {
 		return true;

@@ -1,19 +1,19 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logModuleLevelDirective } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
+import type { ExpressionStatementParent } from './node-unions';
 import * as NodeType from './NodeType';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase
-} from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ExpressionStatement extends StatementBase {
-	declare directive?: string;
-	declare expression: ExpressionNode;
+export default class ExpressionStatement extends NodeBase<ast.ExpressionStatement> {
+	parent!: ExpressionStatementParent;
+	directive?: string;
+	expression!: nodes.Expression;
+	type!: NodeType.tExpressionStatement;
 
 	initialise(): void {
 		super.initialise();

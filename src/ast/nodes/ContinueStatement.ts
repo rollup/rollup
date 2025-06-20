@@ -1,11 +1,14 @@
+import type { ast } from '../../rollup/types';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
+import type { ContinueStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ContinueStatement extends StatementBase {
-	declare label: Identifier | null;
-	declare type: NodeType.tContinueStatement;
+export default class ContinueStatement extends NodeBase<ast.ContinueStatement> {
+	parent!: ContinueStatementParent;
+	label!: Identifier | null;
+	type!: NodeType.tContinueStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.label) {

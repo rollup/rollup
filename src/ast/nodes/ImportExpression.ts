@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
-import type { AstNode, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
+import type { ast, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
@@ -22,15 +22,11 @@ import ExpressionStatement from './ExpressionStatement';
 import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
+import type { ImportExpressionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type GenericEsTreeNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 interface DynamicImportMechanism {
@@ -38,12 +34,13 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-export default class ImportExpression extends NodeBase {
-	declare options: ExpressionNode | null;
+export default class ImportExpression extends NodeBase<ast.ImportExpression> {
+	parent!: ImportExpressionParent;
+	options!: nodes.Expression | null;
 	inlineNamespace: NamespaceVariable | null = null;
-	declare source: ExpressionNode;
-	declare type: NodeType.tImportExpression;
-	declare sourceAstNode: AstNode;
+	source!: nodes.Expression;
+	type!: NodeType.tImportExpression;
+	sourceAstNode!: ast.Expression;
 
 	private hasUnknownAccessedKey = false;
 	private accessedPropKey = new Set<string>();
@@ -188,7 +185,7 @@ export default class ImportExpression extends NodeBase {
 		this.scope.context.addDynamicImport(this);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: ast.ImportExpression): this {
 		this.sourceAstNode = esTreeNode.source;
 		return super.parseNode(esTreeNode);
 	}
@@ -418,7 +415,7 @@ function getDeterministicObjectDestructure(objectPattern: ObjectPattern): string
 	for (const property of objectPattern.properties) {
 		if (property.type === 'RestElement' || property.computed || property.key.type !== 'Identifier')
 			return;
-		variables.push((property.key as Identifier).name);
+		variables.push(property.key.name);
 	}
 
 	return variables;

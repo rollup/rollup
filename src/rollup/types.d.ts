@@ -1,30 +1,15 @@
 import type { ChokidarOptions as OriginalChokidarOptions } from 'chokidar';
-import type * as estree from 'estree';
+import type * as ast from './ast-types';
 
-declare module 'estree' {
-	export interface Decorator extends estree.BaseNode {
-		type: 'Decorator';
-		expression: estree.Expression;
-	}
-	interface PropertyDefinition {
-		decorators: estree.Decorator[];
-	}
-	interface MethodDefinition {
-		decorators: estree.Decorator[];
-	}
-	interface BaseClass {
-		decorators: estree.Decorator[];
-	}
-}
-
+export type { ast };
 export const VERSION: string;
 
 // utils
 type NullValue = null | undefined | void;
-type MaybeArray<T> = T | T[];
+export type MaybeArray<T> = T | T[];
 type MaybePromise<T> = T | Promise<T>;
 
-type PartialNull<T> = {
+export type PartialNull<T> = {
 	[P in keyof T]: T[P] | null;
 };
 
@@ -110,7 +95,7 @@ export interface SourceMap {
 
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
-interface ModuleOptions {
+export interface ModuleOptions {
 	attributes: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
@@ -118,13 +103,13 @@ interface ModuleOptions {
 }
 
 export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
-	ast?: ProgramNode;
+	ast?: ast.Program;
 	code: string;
 	map?: SourceMapInput;
 }
 
 export interface TransformModuleJSON {
-	ast?: ProgramNode;
+	ast?: ast.Program;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -135,7 +120,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	ast: ProgramNode;
+	ast: ast.Program;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
@@ -191,8 +176,8 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
-interface ModuleInfo extends ModuleOptions {
-	ast: ProgramNode | null;
+export interface ModuleInfo extends ModuleOptions {
+	ast: ast.Program | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
@@ -215,7 +200,7 @@ export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
 
 export type CustomPluginOptions = Record<string, any>;
 
-type LoggingFunctionWithPosition = (
+export type LoggingFunctionWithPosition = (
 	log: RollupLog | string | (() => RollupLog | string),
 	pos?: number | { column: number; line: number }
 ) => void;
@@ -223,7 +208,7 @@ type LoggingFunctionWithPosition = (
 export type ParseAst = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => ProgramNode;
+) => ast.Program;
 
 // declare AbortSignal here for environments without DOM lib or @types/node
 declare global {
@@ -234,7 +219,7 @@ declare global {
 export type ParseAstAsync = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
-) => Promise<ProgramNode>;
+) => Promise<ast.Program>;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
@@ -286,8 +271,6 @@ interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 
 export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
 
-export type ResolveIdResultWithoutNullValue = string | false | PartialResolvedId;
-
 export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
@@ -298,7 +281,7 @@ export type ResolveIdHook = (
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
-		ast: ProgramNode;
+		ast: ast.Program;
 		code: string;
 		id: string;
 		meta: CustomPluginOptions;
@@ -348,7 +331,7 @@ export type RenderChunkHook = (
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
-	specifier: string | AstNode,
+	specifier: string | ast.Expression,
 	importer: string,
 	options: { attributes: Record<string, string> }
 ) => ResolveIdResult;
@@ -677,7 +660,7 @@ export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' 
 
 type GeneratedCodePreset = 'es5' | 'es2015';
 
-interface NormalizedGeneratedCodeOptions {
+export interface NormalizedGeneratedCodeOptions {
 	arrowFunctions: boolean;
 	constBindings: boolean;
 	objectShorthand: boolean;
@@ -730,9 +713,11 @@ export type NormalizedAmdOptions = (
 
 type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
-type OutputPluginOption = MaybePromise<OutputPlugin | NullValue | false | OutputPluginOption[]>;
+export type OutputPluginOption = MaybePromise<
+	OutputPlugin | NullValue | false | OutputPluginOption[]
+>;
 
-type HashCharacters = 'base64' | 'base36' | 'hex';
+export type HashCharacters = 'base64' | 'base36' | 'hex';
 
 export interface OutputOptions {
 	amd?: AmdOptions;
@@ -1011,23 +996,6 @@ export type RollupWatcher = AwaitingEventEmitter<{
 }>;
 
 export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
-
-interface AstNodeLocation {
-	end: number;
-	start: number;
-}
-
-type OmittedEstreeKeys =
-	| 'loc'
-	| 'range'
-	| 'leadingComments'
-	| 'trailingComments'
-	| 'innerComments'
-	| 'comments';
-type RollupAstNode<T> = Omit<T, OmittedEstreeKeys> & AstNodeLocation;
-
-type ProgramNode = RollupAstNode<estree.Program>;
-export type AstNode = RollupAstNode<estree.Node>;
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];

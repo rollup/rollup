@@ -1,6 +1,6 @@
 import { locate } from 'locate-character';
 import type MagicString from 'magic-string';
-import type { RollupAnnotation } from '../../utils/astConverterHelpers';
+import type { ast } from '../../rollup/types';
 import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../../utils/logging';
 import { logFirstSideEffect, logInvalidAnnotation } from '../../utils/logs';
 import {
@@ -10,20 +10,22 @@ import {
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
+import type { ProgramParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class Program extends NodeBase {
-	declare body: readonly StatementNode[];
-	declare sourceType: 'module';
-	declare type: NodeType.tProgram;
-	declare invalidAnnotations?: readonly RollupAnnotation[];
+export default class Program extends NodeBase<ast.Program> {
+	parent!: ProgramParent;
+	body!: readonly (nodes.Statement | nodes.ModuleDeclaration)[];
+	sourceType!: 'module';
+	type!: NodeType.tProgram;
+	invalidAnnotations?: readonly ast.Annotation[];
 
 	private hasCachedEffect: boolean | null = null;
 	private hasLoggedEffect = false;

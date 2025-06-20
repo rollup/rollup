@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	type NodeRenderOptions,
@@ -6,21 +7,22 @@ import {
 	renderStatementList
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
+import type { SwitchCaseParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class SwitchCase extends NodeBase {
-	declare consequent: readonly StatementNode[];
-	declare needsBoundaries: true;
-	declare test: ExpressionNode | null;
-	declare type: NodeType.tSwitchCase;
+export default class SwitchCase extends NodeBase<ast.SwitchCase> {
+	parent!: SwitchCaseParent;
+	consequent!: readonly nodes.Statement[];
+	needsBoundaries!: true;
+	test!: nodes.Expression | null;
+	type!: NodeType.tSwitchCase;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test?.hasEffects(context)) return true;

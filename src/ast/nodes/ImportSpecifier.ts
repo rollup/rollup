@@ -1,12 +1,15 @@
+import type { ast } from '../../rollup/types';
 import type Identifier from './Identifier';
 import type Literal from './Literal';
+import type { ImportSpecifierParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ImportSpecifier extends NodeBase {
-	declare imported: Identifier | Literal<string>;
-	declare local: Identifier;
-	declare type: NodeType.tImportSpecifier;
+export default class ImportSpecifier extends NodeBase<ast.ImportSpecifier> {
+	parent!: ImportSpecifierParent;
+	imported!: Identifier | Literal<string>;
+	local!: Identifier;
+	type!: NodeType.tImportSpecifier;
 }
 
 ImportSpecifier.prototype.includeNode = onlyIncludeSelfNoDeoptimize;

@@ -1,13 +1,15 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
-import ArrowFunctionExpression from './ArrowFunctionExpression';
-import type * as NodeType from './NodeType';
-import FunctionNode from './shared/FunctionNode';
-import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from './shared/Node';
+import type * as nodes from './node-unions';
+import type { AwaitExpressionParent } from './node-unions';
+import * as NodeType from './NodeType';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class AwaitExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare type: NodeType.tAwaitExpression;
+export default class AwaitExpression extends NodeBase<ast.AwaitExpression> {
+	parent!: AwaitExpressionParent;
+	argument!: nodes.Expression;
+	type!: NodeType.tAwaitExpression;
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
@@ -23,11 +25,17 @@ export default class AwaitExpression extends NodeBase {
 		this.included = true;
 		if (!this.deoptimized) this.applyDeoptimizations();
 		checkTopLevelAwait: if (!this.scope.context.usesTopLevelAwait) {
-			let parent = this.parent;
+			let parent: nodes.AstNode | null = this.parent;
 			do {
-				if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
+				const { type } = parent;
+				if (
+					type === NodeType.ArrowFunctionExpression ||
+					type === NodeType.FunctionExpression ||
+					type === NodeType.FunctionDeclaration
+				) {
 					break checkTopLevelAwait;
-			} while ((parent = (parent as Node).parent as Node));
+				}
+			} while ((parent = parent.parent));
 			this.scope.context.usesTopLevelAwait = true;
 		}
 		// Thenables need to be included

@@ -1,8 +1,11 @@
+import type { ast } from '../../rollup/types';
+import type { EmptyStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
-import { onlyIncludeSelf, StatementBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class EmptyStatement extends StatementBase {
-	declare type: NodeType.tEmptyStatement;
+export default class EmptyStatement extends NodeBase<ast.EmptyStatement> {
+	parent!: EmptyStatementParent;
+	type!: NodeType.tEmptyStatement;
 
 	hasEffects(): boolean {
 		return false;

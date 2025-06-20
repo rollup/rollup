@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logThisIsUndefined } from '../../utils/logs';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -8,13 +9,15 @@ import ModuleScope from '../scopes/ModuleScope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
+import type { ThisExpressionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class ThisExpression extends NodeBase {
-	declare type: NodeType.tThisExpression;
-	declare variable: Variable;
-	declare private alias: string | null;
+export default class ThisExpression extends NodeBase<ast.ThisExpression> {
+	parent!: ThisExpressionParent;
+	type!: NodeType.tThisExpression;
+	variable!: Variable;
+	private alias!: string | null;
 
 	bind(): void {
 		this.variable = this.scope.findVariable('this');

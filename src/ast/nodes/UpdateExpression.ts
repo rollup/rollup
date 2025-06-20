@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import {
 	renderSystemExportExpression,
@@ -10,17 +11,20 @@ import type { NodeInteraction, NodeInteractionAssigned } from '../NodeInteractio
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
+import type { UpdateExpressionParent } from './node-unions';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class UpdateExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare operator: '++' | '--';
-	declare prefix: boolean;
-	declare type: NodeType.tUpdateExpression;
-	declare private interaction: NodeInteractionAssigned;
+export default class UpdateExpression extends NodeBase<ast.UpdateExpression> {
+	parent!: UpdateExpressionParent;
+	argument!: nodes.Expression;
+	operator!: ast.UpdateExpression['operator'];
+	prefix!: boolean;
+	type!: NodeType.tUpdateExpression;
+	private interaction!: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
@@ -49,7 +53,7 @@ export default class UpdateExpression extends NodeBase {
 		} = options;
 		this.argument.render(code, options);
 		if (format === 'system') {
-			const variable = this.argument.variable!;
+			const variable = (this.argument as Identifier).variable!;
 			const exportNames = exportNamesByVariable.get(variable);
 			if (exportNames) {
 				if (this.prefix) {

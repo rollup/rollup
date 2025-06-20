@@ -1,26 +1,28 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import type * as nodes from './node-unions';
+import type { ForStatementParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
-	type StatementNode
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForStatement extends StatementBase {
-	declare body: StatementNode;
-	declare init: VariableDeclaration | ExpressionNode | null;
-	declare test: ExpressionNode | null;
-	declare type: NodeType.tForStatement;
-	declare update: ExpressionNode | null;
+export default class ForStatement extends NodeBase<ast.ForStatement> {
+	parent!: ForStatementParent;
+	body!: nodes.Statement;
+	init!: VariableDeclaration | nodes.Expression | null;
+	test!: nodes.Expression | null;
+	type!: NodeType.tForStatement;
+	update!: nodes.Expression | null;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new BlockScope(parentScope);

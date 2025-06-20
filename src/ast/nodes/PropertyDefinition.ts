@@ -1,3 +1,4 @@
+import type { ast } from '../../rollup/types';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -5,6 +6,8 @@ import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Decorator from './Decorator';
+import type * as nodes from './node-unions';
+import type { PropertyDefinitionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -14,14 +17,15 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { doNotDeoptimize, type ExpressionNode, NodeBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase } from './shared/Node';
 
-export default class PropertyDefinition extends NodeBase {
-	declare key: ExpressionNode | PrivateIdentifier;
-	declare static: boolean;
-	declare type: NodeType.tPropertyDefinition;
-	declare value: ExpressionNode | null;
-	declare decorators: Decorator[];
+export default class PropertyDefinition extends NodeBase<ast.PropertyDefinition> {
+	parent!: PropertyDefinitionParent;
+	key!: nodes.Expression | PrivateIdentifier;
+	static!: boolean;
+	type!: NodeType.tPropertyDefinition;
+	value!: nodes.Expression | null;
+	decorators!: Decorator[];
 
 	get computed(): boolean {
 		return isFlagSet(this.flags, Flag.computed);

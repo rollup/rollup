@@ -1,9 +1,11 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import type CallExpression from './CallExpression';
 import type MemberExpression from './MemberExpression';
+import type { ChainExpressionParent } from './node-unions';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
 import {
@@ -13,9 +15,13 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class ChainExpression extends NodeBase implements DeoptimizableEntity {
-	declare expression: CallExpression | MemberExpression;
-	declare type: NodeType.tChainExpression;
+export default class ChainExpression
+	extends NodeBase<ast.ChainExpression>
+	implements DeoptimizableEntity
+{
+	parent!: ChainExpressionParent;
+	expression!: CallExpression | MemberExpression;
+	type!: NodeType.tChainExpression;
 
 	// deoptimizations are not relevant as we are not caching values
 	deoptimizeCache(): void {}
