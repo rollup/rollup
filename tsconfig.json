@@ -17,6 +17,6 @@
 			"rollup": ["./node_modules/rollup"]
 		}
 	},
-	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts", "native"],
+	"include": ["typings", "src", "cli", "browser", "rollup.config.ts", "native"],
 	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]
 }

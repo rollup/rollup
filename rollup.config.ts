@@ -21,6 +21,7 @@ import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
+import './typings/declarations';
 
 const onwarn: WarningHandlerWithDefault = warning => {
 	console.error(
