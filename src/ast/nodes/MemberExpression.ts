@@ -19,7 +19,7 @@ import {
 	INTERACTION_ASSIGNED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../NodeInteractions';
-import { isAwaitExpressionNode, isImportExpressionNode } from '../utils/identifyNode';
+import { isAwaitExpressionNode } from '../utils/identifyNode';
 import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
 	EMPTY_PATH,
@@ -437,7 +437,7 @@ export default class MemberExpression
 					!object.variable.isReassigned &&
 					object.variable instanceof LocalVariable &&
 					isAwaitExpressionNode(object.variable.init) &&
-					isImportExpressionNode(object.variable.init.argument))
+					object.variable.init.argument.type === NodeType.ImportExpression)
 			) {
 				includeInteractionWithoutThis(interaction, context);
 			} else {

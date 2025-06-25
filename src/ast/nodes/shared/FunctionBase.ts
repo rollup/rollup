@@ -16,7 +16,6 @@ import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type Identifier from '../Identifier';
 import type * as nodes from '../node-unions';
-import type { ArrowFunctionExpressionParent, FunctionDeclarationParent } from '../node-unions';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
@@ -35,8 +34,8 @@ export default abstract class FunctionBase<
 > extends NodeBase<T> {
 	parent!:
 		| nodes.FunctionExpressionParent
-		| FunctionDeclarationParent
-		| ArrowFunctionExpressionParent;
+		| nodes.FunctionDeclarationParent
+		| nodes.ArrowFunctionExpressionParent;
 	body!: BlockStatement | nodes.Expression;
 	params!: nodes.Parameter[];
 	preventChildBlockScope!: true;

@@ -22,14 +22,6 @@ import {
 	UnknownValue
 } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import {
-	isArrowFunctionExpressionNode,
-	isCallExpressionNode,
-	isFunctionExpressionNode,
-	isIdentifierNode,
-	isImportExpressionNode,
-	isMemberExpressionNode
-} from '../utils/identifyNode';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
@@ -238,13 +230,13 @@ export default class LocalVariable extends Variable {
 				 */
 				if (
 					this.kind === 'parameter' &&
-					(isArrowFunctionExpressionNode(declaration.parent) ||
-						isFunctionExpressionNode(declaration.parent)) &&
-					isCallExpressionNode(declaration.parent.parent) &&
-					isMemberExpressionNode(declaration.parent.parent.callee) &&
-					isIdentifierNode(declaration.parent.parent.callee.property) &&
+					(declaration.parent.type === NodeType.ArrowFunctionExpression ||
+						declaration.parent.type === NodeType.FunctionExpression) &&
+					declaration.parent.parent.type === NodeType.CallExpression &&
+					declaration.parent.parent.callee.type === NodeType.MemberExpression &&
+					declaration.parent.parent.callee.property.type === NodeType.Identifier &&
 					declaration.parent.parent.callee.property.name === 'then' &&
-					isImportExpressionNode(declaration.parent.parent.callee.object)
+					declaration.parent.parent.callee.object.type === NodeType.ImportExpression
 				) {
 					declaration.parent.parent.callee.object.includePath(path);
 				}
