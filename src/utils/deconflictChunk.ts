@@ -227,7 +227,10 @@ function deconflictTopLevelVariables(
 	for (const module of modules) {
 		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
-			const cachedSafeVariableName = module.info.safeVariableNames?.[variable.name];
+			const cachedSafeVariableName = Object.getOwnPropertyDescriptor(
+				module.info.safeVariableNames,
+				variable.name
+			)?.value;
 			if (cachedSafeVariableName) {
 				variable.setRenderNames(null, cachedSafeVariableName);
 				continue;
