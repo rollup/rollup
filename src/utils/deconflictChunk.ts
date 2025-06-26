@@ -226,7 +226,7 @@ function deconflictTopLevelVariables(
 				variable.name
 			)?.value;
 
-			if (cachedSafeVariableName) {
+			if (cachedSafeVariableName && !usedNames.has(cachedSafeVariableName)) {
 				usedNames.add(cachedSafeVariableName);
 				variable.setRenderNames(null, cachedSafeVariableName);
 				continue;
