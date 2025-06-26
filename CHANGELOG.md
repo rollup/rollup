@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.44.1
+
+_2025-06-26_
+
+### Bug Fixes
+
+- Reinstate maxParallelFileOps limit of 1000 to resolve the issue for some (#5992)
+
+### Pull Requests
+
+- [#5988](https://github.com/rollup/rollup/pull/5988): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5992](https://github.com/rollup/rollup/pull/5992): Set maxParallelFileOps to 1000 (@lukastaegert)
+
 ## 4.44.0
 
 _2025-06-19_
