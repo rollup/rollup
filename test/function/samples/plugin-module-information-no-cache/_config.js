@@ -54,6 +54,7 @@ module.exports = defineTest({
 						isIncluded: true,
 						meta: {},
 						moduleSideEffects: true,
+						safeVariableNames: null,
 						syntheticNamedExports: false
 					});
 					// Call AST again to ensure line coverage for cached getter

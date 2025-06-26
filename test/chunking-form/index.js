@@ -20,8 +20,6 @@ runTestSuiteWithSamples(
 		(config.skip ? describe.skip : config.solo ? describe.only : describe)(
 			path.basename(directory) + ': ' + config.description,
 			() => {
-				let bundle;
-
 				if (config.before) {
 					before(config.before);
 				}
