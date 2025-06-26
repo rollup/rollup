@@ -78,6 +78,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: false,
 							meta: {},
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
 						{
@@ -131,6 +132,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						}
 					]);
