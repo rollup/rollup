@@ -39,6 +39,7 @@ module.exports = defineTest({
 						isExternal: false,
 						isIncluded: null,
 						meta: {},
+						safeVariableNames: null,
 						syntheticNamedExports: false
 					});
 				},
@@ -150,6 +151,7 @@ module.exports = defineTest({
 								isExternal: false,
 								isIncluded: true,
 								meta: {},
+								safeVariableNames: null,
 								syntheticNamedExports: false
 							},
 							[ID_MAIN]: {
@@ -334,6 +336,7 @@ module.exports = defineTest({
 								isExternal: false,
 								isIncluded: true,
 								meta: {},
+								safeVariableNames: null,
 								syntheticNamedExports: false
 							},
 							[ID_NESTED]: {
@@ -432,6 +435,7 @@ module.exports = defineTest({
 								isExternal: false,
 								isIncluded: true,
 								meta: {},
+								safeVariableNames: null,
 								syntheticNamedExports: false
 							},
 							[ID_PATH]: {
@@ -455,6 +459,7 @@ module.exports = defineTest({
 								isExternal: true,
 								isIncluded: null,
 								meta: {},
+								safeVariableNames: null,
 								syntheticNamedExports: false
 							}
 						}
