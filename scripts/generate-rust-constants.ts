@@ -25,8 +25,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 		if (hasSameFieldsAs || useMacro !== false) {
 			return '';
 		}
-		/** @type {string[]} */
-		const lines = [];
+		const lines: string[] = [];
 		// reservedBytes is the number of bytes reserved for
 		// - end position
 		// - flags if present
@@ -35,7 +34,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 		if (flags) {
 			reservedBytes += BYTES_PER_U32;
 		}
-		for (const [fieldName, fieldType] of fields) {
+		for (const { name: fieldName, type: fieldType } of fields) {
 			lines.push(
 				`pub const ${toScreamingSnakeCase(name)}_${toScreamingSnakeCase(
 					fieldName

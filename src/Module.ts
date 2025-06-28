@@ -19,7 +19,6 @@ import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import type Program from './ast/nodes/Program';
 import type { ExpressionEntity } from './ast/nodes/shared/Expression';
-import type { NodeBase } from './ast/nodes/shared/Node';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import type { ObjectPath } from './ast/utils/PathTracker';
@@ -33,7 +32,7 @@ import type Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import type {
-	AstNode,
+	ast,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -52,7 +51,6 @@ import type {
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
-import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
@@ -125,7 +123,9 @@ export interface AstContext {
 	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
-	getNodeConstructor: (name: string) => typeof NodeBase;
+	getNodeConstructor: <T extends keyof typeof nodeConstructors>(
+		name: T
+	) => (typeof nodeConstructors)[T];
 	importDescriptions: Map<string, ImportDescription>;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariableInModule: (
@@ -147,7 +147,7 @@ export interface AstContext {
 }
 
 export interface DynamicImport {
-	argument: string | AstNode;
+	argument: string | ast.Expression;
 	id: string | null;
 	node: ImportExpression;
 }
@@ -858,7 +858,7 @@ export default class Module {
 			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
-			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
+			getNodeConstructor: name => nodeConstructors[name] || nodeConstructors.UnknownNode,
 			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariableInModule: this.includeVariableInModule.bind(this),
@@ -877,19 +877,16 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
-		const programParent = { context: this.astContext, type: 'Module' };
 
 		if (ast) {
-			this.ast = new nodeConstructors[ast.type](programParent, this.scope).parseNode(
-				ast
-			) as Program;
+			this.ast = new nodeConstructors[ast.type](null, this.scope).parseNode(ast) as Program;
 			this.info.ast = ast;
 		} else {
 			// Measuring asynchronous code does not provide reasonable results
 			timeEnd('generate ast', 3);
 			const astBuffer = await parseAsync(code, false, this.options.jsx !== false);
 			timeStart('generate ast', 3);
-			this.ast = convertProgram(astBuffer, programParent, this.scope);
+			this.ast = convertProgram(astBuffer, null, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
 				get: () => {
@@ -1007,19 +1004,13 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: ImportExpression) {
-		let argument: AstNode | string = node.sourceAstNode;
+		let argument: ast.Expression | string = node.sourceAstNode;
 		if (argument.type === NodeType.TemplateLiteral) {
-			if (
-				(argument as TemplateLiteralNode).quasis.length === 1 &&
-				typeof (argument as TemplateLiteralNode).quasis[0].value.cooked === 'string'
-			) {
-				argument = (argument as TemplateLiteralNode).quasis[0].value.cooked!;
+			if (argument.quasis.length === 1 && typeof argument.quasis[0].value.cooked === 'string') {
+				argument = argument.quasis[0].value.cooked!;
 			}
-		} else if (
-			argument.type === NodeType.Literal &&
-			typeof (argument as LiteralStringNode).value === 'string'
-		) {
-			argument = (argument as LiteralStringNode).value!;
+		} else if (argument.type === NodeType.Literal && typeof argument.value === 'string') {
+			argument = argument.value!;
 		}
 		this.dynamicImports.push({ argument, id: null, node });
 	}

@@ -4,7 +4,7 @@ import ExternalChunk from '../../ExternalChunk';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type {
-	AstNode,
+	ast,
 	DynamicImportTargetChunk,
 	GetInterop,
 	NormalizedOutputOptions,
@@ -19,30 +19,16 @@ import type { PluginDriver } from '../../utils/PluginDriver';
 import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
-import {
-	isArrowFunctionExpressionNode,
-	isAwaitExpressionNode,
-	isCallExpressionNode,
-	isExpressionStatementNode,
-	isFunctionExpressionNode,
-	isIdentifierNode,
-	isMemberExpressionNode
-} from '../utils/identifyNode';
 import type { ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import { getDynamicNamespaceVariable } from '../variables/NamespaceVariable';
 import { EmptyPromiseHandler, ObjectPromiseHandler } from '../variables/PromiseHandler';
 import type CallExpression from './CallExpression';
-import type * as NodeType from './NodeType';
+import type * as nodes from './node-unions';
+import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type GenericEsTreeNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
 interface DynamicImportMechanism {
 	left: string;
@@ -53,12 +39,13 @@ function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 	return { fileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
 }
 
-export default class ImportExpression extends NodeBase {
-	declare options: ExpressionNode | null;
+export default class ImportExpression extends NodeBase<ast.ImportExpression> {
+	declare parent: nodes.ImportExpressionParent;
+	declare options: nodes.Expression | null;
 	inlineNamespace: NamespaceVariable | null = null;
-	declare source: ExpressionNode;
+	declare source: nodes.Expression;
 	declare type: NodeType.tImportExpression;
-	declare sourceAstNode: AstNode;
+	declare sourceAstNode: ast.Expression;
 	resolution: Module | ExternalModule | string | null = null;
 
 	private attributes: string | null | true = null;
@@ -90,11 +77,11 @@ export default class ImportExpression extends NodeBase {
 		// * import('foo'); // as statement
 		// * await import('foo') // use as awaited expression in any way
 		// * import('foo').then(n => {...}) // only if .then is called directly on the import()
-		if (isExpressionStatementNode(parent) || isAwaitExpressionNode(parent)) {
+		if (parent.type === NodeType.ExpressionStatement || parent.type === NodeType.AwaitExpression) {
 			this.localResolution = { resolution, tracked: true };
 			return;
 		}
-		if (!isMemberExpressionNode(parent)) {
+		if (parent.type !== NodeType.MemberExpression) {
 			this.localResolution = { resolution, tracked: false };
 			return;
 		}
@@ -105,8 +92,8 @@ export default class ImportExpression extends NodeBase {
 			if (
 				currentParent.computed ||
 				currentParent.object !== callExpression ||
-				!isIdentifierNode(currentParent.property) ||
-				!isCallExpressionNode(currentParent.parent)
+				currentParent.property.type !== NodeType.Identifier ||
+				currentParent.parent.type !== NodeType.CallExpression
 			) {
 				break;
 			}
@@ -116,8 +103,8 @@ export default class ImportExpression extends NodeBase {
 				const firstArgument = callExpression.arguments[0];
 				if (
 					firstArgument === undefined ||
-					isFunctionExpressionNode(firstArgument) ||
-					isArrowFunctionExpressionNode(firstArgument)
+					firstArgument.type === NodeType.FunctionExpression ||
+					firstArgument.type === NodeType.ArrowFunctionExpression
 				) {
 					currentParent.promiseHandler = new ObjectPromiseHandler(
 						getDynamicNamespaceVariable(resolution.namespace)
@@ -126,12 +113,12 @@ export default class ImportExpression extends NodeBase {
 					return;
 				}
 			} else if (propertyName === 'catch' || propertyName === 'finally') {
-				if (isMemberExpressionNode(callExpression.parent)) {
+				if (callExpression.parent.type === NodeType.MemberExpression) {
 					currentParent.promiseHandler = new EmptyPromiseHandler();
 					currentParent = callExpression.parent;
 					continue;
 				}
-				if (isExpressionStatementNode(callExpression.parent)) {
+				if (callExpression.parent.type === NodeType.ExpressionStatement) {
 					currentParent.promiseHandler = new EmptyPromiseHandler();
 					this.localResolution = { resolution, tracked: true };
 					return;
@@ -185,7 +172,7 @@ export default class ImportExpression extends NodeBase {
 		this.scope.context.addDynamicImport(this);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: ast.ImportExpression): this {
 		this.sourceAstNode = esTreeNode.source;
 		return super.parseNode(esTreeNode);
 	}
