@@ -55,7 +55,7 @@ impl AstConverter<'_> {
       StoredCallee::Expression(callee_expression) => {
         self.convert_expression(callee_expression);
       }
-      StoredCallee::Super(callee_super) => self.store_super_element(callee_super),
+      StoredCallee::Super(callee_super) => self.store_super(callee_super),
     }
     // arguments
     self.convert_item_list(

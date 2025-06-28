@@ -1,7 +1,7 @@
-import isReference, { type NodeWithFieldDefinition } from 'is-reference';
+import isReference from 'is-reference';
 import type MagicString from 'magic-string';
 import '../../../typings/declarations';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -12,6 +12,7 @@ import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
@@ -22,7 +23,11 @@ import type { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
-export default class Identifier extends IdentifierBase implements DeclarationPatternNode {
+export default class Identifier
+	extends IdentifierBase<ast.Identifier>
+	implements DeclarationPatternNode
+{
+	declare parent: nodes.IdentifierParent;
 	declare name: string;
 	declare type: NodeType.tIdentifier;
 	variable: Variable | null = null;
@@ -45,7 +50,7 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 	}
 
 	bind(): void {
-		if (!this.variable && isReference(this, this.parent as NodeWithFieldDefinition)) {
+		if (!this.variable && isReference(this, this.parent as Parameters<typeof isReference>[1])) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 			this.isVariableReference = true;
