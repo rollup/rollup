@@ -4,7 +4,7 @@ import ExternalChunk from '../../ExternalChunk';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type {
-	AstNode,
+	ast,
 	DynamicImportTargetChunk,
 	GetInterop,
 	NormalizedOutputOptions,
@@ -30,18 +30,12 @@ import ExpressionStatement from './ExpressionStatement';
 import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionNode from './shared/FunctionNode';
-import type { Node } from './shared/Node';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type GenericEsTreeNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 interface DynamicImportMechanism {
@@ -53,12 +47,13 @@ function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 	return { fileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
 }
 
-export default class ImportExpression extends NodeBase {
-	declare options: ExpressionNode | null;
+export default class ImportExpression extends NodeBase<ast.ImportExpression> {
+	parent!: nodes.ImportExpressionParent;
+	options!: nodes.Expression | null;
 	inlineNamespace: NamespaceVariable | null = null;
-	declare source: ExpressionNode;
-	declare type: NodeType.tImportExpression;
-	declare sourceAstNode: AstNode;
+	source!: nodes.Expression;
+	type!: NodeType.tImportExpression;
+	sourceAstNode!: ast.Expression;
 
 	private hasUnknownAccessedKey = false;
 	private accessedPropKey = new Set<string>();
@@ -211,7 +206,7 @@ export default class ImportExpression extends NodeBase {
 	initialise(): void {
 		super.initialise();
 		this.scope.context.addDynamicImport(this);
-		let parent = this.parent;
+		let parent: nodes.AstNode | null = this.parent;
 		let withinAwaitExpression = false;
 		let withinTopLevelAwait = false;
 		do {
@@ -225,14 +220,14 @@ export default class ImportExpression extends NodeBase {
 				withinAwaitExpression = true;
 				withinTopLevelAwait = true;
 			}
-		} while ((parent = (parent as Node).parent as Node));
+		} while ((parent = parent.parent));
 
 		if (withinAwaitExpression && withinTopLevelAwait) {
 			this.withinTopLevelAwait = true;
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: ast.ImportExpression): this {
 		this.sourceAstNode = esTreeNode.source;
 		return super.parseNode(esTreeNode);
 	}
@@ -493,7 +488,7 @@ function getDeterministicObjectDestructure(objectPattern: ObjectPattern): string
 	for (const property of objectPattern.properties) {
 		if (property.type === 'RestElement' || property.computed || property.key.type !== 'Identifier')
 			return;
-		variables.push((property.key as Identifier).name);
+		variables.push(property.key.name);
 	}
 
 	return variables;

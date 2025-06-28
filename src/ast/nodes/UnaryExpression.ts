@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -12,6 +13,7 @@ import {
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { InclusionOptions } from './shared/Expression';
@@ -22,9 +24,12 @@ import {
 	UnknownValue
 } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
-import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnknown> = {
+const unaryOperators: Record<
+	ast.UnaryExpression['operator'],
+	(value: LiteralValue) => LiteralValueOrUnknown
+> = {
 	'!': value => !value,
 	'+': value => +(value as NonNullable<LiteralValue>),
 	'-': value => -(value as NonNullable<LiteralValue>),
@@ -36,10 +41,11 @@ const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnkn
 
 const UNASSIGNED = Symbol('Unassigned');
 
-export default class UnaryExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
-	declare type: NodeType.tUnaryExpression;
+export default class UnaryExpression extends NodeBase<ast.UnaryExpression> {
+	parent!: nodes.UnaryExpressionParent;
+	argument!: nodes.Expression;
+	operator!: ast.UnaryExpression['operator'];
+	type!: NodeType.tUnaryExpression;
 	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 
 	get prefix(): boolean {
