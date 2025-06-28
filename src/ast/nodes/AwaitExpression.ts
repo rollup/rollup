@@ -1,11 +1,14 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import type { ObjectPath } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class AwaitExpression extends NodeBase {
-	declare argument: ExpressionNode;
+export default class AwaitExpression extends NodeBase<ast.AwaitExpression> {
+	declare parent: nodes.AwaitExpressionParent;
+	declare argument: nodes.Expression;
 	declare type: NodeType.tAwaitExpression;
 
 	deoptimizePath(path: ObjectPath) {
