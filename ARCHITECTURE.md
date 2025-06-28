@@ -112,7 +112,7 @@ To understand this phase from a plugin perspective, have a look at [Output Gener
 Rollup parses code within the native/WebAssembly code. As most of Rollup is still TypeScript-based, this then needs to be transformed to a JavaScript representation. To do that efficiently, a binary buffer is constructed in Rust that can be passed without copying to TypeScript where it is further transformed.
 
 - The conversion to a buffer happens mostly within [`converter.rs`](rust/parse_ast/src/convert_ast/converter.rs). Here we also make sure that the buffer follows the format of the [ESTree specification](https://github.com/estree/estree).
-- While the converter is still mostly hand-written, it relies on auto-generated constants to ensure that the encoder and decoder match. These are generated together with the decoders from [`generate-ast-converters.js`](scripts/generate-ast-converters.js) via `npm run build:ast-converters`. The definitions for the auto-generated converters can be found in [`ast-types.js`](scripts/ast-types.js), which is also the first file that needs to be extended to support additional AST nodes.
+- While the converter is still mostly hand-written, it relies on auto-generated constants to ensure that the encoder and decoder match. These are generated together with the decoders from [`generate-ast-converters.ts`](scripts/generate-ast-converters.ts) via `npm run build:ast-converters`. The definitions for the auto-generated converters can be found in [`ast-types.ts`](scripts/ast-types.ts), which is also the first file that needs to be extended to support additional AST nodes.
 
 There are two ways Rollup parses code into an abstract syntax tree
 
@@ -125,6 +125,6 @@ There are two ways Rollup parses code into an abstract syntax tree
 
 In general, when extending the AST parsing capabilities, the following places need to be touched:
 
-- declare any new AST nodes or additional AST attributes in [`ast-types.js`](scripts/ast-types.js).
+- declare any new AST nodes or additional AST attributes in [`ast-types.ts`](scripts/ast-types.ts).
 - write the encoder in Rust in [`converter.rs`](rust/parse_ast/src/convert_ast/converter.rs).
 - create the corresponding TypeScript classes in [`ast/nodes`](src/ast/nodes).
