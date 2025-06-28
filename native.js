@@ -23,7 +23,7 @@ const bindingsByPlatformAndArch = {
 		loong64: { base: 'linux-loongarch64-gnu', musl: null },
 		ppc64: { base: 'linux-powerpc64le-gnu', musl: null },
 		riscv64: { base: 'linux-riscv64-gnu', musl: 'linux-riscv64-musl' },
-		s390x: { base: 'linux-s390x-gnu', musl: null },
+		s390x: { base: 'linux-s390x-gnu', musl: 'linux-s390x-musl' },
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
 	},
 	win32: {
