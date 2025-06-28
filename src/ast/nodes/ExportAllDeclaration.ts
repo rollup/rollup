@@ -1,12 +1,15 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type Identifier from './Identifier';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ExportAllDeclaration extends NodeBase {
+export default class ExportAllDeclaration extends NodeBase<ast.ExportAllDeclaration> {
+	declare parent: nodes.ExportAllDeclarationParent;
 	declare attributes: ImportAttribute[];
 	declare exported: Identifier | Literal<string> | null;
 	declare needsBoundaries: true;
