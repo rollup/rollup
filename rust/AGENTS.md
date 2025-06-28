@@ -8,9 +8,9 @@
 
 ## Codegen Contract
 
-- `scripts/ast-types.js` is the single source of truth for the buffer layout. `npm run build:ast-converters` regenerates the Rust constant/macro files AND the JS parsers; the only schema outside `ast-types.js` is the fixed string table in `scripts/generate-string-constants.js`, which the same command regenerates
+- `scripts/ast-types.ts` is the single source of truth for the buffer layout. `npm run build:ast-converters` regenerates the Rust constant/macro files AND the JS parsers; the only schema outside `ast-types.ts` is the fixed string table in `scripts/generate-string-constants.ts`, which the same command regenerates
 - Node-type codes are positional: inserting or reordering a node in `AST_NODES` renumbers all later type codes on both the Rust and JS side
-- In `ast-types.js`, `hasSameFieldsAs`, `useMacro: false` and `fixed` are codegen directives, not dead config: they control whether a node reuses another node's field constants, is implemented as a manual `store_*` function in `ast_nodes/` instead of a generated macro, or has a constant field. Check these before assuming all nodes are macro-generated
+- In `ast-types.ts`, `hasSameFieldsAs`, `useMacro: false` and `fixed` are codegen directives, not dead config: they control whether a node reuses another node's field constants, is implemented as a manual `store_*` function in `ast_nodes/` instead of a generated macro, or has a constant field. Check these before assuming all nodes are macro-generated
 - The SWC parser runs with a fixed `EsSyntax` feature set in `parse_ast/src/lib.rs` — supporting a new JS syntax feature means enabling it there and handling the new AST variants in the converter, not per-binding
 
 ## Buffer Format

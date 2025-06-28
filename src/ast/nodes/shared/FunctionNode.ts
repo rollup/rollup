@@ -1,3 +1,4 @@
+import type { ast } from '../../../rollup/types';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
@@ -11,6 +12,7 @@ import {
 } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
+import type * as nodes from '../node-unions';
 import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
@@ -20,12 +22,13 @@ import {
 	GENERATOR_PROTOTYPE,
 	OBJECT_PROTOTYPE
 } from './ObjectPrototype';
-import type { DeclarationPatternNode } from './Pattern';
 
-export default class FunctionNode extends FunctionBase {
+export default class FunctionNode<
+	T extends ast.ArrowFunctionExpression | ast.FunctionExpression | ast.FunctionDeclaration
+> extends FunctionBase<T> {
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
-	declare params: DeclarationPatternNode[];
+	declare params: nodes.Parameter[];
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;

@@ -1,12 +1,15 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class Super extends NodeBase {
+export default class Super extends NodeBase<ast.Super> {
+	declare parent: nodes.SuperParent;
 	declare type: NodeType.tSuper;
 	declare variable: Variable;
 
