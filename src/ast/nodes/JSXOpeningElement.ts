@@ -1,17 +1,16 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
+import type { ast, NormalizedJsxOptions } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type JSXAttribute from './JSXAttribute';
-import type JSXIdentifier from './JSXIdentifier';
-import type JSXMemberExpression from './JSXMemberExpression';
-import type JSXNamespacedName from './JSXNamespacedName';
 import type JSXSpreadAttribute from './JSXSpreadAttribute';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class JSXOpeningElement extends NodeBase {
+export default class JSXOpeningElement extends NodeBase<ast.JSXOpeningElement> {
+	declare parent: nodes.JSXOpeningElementParent;
 	declare type: NodeType.tJSXOpeningElement;
-	declare name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
+	declare name: nodes.JSXTagNameExpression;
 	declare attributes: (JSXAttribute | JSXSpreadAttribute)[];
 	declare selfClosing: boolean;
 

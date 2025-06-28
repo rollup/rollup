@@ -1,8 +1,11 @@
+import type { ast } from '../../rollup/types';
 import { getRollupError, logModuleParseError, logParseError } from '../../utils/logs';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class ParseError extends NodeBase {
+export default class ParseError extends NodeBase<ast.ParseError> {
+	declare parent: nodes.ParseErrorParent;
 	declare type: NodeType.tParseError;
 	declare message: string;
 

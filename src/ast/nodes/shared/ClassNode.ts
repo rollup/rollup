@@ -1,3 +1,4 @@
+import type { AstNode } from '../../../rollup/ast-types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -18,18 +19,23 @@ import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
+import type * as nodes from '../node-unions';
+import * as NodeType from '../NodeType';
 import PropertyDefinition from '../PropertyDefinition';
-import { isStaticBlock } from '../StaticBlock';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
+import type { ExpressionNode } from './Node';
+import { type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
-export default class ClassNode extends NodeBase implements DeoptimizableEntity {
+export default class ClassNode<T extends AstNode>
+	extends NodeBase<T>
+	implements DeoptimizableEntity
+{
 	declare body: ClassBody;
 	declare id: Identifier | null;
-	declare superClass: ExpressionNode | null;
+	declare superClass: nodes.Expression | null;
 	declare decorators: Decorator[];
 	declare private classConstructor: MethodDefinition | null;
 	declare private instanceEntity: ObjectEntity;
@@ -134,7 +140,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.deoptimized = true;
 		for (const definition of this.body.body) {
 			if (
-				!isStaticBlock(definition) &&
+				definition.type !== NodeType.StaticBlock &&
 				!(
 					definition.static ||
 					(definition instanceof MethodDefinition && definition.kind === 'constructor')
@@ -186,7 +192,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		const staticProperties: ObjectProperty[] = [];
 		const dynamicMethods: ObjectProperty[] = [];
 		for (const definition of this.body.body) {
-			if (isStaticBlock(definition)) continue;
+			if (definition.type === NodeType.StaticBlock) continue;
 			const properties = definition.static ? staticProperties : dynamicMethods;
 			const definitionKind = (definition as MethodDefinition | { kind: undefined }).kind;
 			// Note that class fields do not end up on the prototype
