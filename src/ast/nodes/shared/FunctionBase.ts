@@ -1,4 +1,4 @@
-import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -14,32 +14,35 @@ import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
-import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
+import type Identifier from '../Identifier';
+import type * as nodes from '../node-unions';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
-import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
-	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
-import type { DeclarationPatternNode } from './Pattern';
 
-export default abstract class FunctionBase extends NodeBase {
-	declare body: BlockStatement | ExpressionNode;
-	declare params: DeclarationPatternNode[];
+export default abstract class FunctionBase<
+	T extends ast.ArrowFunctionExpression | ast.FunctionExpression | ast.FunctionDeclaration
+> extends NodeBase<T> {
+	declare parent:
+		| nodes.FunctionExpressionParent
+		| nodes.FunctionDeclarationParent
+		| nodes.ArrowFunctionExpressionParent;
+	declare body: BlockStatement | nodes.Expression;
+	declare params: nodes.Parameter[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 
 	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
-	declare annotationNoSideEffects?: boolean;
+	annotationNoSideEffects?: boolean;
 
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
@@ -188,10 +191,10 @@ export default abstract class FunctionBase extends NodeBase {
 	protected onlyFunctionCallUsed(): boolean {
 		let variable: Variable | null = null;
 		if (this.parent.type === NodeType.VariableDeclarator) {
-			variable = (this.parent as VariableDeclarator).id.variable ?? null;
+			variable = (this.parent.id as Identifier).variable ?? null;
 		}
 		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
-			variable = (this.parent as ExportDefaultDeclaration).variable;
+			variable = this.parent.variable;
 		}
 		return variable?.getOnlyFunctionCallUsed() ?? false;
 	}
@@ -229,18 +232,17 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		const { body, params } = esTreeNode;
+	parseNode(esTreeNode: T): this {
+		const { body, params, type } = esTreeNode;
+		// We need to do this first as the body-parsing logic depends on the type
+		this.type = type;
 		const { scope } = this;
 		const { bodyScope, context } = scope;
 		// We need to ensure that parameters are declared before the body is parsed
 		// so that the scope already knows all parameters and can detect conflicts
 		// when parsing the body.
-		const parameters: typeof this.params = (this.params = params.map(
-			(parameter: GenericEsTreeNode) =>
-				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
-					parameter
-				) as unknown as DeclarationPatternNode
+		const parameters: typeof this.params = (this.params = params.map(parameter =>
+			new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(parameter as any)
 		));
 		scope.addParameterVariables(
 			parameters.map(
@@ -249,7 +251,7 @@ export default abstract class FunctionBase extends NodeBase {
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body);
+		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body as any);
 		return super.parseNode(esTreeNode);
 	}
 
