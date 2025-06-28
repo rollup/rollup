@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -19,45 +20,18 @@ import NamespaceVariable from '../variables/NamespaceVariable';
 import SyntheticNamedExportVariable from '../variables/SyntheticNamedExportVariable';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	type InclusionOptions,
 	type LiteralValueOrUnknown,
 	UnknownValue
 } from './shared/Expression';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
-type Operator =
-	| '!='
-	| '!=='
-	| '%'
-	| '&'
-	| '*'
-	| '**'
-	| '+'
-	| '-'
-	| '/'
-	| '<'
-	| '<<'
-	| '<='
-	| '=='
-	| '==='
-	| '>'
-	| '>='
-	| '>>'
-	| '>>>'
-	| '^'
-	| '|'
-	| 'in'
-	| 'instanceof';
-
-const binaryOperators: Partial<
-	Record<Operator, (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown>
+const binaryOperators: Record<
+	ast.BinaryExpression['operator'],
+	(left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown
 > = {
 	'!=': (left, right) => left != right,
 	'!==': (left, right) => left !== right,
@@ -79,18 +53,21 @@ const binaryOperators: Partial<
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
+	in: () => UnknownValue,
+	instanceof: () => UnknownValue,
 	'|': (left: any, right: any) => left | right
-	// We use the fallback for cases where we return something unknown
-	// in: () => UnknownValue,
-	// instanceof: () => UnknownValue,
 };
 
 const UNASSIGNED = Symbol('Unassigned');
 
-export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
-	declare left: ExpressionNode;
-	declare operator: keyof typeof binaryOperators;
-	declare right: ExpressionNode;
+export default class BinaryExpression
+	extends NodeBase<ast.BinaryExpression>
+	implements DeoptimizableEntity
+{
+	declare parent: nodes.BinaryExpressionParent;
+	declare left: nodes.Expression;
+	declare operator: ast.BinaryExpression['operator'];
+	declare right: nodes.Expression;
 	declare type: NodeType.tBinaryExpression;
 	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 
@@ -108,7 +85,11 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		if (typeof leftValue === 'symbol') return UnknownValue;
 
 		// Optimize `'export' in namespace`
-		if (this.operator === 'in' && this.right.variable instanceof NamespaceVariable) {
+		if (
+			this.operator === 'in' &&
+			'variable' in this.right &&
+			this.right.variable instanceof NamespaceVariable
+		) {
 			const [variable] = this.right.variable.context.traceExport(String(leftValue));
 			if (variable instanceof ExternalVariable) return UnknownValue;
 			if (variable instanceof SyntheticNamedExportVariable) return UnknownValue;
@@ -118,15 +99,18 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (typeof rightValue === 'symbol') return UnknownValue;
 
-		const operatorFunction = binaryOperators[this.operator];
-		if (!operatorFunction) return UnknownValue;
-
-		return operatorFunction(leftValue, rightValue);
+		return binaryOperators[this.operator](leftValue, rightValue);
 	}
 
 	getRenderedLiteralValue() {
 		// Only optimize `'export' in ns`
-		if (this.operator !== 'in' || !(this.right.variable instanceof NamespaceVariable)) {
+		if (
+			!(
+				this.operator === 'in' &&
+				'variable' in this.right &&
+				this.right.variable instanceof NamespaceVariable
+			)
+		) {
 			return UnknownValue;
 		}
 
