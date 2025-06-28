@@ -1,3 +1,4 @@
+import type { ast } from '../../rollup/types';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -8,15 +9,17 @@ import {
 	UnknownInteger
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import SpreadElement from './SpreadElement';
 
-export default class ArrayExpression extends NodeBase {
-	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
+export default class ArrayExpression extends NodeBase<ast.ArrayExpression> {
+	declare parent: nodes.ArrayExpressionParent;
+	declare elements: readonly (nodes.Expression | SpreadElement | null)[];
 	declare type: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 
