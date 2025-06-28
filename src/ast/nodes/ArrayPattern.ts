@@ -1,22 +1,28 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
-import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class ArrayPattern extends NodeBase implements DeclarationPatternNode {
-	declare elements: (PatternNode | null)[];
+export default class ArrayPattern
+	extends NodeBase<ast.ArrayPattern>
+	implements DeclarationPatternNode
+{
+	declare parent: nodes.ArrayPatternParent;
+	declare elements: (nodes.DestructuringPattern | null)[];
 	declare type: NodeType.tArrayPattern;
 
 	addExportedVariables(
-		variables: readonly Variable[],
+		variables: Variable[],
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const element of this.elements) {
@@ -34,7 +40,7 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 		for (const element of this.elements) {
 			if (element !== null) {
 				variables.push(
-					...(element as DeclarationPatternNode).declare(kind, includedPatternPath, init)
+					...(element as nodes.BindingPattern).declare(kind, includedPatternPath, init)
 				);
 			}
 		}
@@ -72,7 +78,7 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 	// Patterns are only checked at the empty path at the moment
 	hasEffectsOnInteractionAtPath(
 		_path: ObjectPath,
-		interaction: NodeInteractionAssigned,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		for (const element of this.elements) {
@@ -119,7 +125,7 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 
 	markDeclarationReached(): void {
 		for (const element of this.elements) {
-			(element as DeclarationPatternNode)?.markDeclarationReached();
+			(element as nodes.BindingPattern | null)?.markDeclarationReached();
 		}
 	}
 }

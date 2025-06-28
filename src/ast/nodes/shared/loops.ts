@@ -1,7 +1,7 @@
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import type { StatementNode } from './Node';
+import type * as nodes from '../node-unions';
 
-export function hasLoopBodyEffects(context: HasEffectsContext, body: StatementNode): boolean {
+export function hasLoopBodyEffects(context: HasEffectsContext, body: nodes.Statement): boolean {
 	const { brokenFlow, hasBreak, hasContinue, ignore } = context;
 	const { breaks, continues } = ignore;
 	ignore.breaks = true;
@@ -19,7 +19,7 @@ export function hasLoopBodyEffects(context: HasEffectsContext, body: StatementNo
 
 export function includeLoopBody(
 	context: InclusionContext,
-	body: StatementNode,
+	body: nodes.Statement,
 	includeChildrenRecursively: boolean | 'variables'
 ) {
 	const { brokenFlow, hasBreak, hasContinue } = context;

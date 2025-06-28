@@ -21,13 +21,17 @@ function copyRollupType(
 	};
 }
 
-export function copyBrowserTypes(): Plugin {
-	return copyRollupType('rollup.browser.d.ts');
+export function copyBrowserTypes(): Plugin[] {
+	return [
+		copyRollupType('rollup.browser.d.ts'),
+		copyRollupType('ast-types.d.ts', 'src/rollup/ast-types.d.ts')
+	];
 }
 
 export function copyNodeTypes(): Plugin[] {
 	return [
 		copyRollupType('rollup.d.ts'),
+		copyRollupType('ast-types.d.ts', 'src/rollup/ast-types.d.ts'),
 		copyRollupType(
 			'loadConfigFile.d.ts',
 			'cli/run/loadConfigFileType.d.ts',

@@ -1,2 +1,8 @@
-export type VariableDeclarationKind = 'var' | 'let' | 'const' | 'using' | 'await using';
-export type VariableKind = VariableDeclarationKind | 'function' | 'class' | 'parameter' | 'other';
+import type { ast } from '../../../rollup/types';
+
+export type VariableKind =
+	| ast.VariableDeclaration['kind']
+	| 'function'
+	| 'class'
+	| 'parameter'
+	| 'other';
