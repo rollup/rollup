@@ -1,12 +1,15 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
-export default class YieldExpression extends NodeBase {
-	declare argument: ExpressionNode | null;
+export default class YieldExpression extends NodeBase<ast.YieldExpression> {
+	declare parent: nodes.YieldExpressionParent;
+	declare argument: nodes.Expression | null;
 	declare delegate: boolean;
 	declare type: NodeType.tYieldExpression;
 
