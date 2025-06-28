@@ -6,8 +6,7 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const nodeIndexFile = new URL('../src/ast/nodes/index.ts', import.meta.url);
 
-/** @type string[] */
-const astTypes = [
+const astTypes: string[] = [
 	...new Set(Object.entries(AST_NODES).map(([name, node]) => node.astType || name)),
 	'UnknownNode'
 ].sort();
@@ -16,9 +15,7 @@ const nodeIndex = `${notEditFilesComment}
 ${astTypes.map(astType => `import ${astType} from './${astType}';`).join('\n')}
 import type { NodeBase } from './shared/Node';
 
-export const nodeConstructors: {
-	[name: string]: typeof NodeBase;
-} = {
+export const nodeConstructors = {
 	${astTypes.join(',\n\t')}
 };
 `;

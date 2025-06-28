@@ -1,28 +1,28 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import ClassBodyScope from '../scopes/ClassBodyScope';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
-
 import type MethodDefinition from './MethodDefinition';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type PropertyDefinition from './PropertyDefinition';
-import type ClassNode from './shared/ClassNode';
 import {
 	doNotDeoptimize,
-	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 import type StaticBlock from './StaticBlock';
 
-export default class ClassBody extends NodeBase {
+export default class ClassBody extends NodeBase<ast.ClassBody> {
+	declare parent: nodes.ClassBodyParent;
 	declare body: (MethodDefinition | PropertyDefinition | StaticBlock)[];
 	declare scope: ClassBodyScope;
 	declare type: NodeType.tClassBody;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode);
+		this.scope = new ClassBodyScope(parentScope, this.parent);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -33,14 +33,18 @@ export default class ClassBody extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		const body: NodeBase[] = (this.body = new Array(esTreeNode.body.length));
+	parseNode(esTreeNode: ast.ClassBody): this {
+		const body: (MethodDefinition | PropertyDefinition | StaticBlock)[] = (this.body = new Array(
+			esTreeNode.body.length
+		));
 		let index = 0;
 		for (const definition of esTreeNode.body) {
 			body[index++] = new (this.scope.context.getNodeConstructor(definition.type))(
 				this,
-				definition.static ? this.scope : this.scope.instanceScope
-			).parseNode(definition);
+				(definition as MethodDefinition | PropertyDefinition).static
+					? this.scope
+					: this.scope.instanceScope
+			).parseNode(definition as any);
 		}
 		return super.parseNode(esTreeNode);
 	}

@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { InternalModuleFormat } from '../../rollup/types';
+import type { ast, InternalModuleFormat } from '../../rollup/types';
 import { escapeId } from '../../utils/escapeId';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { DOCUMENT_CURRENT_SCRIPT } from '../../utils/interopHelpers';
@@ -12,6 +12,7 @@ import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
@@ -19,7 +20,8 @@ const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 const FILE_OBJ_PREFIX = 'ROLLUP_FILE_URL_OBJ_';
 const IMPORT = 'import';
 
-export default class MetaProperty extends NodeBase {
+export default class MetaProperty extends NodeBase<ast.MetaProperty> {
+	declare parent: nodes.MetaPropertyParent;
 	declare meta: Identifier;
 	declare property: Identifier;
 	declare type: NodeType.tMetaProperty;
@@ -103,12 +105,7 @@ export default class MetaProperty extends NodeBase {
 					{ attributes, chunkId, fileName, format, moduleId, referenceId, relativePath }
 				]) || relativeUrlMechanisms[format](relativePath, isUrlObject);
 
-			code.overwrite(
-				(parent as MemberExpression).start,
-				(parent as MemberExpression).end,
-				replacement,
-				{ contentOnly: true }
-			);
+			code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
 			return;
 		}
 
