@@ -1,10 +1,13 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 
-export default class ClassExpression extends ClassNode {
+export default class ClassExpression extends ClassNode<ast.ClassExpression> {
+	declare parent: nodes.ClassExpressionParent;
 	declare type: NodeType.tClassExpression;
 
 	render(

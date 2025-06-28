@@ -22,7 +22,7 @@ export default class ExternalVariable extends Variable {
 		this.isSourcePhase = name === SOURCE_PHASE_IMPORT;
 	}
 
-	addReference(identifier: IdentifierBase): void {
+	addReference(identifier: IdentifierBase<any>): void {
 		this.referenced = true;
 		if (this.name === 'default' || this.name === '*') {
 			this.module.suggestName(identifier.name);

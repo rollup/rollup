@@ -4,11 +4,13 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
-import type CallExpression from '../nodes/CallExpression';
+import type JSXOpeningElement from '../nodes/JSXOpeningElement';
+import type JSXOpeningFragment from '../nodes/JSXOpeningFragment';
+import type MemberExpression from '../nodes/MemberExpression';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
-import type { NodeBase } from '../nodes/shared/Node';
+import type JSXElementBase from '../nodes/shared/JSXElementBase';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
@@ -19,9 +21,9 @@ export default class Variable extends ExpressionEntity {
 	initReached = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
-	declare isNamespace?: boolean;
+	isNamespace?: boolean;
 	kind: VariableKind | null = null;
-	declare module?: Module | ExternalModule;
+	module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
 
@@ -40,7 +42,7 @@ export default class Variable extends ExpressionEntity {
 	 * Binds identifiers that reference this variable to this variable.
 	 * Necessary to be able to change variable names.
 	 */
-	addReference(_identifier: IdentifierBase): void {}
+	addReference(_identifier: IdentifierBase<any>): void {}
 
 	private onlyFunctionCallUsed = true;
 	/**
@@ -55,10 +57,16 @@ export default class Variable extends ExpressionEntity {
 	 * Collect the places where the identifier variable is used
 	 * @param usedPlace Where the variable is used
 	 */
-	addUsedPlace(usedPlace: NodeBase): void {
+	addUsedPlace(
+		usedPlace:
+			| IdentifierBase<any>
+			| MemberExpression
+			| JSXElementBase<any>
+			| JSXOpeningElement
+			| JSXOpeningFragment
+	): void {
 		const isFunctionCall =
-			usedPlace.parent.type === NodeType.CallExpression &&
-			(usedPlace.parent as CallExpression).callee === usedPlace;
+			usedPlace.parent.type === NodeType.CallExpression && usedPlace.parent.callee === usedPlace;
 		if (!isFunctionCall && usedPlace.parent.type !== NodeType.ExportDefaultDeclaration) {
 			this.onlyFunctionCallUsed = false;
 		}
