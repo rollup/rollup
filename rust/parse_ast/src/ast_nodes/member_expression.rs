@@ -41,7 +41,7 @@ impl AstConverter<'_> {
       ExpressionOrSuper::Expression(expression) => {
         self.convert_expression(expression);
       }
-      ExpressionOrSuper::Super(super_token) => self.store_super_element(super_token),
+      ExpressionOrSuper::Super(super_token) => self.store_super(super_token),
     }
     // flags
     store_member_expression_flags!(
