@@ -1,11 +1,14 @@
+import type { ast } from '../../rollup/types';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class TemplateElement extends NodeBase {
+export default class TemplateElement extends NodeBase<ast.TemplateElement> {
+	declare parent: nodes.TemplateElementParent;
 	declare type: NodeType.tTemplateElement;
 	declare value: {
-		cooked: string | null;
+		cooked?: string;
 		raw: string;
 	};
 
@@ -23,7 +26,7 @@ export default class TemplateElement extends NodeBase {
 		return false;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: ast.TemplateElement): this {
 		this.value = esTreeNode.value;
 		return super.parseNode(esTreeNode);
 	}

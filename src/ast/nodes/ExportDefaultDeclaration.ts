@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { unescapeExportName } from '../../utils/exportNames';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -16,10 +17,10 @@ import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
@@ -41,8 +42,9 @@ function getFunctionIdInsertPosition(code: string, start: number): number {
 	return declarationEnd + generatorStarPos + 1;
 }
 
-export default class ExportDefaultDeclaration extends NodeBase {
-	declare declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+export default class ExportDefaultDeclaration extends NodeBase<ast.ExportDefaultDeclaration> {
+	declare parent: nodes.ExportDefaultDeclarationParent;
+	declare declaration: FunctionDeclaration | ClassDeclaration | nodes.Expression;
 	declare needsBoundaries: true;
 	declare scope: ModuleScope;
 	declare type: NodeType.tExportDefaultDeclaration;
