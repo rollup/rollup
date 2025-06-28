@@ -5,7 +5,7 @@ function test1(obj) {
 console.log(
 	test1({
 		a: { b: 1, c: 2 },
-		d: { e: 4, f: 5 }})
+		d: { e: 4}})
 );
 
 function test2(obj) {
@@ -15,4 +15,4 @@ function test2(obj) {
 
 test2({
 	a: { b: 1, c: 2 },
-	d: { e: 4, f: 5 }});
+	d: { e: 4}});

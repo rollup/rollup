@@ -151,6 +151,33 @@ export class IncludedFullPathTracker implements IncludedPathTracker {
 		}
 		return included;
 	}
+
+	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath) {
+		const { includedPaths } = this;
+		if (includedPaths) {
+			this.includeCurrentPaths(entity, context, basePath, includedPaths);
+		}
+	}
+
+	private includeCurrentPaths(
+		entity: ExpressionEntity,
+		context: InclusionContext,
+		basePath: ObjectPath,
+		currentPaths: IncludedPaths
+	) {
+		if (currentPaths[UnknownKey]) {
+			entity.includePath([...basePath, UnknownKey], context);
+		} else {
+			const inclusionEntries = Object.entries(currentPaths);
+			if (inclusionEntries.length === 0) {
+				entity.includePath(basePath, context);
+			} else {
+				for (const [key, value] of inclusionEntries) {
+					this.includeCurrentPaths(entity, context, [...basePath, key], value);
+				}
+			}
+		}
+	}
 }
 
 // "true" means not sub-paths are included, "UnknownKey" means at least some sub-paths are included
