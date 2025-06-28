@@ -1,4 +1,6 @@
 import type MagicString from 'magic-string';
+import type { LiteralRegExp } from '../../rollup/ast-types';
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import {
@@ -13,6 +15,7 @@ import {
 	hasMemberEffectWhenCalled,
 	type MemberDescription
 } from '../values';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	type ExpressionEntity,
@@ -20,17 +23,18 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 export type LiteralValueOrBigInt = LiteralValue | bigint;
 
 export default class Literal<
 	T extends LiteralValueOrBigInt = LiteralValueOrBigInt
-> extends NodeBase {
-	declare bigint?: string;
-	declare raw?: string;
-	declare regex?: {
+> extends NodeBase<ast.Literal> {
+	declare parent: nodes.LiteralParent;
+	bigint?: string;
+	raw?: string;
+	regex?: {
 		flags: string;
 		pattern: string;
 	};
@@ -95,9 +99,9 @@ export default class Literal<
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		this.value = esTreeNode.value;
-		this.regex = esTreeNode.regex;
+	parseNode(esTreeNode: ast.Literal): this {
+		this.value = esTreeNode.value as T;
+		this.regex = (esTreeNode as LiteralRegExp).regex;
 		return super.parseNode(esTreeNode);
 	}
 
