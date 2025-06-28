@@ -509,6 +509,13 @@ const replaceStringifyValues = (key, value) => {
 			const { options, ...nonOptionsProperties } = value;
 			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
 		}
+		case 'TemplateElement': {
+			const {
+				value: { cooked, raw },
+				...rest
+			} = value;
+			return cooked != null ? value : { value: { raw }, ...rest };
+		}
 		case 'ClassDeclaration':
 		case 'ClassExpression':
 		case 'PropertyDefinition':
@@ -523,7 +530,7 @@ const replaceStringifyValues = (key, value) => {
 		}
 	}
 
-	return key[0] === '_'
+	return key.endsWith('nnotations')
 		? undefined
 		: typeof value == 'bigint'
 			? `~BigInt${value.toString()}`
