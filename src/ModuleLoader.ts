@@ -2,7 +2,7 @@ import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';
 import type {
-	AstNode,
+	ast,
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
@@ -709,7 +709,7 @@ export class ModuleLoader {
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | AstNode,
+		specifier: string | ast.Expression,
 		importer: string,
 		attributes: Record<string, string>
 	): Promise<ResolvedId | string | null> {
