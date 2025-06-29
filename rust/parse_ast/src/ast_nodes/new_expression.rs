@@ -1,3 +1,4 @@
+use swc_common::Spanned;
 use swc_ecma_ast::NewExpr;
 
 use crate::convert_ast::annotations::AnnotationKind;
@@ -13,8 +14,9 @@ impl AstConverter<'_> {
       &TYPE_NEW_EXPRESSION,
       &new_expression.span,
       NEW_EXPRESSION_RESERVED_BYTES,
-      false,
+      true,
     );
+    self.move_to_specific_index(new_expression.callee.span_lo().0 - 2);
     // annotations
     let annotations = self
       .index_converter
