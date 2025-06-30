@@ -9,3 +9,7 @@ if (typeof parseInt === 'function' || 'a' === 'a') {
 if (typeof parseInt === 'function' ?? 'a' === 'a') {
 	assert.ok(true);
 }
+
+if (!(unknownGlobal ? "asdf" : true)) {
+	assert.ok(false)
+}
