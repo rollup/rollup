@@ -284,6 +284,7 @@ export class NodeBase<T extends AstNode> extends ExpressionEntity implements Exp
 		this.scope.context.magicString.addSourcemapLocation(this.end);
 	}
 
+	// TODO Lukas These can be removed
 	parseNode(esTreeNode: T): this {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// Skip properties defined on the class already.

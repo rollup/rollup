@@ -258,6 +258,7 @@ export default class Module {
 
 	private allExportsIncluded = false;
 	private ast: Program | null = null;
+	private astBuffer!: Uint8Array;
 	declare private astContext: AstContext;
 	private readonly context: string;
 	declare private customTransformCache: boolean;
@@ -878,15 +879,16 @@ export default class Module {
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
 
+		// TODO Lukas no longer support this? Reconstruct?
 		if (ast) {
-			this.ast = new nodeConstructors[ast.type](null, this.scope).parseNode(ast) as Program;
+			this.ast = new nodeConstructors[ast.type](null, this.scope).parseNode(ast);
 			this.info.ast = ast;
 		} else {
 			// Measuring asynchronous code does not provide reasonable results
 			timeEnd('generate ast', 3);
-			const astBuffer = await parseAsync(code, false, this.options.jsx !== false);
+			this.astBuffer = await parseAsync(code, false, this.options.jsx !== false);
 			timeStart('generate ast', 3);
-			this.ast = convertProgram(astBuffer, null, this.scope);
+			this.ast = convertProgram(this.astBuffer, null, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
 				get: () => {

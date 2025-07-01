@@ -1,6 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env vite-node
 
 import './generate-ast-macros.js';
+import './generate-ast-to-buffer.js';
 import './generate-ast-types.js';
 import './generate-buffer-parsers.js';
 import './generate-buffer-to-ast.js';
