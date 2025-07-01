@@ -120,6 +120,7 @@ export interface TransformModuleJSON {
 	transformDependencies: string[];
 }
 
+// TODO Lukas remove ast here? The ast should
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
 	safeVariableNames: Record<string, string> | null;
 	ast: ast.Program;
