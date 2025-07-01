@@ -119,6 +119,7 @@ export interface TransformModuleJSON {
 	transformDependencies: string[];
 }
 
+// TODO Lukas remove ast here? The ast should
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
 	ast: ast.Program;
 	dependencies: string[];
