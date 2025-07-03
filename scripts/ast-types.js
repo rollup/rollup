@@ -173,12 +173,13 @@ export const AST_NODES = {
 			    const body: (MethodDefinition | PropertyDefinition)[] = (node.body = new Array(length));
           for (let index = 0; index < length; index++) {
             const nodePosition = buffer[bodyPosition + 1 + index];
-            body[index] = convertNode(
-                node,
-                (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-                nodePosition,
-                buffer
-            );
+            const isStaticBlock = nodeConstructors[buffer[nodePosition]] === StaticBlock;
+			body[index] = convertNode(
+				node,
+				!isStaticBlock && (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+				nodePosition,
+				buffer
+			);
           }
         } else {
           node.body = [];
