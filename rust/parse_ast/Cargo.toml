@@ -8,9 +8,11 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.98"
 swc_atoms = "5.0.0"
-swc_compiler_base = "23.0.1"
-swc_config = "3.1.0"
+swc_compiler_base = "23.0.2"
+swc_config = "3.1.1"
 swc_common = { version = "12.0.1", features = ["parking_lot"] }
 swc_ecma_ast = "12.0.0"
 swc_ecma_parser = "15.0.2"
 parking_lot = "0.12.4"
+# Pin until issue build issue on some targets is resolved
+hstr = "=1.0.0"

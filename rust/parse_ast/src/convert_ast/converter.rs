@@ -795,6 +795,10 @@ impl<'a> AstConverter<'a> {
       }
     }
   }
+
+  pub(crate) fn move_to_specific_index(&mut self, index: u32) {
+    self.index_converter.convert(index, false);
+  }
 }
 
 pub(crate) fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {
