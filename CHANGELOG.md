@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.44.2
+
+_2025-07-04_
+
+### Bug Fixes
+
+- Correctly handle `@__PURE__` annotations after `new` keyword (#5998)
+- Generate correct source mapping for closing braces of block statements (#5999)
+
+### Pull Requests
+
+- [#5998](https://github.com/rollup/rollup/pull/5998): Support `@__PURE__` when nested after new in constructor invocations (@TrickyPi)
+- [#5999](https://github.com/rollup/rollup/pull/5999): Add location info for closing brace of block statement (@TrickyPi)
+- [#6002](https://github.com/rollup/rollup/pull/6002): chore(deps): update dependency vite to v7 (@renovate[bot], @lukastaegert)
+- [#6004](https://github.com/rollup/rollup/pull/6004): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.44.1
 
 _2025-06-26_
