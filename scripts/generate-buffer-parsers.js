@@ -76,7 +76,13 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 	const dataStart = `buffer[${getPosition}]`;
 	if (node.scriptedFields?.[fieldName]) {
 		return {
-			definition: node.scriptedFields?.[fieldName].replace(/\$position/g, dataStart),
+			definition: node.scriptedFields?.[fieldName]
+				.replace(/\$position/g, dataStart)
+				.replace(
+					/\$type([A-Z]\w+)\b/g,
+					(_, typeName) =>
+						`${astNodeNamesWithFieldOrder.findIndex(astNode => astNode.name === typeName)}`
+				),
 			needsScope: true
 		};
 	}

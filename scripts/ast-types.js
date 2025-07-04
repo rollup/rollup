@@ -44,7 +44,7 @@
  *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
  *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
  *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
- *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position
+ *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position. $typeFoo is replaced with the numeric code for Foo
  *    useMacro?: boolean // Generate a Rust macro instead of separate constants
  *  }} NodeDescription */
 
@@ -170,16 +170,15 @@ export const AST_NODES = {
 			body: ` const bodyPosition = $position;
 			  if (bodyPosition) {
 			    const length = buffer[bodyPosition];
-			    const body: (MethodDefinition | PropertyDefinition)[] = (node.body = new Array(length));
+			    const body: (MethodDefinition | PropertyDefinition | StaticBlock)[] = (node.body = new Array(length));
           for (let index = 0; index < length; index++) {
             const nodePosition = buffer[bodyPosition + 1 + index];
-            const isStaticBlock = nodeConstructors[buffer[nodePosition]] === StaticBlock;
-			body[index] = convertNode(
-				node,
-				!isStaticBlock && (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-				nodePosition,
-				buffer
-			);
+            body[index] = convertNode(
+                node,
+                buffer[nodePosition] !== $typeStaticBlock && (buffer[nodePosition + 3] & /* the static flag is always first */ 1) === 0 ? scope.instanceScope : scope,
+                nodePosition,
+                buffer
+            );
           }
         } else {
           node.body = [];

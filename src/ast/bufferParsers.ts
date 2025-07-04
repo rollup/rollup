@@ -398,13 +398,17 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const bodyPosition = buffer[position];
 		if (bodyPosition) {
 			const length = buffer[bodyPosition];
-			const body: (MethodDefinition | PropertyDefinition)[] = (node.body = new Array(length));
+			const body: (MethodDefinition | PropertyDefinition | StaticBlock)[] = (node.body = new Array(
+				length
+			));
 			for (let index = 0; index < length; index++) {
 				const nodePosition = buffer[bodyPosition + 1 + index];
-				const isStaticBlock = nodeConstructors[buffer[nodePosition]] === StaticBlock;
 				body[index] = convertNode(
 					node,
-					!isStaticBlock && (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+					buffer[nodePosition] !== 79 &&
+						(buffer[nodePosition + 3] & /* the static flag is always first */ 1) === 0
+						? scope.instanceScope
+						: scope,
 					nodePosition,
 					buffer
 				);
