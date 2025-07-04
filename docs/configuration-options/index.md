@@ -1356,7 +1356,6 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   ```
 
 - `"defaultOnly"` is similar to `"default"` except for the following:
-
   - Named imports are forbidden. If such an import is encountered, Rollup throws an error even in `es` and `system` formats. That way it is ensures that the `es` version of the code is able to import non-builtin CommonJS modules in Node correctly.
   - While namespace reexports `export * from 'external';` are not prohibited, they are ignored and will cause Rollup to display a warning because they would not have an effect if there are no named exports.
   - When a namespace object is generated, Rollup uses a much simpler helper.

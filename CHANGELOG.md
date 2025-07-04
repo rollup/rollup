@@ -6232,7 +6232,6 @@ _2020-03-06_
 
 - Rollup now requires at least Node 10 to run, or a sufficiently modern browser (#3346)
 - The file structure of Rollup's ESM builds has changed:
-
   - The main ESM entry point is now at `rollup/dist/es/rollup.js` instead of `rollup/dist/rollup.es.js`
   - The ESM browser build is at `rollup/dist/es/rollup.browser.js` instead of `rollup/dist/rollup.browser.es.js`
 

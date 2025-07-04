@@ -14,3 +14,5 @@ swc_common = { version = "12.0.1", features = ["parking_lot"] }
 swc_ecma_ast = "12.0.0"
 swc_ecma_parser = "15.0.2"
 parking_lot = "0.12.4"
+# Pin until issue build issue on some targets is resolved
+hstr = "=1.0.0"
