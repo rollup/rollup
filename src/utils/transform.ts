@@ -175,6 +175,7 @@ export default async function transform(
 		customTransformCache,
 		originalCode,
 		originalSourcemap,
+		safeVariableNames: null,
 		sourcemapChain,
 		transformDependencies
 	};
