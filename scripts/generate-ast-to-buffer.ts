@@ -8,10 +8,6 @@ import { generateNotEditFilesComment, lintTsFile } from './helpers.js';
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const astToBufferFile = new URL('../src/utils/astToBuffer.ts', import.meta.url);
-const nonCanonicalNodesToBufferFile = new URL(
-	'../src/utils/nonCanonicalNodesToBuffer.ts',
-	import.meta.url
-);
 
 interface AstTypeDescription {
 	index: number;
@@ -39,43 +35,78 @@ const canonicalSerializers = Object.entries(astNodesByAstType)
 	.map(([astType, nodes]) => {
 		if (nodes.length !== 1) {
 			nonCanonicalAstTypes.push({ astType: astType as AstTypeName, nodes });
-			return `${astType}: serialize${astType}`;
+			return `${astType}: serialize${astType}Node`;
 		}
-		const { index } = nodes[0];
-		return `${astType}: (node, buffer, position) => {
-	  buffer[position] = ${index};
-	  buffer[position + 1] = node.start;
-	  buffer[position + 2] = node.end;
-	  return [buffer, position + 3];
-	}`;
+		return `${astType}: (node, buffer) => ${getNodeSerializerBody(nodes[0])}`;
 	})
 	.join(',\n');
 
 const nonCanonicalSerializers = nonCanonicalAstTypes
 	.flatMap(({ nodes }) =>
 		nodes.map(node => {
-			return `export const serialize${node.nodeName}: NodeSerializer<ast.${node.nodeName}> = (node, buffer, position) => {
-		  buffer[position] = ${node.index};
-		  buffer[position + 1] = node.start;
-		  buffer[position + 2] = node.end;
-		  return [buffer, position + 3];
-		}`;
+			return `const serialize${node.nodeName}: NodeSerializer<ast.${node.nodeName}> = (node, buffer) => ${getNodeSerializerBody(node)}`;
 		})
 	)
 	.join('\n\n');
 
+function getNodeSerializerBody(node: AstTypeDescription): string {
+	const reservedSize = 3; // 1 for type, 2 for start and end
+	return `{
+		const nodePosition = buffer.position;
+		  buffer.position = nodePosition + ${reservedSize};
+		  buffer[nodePosition] = ${node.index};
+		  buffer[nodePosition + 1] = node.start;
+		  buffer[nodePosition + 2] = node.end;
+		  return buffer;
+		}`;
+}
+
+// language=TypeScript
 const astToBuffer = `${notEditFilesComment}
+import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
-import type { NodeSerializer } from './nonCanonicalNodesToBuffer';
-import { ${nonCanonicalAstTypes.map(({ astType }) => `serialize${astType}`)} } from './polymorphicNodesToBuffer';
+import type { AstBufferForWriting } from './getAstBuffer';
+import { createAstBuffer } from './getAstBuffer';
+
+type NodeSerializer<T extends ast.AstNode> = (
+	node: T,
+	buffer: AstBufferForWriting
+) => AstBufferForWriting;
 
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
 export function serializeProgram(program: ast.Program): Uint32Array {
-  const initialBuffer = new Uint32Array(INITIAL_BUFFER_SIZE);
-  const [buffer, position] = nodeSerializers[program.type](program, initialBuffer, 0);
-  return buffer.slice(0, position);
+	const initialBuffer = createAstBuffer(INITIAL_BUFFER_SIZE);
+	const buffer = nodeSerializers[program.type](program, initialBuffer);
+	return buffer.slice(0, buffer.position);
 }
+
+const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
+> = (node, buffer) => {
+	return 'directive' in node ? serializeDirective(node, buffer) : serializeExpressionStatement(node, buffer);
+};
+
+const serializeLiteralNode: NodeSerializer<ast.Literal> = (node, buffer) => {
+	switch (typeof node.value) {
+		case 'object':
+			if (node.value === null) {
+				return serializeLiteralNull(node, buffer);
+			}
+			return serializeLiteralRegExp(node as ast.LiteralRegExp, buffer);
+		case 'boolean':
+			return serializeLiteralBoolean(node as ast.LiteralBoolean, buffer);
+		case 'number':
+			return serializeLiteralNumber(node as ast.LiteralNumber, buffer);
+		case 'string':
+			return serializeLiteralString(node as ast.LiteralString, buffer);
+		case 'bigint':
+			return serializeLiteralBigInt(node as ast.LiteralBigInt, buffer);
+		default: {
+			/* istanbul ignore next */
+			throw new Error(\`Unexpected node value type for Literal: $\{typeof node.value}\`);
+		}
+	}
+};
 
 type NodeSerializers = {
   [key in ast.AstNode['type']]: NodeSerializer<Extract<ast.AstNode, { type: key }>>;
@@ -84,23 +115,37 @@ type NodeSerializers = {
 const nodeSerializers: NodeSerializers = {
   ${canonicalSerializers}
 };
+
+${nonCanonicalSerializers}
+
+function serializeNodeList(
+	nodes: readonly AstNode[],
+	buffer: AstBufferForWriting,
+	referencePosition: number
+): AstBufferForWriting {
+	const { length } = nodes;
+	if (length === 0) {
+		buffer[referencePosition] = 0;
+		return buffer;
+	}
+	let insertPosition = buffer.position;
+	buffer[referencePosition] = insertPosition;
+	buffer[insertPosition] = length;
+	insertPosition++;
+	buffer.position = insertPosition + length;
+	for (let index = 0; index < length; index++) {
+		const node = nodes[index];
+		if (node === null) {
+			buffer[insertPosition + index] = 0;
+		} else {
+			buffer[insertPosition + index] = buffer.position;
+			buffer = nodeSerializers[node.type](node as any, buffer);
+		}
+	}
+	return buffer;
+}
 `;
 
 await writeFile(astToBufferFile, astToBuffer);
 
-const nonCanonicalNodesToBuffer = `${notEditFilesComment}
-import type { ast } from '../rollup/types';
-
-export type NodeSerializer<T extends ast.AstNode> = (
-  node: T,
-  buffer: Uint32Array,
-  position: number
-) => [buffer: Uint32Array, position: number];
-
-${nonCanonicalSerializers}
-`;
-
-await writeFile(nonCanonicalNodesToBufferFile, nonCanonicalNodesToBuffer);
-
 await lintTsFile(astToBufferFile);
-await lintTsFile(nonCanonicalNodesToBufferFile);
