@@ -972,8 +972,8 @@ export function convertNode(position: number, buffer: AstBuffer): any {
 	return converter(position + 1, buffer);
 }
 
-function convertNodeList(position: number, buffer: AstBuffer): any[] {
-	if (position === 0) return EMPTY_ARRAY as never[];
+function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
+	if (position === 0) return EMPTY_ARRAY;
 	const length = buffer[position++];
 	const list: any[] = new Array(length);
 	for (let index = 0; index < length; index++) {
