@@ -5,8 +5,11 @@ import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBuffer } from './getAstBuffer';
-import type { NodeSerializer } from './nonCanonicalNodesToBuffer';
-import { serializeExpressionStatement, serializeLiteral } from './polymorphicNodesToBuffer';
+
+type NodeSerializer<T extends ast.AstNode> = (
+	node: T,
+	buffer: AstBufferForWriting
+) => AstBufferForWriting;
 
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
@@ -16,52 +19,97 @@ export function serializeProgram(program: ast.Program): Uint32Array {
 	return buffer.slice(0, buffer.position);
 }
 
+const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive> = (
+	node,
+	buffer
+) => {
+	return 'directive' in node
+		? serializeDirective(node, buffer)
+		: serializeExpressionStatement(node, buffer);
+};
+
+const serializeLiteralNode: NodeSerializer<ast.Literal> = (node, buffer) => {
+	switch (typeof node.value) {
+		case 'object':
+			if (node.value === null) {
+				return serializeLiteralNull(node, buffer);
+			}
+			return serializeLiteralRegExp(node as ast.LiteralRegExp, buffer);
+		case 'boolean':
+			return serializeLiteralBoolean(node as ast.LiteralBoolean, buffer);
+		case 'number':
+			return serializeLiteralNumber(node as ast.LiteralNumber, buffer);
+		case 'string':
+			return serializeLiteralString(node as ast.LiteralString, buffer);
+		case 'bigint':
+			return serializeLiteralBigInt(node as ast.LiteralBigInt, buffer);
+		default: {
+			/* istanbul ignore next */
+			throw new Error(`Unexpected node value type for Literal: ${typeof node.value}`);
+		}
+	}
+};
+
 type NodeSerializers = {
 	[key in ast.AstNode['type']]: NodeSerializer<Extract<ast.AstNode, { type: key }>>;
 };
 
 const nodeSerializers: NodeSerializers = {
-	ArrayExpression: (node, buffer, position) => {
-		buffer[position] = 2;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	ArrayExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 2;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
-	ArrayPattern: (node, buffer, position) => {
-		buffer[position] = 3;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	ArrayPattern: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 3;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
-	ArrowFunctionExpression: (node, buffer, position) => {
-		buffer[position] = 4;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	ArrowFunctionExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 4;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
-	AssignmentExpression: (node, buffer, position) => {
-		buffer[position] = 5;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	AssignmentExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 5;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
-	AssignmentPattern: (node, buffer, position) => {
-		buffer[position] = 6;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	AssignmentPattern: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 6;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
-	AwaitExpression: (node, buffer, position) => {
-		buffer[position] = 7;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	AwaitExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 7;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
-	BinaryExpression: (node, buffer, position) => {
-		buffer[position] = 8;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	BinaryExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 8;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	},
 	BlockStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
@@ -72,482 +120,713 @@ const nodeSerializers: NodeSerializers = {
 		buffer = serializeNodeList(node.body, buffer, nodePosition + 3);
 		return buffer;
 	},
-	BreakStatement: (node, buffer, position) => {
-		buffer[position] = 10;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	CallExpression: (node, buffer, position) => {
-		buffer[position] = 11;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	CatchClause: (node, buffer, position) => {
-		buffer[position] = 12;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ChainExpression: (node, buffer, position) => {
-		buffer[position] = 13;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ClassBody: (node, buffer, position) => {
-		buffer[position] = 14;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ClassDeclaration: (node, buffer, position) => {
-		buffer[position] = 15;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ClassExpression: (node, buffer, position) => {
-		buffer[position] = 16;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ConditionalExpression: (node, buffer, position) => {
-		buffer[position] = 17;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ContinueStatement: (node, buffer, position) => {
-		buffer[position] = 18;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	DebuggerStatement: (node, buffer, position) => {
-		buffer[position] = 19;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	Decorator: (node, buffer, position) => {
-		buffer[position] = 20;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	DoWhileStatement: (node, buffer, position) => {
-		buffer[position] = 22;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	EmptyStatement: (node, buffer, position) => {
-		buffer[position] = 23;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ExportAllDeclaration: (node, buffer, position) => {
-		buffer[position] = 24;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ExportDefaultDeclaration: (node, buffer, position) => {
-		buffer[position] = 25;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ExportNamedDeclaration: (node, buffer, position) => {
-		buffer[position] = 26;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ExportSpecifier: (node, buffer, position) => {
-		buffer[position] = 27;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ExpressionStatement: serializeExpressionStatement,
-	ForInStatement: (node, buffer, position) => {
-		buffer[position] = 29;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ForOfStatement: (node, buffer, position) => {
-		buffer[position] = 30;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ForStatement: (node, buffer, position) => {
-		buffer[position] = 31;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	FunctionDeclaration: (node, buffer, position) => {
-		buffer[position] = 32;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	FunctionExpression: (node, buffer, position) => {
-		buffer[position] = 33;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	Identifier: (node, buffer, position) => {
-		buffer[position] = 34;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	IfStatement: (node, buffer, position) => {
-		buffer[position] = 35;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ImportAttribute: (node, buffer, position) => {
-		buffer[position] = 36;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ImportDeclaration: (node, buffer, position) => {
-		buffer[position] = 37;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ImportDefaultSpecifier: (node, buffer, position) => {
-		buffer[position] = 38;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ImportExpression: (node, buffer, position) => {
-		buffer[position] = 39;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ImportNamespaceSpecifier: (node, buffer, position) => {
-		buffer[position] = 40;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ImportSpecifier: (node, buffer, position) => {
-		buffer[position] = 41;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXAttribute: (node, buffer, position) => {
-		buffer[position] = 42;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXClosingElement: (node, buffer, position) => {
-		buffer[position] = 43;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXClosingFragment: (node, buffer, position) => {
-		buffer[position] = 44;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXElement: (node, buffer, position) => {
-		buffer[position] = 45;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXEmptyExpression: (node, buffer, position) => {
-		buffer[position] = 46;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXExpressionContainer: (node, buffer, position) => {
-		buffer[position] = 47;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXFragment: (node, buffer, position) => {
-		buffer[position] = 48;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXIdentifier: (node, buffer, position) => {
-		buffer[position] = 49;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXMemberExpression: (node, buffer, position) => {
-		buffer[position] = 50;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXNamespacedName: (node, buffer, position) => {
-		buffer[position] = 51;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXOpeningElement: (node, buffer, position) => {
-		buffer[position] = 52;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXOpeningFragment: (node, buffer, position) => {
-		buffer[position] = 53;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXSpreadAttribute: (node, buffer, position) => {
-		buffer[position] = 54;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXSpreadChild: (node, buffer, position) => {
-		buffer[position] = 55;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	JSXText: (node, buffer, position) => {
-		buffer[position] = 56;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	LabeledStatement: (node, buffer, position) => {
-		buffer[position] = 57;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	Literal: serializeLiteral,
-	LogicalExpression: (node, buffer, position) => {
-		buffer[position] = 64;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	MemberExpression: (node, buffer, position) => {
-		buffer[position] = 65;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	MetaProperty: (node, buffer, position) => {
-		buffer[position] = 66;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	MethodDefinition: (node, buffer, position) => {
-		buffer[position] = 67;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	NewExpression: (node, buffer, position) => {
-		buffer[position] = 68;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ObjectExpression: (node, buffer, position) => {
-		buffer[position] = 69;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ObjectPattern: (node, buffer, position) => {
-		buffer[position] = 70;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	PanicError: (node, buffer, position) => {
-		buffer[position] = 0;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ParseError: (node, buffer, position) => {
-		buffer[position] = 1;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	PrivateIdentifier: (node, buffer, position) => {
-		buffer[position] = 71;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	Program: (node, buffer, position) => {
-		buffer[position] = 72;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	Property: (node, buffer, position) => {
-		buffer[position] = 73;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	PropertyDefinition: (node, buffer, position) => {
-		buffer[position] = 74;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	RestElement: (node, buffer, position) => {
-		buffer[position] = 75;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ReturnStatement: (node, buffer, position) => {
-		buffer[position] = 76;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	SequenceExpression: (node, buffer, position) => {
-		buffer[position] = 77;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	SpreadElement: (node, buffer, position) => {
-		buffer[position] = 78;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	StaticBlock: (node, buffer, position) => {
-		buffer[position] = 79;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	Super: (node, buffer, position) => {
-		buffer[position] = 80;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	SwitchCase: (node, buffer, position) => {
-		buffer[position] = 81;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	SwitchStatement: (node, buffer, position) => {
-		buffer[position] = 82;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	TaggedTemplateExpression: (node, buffer, position) => {
-		buffer[position] = 83;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	TemplateElement: (node, buffer, position) => {
-		buffer[position] = 84;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	TemplateLiteral: (node, buffer, position) => {
-		buffer[position] = 85;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ThisExpression: (node, buffer, position) => {
-		buffer[position] = 86;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	ThrowStatement: (node, buffer, position) => {
-		buffer[position] = 87;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	TryStatement: (node, buffer, position) => {
-		buffer[position] = 88;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	UnaryExpression: (node, buffer, position) => {
-		buffer[position] = 89;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	UpdateExpression: (node, buffer, position) => {
-		buffer[position] = 90;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	VariableDeclaration: (node, buffer, position) => {
-		buffer[position] = 91;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	VariableDeclarator: (node, buffer, position) => {
-		buffer[position] = 92;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	WhileStatement: (node, buffer, position) => {
-		buffer[position] = 93;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
-	},
-	YieldExpression: (node, buffer, position) => {
-		buffer[position] = 94;
-		buffer[position + 1] = node.start;
-		buffer[position + 2] = node.end;
-		return [buffer, position + 3];
+	BreakStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 10;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	CallExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 11;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	CatchClause: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 12;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ChainExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 13;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ClassBody: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 14;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ClassDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 15;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ClassExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 16;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ConditionalExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 17;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ContinueStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 18;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	DebuggerStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 19;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	Decorator: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 20;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	DoWhileStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 22;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	EmptyStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 23;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ExportAllDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 24;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ExportDefaultDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 25;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ExportNamedDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 26;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ExportSpecifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 27;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ExpressionStatement: serializeExpressionStatementNode,
+	ForInStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 29;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ForOfStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 30;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ForStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 31;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	FunctionDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 32;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	FunctionExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 33;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	Identifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 34;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	IfStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 35;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ImportAttribute: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 36;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ImportDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 37;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ImportDefaultSpecifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 38;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ImportExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 39;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ImportNamespaceSpecifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 40;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ImportSpecifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 41;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXAttribute: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 42;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXClosingElement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 43;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXClosingFragment: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 44;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXElement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 45;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXEmptyExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 46;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXExpressionContainer: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 47;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXFragment: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 48;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXIdentifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 49;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXMemberExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 50;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXNamespacedName: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 51;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXOpeningElement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 52;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXOpeningFragment: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 53;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXSpreadAttribute: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 54;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXSpreadChild: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 55;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	JSXText: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 56;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	LabeledStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 57;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	Literal: serializeLiteralNode,
+	LogicalExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 64;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	MemberExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 65;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	MetaProperty: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 66;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	MethodDefinition: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 67;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	NewExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 68;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ObjectExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 69;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ObjectPattern: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 70;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	PanicError: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 0;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ParseError: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 1;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	PrivateIdentifier: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 71;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	Program: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 72;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	Property: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 73;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	PropertyDefinition: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 74;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	RestElement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 75;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ReturnStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 76;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	SequenceExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 77;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	SpreadElement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 78;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	StaticBlock: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 79;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	Super: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 80;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	SwitchCase: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 81;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	SwitchStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 82;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	TaggedTemplateExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 83;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	TemplateElement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 84;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	TemplateLiteral: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 85;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ThisExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 86;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	ThrowStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 87;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	TryStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 88;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	UnaryExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 89;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	UpdateExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 90;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	VariableDeclaration: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 91;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	VariableDeclarator: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 92;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	WhileStatement: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 93;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
+	},
+	YieldExpression: (node, buffer) => {
+		const nodePosition = buffer.position;
+		buffer.position = nodePosition + 3;
+		buffer[nodePosition] = 94;
+		buffer[nodePosition + 1] = node.start;
+		buffer[nodePosition + 2] = node.end;
+		return buffer;
 	}
+};
+
+const serializeDirective: NodeSerializer<ast.Directive> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 21;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeExpressionStatement: NodeSerializer<ast.ExpressionStatement> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 28;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeLiteralBigInt: NodeSerializer<ast.LiteralBigInt> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 58;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeLiteralBoolean: NodeSerializer<ast.LiteralBoolean> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 59;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeLiteralNull: NodeSerializer<ast.LiteralNull> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 60;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeLiteralNumber: NodeSerializer<ast.LiteralNumber> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 61;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeLiteralRegExp: NodeSerializer<ast.LiteralRegExp> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 3;
+	buffer[nodePosition] = 62;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	return buffer;
+};
+
+const serializeLiteralString: NodeSerializer<ast.LiteralString> = (node, buffer) => {
+	const nodePosition = buffer.position;
+	buffer.position = nodePosition + 4;
+	buffer[nodePosition] = 63;
+	buffer[nodePosition + 1] = node.start;
+	buffer[nodePosition + 2] = node.end;
+	buffer.addStringToBuffer(node.value, nodePosition + 3);
+	return buffer;
 };
 
 function serializeNodeList(
