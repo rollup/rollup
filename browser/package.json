@@ -32,8 +32,8 @@
   "exports": {
     ".": {
       "types": "./dist/rollup.browser.d.ts",
-      "require": "./dist/rollup.browser.js",
-      "import": "./dist/es/rollup.browser.js"
+      "import": "./dist/es/rollup.browser.js",
+      "require": "./dist/rollup.browser.js"
     },
     "./dist/*": "./dist/*"
   }

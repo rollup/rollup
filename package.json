@@ -227,8 +227,8 @@
   "exports": {
     ".": {
       "types": "./dist/rollup.d.ts",
-      "require": "./dist/rollup.js",
-      "import": "./dist/es/rollup.js"
+      "import": "./dist/es/rollup.js",
+      "require": "./dist/rollup.js"
     },
     "./loadConfigFile": {
       "types": "./dist/loadConfigFile.d.ts",
@@ -237,13 +237,13 @@
     },
     "./getLogFilter": {
       "types": "./dist/getLogFilter.d.ts",
-      "require": "./dist/getLogFilter.js",
-      "import": "./dist/es/getLogFilter.js"
+      "import": "./dist/es/getLogFilter.js",
+      "require": "./dist/getLogFilter.js"
     },
     "./parseAst": {
       "types": "./dist/parseAst.d.ts",
-      "require": "./dist/parseAst.js",
-      "import": "./dist/es/parseAst.js"
+      "import": "./dist/es/parseAst.js",
+      "require": "./dist/parseAst.js"
     },
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
