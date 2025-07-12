@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.45.0
+
+_2025-07-12_
+
+### Features
+
+- Improve tree-shaking when both branches of a conditional expression return the same boolean value (#6000)
+- In environments that support both CJS and ESM, prefer the ESM build of Rollup (#6005)
+
+### Bug Fixes
+
+- Ensure static blocks do not prevent tree-shaking if they access `this` (#6001)
+
+### Pull Requests
+
+- [#6000](https://github.com/rollup/rollup/pull/6000): feat: improve get literal value for conditional expression (@ahabhgk, @lukastaegert)
+- [#6001](https://github.com/rollup/rollup/pull/6001): Correct the parent scope for static blocks (@TrickyPi, @lukastaegert)
+- [#6005](https://github.com/rollup/rollup/pull/6005): fix: export field order prefer esm (@DylanPiercey)
+
 ## 4.44.2
 
 _2025-07-04_
