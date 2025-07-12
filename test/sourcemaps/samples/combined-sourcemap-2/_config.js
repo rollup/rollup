@@ -11,7 +11,7 @@ export function App() {
 `;
 
 module.exports = defineTest({
-	description: 'get correct combined sourcemap in transforming',
+	description: 'get correct combined sourcemap by calling getCombinedSourcemap',
 	formats: ['es'],
 	options: {
 		external: ['react/jsx-runtime'],

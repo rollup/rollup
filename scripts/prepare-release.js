@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
-import { cyan } from './colors.js';
+import { bold, cyan } from './colors.js';
 import { readJson, runAndGetStdout, runWithEcho } from './helpers.js';
 import {
 	BROWSER_PACKAGE,
@@ -47,16 +47,26 @@ const [mainPackage, mainLockFile, browserPackage, repo, changelog] = await Promi
 	readFile(CHANGELOG, 'utf8')
 ]);
 const isMainBranch = currentBranch === MAIN_BRANCH;
-const [newVersion, includedPRs] = await Promise.all([
-	getNewVersion(mainPackage, isMainBranch),
-	getIncludedPRs(
-		`v${getFirstChangelogEntry(changelog).currentVersion}`,
-		'HEAD',
-		repo,
-		currentBranch,
-		!isMainBranch
-	)
-]);
+const includedPRs = await getIncludedPRs(
+	`v${getFirstChangelogEntry(changelog).currentVersion}`,
+	'HEAD',
+	repo,
+	currentBranch,
+	!isMainBranch
+);
+
+console.log(bold(`\nPreparing release for "${currentBranch}". Included PRs:`));
+console.log(
+	includedPRs
+		.map(
+			({ text, pr, authors }) =>
+				`https://github.com/rollup/rollup/pull/${pr}: ${text} (${authors.map(author => `@${author}`).join(', ')})`
+		)
+		.join('\n')
+);
+console.log();
+
+const newVersion = await getNewVersion(mainPackage, isMainBranch);
 
 const gitTag = getGitTag(newVersion);
 try {
