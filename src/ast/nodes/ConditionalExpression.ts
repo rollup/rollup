@@ -16,7 +16,7 @@ import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBool
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { UnknownValue } from './shared/Expression';
+import { UnknownFalsyValue, UnknownTruthyValue, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
@@ -78,7 +78,18 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) return UnknownValue;
+		if (!usedBranch) {
+			const consequentValue = this.consequent.getLiteralValueAtPath(path, recursionTracker, origin);
+			const castedConsequentValue = tryCastLiteralValueToBoolean(consequentValue);
+			if (castedConsequentValue === UnknownValue) return UnknownValue;
+			const alternateValue = this.alternate.getLiteralValueAtPath(path, recursionTracker, origin);
+			const castedAlternateValue = tryCastLiteralValueToBoolean(alternateValue);
+			if (castedConsequentValue !== castedAlternateValue) return UnknownValue;
+			this.expressionsToBeDeoptimized.push(origin);
+			if (consequentValue !== alternateValue)
+				return castedConsequentValue ? UnknownTruthyValue : UnknownFalsyValue;
+			return consequentValue;
+		}
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
