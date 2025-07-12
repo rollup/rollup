@@ -84,7 +84,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			if (castedConsequentValue === UnknownValue) return UnknownValue;
 			const alternateValue = this.alternate.getLiteralValueAtPath(path, recursionTracker, origin);
 			const castedAlternateValue = tryCastLiteralValueToBoolean(alternateValue);
-			if (castedAlternateValue === UnknownValue) return UnknownValue;
 			if (castedConsequentValue !== castedAlternateValue) return UnknownValue;
 			this.expressionsToBeDeoptimized.push(origin);
 			if (consequentValue !== alternateValue)
