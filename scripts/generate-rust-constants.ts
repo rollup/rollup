@@ -40,15 +40,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 					fieldName
 				)}_OFFSET: usize = ${reservedBytes};`
 			);
-			switch (fieldType) {
-				case 'Float': {
-					reservedBytes += 8;
-					break;
-				}
-				default: {
-					reservedBytes += BYTES_PER_U32;
-				}
-			}
+			reservedBytes += fieldType === 'Float' ? 8 : BYTES_PER_U32;
 		}
 		lines.unshift(
 			`pub const ${toScreamingSnakeCase(name)}_RESERVED_BYTES: usize = ${reservedBytes};`
