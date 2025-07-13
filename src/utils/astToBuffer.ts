@@ -57,7 +57,7 @@ type NodeSerializers = {
 const nodeSerializers: NodeSerializers = {
 	ArrayExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 2;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -65,7 +65,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ArrayPattern: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 3;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -73,7 +73,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ArrowFunctionExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 4;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -81,7 +81,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	AssignmentExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 5;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -89,7 +89,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	AssignmentPattern: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 6;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -97,7 +97,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	AwaitExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 7;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -105,7 +105,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	BinaryExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 8;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -122,7 +122,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	BreakStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 10;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -130,7 +130,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	CallExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 11;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -138,7 +138,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	CatchClause: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 12;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -146,7 +146,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ChainExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 13;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -154,7 +154,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ClassBody: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 14;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -162,7 +162,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ClassDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 15;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -170,7 +170,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ClassExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 16;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -178,7 +178,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ConditionalExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 17;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -186,7 +186,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ContinueStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 18;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -202,7 +202,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	Decorator: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 20;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -210,7 +210,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	DoWhileStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 22;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -226,7 +226,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ExportAllDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 24;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -234,7 +234,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ExportDefaultDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 25;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -242,7 +242,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ExportNamedDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 26;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -250,7 +250,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ExportSpecifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 27;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -259,7 +259,7 @@ const nodeSerializers: NodeSerializers = {
 	ExpressionStatement: serializeExpressionStatementNode,
 	ForInStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 29;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -267,7 +267,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ForOfStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 30;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -275,7 +275,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ForStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 31;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -283,7 +283,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	FunctionDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 8;
 		buffer[nodePosition] = 32;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -291,7 +291,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	FunctionExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 8;
 		buffer[nodePosition] = 33;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -299,7 +299,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	Identifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 34;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -307,7 +307,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	IfStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 35;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -315,7 +315,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ImportAttribute: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 36;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -323,7 +323,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ImportDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 37;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -331,7 +331,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ImportDefaultSpecifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 38;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -339,7 +339,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ImportExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 39;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -347,7 +347,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ImportNamespaceSpecifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 40;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -355,7 +355,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ImportSpecifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 41;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -363,7 +363,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXAttribute: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 42;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -371,7 +371,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXClosingElement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 43;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -387,7 +387,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXElement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 45;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -403,7 +403,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXExpressionContainer: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 47;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -411,7 +411,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXFragment: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 48;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -419,7 +419,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXIdentifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 49;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -427,7 +427,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXMemberExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 50;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -435,7 +435,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXNamespacedName: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 51;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -443,7 +443,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXOpeningElement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 52;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -459,7 +459,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXSpreadAttribute: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 54;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -467,7 +467,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXSpreadChild: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 55;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -475,7 +475,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	JSXText: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 56;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -483,7 +483,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	LabeledStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 57;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -492,7 +492,7 @@ const nodeSerializers: NodeSerializers = {
 	Literal: serializeLiteralNode,
 	LogicalExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 64;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -500,7 +500,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	MemberExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 65;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -508,7 +508,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	MetaProperty: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 66;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -516,7 +516,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	MethodDefinition: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 8;
 		buffer[nodePosition] = 67;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -524,7 +524,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	NewExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 68;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -532,7 +532,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ObjectExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 69;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -540,7 +540,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ObjectPattern: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 70;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -548,7 +548,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	PanicError: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 0;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -556,7 +556,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ParseError: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 1;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -564,7 +564,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	PrivateIdentifier: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 71;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -572,7 +572,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	Program: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 72;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -580,7 +580,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	Property: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 73;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -588,7 +588,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	PropertyDefinition: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 7;
 		buffer[nodePosition] = 74;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -596,7 +596,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	RestElement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 75;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -604,7 +604,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ReturnStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 76;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -612,7 +612,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	SequenceExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 77;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -620,7 +620,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	SpreadElement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 78;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -628,7 +628,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	StaticBlock: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 79;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -644,7 +644,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	SwitchCase: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 81;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -652,7 +652,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	SwitchStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 82;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -660,7 +660,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	TaggedTemplateExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 83;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -668,7 +668,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	TemplateElement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 84;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -676,7 +676,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	TemplateLiteral: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 85;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -692,7 +692,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ThrowStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 4;
 		buffer[nodePosition] = 87;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -700,7 +700,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	TryStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 88;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -708,7 +708,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	UnaryExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 89;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -716,7 +716,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	UpdateExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 6;
 		buffer[nodePosition] = 90;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -724,7 +724,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	VariableDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 91;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -732,7 +732,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	VariableDeclarator: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 92;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -740,7 +740,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	WhileStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 93;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -748,7 +748,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	YieldExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer.position = nodePosition + 3;
+		buffer.position = nodePosition + 5;
 		buffer[nodePosition] = 94;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -758,7 +758,7 @@ const nodeSerializers: NodeSerializers = {
 
 const serializeDirective: NodeSerializer<ast.Directive> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 3;
+	buffer.position = nodePosition + 5;
 	buffer[nodePosition] = 21;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
@@ -767,7 +767,7 @@ const serializeDirective: NodeSerializer<ast.Directive> = (node, buffer) => {
 
 const serializeExpressionStatement: NodeSerializer<ast.ExpressionStatement> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 3;
+	buffer.position = nodePosition + 4;
 	buffer[nodePosition] = 28;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
@@ -776,7 +776,7 @@ const serializeExpressionStatement: NodeSerializer<ast.ExpressionStatement> = (n
 
 const serializeLiteralBigInt: NodeSerializer<ast.LiteralBigInt> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 3;
+	buffer.position = nodePosition + 5;
 	buffer[nodePosition] = 58;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
@@ -785,7 +785,7 @@ const serializeLiteralBigInt: NodeSerializer<ast.LiteralBigInt> = (node, buffer)
 
 const serializeLiteralBoolean: NodeSerializer<ast.LiteralBoolean> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 3;
+	buffer.position = nodePosition + 4;
 	buffer[nodePosition] = 59;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
@@ -803,7 +803,7 @@ const serializeLiteralNull: NodeSerializer<ast.LiteralNull> = (node, buffer) => 
 
 const serializeLiteralNumber: NodeSerializer<ast.LiteralNumber> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 3;
+	buffer.position = nodePosition + 6;
 	buffer[nodePosition] = 61;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
@@ -812,7 +812,7 @@ const serializeLiteralNumber: NodeSerializer<ast.LiteralNumber> = (node, buffer)
 
 const serializeLiteralRegExp: NodeSerializer<ast.LiteralRegExp> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 3;
+	buffer.position = nodePosition + 5;
 	buffer[nodePosition] = 62;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
@@ -821,7 +821,7 @@ const serializeLiteralRegExp: NodeSerializer<ast.LiteralRegExp> = (node, buffer)
 
 const serializeLiteralString: NodeSerializer<ast.LiteralString> = (node, buffer) => {
 	const nodePosition = buffer.position;
-	buffer.position = nodePosition + 4;
+	buffer.position = nodePosition + 5;
 	buffer[nodePosition] = 63;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;

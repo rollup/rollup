@@ -1,7 +1,7 @@
 #!/usr/bin/env vite-node
 
 import { writeFile } from 'node:fs/promises';
-import type { AstNodeName, AstTypeName, NodeDescription } from './ast-types.js';
+import type { AstNodeName, AstTypeName, FieldDescription, NodeDescription } from './ast-types.js';
 import { astNodeNamesWithFieldOrder } from './ast-types.js';
 import { generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
@@ -10,17 +10,21 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 const astToBufferFile = new URL('../src/utils/astToBuffer.ts', import.meta.url);
 
 interface AstTypeDescription {
+	fields: FieldDescription[];
+	flags?: string[];
 	index: number;
-	nodeName: AstNodeName;
 	node: NodeDescription;
+	nodeName: AstNodeName;
 	typeName: AstTypeName;
 }
 
 const astNodesByAstType: Partial<Record<AstTypeName, AstTypeDescription[]>> = {};
 
-astNodeNamesWithFieldOrder.forEach(({ name, node }, index) => {
+astNodeNamesWithFieldOrder.forEach(({ name, node, fields }, index) => {
 	const astType = node.astType ?? name;
 	(astNodesByAstType[astType] ||= []).push({
+		fields,
+		flags: node.flags,
 		index,
 		node,
 		nodeName: name,
@@ -49,12 +53,29 @@ const nonCanonicalSerializers = nonCanonicalAstTypes
 	)
 	.join('\n\n');
 
-function getNodeSerializerBody(node: AstTypeDescription): string {
-	const reservedSize = 3; // 1 for type, 2 for start and end
+function getNodeSerializerBody({ index, fields, flags }: AstTypeDescription): string {
+	const fieldSerializers: string[] = [];
+	let nextPosition = 3; // 1 for type, 2 for start and end
+	if (flags) {
+		// TODO
+		nextPosition++;
+	}
+	for (const { name, type } of fields) {
+		switch (type) {
+			case 'NodeList': {
+				fieldSerializers.push(
+					`buffer = serializeNodeList(node.${name}, buffer, nodePosition + ${nextPosition});`
+				);
+				nextPosition += 1; // 1 for the length of the list
+				break;
+			}
+		}
+		nextPosition += type === 'Float' ? 2 : 1;
+	}
 	return `{
 		const nodePosition = buffer.position;
-		  buffer.position = nodePosition + ${reservedSize};
-		  buffer[nodePosition] = ${node.index};
+		  buffer.position = nodePosition + ${nextPosition};
+		  buffer[nodePosition] = ${index};
 		  buffer[nodePosition + 1] = node.start;
 		  buffer[nodePosition + 2] = node.end;
 		  return buffer;
