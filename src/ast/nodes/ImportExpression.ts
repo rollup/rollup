@@ -56,6 +56,7 @@ function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 export default class ImportExpression extends NodeBase {
 	declare options: ExpressionNode | null;
 	inlineNamespace: NamespaceVariable | null = null;
+	declare phase: 'source' | 'defer' | 'instance';
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;

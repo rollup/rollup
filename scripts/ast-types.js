@@ -354,23 +354,33 @@ export const AST_NODES = {
 		useMacro: false
 	},
 	ImportDeclaration: {
-		estreeType: 'estree.ImportDeclaration & { attributes: ImportAttributeNode[] }',
+		estreeType:
+			'estree.ImportDeclaration & { attributes: ImportAttributeNode[]; phase: "source" | "defer" | "instance" }',
 		fields: [
 			['specifiers', 'NodeList'],
 			['source', 'Node'],
-			['attributes', 'NodeList']
+			['attributes', 'NodeList'],
+			['phase', 'FixedString']
 		],
+		fieldTypes: {
+			phase: '"source" | "defer" | "instance"'
+		},
 		useMacro: false
 	},
 	ImportDefaultSpecifier: {
 		fields: [['local', 'Node']]
 	},
 	ImportExpression: {
-		estreeType: 'estree.ImportExpression & { options: estree.Expression | null }',
+		estreeType:
+			'estree.ImportExpression & { options: estree.Expression | null; phase: "source" | "defer" | "instance" }',
 		fields: [
 			['source', 'Node'],
-			['options', 'OptionalNode']
+			['options', 'OptionalNode'],
+			['phase', 'FixedString']
 		],
+		fieldTypes: {
+			phase: '"source" | "defer" | "instance"'
+		},
 		scriptedFields: {
 			source: `node.source = convertNode(node, scope, $position, buffer);
 			  node.sourceAstNode = convertJsonNode($position, buffer);`

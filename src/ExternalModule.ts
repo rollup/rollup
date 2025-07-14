@@ -1,5 +1,10 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
+import type {
+	CustomPluginOptions,
+	ModuleInfo,
+	NormalizedInputOptions,
+	TargetPhases
+} from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
 import { cacheObjectGetters } from './utils/getter';
 import { makeLegal } from './utils/identifierHelpers';
@@ -15,6 +20,7 @@ export default class ExternalModule {
 	reexported = false;
 	suggestedVariableName: string;
 	used = false;
+	phases: TargetPhases;
 
 	private readonly declarations = new Map<string, ExternalVariable>();
 	private mostCommonSuggestion = 0;
@@ -26,9 +32,11 @@ export default class ExternalModule {
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
 		public readonly renormalizeRenderPath: boolean,
-		attributes: Record<string, string>
+		attributes: Record<string, string>,
+		phases: TargetPhases
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
+		this.phases = phases;
 
 		const { importers, dynamicImporters } = this;
 		this.info = {
@@ -64,11 +72,24 @@ export default class ExternalModule {
 		cacheObjectGetters(this.info, ['dynamicImporters', 'importers']);
 	}
 
+	ensurePhases(phases: TargetPhases): void {
+		if (phases === 'source-and-instance') this.phases = 'source-and-instance';
+		else if (
+			(this.phases === 'source' && phases === 'instance') ||
+			(this.phases === 'instance' && phases === 'source')
+		)
+			this.phases = 'source-and-instance';
+	}
+
+	getMaxPhase(): 'source' | 'instance' {
+		if (this.phases === 'source') return 'source';
+		return 'instance';
+	}
+
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
 		const declaration = this.declarations.get(name);
 		if (declaration) return [declaration];
 		const externalVariable = new ExternalVariable(this, name);
-
 		this.declarations.set(name, externalVariable);
 		this.exportedVariables.set(externalVariable, name);
 		return [externalVariable];

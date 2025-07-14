@@ -8,6 +8,7 @@ import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
+import throwOnPhase from './shared/throwOnPhase';
 import trimEmptyImports from './shared/trimEmptyImports';
 import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
@@ -65,6 +66,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): void {
+	throwOnPhase('umd', id, dependencies);
 	const { _, cnst, getFunctionIntro, getNonArrowFunctionIntro, getPropertyAccess, n, s } = snippets;
 	const factoryVariable = compact ? 'f' : 'factory';
 	const globalVariable = compact ? 'g' : 'global';

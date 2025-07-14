@@ -65,6 +65,7 @@ module.exports = defineTest({
 											start: 0,
 											end: 24,
 											attributes: [],
+											phase: 'instance',
 											specifiers: [
 												{
 													type: 'ImportDefaultSpecifier',
@@ -203,6 +204,7 @@ module.exports = defineTest({
 															start: 54,
 															end: 79,
 															options: null,
+															phase: 'instance',
 															source: {
 																type: 'Literal',
 																start: 61,
@@ -238,6 +240,7 @@ module.exports = defineTest({
 															start: 101,
 															end: 115,
 															options: null,
+															phase: 'instance',
 															source: {
 																type: 'Literal',
 																start: 108,
@@ -273,6 +276,7 @@ module.exports = defineTest({
 															start: 142,
 															end: 157,
 															options: null,
+															phase: 'instance',
 															source: { type: 'Identifier', start: 149, end: 156, name: 'thePath' }
 														}
 													}
@@ -349,6 +353,7 @@ module.exports = defineTest({
 											start: 0,
 											end: 32,
 											attributes: [],
+											phase: 'instance',
 											specifiers: [
 												{
 													type: 'ImportSpecifier',
