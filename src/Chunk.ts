@@ -134,6 +134,16 @@ interface FacadeName {
 
 type RenderedDependencies = Map<Chunk | ExternalChunk, ChunkDependency>;
 
+const RESERVED_USED_NAMES = [
+	'Object',
+	'Promise',
+	'module',
+	'exports',
+	'require',
+	'__filename',
+	'__dirname',
+	...HELPER_NAMES
+];
 const NON_ASSET_EXTENSIONS = new Set([
 	'.js',
 	'.jsx',
@@ -1448,31 +1458,12 @@ export default class Chunk {
 				break;
 			}
 		}
-		const usedNames = new Set(['Object', 'Promise']);
+		const usedNames = new Set(RESERVED_USED_NAMES);
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
 		if (symbols) {
 			usedNames.add('Symbol');
-		}
-		switch (format) {
-			case 'system': {
-				usedNames.add('module').add('exports');
-				break;
-			}
-			case 'es': {
-				break;
-			}
-			case 'cjs': {
-				usedNames.add('module').add('require').add('__filename').add('__dirname');
-			}
-			// fallthrough
-			default: {
-				usedNames.add('exports');
-				for (const helper of HELPER_NAMES) {
-					usedNames.add(helper);
-				}
-			}
 		}
 
 		deconflictChunk(

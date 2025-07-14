@@ -47,7 +47,8 @@ const RESERVED_NAMES: ReadonlySet<string> = new Set([
 	'void',
 	'while',
 	'with',
-	'yield'
+	'yield',
+	'exports'
 ]);
 
 export default RESERVED_NAMES;
