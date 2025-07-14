@@ -61,6 +61,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 2;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.elements, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ArrayPattern: (node, buffer) => {
@@ -69,6 +70,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 3;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.elements, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ArrowFunctionExpression: (node, buffer) => {
@@ -77,6 +79,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 4;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO annotations: Annotations
+		buffer = serializeNodeList(node.params, buffer, nodePosition + 5);
+		buffer = serializeNode(node.body, buffer, nodePosition + 6);
 		return buffer;
 	},
 	AssignmentExpression: (node, buffer) => {
@@ -85,6 +90,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 5;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO operator: FixedString
+		buffer = serializeNode(node.left, buffer, nodePosition + 4);
+		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		return buffer;
 	},
 	AssignmentPattern: (node, buffer) => {
@@ -93,6 +101,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 6;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.left, buffer, nodePosition + 3);
+		buffer = serializeNode(node.right, buffer, nodePosition + 4);
 		return buffer;
 	},
 	AwaitExpression: (node, buffer) => {
@@ -101,6 +111,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 7;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.argument, buffer, nodePosition + 3);
 		return buffer;
 	},
 	BinaryExpression: (node, buffer) => {
@@ -109,6 +120,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 8;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO operator: FixedString
+		buffer = serializeNode(node.left, buffer, nodePosition + 4);
+		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		return buffer;
 	},
 	BlockStatement: (node, buffer) => {
@@ -126,6 +140,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 10;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.label != null) buffer = serializeNode(node.label, buffer, nodePosition + 3);
 		return buffer;
 	},
 	CallExpression: (node, buffer) => {
@@ -134,6 +149,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 11;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO annotations: Annotations
+		buffer = serializeNode(node.callee, buffer, nodePosition + 5);
+		buffer = serializeNodeList(node.arguments, buffer, nodePosition + 6);
 		return buffer;
 	},
 	CatchClause: (node, buffer) => {
@@ -142,6 +160,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 12;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.param != null) buffer = serializeNode(node.param, buffer, nodePosition + 3);
+		buffer = serializeNode(node.body, buffer, nodePosition + 4);
 		return buffer;
 	},
 	ChainExpression: (node, buffer) => {
@@ -150,6 +170,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 13;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.expression, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ClassBody: (node, buffer) => {
@@ -158,6 +179,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 14;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.body, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ClassDeclaration: (node, buffer) => {
@@ -166,6 +188,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 15;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 3);
+		if (node.id != null) buffer = serializeNode(node.id, buffer, nodePosition + 4);
+		if (node.superClass != null) buffer = serializeNode(node.superClass, buffer, nodePosition + 5);
+		buffer = serializeNode(node.body, buffer, nodePosition + 6);
 		return buffer;
 	},
 	ClassExpression: (node, buffer) => {
@@ -174,6 +200,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 16;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 3);
+		if (node.id != null) buffer = serializeNode(node.id, buffer, nodePosition + 4);
+		if (node.superClass != null) buffer = serializeNode(node.superClass, buffer, nodePosition + 5);
+		buffer = serializeNode(node.body, buffer, nodePosition + 6);
 		return buffer;
 	},
 	ConditionalExpression: (node, buffer) => {
@@ -182,6 +212,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 17;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.test, buffer, nodePosition + 3);
+		buffer = serializeNode(node.consequent, buffer, nodePosition + 4);
+		buffer = serializeNode(node.alternate, buffer, nodePosition + 5);
 		return buffer;
 	},
 	ContinueStatement: (node, buffer) => {
@@ -190,6 +223,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 18;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.label != null) buffer = serializeNode(node.label, buffer, nodePosition + 3);
 		return buffer;
 	},
 	DebuggerStatement: (node, buffer) => {
@@ -206,6 +240,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 20;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.expression, buffer, nodePosition + 3);
 		return buffer;
 	},
 	DoWhileStatement: (node, buffer) => {
@@ -214,6 +249,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 22;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.body, buffer, nodePosition + 3);
+		buffer = serializeNode(node.test, buffer, nodePosition + 4);
 		return buffer;
 	},
 	EmptyStatement: (node, buffer) => {
@@ -230,6 +267,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 24;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.exported != null) buffer = serializeNode(node.exported, buffer, nodePosition + 3);
+		buffer = serializeNode(node.source, buffer, nodePosition + 4);
+		buffer = serializeNodeList(node.attributes, buffer, nodePosition + 5);
 		return buffer;
 	},
 	ExportDefaultDeclaration: (node, buffer) => {
@@ -238,6 +278,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 25;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.declaration, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ExportNamedDeclaration: (node, buffer) => {
@@ -246,6 +287,11 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 26;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.specifiers, buffer, nodePosition + 3);
+		if (node.source != null) buffer = serializeNode(node.source, buffer, nodePosition + 4);
+		buffer = serializeNodeList(node.attributes, buffer, nodePosition + 5);
+		if (node.declaration != null)
+			buffer = serializeNode(node.declaration, buffer, nodePosition + 6);
 		return buffer;
 	},
 	ExportSpecifier: (node, buffer) => {
@@ -254,6 +300,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 27;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.local, buffer, nodePosition + 3);
+		if (node.exported != null) buffer = serializeNode(node.exported, buffer, nodePosition + 4);
 		return buffer;
 	},
 	ExpressionStatement: serializeExpressionStatementNode,
@@ -263,6 +311,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 29;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.left, buffer, nodePosition + 3);
+		buffer = serializeNode(node.right, buffer, nodePosition + 4);
+		buffer = serializeNode(node.body, buffer, nodePosition + 5);
 		return buffer;
 	},
 	ForOfStatement: (node, buffer) => {
@@ -271,6 +322,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 30;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.left, buffer, nodePosition + 4);
+		buffer = serializeNode(node.right, buffer, nodePosition + 5);
+		buffer = serializeNode(node.body, buffer, nodePosition + 6);
 		return buffer;
 	},
 	ForStatement: (node, buffer) => {
@@ -279,6 +333,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 31;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.init != null) buffer = serializeNode(node.init, buffer, nodePosition + 3);
+		if (node.test != null) buffer = serializeNode(node.test, buffer, nodePosition + 4);
+		if (node.update != null) buffer = serializeNode(node.update, buffer, nodePosition + 5);
+		buffer = serializeNode(node.body, buffer, nodePosition + 6);
 		return buffer;
 	},
 	FunctionDeclaration: (node, buffer) => {
@@ -287,6 +345,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 32;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO annotations: Annotations
+		if (node.id != null) buffer = serializeNode(node.id, buffer, nodePosition + 5);
+		buffer = serializeNodeList(node.params, buffer, nodePosition + 6);
+		buffer = serializeNode(node.body, buffer, nodePosition + 7);
 		return buffer;
 	},
 	FunctionExpression: (node, buffer) => {
@@ -295,6 +357,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 33;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO annotations: Annotations
+		if (node.id != null) buffer = serializeNode(node.id, buffer, nodePosition + 5);
+		buffer = serializeNodeList(node.params, buffer, nodePosition + 6);
+		buffer = serializeNode(node.body, buffer, nodePosition + 7);
 		return buffer;
 	},
 	Identifier: (node, buffer) => {
@@ -303,6 +369,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 34;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer.addStringToBuffer(node.name, nodePosition + 3);
 		return buffer;
 	},
 	IfStatement: (node, buffer) => {
@@ -311,6 +378,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 35;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.test, buffer, nodePosition + 3);
+		buffer = serializeNode(node.consequent, buffer, nodePosition + 4);
+		if (node.alternate != null) buffer = serializeNode(node.alternate, buffer, nodePosition + 5);
 		return buffer;
 	},
 	ImportAttribute: (node, buffer) => {
@@ -319,6 +389,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 36;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.key, buffer, nodePosition + 3);
+		buffer = serializeNode(node.value, buffer, nodePosition + 4);
 		return buffer;
 	},
 	ImportDeclaration: (node, buffer) => {
@@ -327,6 +399,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 37;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.specifiers, buffer, nodePosition + 3);
+		buffer = serializeNode(node.source, buffer, nodePosition + 4);
+		buffer = serializeNodeList(node.attributes, buffer, nodePosition + 5);
 		return buffer;
 	},
 	ImportDefaultSpecifier: (node, buffer) => {
@@ -335,6 +410,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 38;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.local, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ImportExpression: (node, buffer) => {
@@ -343,6 +419,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 39;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.source, buffer, nodePosition + 3);
+		if (node.options != null) buffer = serializeNode(node.options, buffer, nodePosition + 4);
 		return buffer;
 	},
 	ImportNamespaceSpecifier: (node, buffer) => {
@@ -351,6 +429,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 40;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.local, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ImportSpecifier: (node, buffer) => {
@@ -359,6 +438,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 41;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.imported != null) buffer = serializeNode(node.imported, buffer, nodePosition + 3);
+		buffer = serializeNode(node.local, buffer, nodePosition + 4);
 		return buffer;
 	},
 	JSXAttribute: (node, buffer) => {
@@ -367,6 +448,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 42;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.name, buffer, nodePosition + 3);
+		if (node.value != null) buffer = serializeNode(node.value, buffer, nodePosition + 4);
 		return buffer;
 	},
 	JSXClosingElement: (node, buffer) => {
@@ -375,6 +458,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 43;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.name, buffer, nodePosition + 3);
 		return buffer;
 	},
 	JSXClosingFragment: (node, buffer) => {
@@ -391,6 +475,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 45;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.openingElement, buffer, nodePosition + 3);
+		buffer = serializeNodeList(node.children, buffer, nodePosition + 4);
+		if (node.closingElement != null)
+			buffer = serializeNode(node.closingElement, buffer, nodePosition + 5);
 		return buffer;
 	},
 	JSXEmptyExpression: (node, buffer) => {
@@ -407,6 +495,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 47;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.expression, buffer, nodePosition + 3);
 		return buffer;
 	},
 	JSXFragment: (node, buffer) => {
@@ -415,6 +504,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 48;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.openingFragment, buffer, nodePosition + 3);
+		buffer = serializeNodeList(node.children, buffer, nodePosition + 4);
+		buffer = serializeNode(node.closingFragment, buffer, nodePosition + 5);
 		return buffer;
 	},
 	JSXIdentifier: (node, buffer) => {
@@ -423,6 +515,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 49;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer.addStringToBuffer(node.name, nodePosition + 3);
 		return buffer;
 	},
 	JSXMemberExpression: (node, buffer) => {
@@ -431,6 +524,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 50;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.object, buffer, nodePosition + 3);
+		buffer = serializeNode(node.property, buffer, nodePosition + 4);
 		return buffer;
 	},
 	JSXNamespacedName: (node, buffer) => {
@@ -439,6 +534,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 51;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.namespace, buffer, nodePosition + 3);
+		buffer = serializeNode(node.name, buffer, nodePosition + 4);
 		return buffer;
 	},
 	JSXOpeningElement: (node, buffer) => {
@@ -447,6 +544,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 52;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.name, buffer, nodePosition + 4);
+		buffer = serializeNodeList(node.attributes, buffer, nodePosition + 5);
 		return buffer;
 	},
 	JSXOpeningFragment: (node, buffer) => {
@@ -463,6 +562,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 54;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.argument, buffer, nodePosition + 3);
 		return buffer;
 	},
 	JSXSpreadChild: (node, buffer) => {
@@ -471,6 +571,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 55;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.expression, buffer, nodePosition + 3);
 		return buffer;
 	},
 	JSXText: (node, buffer) => {
@@ -479,6 +580,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 56;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer.addStringToBuffer(node.value, nodePosition + 3);
+		buffer.addStringToBuffer(node.raw, nodePosition + 4);
 		return buffer;
 	},
 	LabeledStatement: (node, buffer) => {
@@ -487,6 +590,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 57;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.label, buffer, nodePosition + 3);
+		buffer = serializeNode(node.body, buffer, nodePosition + 4);
 		return buffer;
 	},
 	Literal: serializeLiteralNode,
@@ -496,6 +601,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 64;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO operator: FixedString
+		buffer = serializeNode(node.left, buffer, nodePosition + 4);
+		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		return buffer;
 	},
 	MemberExpression: (node, buffer) => {
@@ -504,6 +612,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 65;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.object, buffer, nodePosition + 4);
+		buffer = serializeNode(node.property, buffer, nodePosition + 5);
 		return buffer;
 	},
 	MetaProperty: (node, buffer) => {
@@ -512,6 +622,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 66;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.meta, buffer, nodePosition + 3);
+		buffer = serializeNode(node.property, buffer, nodePosition + 4);
 		return buffer;
 	},
 	MethodDefinition: (node, buffer) => {
@@ -520,6 +632,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 67;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 4);
+		buffer = serializeNode(node.key, buffer, nodePosition + 5);
+		buffer = serializeNode(node.value, buffer, nodePosition + 6);
+		// TODO kind: FixedString
 		return buffer;
 	},
 	NewExpression: (node, buffer) => {
@@ -528,6 +644,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 68;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO annotations: Annotations
+		buffer = serializeNode(node.callee, buffer, nodePosition + 4);
+		buffer = serializeNodeList(node.arguments, buffer, nodePosition + 5);
 		return buffer;
 	},
 	ObjectExpression: (node, buffer) => {
@@ -536,6 +655,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 69;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.properties, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ObjectPattern: (node, buffer) => {
@@ -544,6 +664,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 70;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.properties, buffer, nodePosition + 3);
 		return buffer;
 	},
 	PanicError: (node, buffer) => {
@@ -552,6 +673,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 0;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer.addStringToBuffer(node.message, nodePosition + 3);
 		return buffer;
 	},
 	ParseError: (node, buffer) => {
@@ -560,6 +682,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 1;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer.addStringToBuffer(node.message, nodePosition + 3);
 		return buffer;
 	},
 	PrivateIdentifier: (node, buffer) => {
@@ -568,6 +691,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 71;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer.addStringToBuffer(node.name, nodePosition + 3);
 		return buffer;
 	},
 	Program: (node, buffer) => {
@@ -576,6 +700,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 72;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.body, buffer, nodePosition + 3);
+		// TODO invalidAnnotations: Annotations
 		return buffer;
 	},
 	Property: (node, buffer) => {
@@ -584,6 +710,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 73;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.key != null) buffer = serializeNode(node.key, buffer, nodePosition + 4);
+		buffer = serializeNode(node.value, buffer, nodePosition + 5);
+		// TODO kind: FixedString
 		return buffer;
 	},
 	PropertyDefinition: (node, buffer) => {
@@ -592,6 +721,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 74;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 4);
+		buffer = serializeNode(node.key, buffer, nodePosition + 5);
+		if (node.value != null) buffer = serializeNode(node.value, buffer, nodePosition + 6);
 		return buffer;
 	},
 	RestElement: (node, buffer) => {
@@ -600,6 +732,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 75;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.argument, buffer, nodePosition + 3);
 		return buffer;
 	},
 	ReturnStatement: (node, buffer) => {
@@ -608,6 +741,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 76;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.argument != null) buffer = serializeNode(node.argument, buffer, nodePosition + 3);
 		return buffer;
 	},
 	SequenceExpression: (node, buffer) => {
@@ -616,6 +750,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 77;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.expressions, buffer, nodePosition + 3);
 		return buffer;
 	},
 	SpreadElement: (node, buffer) => {
@@ -624,6 +759,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 78;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.argument, buffer, nodePosition + 3);
 		return buffer;
 	},
 	StaticBlock: (node, buffer) => {
@@ -632,6 +768,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 79;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.body, buffer, nodePosition + 3);
 		return buffer;
 	},
 	Super: (node, buffer) => {
@@ -648,6 +785,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 81;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.test != null) buffer = serializeNode(node.test, buffer, nodePosition + 3);
+		buffer = serializeNodeList(node.consequent, buffer, nodePosition + 4);
 		return buffer;
 	},
 	SwitchStatement: (node, buffer) => {
@@ -656,6 +795,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 82;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.discriminant, buffer, nodePosition + 3);
+		buffer = serializeNodeList(node.cases, buffer, nodePosition + 4);
 		return buffer;
 	},
 	TaggedTemplateExpression: (node, buffer) => {
@@ -664,6 +805,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 83;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.tag, buffer, nodePosition + 3);
+		buffer = serializeNode(node.quasi, buffer, nodePosition + 4);
 		return buffer;
 	},
 	TemplateElement: (node, buffer) => {
@@ -672,6 +815,10 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 84;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.value.cooked != null) {
+			buffer.addStringToBuffer(node.value.cooked, nodePosition + 4);
+		}
+		buffer.addStringToBuffer(node.value.raw, nodePosition + 5);
 		return buffer;
 	},
 	TemplateLiteral: (node, buffer) => {
@@ -680,6 +827,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 85;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNodeList(node.quasis, buffer, nodePosition + 3);
+		buffer = serializeNodeList(node.expressions, buffer, nodePosition + 4);
 		return buffer;
 	},
 	ThisExpression: (node, buffer) => {
@@ -696,6 +845,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 87;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.argument, buffer, nodePosition + 3);
 		return buffer;
 	},
 	TryStatement: (node, buffer) => {
@@ -704,6 +854,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 88;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.block, buffer, nodePosition + 3);
+		if (node.handler != null) buffer = serializeNode(node.handler, buffer, nodePosition + 4);
+		if (node.finalizer != null) buffer = serializeNode(node.finalizer, buffer, nodePosition + 5);
 		return buffer;
 	},
 	UnaryExpression: (node, buffer) => {
@@ -712,6 +865,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 89;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO operator: FixedString
+		buffer = serializeNode(node.argument, buffer, nodePosition + 4);
 		return buffer;
 	},
 	UpdateExpression: (node, buffer) => {
@@ -720,6 +875,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 90;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO operator: FixedString
+		buffer = serializeNode(node.argument, buffer, nodePosition + 5);
 		return buffer;
 	},
 	VariableDeclaration: (node, buffer) => {
@@ -728,6 +885,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 91;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		// TODO kind: FixedString
+		buffer = serializeNodeList(node.declarations, buffer, nodePosition + 4);
 		return buffer;
 	},
 	VariableDeclarator: (node, buffer) => {
@@ -736,6 +895,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 92;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.id, buffer, nodePosition + 3);
+		if (node.init != null) buffer = serializeNode(node.init, buffer, nodePosition + 4);
 		return buffer;
 	},
 	WhileStatement: (node, buffer) => {
@@ -744,6 +905,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 93;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer = serializeNode(node.test, buffer, nodePosition + 3);
+		buffer = serializeNode(node.body, buffer, nodePosition + 4);
 		return buffer;
 	},
 	YieldExpression: (node, buffer) => {
@@ -752,6 +915,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 94;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		if (node.argument != null) buffer = serializeNode(node.argument, buffer, nodePosition + 4);
 		return buffer;
 	}
 };
@@ -762,6 +926,8 @@ const serializeDirective: NodeSerializer<ast.Directive> = (node, buffer) => {
 	buffer[nodePosition] = 21;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
+	buffer.addStringToBuffer(node.directive, nodePosition + 3);
+	buffer = serializeNode(node.expression, buffer, nodePosition + 4);
 	return buffer;
 };
 
@@ -771,6 +937,7 @@ const serializeExpressionStatement: NodeSerializer<ast.ExpressionStatement> = (n
 	buffer[nodePosition] = 28;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
+	buffer = serializeNode(node.expression, buffer, nodePosition + 3);
 	return buffer;
 };
 
@@ -780,6 +947,8 @@ const serializeLiteralBigInt: NodeSerializer<ast.LiteralBigInt> = (node, buffer)
 	buffer[nodePosition] = 58;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
+	buffer.addStringToBuffer(node.bigint, nodePosition + 3);
+	buffer.addStringToBuffer(node.raw, nodePosition + 4);
 	return buffer;
 };
 
@@ -807,6 +976,10 @@ const serializeLiteralNumber: NodeSerializer<ast.LiteralNumber> = (node, buffer)
 	buffer[nodePosition] = 61;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
+	if (node.raw != null) {
+		buffer.addStringToBuffer(node.raw, nodePosition + 3);
+	}
+	new DataView(buffer.buffer).setFloat64((nodePosition + 4) << 2, node.value);
 	return buffer;
 };
 
@@ -816,6 +989,8 @@ const serializeLiteralRegExp: NodeSerializer<ast.LiteralRegExp> = (node, buffer)
 	buffer[nodePosition] = 62;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
+	buffer.addStringToBuffer(node.regex.flags, nodePosition + 3);
+	buffer.addStringToBuffer(node.regex.pattern, nodePosition + 4);
 	return buffer;
 };
 
@@ -826,11 +1001,24 @@ const serializeLiteralString: NodeSerializer<ast.LiteralString> = (node, buffer)
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
 	buffer.addStringToBuffer(node.value, nodePosition + 3);
+	if (node.raw != null) {
+		buffer.addStringToBuffer(node.raw, nodePosition + 4);
+	}
 	return buffer;
 };
 
+function serializeNode(
+	node: AstNode,
+	buffer: AstBufferForWriting,
+	referencePosition: number
+): AstBufferForWriting {
+	buffer[referencePosition] = buffer.position;
+	buffer.position++;
+	return nodeSerializers[node.type](node as any, buffer);
+}
+
 function serializeNodeList(
-	nodes: readonly AstNode[],
+	nodes: readonly (AstNode | null)[],
 	buffer: AstBufferForWriting,
 	referencePosition: number
 ): AstBufferForWriting {
@@ -846,9 +1034,7 @@ function serializeNodeList(
 	buffer.position = insertPosition + length;
 	for (let index = 0; index < length; index++) {
 		const node = nodes[index];
-		if (node === null) {
-			buffer[insertPosition + index] = 0;
-		} else {
+		if (node != null) {
 			buffer[insertPosition + index] = buffer.position;
 			buffer = nodeSerializers[node.type](node as any, buffer);
 		}

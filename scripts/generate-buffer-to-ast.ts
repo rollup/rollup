@@ -84,7 +84,7 @@ function getFieldProperty(
 	node: NodeDescription,
 	offset: number
 ): string {
-	if (node.hiddenFields?.includes(field.name)) {
+	if (node.serializeHiddenFields?.[field.name]) {
 		return '';
 	}
 	if (isHoistedField(field.name, node)) {

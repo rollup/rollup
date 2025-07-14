@@ -53,24 +53,55 @@ const nonCanonicalSerializers = nonCanonicalAstTypes
 	)
 	.join('\n\n');
 
-function getNodeSerializerBody({ index, fields, flags }: AstTypeDescription): string {
+function getNodeSerializerBody({
+	index,
+	fields,
+	flags,
+	node: { serializeHiddenFields }
+}: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
 	let nextPosition = 3; // 1 for type, 2 for start and end
 	if (flags) {
 		// TODO
 		nextPosition++;
 	}
-	for (const { name, type } of fields) {
-		switch (type) {
-			case 'NodeList': {
-				fieldSerializers.push(
-					`buffer = serializeNodeList(node.${name}, buffer, nodePosition + ${nextPosition});`
-				);
-				nextPosition += 1; // 1 for the length of the list
+	for (const field of fields) {
+		const fieldName = serializeHiddenFields?.[field.name] ?? field.name;
+		switch (field.type) {
+			case 'Node': {
+				let fieldSerializer = `buffer = serializeNode(node.${fieldName}, buffer, nodePosition + ${nextPosition});`;
+				if (field.allowNull) {
+					fieldSerializer = `if (node.${fieldName} != null) ${fieldSerializer}`;
+				}
+				fieldSerializers.push(fieldSerializer);
 				break;
 			}
+			case 'NodeList': {
+				fieldSerializers.push(
+					`buffer = serializeNodeList(node.${fieldName}, buffer, nodePosition + ${nextPosition});`
+				);
+				break;
+			}
+			case 'String': {
+				let fieldSerializer = `buffer.addStringToBuffer(node.${fieldName}, nodePosition + ${nextPosition});`;
+				if (field.optional) {
+					fieldSerializer = `if (node.${fieldName} != null) { ${fieldSerializer} }`;
+				}
+				fieldSerializers.push(fieldSerializer);
+				break;
+			}
+			case 'Float': {
+				fieldSerializers.push(
+					`new DataView(buffer.buffer).setFloat64((nodePosition + ${nextPosition}) << 2, node.${fieldName});`
+				);
+				nextPosition += 1; // Float64 takes 8 bytes
+				break;
+			}
+			default: {
+				fieldSerializers.push(`// TODO ${fieldName}: ${field.type}`);
+			}
 		}
-		nextPosition += type === 'Float' ? 2 : 1;
+		nextPosition += 1;
 	}
 	return `{
 		const nodePosition = buffer.position;
@@ -78,7 +109,7 @@ function getNodeSerializerBody({ index, fields, flags }: AstTypeDescription): st
 		  buffer[nodePosition] = ${index};
 		  buffer[nodePosition + 1] = node.start;
 		  buffer[nodePosition + 2] = node.end;
-		  return buffer;
+		  ${fieldSerializers.map(s => s + '\n').join('')}return buffer;
 		}`;
 }
 
@@ -139,10 +170,14 @@ const nodeSerializers: NodeSerializers = {
 
 ${nonCanonicalSerializers}
 
-function serializeNodeList(
-	nodes: readonly AstNode[],
-	buffer: AstBufferForWriting,
-	referencePosition: number
+function serializeNode(node: AstNode, buffer: AstBufferForWriting, referencePosition: number
+): AstBufferForWriting {
+	buffer[referencePosition] = buffer.position;
+	buffer.position++;
+	return nodeSerializers[node.type](node as any, buffer);
+}
+
+function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBufferForWriting, referencePosition: number
 ): AstBufferForWriting {
 	const { length } = nodes;
 	if (length === 0) {
@@ -156,9 +191,7 @@ function serializeNodeList(
 	buffer.position = insertPosition + length;
 	for (let index = 0; index < length; index++) {
 		const node = nodes[index];
-		if (node === null) {
-			buffer[insertPosition + index] = 0;
-		} else {
+		if (node != null) {
 			buffer[insertPosition + index] = buffer.position;
 			buffer = nodeSerializers[node.type](node as any, buffer);
 		}
