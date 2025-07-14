@@ -5,6 +5,7 @@ import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBuffer } from './getAstBuffer';
+import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
 type NodeSerializer<T extends ast.AstNode> = (
 	node: T,
@@ -90,7 +91,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 5;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO operator: FixedString
+		buffer[nodePosition + 3] = FIXED_STRING_INDICES[node.operator];
 		buffer = serializeNode(node.left, buffer, nodePosition + 4);
 		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		return buffer;
@@ -120,7 +121,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 8;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO operator: FixedString
+		buffer[nodePosition + 3] = FIXED_STRING_INDICES[node.operator];
 		buffer = serializeNode(node.left, buffer, nodePosition + 4);
 		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		return buffer;
@@ -601,7 +602,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 64;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO operator: FixedString
+		buffer[nodePosition + 3] = FIXED_STRING_INDICES[node.operator];
 		buffer = serializeNode(node.left, buffer, nodePosition + 4);
 		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		return buffer;
@@ -635,7 +636,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 4);
 		buffer = serializeNode(node.key, buffer, nodePosition + 5);
 		buffer = serializeNode(node.value, buffer, nodePosition + 6);
-		// TODO kind: FixedString
+		buffer[nodePosition + 7] = FIXED_STRING_INDICES[node.kind];
 		return buffer;
 	},
 	NewExpression: (node, buffer) => {
@@ -712,7 +713,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 2] = node.end;
 		if (node.key != null) buffer = serializeNode(node.key, buffer, nodePosition + 4);
 		buffer = serializeNode(node.value, buffer, nodePosition + 5);
-		// TODO kind: FixedString
+		buffer[nodePosition + 6] = FIXED_STRING_INDICES[node.kind];
 		return buffer;
 	},
 	PropertyDefinition: (node, buffer) => {
@@ -865,7 +866,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 89;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO operator: FixedString
+		buffer[nodePosition + 3] = FIXED_STRING_INDICES[node.operator];
 		buffer = serializeNode(node.argument, buffer, nodePosition + 4);
 		return buffer;
 	},
@@ -875,7 +876,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 90;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO operator: FixedString
+		buffer[nodePosition + 4] = FIXED_STRING_INDICES[node.operator];
 		buffer = serializeNode(node.argument, buffer, nodePosition + 5);
 		return buffer;
 	},
@@ -885,7 +886,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 91;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO kind: FixedString
+		buffer[nodePosition + 3] = FIXED_STRING_INDICES[node.kind];
 		buffer = serializeNodeList(node.declarations, buffer, nodePosition + 4);
 		return buffer;
 	},

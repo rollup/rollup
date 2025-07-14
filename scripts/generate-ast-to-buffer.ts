@@ -97,6 +97,12 @@ function getNodeSerializerBody({
 				nextPosition += 1; // Float64 takes 8 bytes
 				break;
 			}
+			case 'FixedString': {
+				fieldSerializers.push(
+					`buffer[nodePosition + ${nextPosition}] = FIXED_STRING_INDICES[node.${fieldName}];`
+				);
+				break;
+			}
 			default: {
 				fieldSerializers.push(`// TODO ${fieldName}: ${field.type}`);
 			}
@@ -119,6 +125,7 @@ import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBuffer } from './getAstBuffer';
+import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
 type NodeSerializer<T extends ast.AstNode> = (
 	node: T,
