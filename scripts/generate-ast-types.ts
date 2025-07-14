@@ -59,7 +59,7 @@ function isOptional(field: FieldDescription): boolean {
 function getNodeType(name: string, node: NodeDescription, nodeFields: FieldDescription[]): string {
 	const flags = node.flags?.map(flag => `${flag}: boolean;`);
 	const fields = nodeFields
-		?.filter(field => !node.hiddenFields?.includes(field.name))
+		?.filter(field => !node.serializeHiddenFields?.[field.name])
 		.map(field => `${field.name}${isOptional(field) ? '?' : ''}: ${getFieldType(field, node)};`);
 	const additionalFields = Object.entries(node.additionalFields || {}).map(
 		([name, { type }]) => `${name}: ${type};`
