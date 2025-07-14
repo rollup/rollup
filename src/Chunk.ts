@@ -6,6 +6,7 @@ import type ImportExpression from './ast/nodes/ImportExpression';
 import { formatsMaybeAccessDocumentCurrentScript } from './ast/nodes/MetaProperty';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
+import ExternalVariable, { SOURCE_EXPORT } from './ast/variables/ExternalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
@@ -98,6 +99,8 @@ export type ResolvedDynamicImport = (
 
 export interface ChunkDependency {
 	attributes: string | null;
+	maxPhase: 'source' | 'instance';
+	sourcePhaseImport: string | undefined;
 	defaultVariableName: string | undefined;
 	globalName: string | false | undefined;
 	importPath: string;
@@ -951,7 +954,14 @@ export default class Chunk {
 		const dependencies = new Set<Chunk | ExternalChunk>();
 		const deconflictedDefault = new Set<ExternalChunk>();
 		const deconflictedNamespace = new Set<Chunk | ExternalChunk>();
+		const deconflictedSource = new Set<ExternalChunk>();
 		for (const variable of [...this.exportNamesByVariable.keys(), ...this.imports]) {
+			if (variable instanceof ExternalVariable && variable.isSourcePhase) {
+				const chunk = this.externalChunkByModule.get((variable as ExternalVariable).module)!;
+				deconflictedSource.add(chunk);
+				dependencies.add(chunk);
+				continue;
+			}
 			if (addNonNamespacesAndInteropHelpers || variable.isNamespace) {
 				const module = variable.module!;
 				if (module instanceof ExternalModule) {
@@ -994,7 +1004,7 @@ export default class Chunk {
 				dependencies.add(dependency);
 			}
 		}
-		return { deconflictedDefault, deconflictedNamespace, dependencies };
+		return { deconflictedDefault, deconflictedNamespace, deconflictedSource, dependencies };
 	}
 
 	private getDynamicDependencies(): (Chunk | ExternalChunk)[] {
@@ -1056,19 +1066,23 @@ export default class Chunk {
 			const module = variable.module!;
 			let dependency: Chunk | ExternalChunk;
 			let imported: string;
+			let phase: 'source' | 'instance';
 			if (module instanceof ExternalModule) {
 				dependency = this.externalChunkByModule.get(module)!;
 				imported = variable.name;
 				if (imported !== 'default' && imported !== '*' && interop(module.id) === 'defaultOnly') {
 					return error(logUnexpectedNamedImport(module.id, imported, false));
 				}
+				phase = (variable as ExternalVariable).isSourcePhase ? 'source' : 'instance';
 			} else {
-				dependency = this.chunkByModule.get(module)!;
+				dependency = this.chunkByModule.get(module as Module)!;
 				imported = dependency.getVariableExportName(variable);
+				phase = 'instance';
 			}
 			getOrCreate(importsByDependency, dependency, getNewArray).push({
 				imported,
-				local: variable.getName(this.snippets.getPropertyAccess)
+				local: variable.getName(this.snippets.getPropertyAccess),
+				phase
 			});
 		}
 		return importsByDependency;
@@ -1239,12 +1253,15 @@ export default class Chunk {
 						this.inputOptions.onLog
 					),
 				importPath,
-				imports,
+				imports: imports?.filter(impt => impt.imported !== SOURCE_EXPORT) ?? null,
 				isChunk: dependency instanceof Chunk,
+				maxPhase: dependency instanceof ExternalChunk ? dependency.maxPhase : 'instance',
 				name: dependency.variableName,
 				namedExportsMode,
-				namespaceVariableName: dependency.namespaceVariableName,
-				reexports
+				namespaceVariableName: dependency.namespaceVariableName || undefined,
+				reexports,
+				sourcePhaseImport:
+					(dependency instanceof ExternalChunk && dependency.sourceVariableName) || undefined
 			});
 		}
 

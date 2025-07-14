@@ -3,6 +3,7 @@ import { createInclusionContext } from './ast/ExecutionContext';
 import type { ExpressionEntity } from './ast/nodes/shared/Expression';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/PathTracker';
+import { SOURCE_EXPORT } from './ast/variables/ExternalVariable';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -228,7 +229,7 @@ export default class Graph {
 	private warnForMissingExports(): void {
 		for (const module of this.modules) {
 			for (const importDescription of module.importDescriptions.values()) {
-				if (importDescription.name !== '*') {
+				if (importDescription.name !== '*' && importDescription.name !== SOURCE_EXPORT) {
 					const [variable, options] = importDescription.module.getVariableForExportName(
 						importDescription.name
 					);

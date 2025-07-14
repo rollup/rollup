@@ -44,12 +44,23 @@ function getImportBlock(
 	{ _ }: GenerateCodeSnippets
 ): string[] {
 	const importBlock: string[] = [];
-	for (const { importPath, reexports, imports, name, attributes } of dependencies) {
+	for (const {
+		importPath,
+		reexports,
+		imports,
+		name,
+		attributes,
+		maxPhase,
+		sourcePhaseImport
+	} of dependencies) {
 		const assertion = attributes ? `${_}${importAttributesKey}${_}${attributes}` : '';
 		const pathWithAssertion = `'${importPath}'${assertion};`;
 		if (!reexports && !imports) {
-			importBlock.push(`import${_}${pathWithAssertion}`);
+			if (maxPhase === 'instance') importBlock.push(`import${_}${pathWithAssertion}`);
 			continue;
+		}
+		if (sourcePhaseImport) {
+			importBlock.push(`import source ${sourcePhaseImport} from${_}${pathWithAssertion}`);
 		}
 		if (imports) {
 			let defaultImport: ImportSpecifier | null = null;

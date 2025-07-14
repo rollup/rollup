@@ -77,6 +77,9 @@ export default class CallExpression
 		if (this.annotationPure) {
 			return false;
 		}
+		if (!this.interaction) {
+			this.bind();
+		}
 		return (
 			this.callee.hasEffects(context) ||
 			this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)

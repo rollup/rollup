@@ -23,6 +23,7 @@ const path = require('node:path');
 const { platform, version } = require('node:process');
 const { Parser } = require('acorn');
 const { importAssertions } = require('acorn-import-assertions');
+const importPhases = require('acorn-import-phases');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
 
@@ -455,7 +456,7 @@ exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringi
 /** @type {boolean} */
 exports.hasEsBuild = existsSync(path.join(__dirname, '../dist/es'));
 
-const acornParser = Parser.extend(importAssertions, jsx());
+const acornParser = Parser.extend(importAssertions, importPhases(), jsx());
 
 exports.verifyAstPlugin = {
 	name: 'verify-ast',
@@ -473,15 +474,31 @@ const replaceStringifyValues = (key, value) => {
 		case 'ImportDeclaration':
 		case 'ExportNamedDeclaration':
 		case 'ExportAllDeclaration': {
-			const { attributes, ...nonAttributesProperties } = value;
-			return {
-				...nonAttributesProperties,
-				...(attributes?.length > 0 ? { assertions: attributes } : {})
-			};
+			const { attributes, phase, ...nonAttributesPhaseProperties } = value;
+			if (phase === 'instance') {
+				return {
+					...nonAttributesPhaseProperties,
+					...(attributes?.length > 0 ? { assertions: attributes } : {})
+				};
+			} else {
+				return {
+					phase,
+					...nonAttributesPhaseProperties,
+					...(attributes?.length > 0 ? { assertions: attributes } : {})
+				};
+			}
 		}
 		case 'ImportExpression': {
-			const { options, ...nonOptionsProperties } = value;
-			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
+			const { options, phase, ...nonOptionsPhaseProperties } = value;
+			if (phase === 'instance') {
+				return { ...nonOptionsPhaseProperties, ...(options ? { arguments: [options] } : {}) };
+			} else {
+				return {
+					phase,
+					...nonOptionsPhaseProperties,
+					...(options ? { arguments: [options] } : {})
+				};
+			}
 		}
 		case 'ClassDeclaration':
 		case 'ClassExpression':

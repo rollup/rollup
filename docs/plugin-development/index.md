@@ -728,6 +728,84 @@ See [custom module meta-data](#custom-module-meta-data) for how to use the `meta
 
 You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
+### sourcePhase
+
+|  |  |
+| --: | :-- |
+| Type: | `(code: string, id: string) => TransformResult` |
+| Kind: | async, sequential |
+| Previous: | This hook is called when a source phase import is encountered |
+| Next: | The resolved module will be processed normally through the module pipeline |
+
+```typescript
+type TransformResult =
+	| string
+	| null
+	| {
+			code: string;
+			map?: string | SourceMap;
+			ast?: ESTree.Program;
+	  };
+```
+
+Can be used to handle source phase imports of the form `import source foo from 'bar'`. Source phase imports allow importing the raw source code of a module without executing it.
+
+There are two ways source phase imports can be handled:
+
+1. **External modules**: If a module is marked as external, the source phase is preserved in the output. For example, `import source foo from 'external-module'` will remain as a source phase import in the generated bundle.
+2. **Plugin hooks**: The `sourcePhase` hook can intercept source phase imports and return a module that exports a default export containing the source phase value.
+
+The hook receives:
+
+- `code`: The source code of the module being imported
+- `id`: The fully resolved id of the module
+
+The return value follows the same format as the `transform` hook - it can be:
+
+- A string containing the code for a module that exports the source
+- `null` to let other plugins handle it
+- An object with `code` and optionally `map` (source map) and `ast` properties
+
+This hook also supports filter handling.
+
+Example implementation for WebAssembly modules:
+
+```js
+export default function wasmSourcePhasePlugin() {
+	return {
+		name: 'wasm-source-phase',
+		sourcePhase: (source, id) {
+			const binary = obtainBytes(id);
+			return `
+				const binaryString = atob(${JSON.stringify(toBase64(binary))});
+				const bytes = new Uint8Array(binaryString.length);
+				for (let i = 0; i < binaryString.length; i++) {
+					bytes[i] = binaryString.charCodeAt(i);
+				}
+				export default new WebAssembly.Module(bytes);
+			`;
+		}
+	};
+}
+```
+
+With this plugin, you can use source phase imports for WebAssembly:
+
+```js
+// Import the WebAssembly module directly
+import source wasmModule from './math.wasm';
+
+// Instantiate the module
+const instance = await WebAssembly.instantiate(wasmModule, {
+	env: { memory: new WebAssembly.Memory({ initial: 1 }) }
+});
+
+// Use the exported functions
+console.log(instance.exports.add(5, 3)); // 8
+```
+
+The source phase import provides a way to get the `WebAssembly.Module` directly, which can then be instantiated with arbitrary imports.
+
 ### watchChange
 
 |  |  |

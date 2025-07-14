@@ -4,6 +4,7 @@ import type { FinaliserOptions } from './index';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import throwOnPhase from './shared/throwOnPhase';
 import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
@@ -37,6 +38,7 @@ export default function amd(
 	}: NormalizedOutputOptions
 ): void {
 	warnOnBuiltins(log, dependencies);
+	throwOnPhase('amd', id, dependencies);
 	const deps = dependencies.map(
 		m => `'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`
 	);

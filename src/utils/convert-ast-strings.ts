@@ -64,5 +64,8 @@ export default [
 	'noSideEffects',
 	'sourcemap',
 	'using',
-	'await using'
+	'await using',
+	'source',
+	'defer',
+	'instance'
 ];

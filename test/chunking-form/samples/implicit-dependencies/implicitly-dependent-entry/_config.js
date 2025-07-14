@@ -32,6 +32,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								phase: 'instance',
 								source: { type: 'Literal', start: 22, end: 29, raw: "'./lib'", value: './lib' },
 								specifiers: [
 									{
@@ -111,6 +112,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								phase: 'instance',
 								source: { type: 'Literal', start: 22, end: 29, raw: "'./lib'", value: './lib' },
 								specifiers: [
 									{

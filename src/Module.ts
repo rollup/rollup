@@ -26,7 +26,7 @@ import type { ObjectPath } from './ast/utils/PathTracker';
 import { type EntityPathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
-import ExternalVariable from './ast/variables/ExternalVariable';
+import ExternalVariable, { SOURCE_EXPORT } from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
@@ -49,6 +49,7 @@ import type {
 	ResolvedIdMap,
 	RollupError,
 	RollupLog,
+	TargetPhases,
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
@@ -91,7 +92,7 @@ import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
-interface ImportDescription {
+export interface ImportDescription {
 	module: Module | ExternalModule;
 	name: string;
 	source: string;
@@ -247,6 +248,7 @@ export default class Module {
 	isUserDefinedEntryPoint = false;
 	declare magicString: MagicString;
 	declare namespace: NamespaceVariable;
+	declare sourcePhaseModule: Module | null;
 	needsExportShim = false;
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
@@ -255,8 +257,15 @@ export default class Module {
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
-	readonly sourcesWithAttributes = new Map<string, Record<string, string>>();
+	readonly sourcesWithAttributesAndPhase = new Map<
+		string,
+		{
+			attributes: Record<string, string>;
+			phases: TargetPhases | null;
+		}
+	>();
 	declare transformFiles?: EmittedFile[];
+	private phases: TargetPhases;
 
 	private allExportNames: Set<string> | null = null;
 	private allExportsIncluded = false;
@@ -288,11 +297,14 @@ export default class Module {
 		moduleSideEffects: boolean | 'no-treeshake',
 		syntheticNamedExports: boolean | string,
 		meta: CustomPluginOptions,
-		attributes: Record<string, string>
+		attributes: Record<string, string>,
+		phases: TargetPhases
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
 		this.preserveSignature = this.options.preserveEntrySignatures;
+		this.phases = phases;
+		this.sourcePhaseModule = null;
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const module = this;
@@ -305,7 +317,7 @@ export default class Module {
 			implicitlyLoadedBefore,
 			importers,
 			reexportDescriptions,
-			sourcesWithAttributes
+			sourcesWithAttributesAndPhase
 		} = this;
 
 		this.info = {
@@ -361,7 +373,7 @@ export default class Module {
 			},
 			get importedIdResolutions() {
 				return Array.from(
-					sourcesWithAttributes.keys(),
+					sourcesWithAttributesAndPhase.keys(),
 					source => module.resolvedIds[source]
 				).filter(Boolean);
 			},
@@ -370,7 +382,7 @@ export default class Module {
 				// dependencies are populated
 
 				return Array.from(
-					sourcesWithAttributes.keys(),
+					sourcesWithAttributesAndPhase.keys(),
 					source => module.resolvedIds[source]?.id
 				).filter(Boolean);
 			},
@@ -434,6 +446,21 @@ export default class Module {
 			}
 		}
 		return size;
+	}
+
+	ensurePhaseDidInstance(phase: 'source' | 'instance'): boolean {
+		if (phase === 'instance') {
+			const didInstance = !this.hasInstancePhase();
+			if (didInstance) this.phases = 'source-and-instance';
+			return didInstance;
+		} else if (phase === 'source') {
+			if (this.phases !== 'source') this.phases = 'source-and-instance';
+		}
+		return false;
+	}
+
+	hasInstancePhase() {
+		return this.phases === 'instance' || this.phases === 'source-and-instance';
 	}
 
 	getAllExportNames(): Set<string> {
@@ -613,6 +640,17 @@ export default class Module {
 			// export * from 'external'
 			const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
 			return module.getVariableForExportName('*');
+		}
+
+		// every module may potentially expose a source phase if
+		// it supports a source hook
+		if (name === SOURCE_EXPORT) {
+			return this.sourcePhaseModule!.getVariableForExportName('default', {
+				importerForSideEffects,
+				isExportAllSearch,
+				onlyExplicit,
+				searchedNamesAndModules
+			});
 		}
 
 		// export { foo } from './other'
@@ -958,6 +996,10 @@ export default class Module {
 		timeEnd('generate ast', 3);
 	}
 
+	setSourcePhase(module: Module) {
+		this.sourcePhaseModule = module;
+	}
+
 	toJSON(): ModuleJSON {
 		return {
 			ast: this.info.ast!,
@@ -1149,6 +1191,7 @@ export default class Module {
 
 	private addImport(node: ImportDeclaration): void {
 		const source = node.source.value;
+
 		this.addSource(source, node);
 
 		for (const specifier of node.specifiers) {
@@ -1167,7 +1210,7 @@ export default class Module {
 							: specifier.imported.value;
 			this.importDescriptions.set(localName, {
 				module: null as never, // filled in later
-				name,
+				name: (node.phase as 'source' | 'defer') === 'source' ? SOURCE_EXPORT : name,
 				source,
 				start: specifier.start
 			});
@@ -1175,8 +1218,11 @@ export default class Module {
 	}
 
 	private addImportSource(importSource: string): void {
-		if (importSource && !this.sourcesWithAttributes.has(importSource)) {
-			this.sourcesWithAttributes.set(importSource, EMPTY_OBJECT);
+		if (importSource && !this.sourcesWithAttributesAndPhase.has(importSource)) {
+			this.sourcesWithAttributesAndPhase.set(importSource, {
+				attributes: EMPTY_OBJECT,
+				phases: null
+			});
 		}
 	}
 
@@ -1252,17 +1298,29 @@ export default class Module {
 		declaration: ImportDeclaration | ExportNamedDeclaration | ExportAllDeclaration
 	) {
 		const parsedAttributes = getAttributesFromImportExportDeclaration(declaration.attributes);
-		const existingAttributes = this.sourcesWithAttributes.get(source);
-		if (existingAttributes) {
-			if (doAttributesDiffer(existingAttributes, parsedAttributes)) {
+		const sourcePhase = (declaration as ImportDeclaration).phase === 'source';
+		const existingSource = this.sourcesWithAttributesAndPhase.get(source);
+		if (existingSource) {
+			const { attributes, phases } = existingSource;
+			if (doAttributesDiffer(attributes, parsedAttributes)) {
 				this.log(
 					LOGLEVEL_WARN,
-					logInconsistentImportAttributes(existingAttributes, parsedAttributes, source, this.id),
+					logInconsistentImportAttributes(attributes, parsedAttributes, source, this.id),
 					declaration.start
 				);
 			}
+			if (phases === null) {
+				existingSource.phases = sourcePhase ? 'source' : 'instance';
+			} else if (phases === 'source' && !sourcePhase) {
+				existingSource.phases = 'source-and-instance';
+			} else if (phases === 'instance' && sourcePhase) {
+				existingSource.phases = 'source-and-instance';
+			}
 		} else {
-			this.sourcesWithAttributes.set(source, parsedAttributes);
+			this.sourcesWithAttributesAndPhase.set(source, {
+				attributes: parsedAttributes,
+				phases: sourcePhase ? 'source' : 'instance'
+			});
 		}
 	}
 
