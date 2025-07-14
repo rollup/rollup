@@ -16,6 +16,8 @@ runTestSuiteWithSamples(
 		(config.skip ? describe.skip : config.solo ? describe.only : describe)(
 			path.basename(directory) + ': ' + config.description,
 			() => {
+				let bundle;
+
 				if (config.before) {
 					before(config.before);
 				}
@@ -29,17 +31,19 @@ runTestSuiteWithSamples(
 					it('generates ' + format, async () => {
 						process.chdir(directory);
 						const warnings = [];
-						const bundle = await rollup({
-							input: [directory + '/main.js'],
-							onLog: (level, log) => {
-								logs.push({ level, ...log });
-								if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
-									warnings.push(log);
-								}
-							},
-							strictDeprecations: true,
-							...config.options
-						});
+						bundle =
+							bundle ||
+							(await rollup({
+								input: [directory + '/main.js'],
+								onLog: (level, log) => {
+									logs.push({ level, ...log });
+									if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
+										warnings.push(log);
+									}
+								},
+								strictDeprecations: true,
+								...config.options
+							}));
 						await generateAndTestBundle(
 							bundle,
 							{
