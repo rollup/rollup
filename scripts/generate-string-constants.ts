@@ -8,6 +8,7 @@ const targetRustFile = new URL(
 	import.meta.url
 );
 const targetTsFile = new URL('../src/utils/convert-ast-strings.ts', import.meta.url);
+const targetSerializeTsFile = new URL('../src/utils/serialize-ast-strings.ts', import.meta.url);
 
 const stringConstantsTemplate = [
 	['STRING_VAR', 'var'],
@@ -94,7 +95,17 @@ const tsCode =
 	) +
 	`;\n`;
 
+const serializeTsCode =
+	notEditFilesComment +
+	`export default {` +
+	stringConstantsTemplate
+		.map(([_, value], index) => `${JSON.stringify(value)}: ${index},`)
+		.sort()
+		.join('\n') +
+	`};\n`;
+
 await Promise.all([
 	writeFile(targetTsFile, tsCode).then(() => lintTsFile(targetTsFile)),
-	writeFile(targetRustFile, rustCode).then(() => lintRustFile(targetRustFile))
+	writeFile(targetRustFile, rustCode).then(() => lintRustFile(targetRustFile)),
+	writeFile(targetSerializeTsFile, serializeTsCode).then(() => lintTsFile(targetSerializeTsFile))
 ]);
