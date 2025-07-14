@@ -59,9 +59,6 @@ export default class ChildScope extends Scope {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
 				usedNames.add(variable.getBaseVariableName());
-				// if (format === 'system' && exportNamesByVariable.has(variable)) {
-				// 	usedNames.add('exports');
-				// }
 			}
 		}
 		const accessedGlobals = accessedGlobalsByScope.get(this);
