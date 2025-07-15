@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.45.1
+
+_2025-07-15_
+
+### Bug Fixes
+
+- Resolve crash when using certain conditional expressions (#6009)
+
+### Pull Requests
+
+- [#6009](https://github.com/rollup/rollup/pull/6009): Add hasDeoptimizedCache flag for ConditionalExpression (@TrickyPi)
+
 ## 4.45.0
 
 _2025-07-12_
