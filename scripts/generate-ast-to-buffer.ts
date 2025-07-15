@@ -62,7 +62,10 @@ function getNodeSerializerBody({
 	const fieldSerializers: string[] = [];
 	let nextPosition = 3; // 1 for type, 2 for start and end
 	if (flags) {
-		// TODO
+		const flagConverters = flags.map((flag, index) => `((node.${flag} as any) << ${index})`);
+		fieldSerializers.push(
+			`buffer[nodePosition + ${nextPosition}] = ${flagConverters.join(' | ')};`
+		);
 		nextPosition++;
 	}
 	for (const field of fields) {
@@ -100,6 +103,12 @@ function getNodeSerializerBody({
 			case 'FixedString': {
 				fieldSerializers.push(
 					`buffer[nodePosition + ${nextPosition}] = FIXED_STRING_INDICES[node.${fieldName}];`
+				);
+				break;
+			}
+			case 'Annotations': {
+				fieldSerializers.push(
+					`buffer = serializeAnnotations(node.${fieldName}, buffer, nodePosition + ${nextPosition});`
 				);
 				break;
 			}
@@ -188,7 +197,6 @@ function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBuffer
 ): AstBufferForWriting {
 	const { length } = nodes;
 	if (length === 0) {
-		buffer[referencePosition] = 0;
 		return buffer;
 	}
 	let insertPosition = buffer.position;
@@ -202,6 +210,31 @@ function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBuffer
 			buffer[insertPosition + index] = buffer.position;
 			buffer = nodeSerializers[node.type](node as any, buffer);
 		}
+	}
+	return buffer;
+}
+
+function serializeAnnotations(annotations: readonly ast.Annotation[] | undefined, buffer: AstBufferForWriting, referencePosition: number
+): AstBufferForWriting {
+	if (annotations == null) {
+		return buffer;
+	}
+	const { length } = annotations;
+	if (length === 0) {
+		return buffer;
+	}
+	let insertPosition = buffer.position;
+	buffer[referencePosition] = insertPosition;
+	buffer[insertPosition] = length;
+	insertPosition++;
+	buffer.position = insertPosition + length;
+	for (let index = 0; index < length; index++) {
+		const annotation = annotations[index];
+		const annotationPosition = buffer.position;
+		buffer[insertPosition + index] = annotationPosition;
+		buffer[annotationPosition] = annotation.start;
+		buffer[annotationPosition + 1] = annotation.end;
+		buffer[annotationPosition + 2] = FIXED_STRING_INDICES[annotation.type];
 	}
 	return buffer;
 }
