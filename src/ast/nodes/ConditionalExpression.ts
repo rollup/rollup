@@ -34,6 +34,13 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		this.flags = setFlag(this.flags, Flag.isBranchResolutionAnalysed, value);
 	}
 
+	private get hasDeoptimizedCache(): boolean {
+		return isFlagSet(this.flags, Flag.hasDeoptimizedCache);
+	}
+	private set hasDeoptimizedCache(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasDeoptimizedCache, value);
+	}
+
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private usedBranch: ExpressionNode | null = null;
 
@@ -47,6 +54,8 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	deoptimizeCache(): void {
+		if (this.hasDeoptimizedCache) return;
+		this.hasDeoptimizedCache = true;
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
@@ -79,6 +88,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch) {
+			if (this.hasDeoptimizedCache) {
+				return UnknownValue;
+			}
 			const consequentValue = this.consequent.getLiteralValueAtPath(path, recursionTracker, origin);
 			const castedConsequentValue = tryCastLiteralValueToBoolean(consequentValue);
 			if (castedConsequentValue === UnknownValue) return UnknownValue;
