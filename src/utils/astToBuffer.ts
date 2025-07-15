@@ -80,7 +80,9 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 4;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO annotations: Annotations
+		buffer[nodePosition + 3] =
+			((node.async as any) << 0) | ((node.expression as any) << 1) | ((node.generator as any) << 2);
+		buffer = serializeAnnotations(node.annotations, buffer, nodePosition + 4);
 		buffer = serializeNodeList(node.params, buffer, nodePosition + 5);
 		buffer = serializeNode(node.body, buffer, nodePosition + 6);
 		return buffer;
@@ -150,7 +152,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 11;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO annotations: Annotations
+		buffer[nodePosition + 3] = (node.optional as any) << 0;
+		buffer = serializeAnnotations(node.annotations, buffer, nodePosition + 4);
 		buffer = serializeNode(node.callee, buffer, nodePosition + 5);
 		buffer = serializeNodeList(node.arguments, buffer, nodePosition + 6);
 		return buffer;
@@ -323,6 +326,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 30;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = (node.await as any) << 0;
 		buffer = serializeNode(node.left, buffer, nodePosition + 4);
 		buffer = serializeNode(node.right, buffer, nodePosition + 5);
 		buffer = serializeNode(node.body, buffer, nodePosition + 6);
@@ -346,7 +350,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 32;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO annotations: Annotations
+		buffer[nodePosition + 3] = ((node.async as any) << 0) | ((node.generator as any) << 1);
+		buffer = serializeAnnotations(node.annotations, buffer, nodePosition + 4);
 		if (node.id != null) buffer = serializeNode(node.id, buffer, nodePosition + 5);
 		buffer = serializeNodeList(node.params, buffer, nodePosition + 6);
 		buffer = serializeNode(node.body, buffer, nodePosition + 7);
@@ -358,7 +363,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 33;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO annotations: Annotations
+		buffer[nodePosition + 3] = ((node.async as any) << 0) | ((node.generator as any) << 1);
+		buffer = serializeAnnotations(node.annotations, buffer, nodePosition + 4);
 		if (node.id != null) buffer = serializeNode(node.id, buffer, nodePosition + 5);
 		buffer = serializeNodeList(node.params, buffer, nodePosition + 6);
 		buffer = serializeNode(node.body, buffer, nodePosition + 7);
@@ -545,6 +551,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 52;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = (node.selfClosing as any) << 0;
 		buffer = serializeNode(node.name, buffer, nodePosition + 4);
 		buffer = serializeNodeList(node.attributes, buffer, nodePosition + 5);
 		return buffer;
@@ -613,6 +620,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 65;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = ((node.computed as any) << 0) | ((node.optional as any) << 1);
 		buffer = serializeNode(node.object, buffer, nodePosition + 4);
 		buffer = serializeNode(node.property, buffer, nodePosition + 5);
 		return buffer;
@@ -633,6 +641,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 67;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = ((node.static as any) << 0) | ((node.computed as any) << 1);
 		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 4);
 		buffer = serializeNode(node.key, buffer, nodePosition + 5);
 		buffer = serializeNode(node.value, buffer, nodePosition + 6);
@@ -645,7 +654,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 68;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		// TODO annotations: Annotations
+		buffer = serializeAnnotations(node.annotations, buffer, nodePosition + 3);
 		buffer = serializeNode(node.callee, buffer, nodePosition + 4);
 		buffer = serializeNodeList(node.arguments, buffer, nodePosition + 5);
 		return buffer;
@@ -702,7 +711,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
 		buffer = serializeNodeList(node.body, buffer, nodePosition + 3);
-		// TODO invalidAnnotations: Annotations
+		buffer = serializeAnnotations(node.invalidAnnotations, buffer, nodePosition + 4);
 		return buffer;
 	},
 	Property: (node, buffer) => {
@@ -711,6 +720,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 73;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] =
+			((node.method as any) << 0) | ((node.shorthand as any) << 1) | ((node.computed as any) << 2);
 		if (node.key != null) buffer = serializeNode(node.key, buffer, nodePosition + 4);
 		buffer = serializeNode(node.value, buffer, nodePosition + 5);
 		buffer[nodePosition + 6] = FIXED_STRING_INDICES[node.kind];
@@ -722,6 +733,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 74;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = ((node.static as any) << 0) | ((node.computed as any) << 1);
 		buffer = serializeNodeList(node.decorators, buffer, nodePosition + 4);
 		buffer = serializeNode(node.key, buffer, nodePosition + 5);
 		if (node.value != null) buffer = serializeNode(node.value, buffer, nodePosition + 6);
@@ -816,6 +828,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 84;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = (node.tail as any) << 0;
 		if (node.value.cooked != null) {
 			buffer.addStringToBuffer(node.value.cooked, nodePosition + 4);
 		}
@@ -876,6 +889,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 90;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = (node.prefix as any) << 0;
 		buffer[nodePosition + 4] = FIXED_STRING_INDICES[node.operator];
 		buffer = serializeNode(node.argument, buffer, nodePosition + 5);
 		return buffer;
@@ -916,6 +930,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 94;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
+		buffer[nodePosition + 3] = (node.delegate as any) << 0;
 		if (node.argument != null) buffer = serializeNode(node.argument, buffer, nodePosition + 4);
 		return buffer;
 	}
@@ -959,6 +974,7 @@ const serializeLiteralBoolean: NodeSerializer<ast.LiteralBoolean> = (node, buffe
 	buffer[nodePosition] = 59;
 	buffer[nodePosition + 1] = node.start;
 	buffer[nodePosition + 2] = node.end;
+	buffer[nodePosition + 3] = (node.value as any) << 0;
 	return buffer;
 };
 
@@ -1025,7 +1041,6 @@ function serializeNodeList(
 ): AstBufferForWriting {
 	const { length } = nodes;
 	if (length === 0) {
-		buffer[referencePosition] = 0;
 		return buffer;
 	}
 	let insertPosition = buffer.position;
@@ -1039,6 +1054,34 @@ function serializeNodeList(
 			buffer[insertPosition + index] = buffer.position;
 			buffer = nodeSerializers[node.type](node as any, buffer);
 		}
+	}
+	return buffer;
+}
+
+function serializeAnnotations(
+	annotations: readonly ast.Annotation[] | undefined,
+	buffer: AstBufferForWriting,
+	referencePosition: number
+): AstBufferForWriting {
+	if (annotations == null) {
+		return buffer;
+	}
+	const { length } = annotations;
+	if (length === 0) {
+		return buffer;
+	}
+	let insertPosition = buffer.position;
+	buffer[referencePosition] = insertPosition;
+	buffer[insertPosition] = length;
+	insertPosition++;
+	buffer.position = insertPosition + length;
+	for (let index = 0; index < length; index++) {
+		const annotation = annotations[index];
+		const annotationPosition = buffer.position;
+		buffer[insertPosition + index] = annotationPosition;
+		buffer[annotationPosition] = annotation.start;
+		buffer[annotationPosition + 1] = annotation.end;
+		buffer[annotationPosition + 2] = FIXED_STRING_INDICES[annotation.type];
 	}
 	return buffer;
 }
