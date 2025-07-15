@@ -10,6 +10,7 @@ import {
 } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
+import type * as nodes from '../nodes/node-unions';
 import * as NodeType from '../nodes/NodeType';
 import {
 	deoptimizeInteraction,
@@ -20,16 +21,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
-import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import {
-	isArrowFunctionExpressionNode,
-	isCallExpressionNode,
-	isFunctionExpressionNode,
-	isIdentifierNode,
-	isImportExpressionNode,
-	isMemberExpressionNode
-} from '../utils/identifyNode';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
@@ -223,13 +215,13 @@ export default class LocalVariable extends Variable {
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
 				if (!declaration.included) declaration.include(context, false);
-				let node = declaration.parent as Node;
+				let node: nodes.AstNode = declaration.parent;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
 					// in which case .include() might pull in more dead code
 					node.includeNode(context);
 					if (node.type === NodeType.Program) break;
-					node = node.parent as Node;
+					node = node.parent;
 				}
 				/**
 				 * import('foo').then(m => {
@@ -238,13 +230,13 @@ export default class LocalVariable extends Variable {
 				 */
 				if (
 					this.kind === 'parameter' &&
-					(isArrowFunctionExpressionNode(declaration.parent) ||
-						isFunctionExpressionNode(declaration.parent)) &&
-					isCallExpressionNode(declaration.parent.parent) &&
-					isMemberExpressionNode(declaration.parent.parent.callee) &&
-					isIdentifierNode(declaration.parent.parent.callee.property) &&
+					(declaration.parent.type === NodeType.ArrowFunctionExpression ||
+						declaration.parent.type === NodeType.FunctionExpression) &&
+					declaration.parent.parent.type === NodeType.CallExpression &&
+					declaration.parent.parent.callee.type === NodeType.MemberExpression &&
+					declaration.parent.parent.callee.property.type === NodeType.Identifier &&
 					declaration.parent.parent.callee.property.name === 'then' &&
-					isImportExpressionNode(declaration.parent.parent.callee.object)
+					declaration.parent.parent.callee.object.type === NodeType.ImportExpression
 				) {
 					declaration.parent.parent.callee.object.includePath(path);
 				}

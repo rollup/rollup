@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
 	createHasEffectsContext,
@@ -7,18 +8,20 @@ import {
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type SwitchCase from './SwitchCase';
 
-export default class SwitchStatement extends StatementBase {
-	declare cases: readonly SwitchCase[];
-	declare discriminant: ExpressionNode;
-	declare type: NodeType.tSwitchStatement;
+export default class SwitchStatement extends NodeBase<ast.SwitchStatement> {
+	parent!: nodes.SwitchStatementParent;
+	cases!: readonly SwitchCase[];
+	discriminant!: nodes.Expression;
+	type!: NodeType.tSwitchStatement;
 
-	declare parentScope: ChildScope;
-	declare private defaultCase: number | null;
+	parentScope!: ChildScope;
+	private defaultCase!: number | null;
 
 	createScope(parentScope: ChildScope): void {
 		this.parentScope = parentScope;
@@ -91,11 +94,11 @@ export default class SwitchStatement extends StatementBase {
 		this.defaultCase = null;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: ast.SwitchStatement): this {
 		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
 			this,
 			this.parentScope
-		).parseNode(esTreeNode.discriminant);
+		).parseNode(esTreeNode.discriminant as any);
 		return super.parseNode(esTreeNode);
 	}
 
