@@ -228,6 +228,10 @@ export type ParseAstAsync = (
 	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
 ) => Promise<ast.Program>;
 
+export type ConvertBufferToAst = (buffer: Buffer | Uint8Array, position?: number) => ast.AstNode;
+
+export type ConvertAstToBuffer = (node: ast.AstNode) => Buffer;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
