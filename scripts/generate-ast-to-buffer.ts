@@ -113,7 +113,7 @@ function getNodeSerializerBody({
 				break;
 			}
 			default: {
-				fieldSerializers.push(`// TODO ${fieldName}: ${field.type}`);
+				throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 			}
 		}
 		nextPosition += 1;
@@ -128,7 +128,6 @@ function getNodeSerializerBody({
 		}`;
 }
 
-// language=TypeScript
 const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
@@ -143,10 +142,10 @@ type NodeSerializer<T extends ast.AstNode> = (
 
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
-export function serializeProgram(program: ast.Program): Uint32Array {
+export function serializeAst(node: ast.AstNode): Uint8Array | Buffer {
 	const initialBuffer = createAstBuffer(INITIAL_BUFFER_SIZE);
-	const buffer = nodeSerializers[program.type](program, initialBuffer);
-	return buffer.slice(0, buffer.position);
+	const buffer = nodeSerializers[node.type](node as any, initialBuffer);
+	return buffer.byteBuffer.slice(0, buffer.position << 2);
 }
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
