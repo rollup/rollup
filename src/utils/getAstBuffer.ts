@@ -4,6 +4,7 @@ type ConvertString = (position: number) => string;
 export type AstBufferForWriting = Uint32Array & {
 	addStringToBuffer: AddStringToBuffer;
 	position: number;
+	byteBuffer: Uint8Array | Buffer;
 };
 
 type AddStringToBuffer = (text: string, referencePosition: number) => AstBufferForWriting;
@@ -32,7 +33,7 @@ export function createAstBuffer(uInt32Size: number): AstBufferForWriting {
 	const buffer = new Uint32Array(uInt32Size) as AstBufferForWriting;
 	let addStringToBuffer: AddStringToBuffer;
 	if (typeof Buffer !== 'undefined') {
-		const byteBuffer = Buffer.from(buffer.buffer);
+		const byteBuffer = (buffer.byteBuffer = Buffer.from(buffer.buffer));
 		addStringToBuffer = (text, referencePosition) => {
 			const insertPosition = buffer.position;
 			buffer[referencePosition] = insertPosition;
@@ -45,14 +46,14 @@ export function createAstBuffer(uInt32Size: number): AstBufferForWriting {
 		};
 	} else {
 		const encoder = new TextEncoder();
-		const byteArray = new Uint8Array(buffer.buffer);
+		const byteBuffer = (buffer.byteBuffer = new Uint8Array(buffer.buffer));
 		addStringToBuffer = (text, referencePosition) => {
 			const insertPosition = buffer.position;
 			buffer[referencePosition] = insertPosition;
 			const textBytePosition = (insertPosition + 1) << 2;
 			const encoded = encoder.encode(text);
 			const encodedLength = encoded.length;
-			byteArray.set(encoded, textBytePosition);
+			byteBuffer.set(encoded, textBytePosition);
 			buffer[insertPosition] = encodedLength;
 			// Round up to the next 4-byte boundary
 			buffer.position = (textBytePosition + encodedLength + 3) >> 2;

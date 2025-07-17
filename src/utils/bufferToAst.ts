@@ -9,8 +9,8 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-export function convertProgram(buffer: AstBuffer): ast.Program {
-	const node = convertNode(0, buffer);
+export function convertAst(position: number, buffer: AstBuffer): ast.AstNode {
+	const node = convertNode(position, buffer);
 	switch (node.type) {
 		case PanicError: {
 			return error(getRollupError(logParseError(node.message)));
