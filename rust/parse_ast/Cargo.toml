@@ -16,3 +16,4 @@ swc_ecma_parser = "15.0.2"
 parking_lot = "0.12.4"
 # Pin until issue build issue on some targets is resolved
 hstr = "=1.0.0"
+
