@@ -200,7 +200,7 @@
     "vitepress": "^1.6.3",
     "vue": "^3.5.17",
     "vue-eslint-parser": "^10.2.0",
-    "vue-tsc": "^2.2.10",
+    "vue-tsc": "^2.2.12",
     "wasm-pack": "^0.13.1",
     "yargs-parser": "^21.1.1"
   },
