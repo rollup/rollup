@@ -212,21 +212,31 @@ export type LoggingFunctionWithPosition = (
 	pos?: number | { column: number; line: number }
 ) => void;
 
-export type ParseAst = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => ast.Program;
-
 // declare AbortSignal here for environments without DOM lib or @types/node
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 	interface AbortSignal {}
 }
 
+export type ParseAst = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+) => ast.Program;
+
 export type ParseAstAsync = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
 ) => Promise<ast.Program>;
+
+export type ParseBuffer = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+) => Buffer;
+
+export type ParseBufferAsync = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
+) => Promise<Buffer>;
 
 export type ConvertBufferToAst = (buffer: Buffer | Uint8Array, position?: number) => ast.AstNode;
 

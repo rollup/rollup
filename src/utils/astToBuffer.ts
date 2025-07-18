@@ -996,7 +996,7 @@ const serializeLiteralNumber: NodeSerializer<ast.LiteralNumber> = (node, buffer)
 	if (node.raw != null) {
 		buffer.addStringToBuffer(node.raw, nodePosition + 3);
 	}
-	new DataView(buffer.buffer).setFloat64((nodePosition + 4) << 2, node.value);
+	new DataView(buffer.buffer).setFloat64((nodePosition + 4) << 2, node.value, true);
 	return buffer;
 };
 
@@ -1030,7 +1030,6 @@ function serializeNode(
 	referencePosition: number
 ): AstBufferForWriting {
 	buffer[referencePosition] = buffer.position;
-	buffer.position++;
 	return nodeSerializers[node.type](node as any, buffer);
 }
 
