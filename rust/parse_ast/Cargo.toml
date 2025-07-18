@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.98"
-swc_atoms = "7.0.0"
-swc_compiler_base = "28.0.0"
+swc_atoms = "5.0.0"
+swc_compiler_base = "23.0.2"
 swc_config = "3.1.1"
-swc_common = { version = "14.0.0", features = ["parking_lot"] }
-swc_ecma_ast = "14.0.0"
-swc_ecma_parser = "20.0.0"
+swc_common = { version = "12.0.1", features = ["parking_lot"] }
+swc_ecma_ast = "12.0.0"
+swc_ecma_parser = "15.0.2"
 parking_lot = "0.12.4"
 # Pin until issue build issue on some targets is resolved
-hstr = "=2.0.0"
+hstr = "=1.0.0"
