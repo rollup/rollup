@@ -95,7 +95,7 @@ function getNodeSerializerBody({
 			}
 			case 'Float': {
 				fieldSerializers.push(
-					`new DataView(buffer.buffer).setFloat64((nodePosition + ${nextPosition}) << 2, node.${fieldName});`
+					`new DataView(buffer.buffer).setFloat64((nodePosition + ${nextPosition}) << 2, node.${fieldName}, true);`
 				);
 				nextPosition += 1; // Float64 takes 8 bytes
 				break;
@@ -185,10 +185,10 @@ const nodeSerializers: NodeSerializers = {
 
 ${nonCanonicalSerializers}
 
+// TODO Lukas inline?
 function serializeNode(node: AstNode, buffer: AstBufferForWriting, referencePosition: number
 ): AstBufferForWriting {
 	buffer[referencePosition] = buffer.position;
-	buffer.position++;
 	return nodeSerializers[node.type](node as any, buffer);
 }
 

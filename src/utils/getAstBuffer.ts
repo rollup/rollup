@@ -9,21 +9,21 @@ export type AstBufferForWriting = Uint32Array & {
 
 type AddStringToBuffer = (text: string, referencePosition: number) => AstBufferForWriting;
 
-export function getAstBuffer(astBuffer: Buffer | Uint8Array): AstBuffer {
-	const array = new Uint32Array(astBuffer.buffer);
+export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
+	const array = new Uint32Array(byteBuffer.buffer);
 	let convertString: ConvertString;
-	if (typeof Buffer !== 'undefined' && astBuffer instanceof Buffer) {
+	if (typeof Buffer !== 'undefined' && byteBuffer instanceof Buffer) {
 		convertString = position => {
 			const length = array[position];
 			const bytePosition = (position + 1) << 2;
-			return astBuffer.toString('utf8', bytePosition, bytePosition + length);
+			return byteBuffer.toString('utf8', bytePosition, bytePosition + length);
 		};
 	} else {
 		const textDecoder = new TextDecoder();
 		convertString = position => {
 			const length = array[position];
 			const bytePosition = (position + 1) << 2;
-			return textDecoder.decode(astBuffer.subarray(bytePosition, bytePosition + length));
+			return textDecoder.decode(byteBuffer.subarray(bytePosition, bytePosition + length));
 		};
 	}
 	return Object.assign(array, { convertString });
@@ -60,5 +60,5 @@ export function createAstBuffer(uInt32Size: number): AstBufferForWriting {
 			return buffer;
 		};
 	}
-	return Object.assign(buffer, { addStringToBuffer });
+	return Object.assign(buffer, { addStringToBuffer, position: 0 });
 }

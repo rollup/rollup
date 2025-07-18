@@ -25,6 +25,7 @@ const { Parser } = require('acorn');
 const { importAssertions } = require('acorn-import-assertions');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
+const { convertAstToBuffer, convertBufferToAst, parseBuffer } = require('../dist/parseAst');
 
 if (!globalThis.defineTest) {
 	globalThis.defineTest = config => config;
@@ -475,6 +476,10 @@ exports.verifyAstPlugin = {
 			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
 		);
+		assert.deepStrictEqual(convertBufferToAst(convertAstToBuffer(ast)), ast);
+		// console.log(JSON.stringify(new Uint32Array(parseBuffer(code).buffer)));
+		// console.log(JSON.stringify(new Uint32Array(convertAstToBuffer(ast).buffer)));
+		assert.deepStrictEqual(convertAstToBuffer(ast), parseBuffer(code));
 	}
 };
 
