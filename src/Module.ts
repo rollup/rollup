@@ -144,7 +144,7 @@ export interface AstContext {
 	newlyIncludedVariableInits: Set<ExpressionEntity>;
 	options: NormalizedInputOptions;
 	requestTreeshakingPass: () => void;
-	traceExport: (name: string) => Variable | null;
+	traceExport: (name: string) => [variable: Variable | null, options?: VariableOptions];
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
 }
@@ -167,7 +167,7 @@ function getVariableForExportNameRecursive(
 	importerForSideEffects: Module | undefined,
 	isExportAllSearch: boolean | undefined,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
-): [variable: Variable | null, indirectExternal?: boolean] {
+): [variable: Variable | null, options?: VariableOptions] {
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
 		if (searchedModules.has(target)) {
@@ -271,7 +271,7 @@ export default class Module {
 	private readonly exports = new Map<string, ExportDescription>();
 	private readonly namespaceReexportsByName = new Map<
 		string,
-		[variable: Variable | null, indirectExternal?: boolean]
+		[variable: Variable | null, options?: VariableOptions]
 	>();
 	private readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
@@ -604,7 +604,7 @@ export default class Module {
 			onlyExplicit?: boolean;
 			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
 		} = EMPTY_OBJECT
-	): [variable: Variable | null, indirectExternal?: boolean] {
+	): [variable: Variable | null, options?: VariableOptions] {
 		if (name[0] === '*') {
 			if (name.length === 1) {
 				// export * from './other'
@@ -618,7 +618,7 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexportDescriptions.get(name);
 		if (reexportDeclaration) {
-			const [variable] = getVariableForExportNameRecursive(
+			const [variable, options] = getVariableForExportNameRecursive(
 				reexportDeclaration.module,
 				reexportDeclaration.localName,
 				importerForSideEffects,
@@ -627,7 +627,12 @@ export default class Module {
 			);
 			if (!variable) {
 				return this.error(
-					logMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
+					logMissingExport(
+						reexportDeclaration.localName,
+						this.id,
+						reexportDeclaration.module.id,
+						!!options?.missingButExportExists
+					),
 					reexportDeclaration.start
 				);
 			}
@@ -653,7 +658,10 @@ export default class Module {
 			const variable = this.traceVariable(name, {
 				importerForSideEffects,
 				searchedNamesAndModules
-			})!;
+			});
+			if (!variable) {
+				return [null, { missingButExportExists: true }];
+			}
 			if (importerForSideEffects) {
 				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
 				getOrCreate(
@@ -903,7 +911,7 @@ export default class Module {
 			newlyIncludedVariableInits: this.graph.newlyIncludedVariableInits,
 			options: this.options,
 			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
-			traceExport: (name: string) => this.getVariableForExportName(name)[0],
+			traceExport: (name: string) => this.getVariableForExportName(name),
 			traceVariable: this.traceVariable.bind(this),
 			usesTopLevelAwait: false
 		};
@@ -996,7 +1004,7 @@ export default class Module {
 				return otherModule.namespace;
 			}
 
-			const [declaration] = getVariableForExportNameRecursive(
+			const [declaration, options] = getVariableForExportNameRecursive(
 				otherModule,
 				importDescription.name,
 				importerForSideEffects || this,
@@ -1006,7 +1014,12 @@ export default class Module {
 
 			if (!declaration) {
 				return this.error(
-					logMissingExport(importDescription.name, this.id, otherModule.id),
+					logMissingExport(
+						importDescription.name,
+						this.id,
+						otherModule.id,
+						!!options?.missingButExportExists
+					),
 					importDescription.start
 				);
 			}
@@ -1271,7 +1284,7 @@ export default class Module {
 		name: string,
 		importerForSideEffects?: Module,
 		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
-	): [variable: Variable | null, indirectExternal?: boolean] {
+	): [variable: Variable | null, options?: VariableOptions] {
 		let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
 		const foundInternalDeclarations = new Map<Variable, Module>();
 		const foundExternalDeclarations = new Set<ExternalVariable>();
@@ -1280,7 +1293,7 @@ export default class Module {
 			if (module.info.syntheticNamedExports === name) {
 				continue;
 			}
-			const [variable, indirectExternal] = getVariableForExportNameRecursive(
+			const [variable, options] = getVariableForExportNameRecursive(
 				module,
 				name,
 				importerForSideEffects,
@@ -1290,7 +1303,7 @@ export default class Module {
 				copyNameToModulesMap(searchedNamesAndModules)
 			);
 
-			if (module instanceof ExternalModule || indirectExternal) {
+			if (module instanceof ExternalModule || options?.indirectExternal) {
 				foundExternalDeclarations.add(variable as ExternalVariable);
 			} else if (variable instanceof SyntheticNamedExportVariable) {
 				if (!foundSyntheticDeclaration) {
@@ -1331,7 +1344,7 @@ export default class Module {
 					)
 				);
 			}
-			return [usedDeclaration, true];
+			return [usedDeclaration, { indirectExternal: true }];
 		}
 		if (foundSyntheticDeclaration) {
 			return [foundSyntheticDeclaration];
@@ -1461,3 +1474,8 @@ const copyNameToModulesMap = (
 ): Map<string, Set<Module | ExternalModule>> | undefined =>
 	searchedNamesAndModules &&
 	new Map(Array.from(searchedNamesAndModules, ([name, modules]) => [name, new Set(modules)]));
+
+interface VariableOptions {
+	indirectExternal?: boolean;
+	missingButExportExists?: boolean;
+}
