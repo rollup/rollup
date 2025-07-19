@@ -603,13 +603,18 @@ function resolveNamespaceVariables(
 	if (path.length === 0) return baseVariable;
 	if (!baseVariable.isNamespace || baseVariable instanceof ExternalVariable) return null;
 	const exportName = path[0].key;
-	const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
+	const [variable, options] = (baseVariable as NamespaceVariable).context.traceExport(exportName);
 	if (!variable) {
 		if (path.length === 1) {
 			const fileName = (baseVariable as NamespaceVariable).context.fileName;
 			astContext.log(
 				LOGLEVEL_WARN,
-				logMissingExport(exportName, astContext.module.id, fileName),
+				logMissingExport(
+					exportName,
+					astContext.module.id,
+					fileName,
+					!!options?.missingButExportExists
+				),
 				path[0].pos
 			);
 			return 'undefined';

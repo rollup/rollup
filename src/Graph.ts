@@ -228,15 +228,22 @@ export default class Graph {
 	private warnForMissingExports(): void {
 		for (const module of this.modules) {
 			for (const importDescription of module.importDescriptions.values()) {
-				if (
-					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)[0]
-				) {
-					module.log(
-						LOGLEVEL_WARN,
-						logMissingExport(importDescription.name, module.id, importDescription.module.id),
-						importDescription.start
+				if (importDescription.name !== '*') {
+					const [variable, options] = importDescription.module.getVariableForExportName(
+						importDescription.name
 					);
+					if (!variable) {
+						module.log(
+							LOGLEVEL_WARN,
+							logMissingExport(
+								importDescription.name,
+								module.id,
+								importDescription.module.id,
+								!!options?.missingButExportExists
+							),
+							importDescription.start
+						);
+					}
 				}
 			}
 		}
