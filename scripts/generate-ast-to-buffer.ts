@@ -57,7 +57,7 @@ function getNodeSerializerBody({
 	index,
 	fields,
 	flags,
-	node: { serializeHiddenFields }
+	node: { optionalFallback, serializeHiddenFields }
 }: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
 	let nextPosition = 3; // 1 for type, 2 for start and end
@@ -74,7 +74,11 @@ function getNodeSerializerBody({
 			case 'Node': {
 				let fieldSerializer = `buffer = serializeNode(node.${fieldName}, buffer, nodePosition + ${nextPosition});`;
 				if (field.allowNull) {
-					fieldSerializer = `if (node.${fieldName} != null) ${fieldSerializer}`;
+					if (optionalFallback?.[fieldName]) {
+						fieldSerializer = `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
+					} else {
+						fieldSerializer = `if (node.${fieldName} != null) ${fieldSerializer}`;
+					}
 				}
 				fieldSerializers.push(fieldSerializer);
 				break;
@@ -143,9 +147,19 @@ type NodeSerializer<T extends ast.AstNode> = (
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
 export function serializeAst(node: ast.AstNode): Uint8Array | Buffer {
-	const initialBuffer = createAstBuffer(INITIAL_BUFFER_SIZE);
-	const buffer = nodeSerializers[node.type](node as any, initialBuffer);
-	return buffer.byteBuffer.slice(0, buffer.position << 2);
+  const initialBuffer = createAstBuffer(INITIAL_BUFFER_SIZE);
+  const buffer = nodeSerializers[node.type](node as any, initialBuffer);
+  const byteSize = buffer.position << 2;
+  if (typeof Buffer === 'undefined') {
+    // For "real" Uint8Arrays, this actually copies the memory while for a
+    // Buffer, this would just return a view of the same memory.
+    return buffer.byteBuffer.slice(0, byteSize);
+  }
+  // The "slow" version will allocate exactly the needed size and is preferable
+  // for long-term memory usage.
+  const truncatedBuffer = Buffer.allocUnsafeSlow(byteSize);
+  (buffer.byteBuffer as Buffer).copy(truncatedBuffer, 0, 0, byteSize);
+  return truncatedBuffer;
 }
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
@@ -185,7 +199,6 @@ const nodeSerializers: NodeSerializers = {
 
 ${nonCanonicalSerializers}
 
-// TODO Lukas inline?
 function serializeNode(node: AstNode, buffer: AstBufferForWriting, referencePosition: number
 ): AstBufferForWriting {
 	buffer[referencePosition] = buffer.position;
@@ -213,29 +226,33 @@ function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBuffer
 	return buffer;
 }
 
-function serializeAnnotations(annotations: readonly ast.Annotation[] | undefined, buffer: AstBufferForWriting, referencePosition: number
+function serializeAnnotations(
+  annotations: readonly ast.Annotation[] | undefined,
+  buffer: AstBufferForWriting,
+  referencePosition: number
 ): AstBufferForWriting {
-	if (annotations == null) {
-		return buffer;
-	}
-	const { length } = annotations;
-	if (length === 0) {
-		return buffer;
-	}
-	let insertPosition = buffer.position;
-	buffer[referencePosition] = insertPosition;
-	buffer[insertPosition] = length;
-	insertPosition++;
-	buffer.position = insertPosition + length;
-	for (let index = 0; index < length; index++) {
-		const annotation = annotations[index];
-		const annotationPosition = buffer.position;
-		buffer[insertPosition + index] = annotationPosition;
-		buffer[annotationPosition] = annotation.start;
-		buffer[annotationPosition + 1] = annotation.end;
-		buffer[annotationPosition + 2] = FIXED_STRING_INDICES[annotation.type];
-	}
-	return buffer;
+  if (annotations == null) {
+    return buffer;
+  }
+  const { length } = annotations;
+  if (length === 0) {
+    return buffer;
+  }
+  let insertPosition = buffer.position;
+  buffer[referencePosition] = insertPosition;
+  buffer[insertPosition] = length;
+  insertPosition++;
+  buffer.position = insertPosition + length;
+  for (let index = 0; index < length; index++) {
+    const annotation = annotations[index];
+    const annotationPosition = buffer.position;
+    buffer.position += 3; // 3 for start, end, type
+    buffer[insertPosition + index] = annotationPosition;
+    buffer[annotationPosition] = annotation.start;
+    buffer[annotationPosition + 1] = annotation.end;
+    buffer[annotationPosition + 2] = FIXED_STRING_INDICES[annotation.type];
+  }
+  return buffer;
 }
 `;
 
