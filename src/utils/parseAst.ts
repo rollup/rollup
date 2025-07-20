@@ -4,9 +4,7 @@ import type {
 	ConvertAstToBuffer,
 	ConvertBufferToAst,
 	ParseAst,
-	ParseAstAsync,
-	ParseBuffer,
-	ParseBufferAsync
+	ParseAstAsync
 } from '../rollup/types';
 import { serializeAst } from './astToBuffer';
 import { convertAst } from './bufferToAst';
@@ -25,16 +23,6 @@ export const parseAstAsync: ParseAstAsync = async (
 		0,
 		getAstBuffer(await parseAsync(input, allowReturnOutsideFunction, jsx, signal))
 	) as ast.Program;
-
-export const parseBuffer: ParseBuffer = (
-	input,
-	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) => parse(input, allowReturnOutsideFunction, jsx);
-
-export const parseBufferAsync: ParseBufferAsync = async (
-	input,
-	{ allowReturnOutsideFunction = false, jsx = false, signal } = {}
-) => parseAsync(input, allowReturnOutsideFunction, jsx, signal);
 
 export const convertBufferToAst: ConvertBufferToAst = (buffer, position = 0) =>
 	convertAst(position, getAstBuffer(buffer));
