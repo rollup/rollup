@@ -228,16 +228,6 @@ export type ParseAstAsync = (
 	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
 ) => Promise<ast.Program>;
 
-export type ParseBuffer = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => Buffer;
-
-export type ParseBufferAsync = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
-) => Promise<Buffer>;
-
 export type ConvertBufferToAst = (buffer: Buffer | Uint8Array, position?: number) => ast.AstNode;
 
 export type ConvertAstToBuffer = (node: ast.AstNode) => Buffer;

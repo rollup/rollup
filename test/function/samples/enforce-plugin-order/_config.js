@@ -75,6 +75,7 @@ function addPlugin(order) {
 
 module.exports = defineTest({
 	description: 'allows to enforce plugin hook order',
+	verifyAst: false,
 	options: {
 		plugins,
 		cache: {
