@@ -17,7 +17,17 @@ const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 export function serializeAst(node: ast.AstNode): Uint8Array | Buffer {
 	const initialBuffer = createAstBuffer(INITIAL_BUFFER_SIZE);
 	const buffer = nodeSerializers[node.type](node as any, initialBuffer);
-	return buffer.byteBuffer.slice(0, buffer.position << 2);
+	const byteSize = buffer.position << 2;
+	if (typeof Buffer === 'undefined') {
+		// For "real" Uint8Arrays, this actually copies the memory while for a
+		// Buffer, this would just return a view of the same memory.
+		return buffer.byteBuffer.slice(0, byteSize);
+	}
+	// The "slow" version will allocate exactly the needed size and is preferable
+	// for long-term memory usage.
+	const truncatedBuffer = Buffer.allocUnsafeSlow(byteSize);
+	(buffer.byteBuffer as Buffer).copy(truncatedBuffer, 0, 0, byteSize);
+	return truncatedBuffer;
 }
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive> = (
@@ -305,7 +315,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
 		buffer = serializeNode(node.local, buffer, nodePosition + 3);
-		if (node.exported != null) buffer = serializeNode(node.exported, buffer, nodePosition + 4);
+		if (node.exported.end != node.local.end)
+			buffer = serializeNode(node.exported, buffer, nodePosition + 4);
 		return buffer;
 	},
 	ExpressionStatement: serializeExpressionStatementNode,
@@ -445,7 +456,8 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition] = 41;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
-		if (node.imported != null) buffer = serializeNode(node.imported, buffer, nodePosition + 3);
+		if (node.imported.end != node.local.end)
+			buffer = serializeNode(node.imported, buffer, nodePosition + 3);
 		buffer = serializeNode(node.local, buffer, nodePosition + 4);
 		return buffer;
 	},
@@ -722,7 +734,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 2] = node.end;
 		buffer[nodePosition + 3] =
 			((node.method as any) << 0) | ((node.shorthand as any) << 1) | ((node.computed as any) << 2);
-		if (node.key != null) buffer = serializeNode(node.key, buffer, nodePosition + 4);
+		if (node.key.end != node.value.end) buffer = serializeNode(node.key, buffer, nodePosition + 4);
 		buffer = serializeNode(node.value, buffer, nodePosition + 5);
 		buffer[nodePosition + 6] = FIXED_STRING_INDICES[node.kind];
 		return buffer;
@@ -1077,6 +1089,7 @@ function serializeAnnotations(
 	for (let index = 0; index < length; index++) {
 		const annotation = annotations[index];
 		const annotationPosition = buffer.position;
+		buffer.position += 3; // 3 for start, end, type
 		buffer[insertPosition + index] = annotationPosition;
 		buffer[annotationPosition] = annotation.start;
 		buffer[annotationPosition + 1] = annotation.end;
