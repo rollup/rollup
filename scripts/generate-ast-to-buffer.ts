@@ -90,7 +90,7 @@ function getNodeSerializerBody({
 				break;
 			}
 			case 'String': {
-				let fieldSerializer = `buffer.addStringToBuffer(node.${fieldName}, nodePosition + ${nextPosition});`;
+				let fieldSerializer = `buffer = buffer.addStringToBuffer(node.${fieldName}, nodePosition + ${nextPosition});`;
 				if (field.optional) {
 					fieldSerializer = `if (node.${fieldName} != null) { ${fieldSerializer} }`;
 				}
@@ -123,8 +123,8 @@ function getNodeSerializerBody({
 		nextPosition += 1;
 	}
 	return `{
-		const nodePosition = buffer.position;
-		  buffer.position = nodePosition + ${nextPosition};
+		  const nodePosition = buffer.position;
+		  buffer = buffer.reserve(${nextPosition});
 		  buffer[nodePosition] = ${index};
 		  buffer[nodePosition + 1] = node.start;
 		  buffer[nodePosition + 2] = node.end;
@@ -136,7 +136,7 @@ const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
-import { createAstBuffer } from './getAstBuffer';
+import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
 import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
 type NodeSerializer<T extends ast.AstNode> = (
@@ -147,19 +147,11 @@ type NodeSerializer<T extends ast.AstNode> = (
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
 export function serializeAst(node: ast.AstNode): Uint8Array | Buffer {
-  const initialBuffer = createAstBuffer(INITIAL_BUFFER_SIZE);
+  const initialBuffer = (
+    typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
+  )(INITIAL_BUFFER_SIZE);
   const buffer = nodeSerializers[node.type](node as any, initialBuffer);
-  const byteSize = buffer.position << 2;
-  if (typeof Buffer === 'undefined') {
-    // For "real" Uint8Arrays, this actually copies the memory while for a
-    // Buffer, this would just return a view of the same memory.
-    return buffer.byteBuffer.slice(0, byteSize);
-  }
-  // The "slow" version will allocate exactly the needed size and is preferable
-  // for long-term memory usage.
-  const truncatedBuffer = Buffer.allocUnsafeSlow(byteSize);
-  (buffer.byteBuffer as Buffer).copy(truncatedBuffer, 0, 0, byteSize);
-  return truncatedBuffer;
+  return buffer.toOutput();
 }
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
@@ -212,10 +204,10 @@ function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBuffer
 		return buffer;
 	}
 	let insertPosition = buffer.position;
+	buffer = buffer.reserve(length + 1);
 	buffer[referencePosition] = insertPosition;
 	buffer[insertPosition] = length;
 	insertPosition++;
-	buffer.position = insertPosition + length;
 	for (let index = 0; index < length; index++) {
 		const node = nodes[index];
 		if (node != null) {
@@ -239,14 +231,14 @@ function serializeAnnotations(
     return buffer;
   }
   let insertPosition = buffer.position;
+  buffer = buffer.reserve(length + 1);
   buffer[referencePosition] = insertPosition;
   buffer[insertPosition] = length;
   insertPosition++;
-  buffer.position = insertPosition + length;
   for (let index = 0; index < length; index++) {
     const annotation = annotations[index];
     const annotationPosition = buffer.position;
-    buffer.position += 3; // 3 for start, end, type
+    buffer = buffer.reserve(3); // 3 for start, end, type
     buffer[insertPosition + index] = annotationPosition;
     buffer[annotationPosition] = annotation.start;
     buffer[annotationPosition + 1] = annotation.end;
