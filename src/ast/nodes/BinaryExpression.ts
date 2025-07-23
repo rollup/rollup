@@ -22,7 +22,12 @@ import {
 	type LiteralValueOrUnknown,
 	UnknownValue
 } from './shared/Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	doNotDeoptimize,
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase
+} from './shared/Node';
 
 type Operator =
 	| '!='
@@ -139,13 +144,6 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
-	applyDeoptimizations(): void {
-		this.deoptimized = true;
-		if (this.operator !== 'in' || !this.right.variable?.isNamespace) {
-			this.scope.context.requestTreeshakingPass();
-		}
-	}
-
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
@@ -182,3 +180,5 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 }
+
+BinaryExpression.prototype.applyDeoptimizations = doNotDeoptimize;
