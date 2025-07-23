@@ -10,6 +10,7 @@ import {
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
+import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
@@ -141,34 +142,5 @@ export default class UnaryExpression extends NodeBase {
 }
 
 const CHARACTERS_THAT_DO_NOT_REQUIRE_SPACE = /[\s([=%&*+-/<>^|,?:;]/;
-
-function getRenderedLiteralValue(value: unknown) {
-	if (value === undefined) {
-		// At the moment, the undefined only happens when the operator is void
-		return 'void 0';
-	}
-	if (typeof value === 'boolean') {
-		return String(value);
-	}
-	if (typeof value === 'string') {
-		return JSON.stringify(value);
-	}
-	if (typeof value === 'number') {
-		return getSimplifiedNumber(value);
-	}
-	return UnknownValue;
-}
-
-function getSimplifiedNumber(value: number) {
-	if (Object.is(-0, value)) {
-		return '-0';
-	}
-	const exp = value.toExponential();
-	const [base, exponent] = exp.split('e');
-	const floatLength = base.split('.')[1]?.length || 0;
-	const finalizedExp = `${base.replace('.', '')}e${parseInt(exponent) - floatLength}`;
-	const stringifiedValue = String(value).replace('+', '');
-	return finalizedExp.length < stringifiedValue.length ? finalizedExp : stringifiedValue;
-}
 
 UnaryExpression.prototype.includeNode = onlyIncludeSelf;

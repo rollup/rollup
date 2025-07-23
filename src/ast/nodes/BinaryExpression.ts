@@ -12,11 +12,17 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
+import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
+import type NamespaceVariable from '../variables/NamespaceVariable';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { doNotDeoptimize, type ExpressionNode, NodeBase } from './shared/Node';
+import {
+	type InclusionOptions,
+	type LiteralValueOrUnknown,
+	UnknownValue
+} from './shared/Expression';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 type Operator =
 	| '!='
@@ -71,13 +77,18 @@ const binaryOperators: Partial<
 	// instanceof: () => UnknownValue,
 };
 
+const UNASSIGNED = Symbol('Unassigned');
+
 export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
 	declare left: ExpressionNode;
 	declare operator: keyof typeof binaryOperators;
 	declare right: ExpressionNode;
 	declare type: NodeType.tBinaryExpression;
+	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 
-	deoptimizeCache(): void {}
+	deoptimizeCache(): void {
+		this.renderedLiteralValue = UNASSIGNED;
+	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -88,6 +99,11 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (typeof leftValue === 'symbol') return UnknownValue;
 
+		// Optimize `'export' in namespace`
+		if (this.operator === 'in' && this.right.variable?.isNamespace) {
+			return !!(this.right.variable as NamespaceVariable).context.traceExport(String(leftValue));
+		}
+
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (typeof rightValue === 'symbol') return UnknownValue;
 
@@ -95,6 +111,16 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		if (!operatorFunction) return UnknownValue;
 
 		return operatorFunction(leftValue, rightValue);
+	}
+
+	getRenderedLiteralValue() {
+		// Only optimize `'export' in ns`
+		if (this.operator !== 'in' || !this.right.variable?.isNamespace) return UnknownValue;
+
+		if (this.renderedLiteralValue !== UNASSIGNED) return this.renderedLiteralValue;
+		return (this.renderedLiteralValue = getRenderedLiteralValue(
+			this.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
+		));
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -113,9 +139,27 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
+	applyDeoptimizations(): void {
+		this.deoptimized = true;
+		if (this.operator !== 'in' || !this.right.variable?.isNamespace) {
+			this.scope.context.requestTreeshakingPass();
+		}
+	}
+
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		_options?: InclusionOptions
+	) {
+		this.included = true;
+		if (typeof this.getRenderedLiteralValue() === 'symbol') {
+			super.include(context, includeChildrenRecursively, _options);
+		}
+	}
+
 	includeNode(context: InclusionContext) {
 		this.included = true;
-		if (this.operator === 'in') {
+		if (this.operator === 'in' && typeof this.getRenderedLiteralValue() === 'symbol') {
 			this.right.includePath(UNKNOWN_PATH, context);
 		}
 	}
@@ -129,9 +173,12 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		options: RenderOptions,
 		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		this.left.render(code, options, { renderedSurroundingElement });
-		this.right.render(code, options);
+		const renderedLiteralValue = this.getRenderedLiteralValue();
+		if (typeof renderedLiteralValue !== 'symbol') {
+			code.overwrite(this.start, this.end, renderedLiteralValue);
+		} else {
+			this.left.render(code, options, { renderedSurroundingElement });
+			this.right.render(code, options);
+		}
 	}
 }
-
-BinaryExpression.prototype.applyDeoptimizations = doNotDeoptimize;
