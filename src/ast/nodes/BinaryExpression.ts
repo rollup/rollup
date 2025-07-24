@@ -92,7 +92,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 
 	deoptimizeCache(): void {
-		this.renderedLiteralValue = UNASSIGNED;
+		this.renderedLiteralValue = UnknownValue;
 	}
 
 	getLiteralValueAtPath(
