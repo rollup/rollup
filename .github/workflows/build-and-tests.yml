@@ -95,10 +95,7 @@ jobs:
             build: RUSTFLAGS="-C target-feature=+crt-static" npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
           - host: windows-latest
-            build: >-
-              set -e &&
-              rustup target add i686-pc-windows-msvc &&
-              npm run build:napi -- --release --target i686-pc-windows-msvc
+            build: npm run build:napi -- --release --target i686-pc-windows-msvc
             target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
@@ -107,78 +104,44 @@ jobs:
           # MacOS
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target x86_64-apple-darwin
+            build: npm run build:napi -- --release --target x86_64-apple-darwin
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: >-
-              set -e &&
-              rustup target add aarch64-apple-darwin &&
-              npm run build:napi -- --release --target aarch64-apple-darwin
+            build: npm run build:napi -- --release --target aarch64-apple-darwin
 
           # Linux
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: >-
-              set -e &&
-              rustup target add x86_64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
+            build: TARGET_CC=clang npm run build:napi -- --release --target x86_64-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: >-
-              set -e &&
-              npm run build:napi -- --release
+            build: npm run build:napi -- --release --target x86_64-unknown-linux-musl -x
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
-            zig: true
             setup: |
               sudo apt-get update
-              sudo apt-get install gcc-arm-linux-gnueabihf -y
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
+              sudo apt-get install libatomic1-armhf-cross -y
+            build: TARGET_CC=clang npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf --use-napi-cross
           - host: ubuntu-latest
             target: armv7-unknown-linux-musleabihf
-            zig: true
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf
+            build: npm run build:napi -- --release --target armv7-unknown-linux-musleabihf -x
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: >-
-              set -e &&
-              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default stable &&
-              rustup target add aarch64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target aarch64-unknown-linux-gnu
+            build: TARGET_CC=clang npm run build:napi -- --release --target aarch64-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: >-
-              set -e &&
-              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default stable &&
-              rustup target add aarch64-unknown-linux-musl &&
-              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
+            build: npm run build:napi -- --release --target aarch64-unknown-linux-musl -x
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-linux-androideabi
+            build: npm run build:napi -- --release --target armv7-linux-androideabi --use-napi-cross
           - host: ubuntu-latest
             target: aarch64-linux-android
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target aarch64-linux-android
+            build: npm run build:napi -- --release --target aarch64-linux-android --use-napi-cross
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
               sudo apt-get update
-              sudo apt-get install gcc-riscv64-linux-gnu -y
+              sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
             build: >-
               set -e &&
               rustup target add riscv64gc-unknown-linux-gnu &&
@@ -188,6 +151,8 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: >-
               set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
               apk add binutils-riscv64 &&
               mkdir -p /sysroot-riscv64/etc/apk &&
               echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-riscv64/etc/apk/repositories &&
@@ -201,23 +166,14 @@ jobs:
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-powerpc64le-linux-gnu -y
-            build: >-
-              set -e &&
-              export CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER=powerpc64le-linux-gnu-gcc && rustup target add powerpc64le-unknown-linux-gnu &&
-              npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu
+            build: CC=clang TARGET_CC=clang npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-s390x-linux-gnu -y
-            build: >-
-              set -e &&
-              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
-              rustup target add s390x-unknown-linux-gnu &&
-              npm run build:napi -- --release --target s390x-unknown-linux-gnu
+            build: |
+              export TARGET_CC=clang
+              export CC=clang
+              export CFLAGS="-fuse-ld=lld"
+              npm run build:napi -- --release --target s390x-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
@@ -265,9 +221,16 @@ jobs:
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
-        if: ${{ matrix.settings.zig }}
+        if: ${{ contains(matrix.settings.target, 'musl') }}
         with:
-          version: 0.10.1
+          version: 0.14.1
+      - name: Install cargo-zigbuild
+        uses: taiki-e/install-action@d188da0a65bc6c80011567688127bddc8be0ca24 # v2.56.21
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-zigbuild
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -336,11 +299,11 @@ jobs:
         settings:
           - name: freebsd
             architecture: x86-64
-            version: '13.3'
+            version: '14.2'
             target: x86_64-unknown-freebsd
           - name: freebsd
             architecture: arm64
-            version: '13.3'
+            version: '14.2'
             target: aarch64-unknown-freebsd
     name: Build ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
     runs-on: ubuntu-latest
@@ -369,14 +332,14 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: node-modules-${{ runner.os }}
       - name: Build
-        uses: cross-platform-actions/action@97419d18f6470332677e345e9df97cdc71244ead # v0.28.0
+        uses: cross-platform-actions/action@e8a7b572196ff79ded1979dc2bb9ee67d1ddb252 # v0.29.0
         with:
           operating_system: ${{ matrix.settings.name }}
           architecture: ${{ matrix.settings.architecture }}
           version: ${{ matrix.settings.version }}
           memory: 8G
           run: |
-            sudo pkg install -y node npm rust
+            sudo pkg install -y node npm rust cmake
             ${{ steps.cache-node-modules.outputs.cache-hit != 'true' && 'npm install --ignore-scripts' || 'echo Cache hit' }}
             npm run build:napi -- --release --target ${{ matrix.settings.target }}
       - name: Save Cargo cache
