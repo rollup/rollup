@@ -52,6 +52,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: null,
 							meta: { testPlugin: 'first' },
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						});
 						assert.strictEqual(loadedModules.filter(id => id === ID_MAIN).length, 1);
@@ -95,6 +96,7 @@ module.exports = defineTest({
 						isExternal: false,
 						isIncluded: true,
 						meta: {},
+						safeVariableNames: null,
 						syntheticNamedExports: false
 					});
 					assert.strictEqual(loadedModules.filter(id => id === ID_DEP).length, 1);
