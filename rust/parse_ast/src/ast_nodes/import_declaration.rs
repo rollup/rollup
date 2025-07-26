@@ -1,8 +1,12 @@
 use swc_ecma_ast::ImportDecl;
 
 use crate::convert_ast::converter::ast_constants::{
-  IMPORT_DECLARATION_ATTRIBUTES_OFFSET, IMPORT_DECLARATION_RESERVED_BYTES,
-  IMPORT_DECLARATION_SOURCE_OFFSET, IMPORT_DECLARATION_SPECIFIERS_OFFSET, TYPE_IMPORT_DECLARATION,
+  IMPORT_DECLARATION_ATTRIBUTES_OFFSET, IMPORT_DECLARATION_PHASE_OFFSET,
+  IMPORT_DECLARATION_RESERVED_BYTES, IMPORT_DECLARATION_SOURCE_OFFSET,
+  IMPORT_DECLARATION_SPECIFIERS_OFFSET, TYPE_IMPORT_DECLARATION,
+};
+use crate::convert_ast::converter::string_constants::{
+  STRING_DEFER, STRING_INSTANCE, STRING_SOURCE,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -31,6 +35,20 @@ impl AstConverter<'_> {
       &import_declaration.with,
       end_position + IMPORT_DECLARATION_ATTRIBUTES_OFFSET,
     );
+    // phase
+    let phase_position = end_position + IMPORT_DECLARATION_PHASE_OFFSET;
+    match &import_declaration.phase {
+      swc_ecma_ast::ImportPhase::Source => {
+        self.buffer[phase_position..phase_position + 4].copy_from_slice(&STRING_SOURCE);
+      }
+      swc_ecma_ast::ImportPhase::Defer => {
+        self.buffer[phase_position..phase_position + 4].copy_from_slice(&STRING_DEFER);
+      }
+      swc_ecma_ast::ImportPhase::Evaluation => {
+        // Normal imports use 'instance' phase
+        self.buffer[phase_position..phase_position + 4].copy_from_slice(&STRING_INSTANCE);
+      }
+    }
     // end
     self.add_end(end_position, &import_declaration.span);
   }
