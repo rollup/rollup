@@ -30,7 +30,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: nightly-2025-07-25
           targets: wasm32-unknown-unknown
       - name: Restore Cargo cache
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
@@ -60,7 +60,9 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
       - name: Build artefacts
-        run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
+        run: >-
+          npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' &&
+          npm run build:copy-native && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
         uses: zdurham/s3-upload-github-action@master
         with:
@@ -117,7 +119,7 @@ jobs:
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
-            Notice: Ensure you have installed the latest stable Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
+            Notice: Ensure you have installed the latest nightly Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
@@ -142,7 +144,7 @@ jobs:
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
-            Notice: Ensure you have installed the latest stable Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
+            Notice: Ensure you have installed the latest nightly Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
             or load it into the REPL:
             ${{ steps.waitForVercel.outputs.url }}/repl/?pr=${{ github.event.number }}
