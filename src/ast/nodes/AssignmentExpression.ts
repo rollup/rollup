@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logConstVariableReassignError } from '../../utils/logs';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -48,13 +49,15 @@ export default class AssignmentExpression extends NodeBase {
 		| '??=';
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentExpression;
+	private isConstReassignment = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		const { deoptimized, left, operator, right } = this;
+		const { deoptimized, isConstReassignment, left, operator, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		// MemberExpressions do not access the property before assignments if the
 		// operator is '='.
 		return (
+			isConstReassignment ||
 			right.hasEffects(context) ||
 			left.hasEffectsAsAssignmentTarget(context, operator !== '=') ||
 			this.left.hasEffectsWhenDestructuring?.(context, EMPTY_PATH, right)
@@ -70,12 +73,13 @@ export default class AssignmentExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		const { deoptimized, left, right, operator } = this;
+		const { deoptimized, isConstReassignment, left, right, operator } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		const hasEffectsContext = createHasEffectsContext();
 		if (
 			includeChildrenRecursively ||
+			isConstReassignment ||
 			operator !== '=' ||
 			left.included ||
 			left.hasEffectsAsAssignmentTarget(hasEffectsContext, false) ||
@@ -97,7 +101,8 @@ export default class AssignmentExpression extends NodeBase {
 		if (this.left instanceof Identifier) {
 			const variable = this.scope.variables.get(this.left.name);
 			if (variable?.kind === 'const') {
-				this.scope.context.error(logConstVariableReassignError(), this.left.start);
+				this.isConstReassignment = true;
+				this.scope.context.log(LOGLEVEL_WARN, logConstVariableReassignError(), this.left.start);
 			}
 		}
 		this.left.setAssignedValue(this.right);
