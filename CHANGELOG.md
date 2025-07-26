@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.45.2
+
+_2025-07-26_
+
+### Bug Fixes
+
+- Do not fail build if a const is reassigned but warn instead (#6020)
+- Fail with a helpful error message if an exported binding is not defined (#6023)
+
+### Pull Requests
+
+- [#6014](https://github.com/rollup/rollup/pull/6014): chore(deps): update dependency @vue/language-server to v3 (@renovate[bot])
+- [#6015](https://github.com/rollup/rollup/pull/6015): chore(deps): update dependency vue-tsc to v3 (@renovate[bot], @lukastaegert)
+- [#6016](https://github.com/rollup/rollup/pull/6016): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6017](https://github.com/rollup/rollup/pull/6017): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6020](https://github.com/rollup/rollup/pull/6020): Make const reassignments only a warning (@lukastaegert)
+- [#6023](https://github.com/rollup/rollup/pull/6023): Throw descriptive error message for used export is not defined (@TrickyPi)
+- [#6027](https://github.com/rollup/rollup/pull/6027): feat: upgrade to NAPI-RS 3 stable (@Brooooooklyn)
+- [#6028](https://github.com/rollup/rollup/pull/6028): Update eslint-plugin-unicorn to resolve vulnerability (@lukastaegert)
+- [#6034](https://github.com/rollup/rollup/pull/6034): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.45.1
 
 _2025-07-15_
