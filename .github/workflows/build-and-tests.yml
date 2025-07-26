@@ -72,7 +72,7 @@ jobs:
             name: wasm
             is-wasm-build: true
             build: >-
-              set -e &&
+              rustup default nightly-2025-07-25 &&
               rustup target add wasm32-unknown-unknown &&
               npm run build:wasm
             path: |
@@ -83,7 +83,7 @@ jobs:
             name: wasm-node
             is-wasm-build: true
             build: >-
-              set -e &&
+              rustup default nightly-2025-07-25 &&
               rustup target add wasm32-unknown-unknown &&
               npm run build:wasm:node
             path: |
@@ -143,7 +143,7 @@ jobs:
               sudo apt-get update
               sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
             build: >-
-              set -e &&
+              rustup default nightly-2025-07-25 &&
               rustup target add riscv64gc-unknown-linux-gnu &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
@@ -162,6 +162,7 @@ jobs:
                 -C link-args=-L/sysroot-riscv64/usr/lib
                 -C linker=riscv64-alpine-linux-musl-ld
                 " &&
+              rustup default nightly-2025-07-25 &&
               rustup target add riscv64gc-unknown-linux-musl &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
@@ -188,8 +189,8 @@ jobs:
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
             build: >-
-              set -e &&
               export CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER=loongarch64-linux-gnu-gcc &&
+              rustup default nightly-2025-07-25 &&
               rustup target add loongarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target loongarch64-unknown-linux-gnu
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
@@ -207,7 +208,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: stable
+          toolchain: nightly-2025-07-25
           targets: ${{ matrix.settings.target }}
       - name: Restore Cargo cache
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
