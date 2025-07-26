@@ -1,5 +1,5 @@
 {
-  "name": "@rollup/rollup-linux-powerpc64le-gnu",
+  "name": "@rollup/rollup-linux-ppc64-gnu",
   "version": "0.0.0",
   "os": [
     "linux"
@@ -8,7 +8,7 @@
     "ppc64"
   ],
   "files": [
-    "rollup.linux-powerpc64le-gnu.node"
+    "rollup.linux-ppc64-gnu.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -18,5 +18,5 @@
   "libc": [
     "glibc"
   ],
-  "main": "./rollup.linux-powerpc64le-gnu.node"
+  "main": "./rollup.linux-ppc64-gnu.node"
 }
