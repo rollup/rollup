@@ -177,8 +177,19 @@ jobs:
               npm run build:napi -- --release --target s390x-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
-            docker: ghcr.io/darkyzhou/napi-rs-nodejs-rust:trixie-loongarch64
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-13-loongarch64-linux-gnu -y
+              sudo update-alternatives \
+                --install /usr/bin/loongarch64-linux-gnu-gcc loongarch64-linux-gnu-gcc /usr/bin/loongarch64-linux-gnu-gcc-13 100 \
+                --slave /usr/bin/loongarch64-linux-gnu-gcc-ar loongarch64-linux-gnu-gcc-ar /usr/bin/loongarch64-linux-gnu-gcc-ar-13 \
+                --slave /usr/bin/loongarch64-linux-gnu-gcc-nm loongarch64-linux-gnu-gcc-nm /usr/bin/loongarch64-linux-gnu-gcc-nm-13 \
+                --slave /usr/bin/loongarch64-linux-gnu-gcc-ranlib loongarch64-linux-gnu-gcc-ranlib /usr/bin/loongarch64-linux-gnu-gcc-ranlib-13 \
+                --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
+              sudo update-alternatives \
+                --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
             build: >-
+              export CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER=loongarch64-linux-gnu-gcc &&
               rustup default nightly-2025-07-25 &&
               rustup target add loongarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target loongarch64-unknown-linux-gnu
