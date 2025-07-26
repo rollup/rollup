@@ -127,7 +127,7 @@
     "@inquirer/prompts": "^7.7.1",
     "@jridgewell/sourcemap-codec": "^1.5.4",
     "@mermaid-js/mermaid-cli": "^11.6.0",
-    "@napi-rs/cli": "^2.18.4",
+    "@napi-rs/cli": "^3.0.1",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-buble": "^1.0.3",
     "@rollup/plugin-commonjs": "^28.0.6",
