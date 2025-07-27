@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.46.0
+
+_2025-07-27_
+
+### Features
+
+- Optimize `in` checks on namespaces to keep them treeshake-able (#6029)
+
+### Pull Requests
+
+- [#5991](https://github.com/rollup/rollup/pull/5991): feat: update linux-loongarch64-gnu (@wojiushixiaobai, @lukastaegert)
+- [#6029](https://github.com/rollup/rollup/pull/6029): feat: optimize `in` checks on namespaces to keep them treeshake-able (@cyyynthia, @lukastaegert)
+- [#6033](https://github.com/rollup/rollup/pull/6033): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+
 ## 4.45.3
 
 _2025-07-26_
