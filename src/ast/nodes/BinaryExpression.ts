@@ -106,7 +106,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 		// Optimize `'export' in namespace`
 		if (this.operator === 'in' && this.right.variable?.isNamespace) {
-			return !!(this.right.variable as NamespaceVariable).context.traceExport(String(leftValue));
+			return (
+				(this.right.variable as NamespaceVariable).context.traceExport(String(leftValue))[0] != null
+			);
 		}
 
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
