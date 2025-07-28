@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.46.1
+
+_2025-07-28_
+
+### Bug Fixes
+
+- Do not fail when using the `in` operator on external namespaces (#6036)
+
+### Pull Requests
+
+- [#6036](https://github.com/rollup/rollup/pull/6036): disables optimization for external namespace when using the in operator (@TrickyPi)
+
 ## 4.46.0
 
 _2025-07-27_
