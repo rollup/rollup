@@ -1,0 +1,9 @@
+{
+  "name": "@rollup-tests/bundle",
+  "private": true,
+  "description": "The workspace package which simulates something that contains bundlable code",
+  "type": "module",
+  "devDependencies": {
+    "@rollup-tests/referenced": "workspace:*"
+  }
+}

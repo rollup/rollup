@@ -1,0 +1,11 @@
+{
+  "name": "@rollup-tests/referenced",
+  "private": true,
+  "description": "The workspace package which contains code referenced by rollup.config.ts in the 'bundle' workspace package",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    }
+  }
+}
