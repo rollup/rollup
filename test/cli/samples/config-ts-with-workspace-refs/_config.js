@@ -9,7 +9,8 @@ module.exports = defineTest({
 		'--config',
 		'rollup.config.ts',
 		'--configPlugin',
-		"typescript={tsconfig:'../tsconfig.json',include:'**/*.ts',exclude:'**/node_modules/**/*.ts'}"
+		"typescript={tsconfig:'../tsconfig.json',include:'**/*.ts',exclude:'**/node_modules/**/*.ts'}",
+		'--configUtilizePluginResolveId'
 	],
 	execute: false,
 	show: true,
