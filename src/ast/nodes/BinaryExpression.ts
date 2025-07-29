@@ -13,6 +13,7 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
+import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
@@ -106,7 +107,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 		// Optimize `'export' in namespace`
 		if (this.operator === 'in' && this.right.variable instanceof NamespaceVariable) {
-			return this.right.variable.context.traceExport(String(leftValue))[0] != null;
+			const [variable] = this.right.variable.context.traceExport(String(leftValue));
+			if (variable instanceof ExternalVariable) return UnknownValue;
+			return !!variable;
 		}
 
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
@@ -120,7 +123,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 	getRenderedLiteralValue() {
 		// Only optimize `'export' in ns`
-		if (this.operator !== 'in' || !this.right.variable?.isNamespace) return UnknownValue;
+		if (this.operator !== 'in' || !(this.right.variable instanceof NamespaceVariable)) {
+			return UnknownValue;
+		}
 
 		if (this.renderedLiteralValue !== UNASSIGNED) return this.renderedLiteralValue;
 		return (this.renderedLiteralValue = getRenderedLiteralValue(
@@ -147,11 +152,12 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
-		_options?: InclusionOptions
+		options?: InclusionOptions
 	) {
-		this.included = true;
+		if (!this.included) this.includeNode(context);
 		if (typeof this.getRenderedLiteralValue() === 'symbol') {
-			super.include(context, includeChildrenRecursively, _options);
+			this.left.include(context, includeChildrenRecursively, options);
+			this.right.include(context, includeChildrenRecursively, options);
 		}
 	}
 
