@@ -118,7 +118,7 @@ async function loadTranspiledConfigFile(
 	const warnings = batchWarnings(commandOptions);
 	const inputOptions: InputOptionsWithPlugins = {
 		external: (id, importer) => {
-			let isExternal = importIsPathOrJson(id);
+			let isExternal = importIsNotPathButMaybeJson(id);
 			if (isExternal && configUtilizePluginResolveId === true) {
 				const pluginResolveResult = tryResolveIdFromLoadedPlugins(
 					warnings,
@@ -128,8 +128,12 @@ async function loadTranspiledConfigFile(
 				);
 				isExternal =
 					typeof pluginResolveResult === 'boolean'
-						? pluginResolveResult
-						: importIsPathOrJson(pluginResolveResult);
+						? // If it is boolean, use that directly
+							pluginResolveResult
+						: // For strings, check that it is not path string (or maybe is .json)
+							// Otherwise, ensure that it does not include "node_modules" folder
+							importIsNotPathButMaybeJson(pluginResolveResult) ||
+							pluginResolveResult.includes('/node_modules/');
 			}
 			return isExternal;
 		},
@@ -249,6 +253,6 @@ function tryResolveIdFromLoadedPlugins(
 	return id;
 }
 
-function importIsPathOrJson(id: string) {
+function importIsNotPathButMaybeJson(id: string) {
 	return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json';
 }
