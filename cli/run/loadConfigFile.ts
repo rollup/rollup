@@ -118,20 +118,20 @@ async function loadTranspiledConfigFile(
 	const warnings = batchWarnings(commandOptions);
 	const inputOptions: InputOptionsWithPlugins = {
 		external: (id, importer) => {
-			let nonAbsoluteExternal = isNotAbsoluteExternal(id);
-			if (nonAbsoluteExternal && configUtilizePluginResolveId === true) {
+			let isExternal = importIsPathOrJson(id);
+			if (isExternal && configUtilizePluginResolveId === true) {
 				const pluginResolveResult = tryResolveIdFromLoadedPlugins(
 					warnings,
 					id,
 					importer,
 					inputOptions.plugins
 				);
-				nonAbsoluteExternal =
+				isExternal =
 					typeof pluginResolveResult === 'boolean'
 						? pluginResolveResult
-						: isNotAbsoluteExternal(pluginResolveResult);
+						: importIsPathOrJson(pluginResolveResult);
 			}
-			return nonAbsoluteExternal;
+			return isExternal;
 		},
 		input: fileName,
 		onwarn: warnings.add,
@@ -239,6 +239,8 @@ function tryResolveIdFromLoadedPlugins(
 						break;
 					}
 				} else {
+					// Throw an error instead of just 'losing' a promise.
+					// But would warning be ok?
 					throw new Error(`Plugin "${name}" returned unsupported value from its "resolveId" hook.`);
 				}
 			}
@@ -247,6 +249,6 @@ function tryResolveIdFromLoadedPlugins(
 	return id;
 }
 
-function isNotAbsoluteExternal(id: string) {
+function importIsPathOrJson(id: string) {
 	return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json';
 }
