@@ -13,6 +13,7 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
+import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
@@ -106,7 +107,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 		// Optimize `'export' in namespace`
 		if (this.operator === 'in' && this.right.variable instanceof NamespaceVariable) {
-			return this.right.variable.context.traceExport(String(leftValue))[0] != null;
+			const [variable] = this.right.variable.context.traceExport(String(leftValue));
+			if (variable instanceof ExternalVariable) return UnknownValue;
+			return !!variable;
 		}
 
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
