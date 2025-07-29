@@ -123,8 +123,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 	getRenderedLiteralValue() {
 		// Only optimize `'export' in ns`
-		if (this.operator !== 'in' || !(this.right.variable instanceof NamespaceVariable))
+		if (this.operator !== 'in' || !(this.right.variable instanceof NamespaceVariable)) {
 			return UnknownValue;
+		}
 
 		if (this.renderedLiteralValue !== UNASSIGNED) return this.renderedLiteralValue;
 		return (this.renderedLiteralValue = getRenderedLiteralValue(
@@ -151,12 +152,13 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
-		_options?: InclusionOptions
+		options?: InclusionOptions
 	) {
+		if (!this.included) this.includeNode(context);
 		if (typeof this.getRenderedLiteralValue() === 'symbol') {
-			return super.include(context, includeChildrenRecursively, _options);
+			this.left.include(context, includeChildrenRecursively, options);
+			this.right.include(context, includeChildrenRecursively, options);
 		}
-		this.included = true;
 	}
 
 	includeNode(context: InclusionContext) {
