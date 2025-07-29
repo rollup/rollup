@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.46.2
+
+_2025-07-29_
+
+### Bug Fixes
+
+- Fix in-operator handling for external namespace and when the left side cannot be analyzed (#6041)
+
+### Pull Requests
+
+- [#6041](https://github.com/rollup/rollup/pull/6041): Correct the logic of include in BinaryExpression and don't optimize external references away (@TrickyPi, @cyyynthia, @lukastaegert)
+
 ## 4.46.1
 
 _2025-07-28_
