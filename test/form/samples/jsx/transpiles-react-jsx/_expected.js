@@ -71,6 +71,11 @@ console.log(/*#__PURE__*/react.createElement(Foo$1, Object.assign({}, obj$1, obj
 console.log(/*#__PURE__*/react.createElement(Foo$1, Object.assign({}, obj$1, { key: "1" })));
 console.log(/*#__PURE__*/react.createElement(Foo$1, Object.assign({}, obj$1, { key: "1" }), /*#__PURE__*/jsx$2(Foo$1, {})));
 
+// whitespace nightmares
+console.log(
+  /*#__PURE__*/jsxs$2("div", { children: ["Hello World", /*#__PURE__*/jsxs$2("p", { children: [" JSX ", /*#__PURE__*/jsx$2("b", { children: "whitespaces" }), " are so  A N N O Y I N G  to deal with!! "] }), /*#__PURE__*/jsx$2("span", { foo: "bar\n      baz" })] })
+);
+
 const Foo = 'wrong Foo 2';
 const obj = 'wrong obj 2';
 const jsx = 'wrong jsx 2';
