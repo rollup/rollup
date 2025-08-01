@@ -137,8 +137,8 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
 	INCONSISTENT_IMPORT_ATTRIBUTES = 'INCONSISTENT_IMPORT_ATTRIBUTES',
-	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
+	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
 	INVALID_EXPORT_OPTION = 'INVALID_EXPORT_OPTION',
@@ -160,9 +160,11 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	MISSING_NODE_BUILTINS = 'MISSING_NODE_BUILTINS',
 	MISSING_OPTION = 'MISSING_OPTION',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
+	MODULE_FORMAT_PHASE_UNSUPPORTED = 'MODULE_FORMAT_PHASE_UNSUPPORTED',
 	MODULE_LEVEL_DIRECTIVE = 'MODULE_LEVEL_DIRECTIVE',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
 	NO_FS_IN_BROWSER = 'NO_FS_IN_BROWSER',
+	NO_SOURCE_PHASE_HOOK = 'NO_SOURCE_PHASE_HOOK',
 	NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE = 'NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE',
 	ONLY_INLINE_SOURCEMAPS = 'ONLY_INLINE_SOURCEMAPS',
 	OPTIMIZE_CHUNK_STATUS = 'OPTIMIZE_CHUNK_STATUS',
@@ -173,6 +175,8 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	SHIMMED_EXPORT = 'SHIMMED_EXPORT',
 	SOURCEMAP_BROKEN = 'SOURCEMAP_BROKEN',
 	SOURCEMAP_ERROR = 'SOURCEMAP_ERROR',
+	SOURCE_PHASE_HOOK_NO_CODE = 'SOURCE_PHASE_HOOK_NO_CODE',
+	SOURCE_PHASE_HOOK_NO_DEFAULT = 'SOURCE_PHASE_HOOK_NO_DEFAULT',
 	SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT = 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
 	THIS_IS_UNDEFINED = 'THIS_IS_UNDEFINED',
 	UNEXPECTED_NAMED_IMPORT = 'UNEXPECTED_NAMED_IMPORT',
@@ -843,6 +847,18 @@ export function logMixedExport(facadeModuleId: string, name?: string): RollupLog
 	};
 }
 
+export function logModuleFormatPhaseUnsupported(
+	outputFormat: string,
+	chunkId: string,
+	dependencyId: string,
+	phase: string
+): RollupLog {
+	return {
+		code: MODULE_FORMAT_PHASE_UNSUPPORTED,
+		message: `${phase} phase imports are unsupported for "${outputFormat}" modules, importing ${dependencyId} for chunk ${chunkId}`
+	};
+}
+
 export function logModuleLevelDirective(directive: string, id: string): RollupLog {
 	return {
 		code: MODULE_LEVEL_DIRECTIVE,
@@ -876,6 +892,14 @@ export function logNoFileSystemInBrowser(method: string): RollupLog {
 		code: NO_FS_IN_BROWSER,
 		message: `Cannot access the file system (via "${method}") when using the browser build of Rollup. Make sure you supply a plugin with custom resolveId and load hooks to Rollup.`,
 		url: getRollupUrl(URL_A_SIMPLE_EXAMPLE)
+	};
+}
+
+export function logNoSourcePhaseHook(id: string, resolvedBy: string): RollupLog {
+	return {
+		code: NO_SOURCE_PHASE_HOOK,
+		message: `No "sourcePhase" plugin hook is provided, unable to inline source phase import \`import source from "${id}"\` for ${resolvedBy}.
+Either treat it as an external or use a plugin that supports source phase imports.`
 	};
 }
 
@@ -985,6 +1009,20 @@ export function logSourcemapBroken(plugin: string): RollupLog {
 		message: `Sourcemap is likely to be incorrect: a plugin (${plugin}) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
 		plugin,
 		url: getRollupUrl(URL_SOURCEMAP_IS_LIKELY_TO_BE_INCORRECT)
+	};
+}
+
+export function logSourcePhaseHookNoCode(id: string, resolvedBy: string): RollupLog {
+	return {
+		code: SOURCE_PHASE_HOOK_NO_CODE,
+		message: `The "sourcePhase" plugin hook for ${id} did not provide a "code" result to use for the source phase, imported from ${resolvedBy}.`
+	};
+}
+
+export function logSourcePhaseHookNoDefault(id: string, resolvedBy: string): RollupLog {
+	return {
+		code: SOURCE_PHASE_HOOK_NO_DEFAULT,
+		message: `"sourcePhase" plugin hook for ${id} returned an invalid source phase representation module without a default export, imported from ${resolvedBy}.`
 	};
 }
 

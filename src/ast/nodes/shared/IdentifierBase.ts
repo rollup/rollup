@@ -46,7 +46,9 @@ export default class IdentifierBase extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		this.variable!.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+		if (this.variable !== null) {
+			this.variable!.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+		}
 	}
 
 	deoptimizePath(path: ObjectPath): void {

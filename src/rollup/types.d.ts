@@ -295,6 +295,8 @@ export interface ResolvedId extends ModuleOptions {
 
 export type ResolvedIdMap = Record<string, ResolvedId>;
 
+export type TargetPhases = 'source' | 'instance' | 'source-and-instance';
+
 export interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean | 'absolute' | 'relative';
 	id: string;
@@ -473,6 +475,7 @@ export interface FunctionPluginHooks {
 	resolveId: ResolveIdHook;
 	resolveImportMeta: ResolveImportMetaHook;
 	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
+	sourcePhase: TransformHook;
 	transform: TransformHook;
 	watchChange: WatchChangeHook;
 	writeBundle: (
@@ -513,7 +516,8 @@ export type FirstPluginHooks =
 	| 'resolveFileUrl'
 	| 'resolveId'
 	| 'resolveImportMeta'
-	| 'shouldTransformCachedModule';
+	| 'shouldTransformCachedModule'
+	| 'sourcePhase';
 
 export type SequentialPluginHooks =
 	| 'augmentChunkHash'
@@ -522,6 +526,7 @@ export type SequentialPluginHooks =
 	| 'options'
 	| 'outputOptions'
 	| 'renderChunk'
+	| 'sourcePhase'
 	| 'transform';
 
 export type ParallelPluginHooks = Exclude<
@@ -543,12 +548,14 @@ export type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | 
 
 export type HookFilterExtension<K extends keyof FunctionPluginHooks> = K extends 'transform'
 	? { filter?: HookFilter }
-	: K extends 'load'
-		? { filter?: Pick<HookFilter, 'id'> }
-		: K extends 'resolveId'
-			? { filter?: { id?: StringFilter<RegExp> } }
-			: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-				{};
+	: K extends 'sourcePhase'
+		? { filter?: HookFilter }
+		: K extends 'load'
+			? { filter?: Pick<HookFilter, 'id'> }
+			: K extends 'resolveId'
+				? { filter?: { id?: StringFilter<RegExp> } }
+				: // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+					{};
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<

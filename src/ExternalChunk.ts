@@ -11,6 +11,8 @@ export default class ExternalChunk {
 	namespaceVariableName = '';
 	suggestedVariableName: string;
 	variableName = '';
+	sourceVariableName = '';
+	maxPhase: 'source' | 'instance';
 
 	private fileName: string | null = null;
 	private importAttributes: string | null = null;
@@ -26,6 +28,7 @@ export default class ExternalChunk {
 		this.moduleInfo = module.info;
 		this.renormalizeRenderPath = module.renormalizeRenderPath;
 		this.suggestedVariableName = module.suggestedVariableName;
+		this.maxPhase = module.getMaxPhase();
 	}
 
 	getFileName(): string {
