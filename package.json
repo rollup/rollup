@@ -147,7 +147,7 @@
     "chokidar": "^3.6.0",
     "concurrently": "^9.2.0",
     "core-js": "3.38.1",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.0.0",
     "date-time": "^4.0.0",
     "es5-shim": "^4.6.7",
     "es6-shim": "^0.35.8",
