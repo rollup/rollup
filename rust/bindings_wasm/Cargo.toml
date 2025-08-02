@@ -17,12 +17,12 @@ crate-type = ["cdylib", "rlib"]
 # Flags based on https://github.com/WebAssembly/binaryen/wiki/Optimizer-Cookbook
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = [
-	"--enable-bulk-memory",
-	"--enable-nontrapping-float-to-int",
-  	"--generate-global-effects",
-  	"--merge-similar-functions",
-  	"--flatten", "--rereloop", "-O1",
-  	"--gufa-optimizing",
-  	"--flatten", "--rereloop",
-  	"--converge", "-Os",
+    "--enable-bulk-memory",
+    "--enable-nontrapping-float-to-int",
+    "--generate-global-effects",
+    "--merge-similar-functions",
+    "--flatten", "--rereloop", "-O1",
+    "--gufa-optimizing",
+    "--flatten", "--rereloop",
+    "--converge", "-Os",
 ]
