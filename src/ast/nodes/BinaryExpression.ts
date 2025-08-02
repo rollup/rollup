@@ -15,6 +15,7 @@ import {
 import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
+import SyntheticNamedExportVariable from '../variables/SyntheticNamedExportVariable';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
@@ -109,6 +110,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		if (this.operator === 'in' && this.right.variable instanceof NamespaceVariable) {
 			const [variable] = this.right.variable.context.traceExport(String(leftValue));
 			if (variable instanceof ExternalVariable) return UnknownValue;
+			if (variable instanceof SyntheticNamedExportVariable) return UnknownValue;
 			return !!variable;
 		}
 
