@@ -2,4 +2,3 @@
 profile = "default"
 channel = "nightly-2025-07-25"
 components = ["rust-src"]
-targets = ["wasm32-unknown-unknown"]
