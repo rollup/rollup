@@ -86,59 +86,49 @@ jobs:
 
           # Windows
           - host: windows-latest
-            build: RUSTFLAGS="-C target-feature=+crt-static" npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
+            env:
+              RUSTFLAGS: -Ctarget-feature=+crt-static
           - host: windows-latest
-            build: npm run build:napi -- --release --target i686-pc-windows-msvc
             target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
-            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
 
           # MacOS
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: npm run build:napi -- --release --target x86_64-apple-darwin
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: npm run build:napi -- --release --target aarch64-apple-darwin
 
           # Linux
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            build: TARGET_CC=clang npm run build:napi -- --release --target x86_64-unknown-linux-gnu --use-napi-cross
+            env:
+              TARGET_CC: clang
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            build: npm run build:napi -- --release --target x86_64-unknown-linux-musl -x
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             setup: |
               sudo apt-get update
               sudo apt-get install libatomic1-armhf-cross -y
-            build: TARGET_CC=clang npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf --use-napi-cross
+            env:
+              TARGET_CC=clang
           - host: ubuntu-latest
             target: armv7-unknown-linux-musleabihf
-            build: npm run build:napi -- --release --target armv7-unknown-linux-musleabihf -x
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            build: TARGET_CC=clang npm run build:napi -- --release --target aarch64-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
-            build: npm run build:napi -- --release --target aarch64-unknown-linux-musl -x
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            build: npm run build:napi -- --release --target armv7-linux-androideabi --use-napi-cross
           - host: ubuntu-latest
             target: aarch64-linux-android
-            build: npm run build:napi -- --release --target aarch64-linux-android --use-napi-cross
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
-            build: >-
-              rustup target add riscv64gc-unknown-linux-gnu &&
-              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -155,18 +145,18 @@ jobs:
                 -C link-args=-L/sysroot-riscv64/usr/lib
                 -C linker=riscv64-alpine-linux-musl-ld
                 " &&
-              rustup target add riscv64gc-unknown-linux-musl &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
-            build: CC=clang TARGET_CC=clang npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu --use-napi-cross
+            env:
+              CC: clang
+              TARGET_CC: clang
           - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
-            build: |
-              export TARGET_CC=clang
-              export CC=clang
-              export CFLAGS="-fuse-ld=lld"
-              npm run build:napi -- --release --target s390x-unknown-linux-gnu --use-napi-cross
+            env:
+              CC: clang
+              TARGET_CC: clang
+              CFLAGS: -fuse-ld=lld
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
@@ -180,16 +170,16 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
-            build: >-
-              export CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER=loongarch64-linux-gnu-gcc &&
-              rustup target add loongarch64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target loongarch64-unknown-linux-gnu
+            env:
+              CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER: loongarch64-linux-gnu-gcc
 
           # FreeBSD
           - host: ubuntu-latest
             target: x86_64-unknown-freebsd
+            cross: true
           - host: ubuntu-latest
             target: aarch64-unknown-freebsd
+            cross: true
 
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -262,9 +252,14 @@ jobs:
           image: ${{ matrix.settings.docker }}
           options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
           run: ${{ matrix.settings.build }}
-      - name: Build
+      - name: Build (Matrix override)
+        env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker }}
+        if: ${{ !matrix.settings.docker && matrix.settings.build }}
+      - name: Build (Classic)
+        env: ${{ matrix.settings.env || fromJSON('{}') }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross && '--use-cross' || '' }}
+        if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'

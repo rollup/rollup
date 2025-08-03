@@ -37,7 +37,7 @@
   "scripts": {
     "build": "concurrently -c green,blue \"npm run build:wasm\" \"npm:build:ast-converters\" && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
-    "build:napi": "napi build --platform --dts native.d.ts --no-js --output-dir . --manifest-path rust/bindings_napi/Cargo.toml",
+    "build:napi": "napi build --cwd rust/bindings_napi --platform --dts ../../native.d.ts --no-js --output-dir ../.. --package-json-path ../../package.json",
     "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
     "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && shx rm wasm-node/.gitignore",
     "update:napi": "npm run build:napi && npm run build:copy-native",
