@@ -1,7 +1,3 @@
-[profile.release]
-lto = true
-strip = true
-
 [workspace]
 resolver = "2"
 members = [
@@ -10,3 +6,9 @@ members = [
     "parse_ast",
     "xxhash"
 ]
+
+[profile.release]
+strip = true
+lto = true
+opt-level = 3
+codegen-units = 1

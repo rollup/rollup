@@ -14,5 +14,15 @@ console_error_panic_hook = "0.1.7"
 crate-type = ["cdylib", "rlib"]
 
 # Fix for rust 1.87.0, see https://github.com/rustwasm/wasm-pack/issues/1441#issuecomment-2886461752
+# Flags based on https://github.com/WebAssembly/binaryen/wiki/Optimizer-Cookbook
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
+wasm-opt = [
+    "--enable-bulk-memory",
+    "--enable-nontrapping-float-to-int",
+    "--generate-global-effects",
+    "--merge-similar-functions",
+    "--flatten", "--rereloop", "-O1",
+    "--gufa-optimizing",
+    "--flatten", "--rereloop",
+    "--converge", "-Os",
+]
