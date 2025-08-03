@@ -103,21 +103,20 @@ jobs:
           # Linux
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            env:
-              TARGET_CC: clang
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             setup: |
               sudo apt-get update
-              sudo apt-get install libatomic1-armhf-cross -y
-            env:
-              TARGET_CC=clang
+              sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libatomic1-armhf-cross -y
           - host: ubuntu-latest
             target: armv7-unknown-linux-musleabihf
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu -y
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
           - host: ubuntu-latest
@@ -148,15 +147,14 @@ jobs:
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
-            env:
-              CC: clang
-              TARGET_CC: clang
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu -y
           - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
-            env:
-              CC: clang
-              TARGET_CC: clang
-              CFLAGS: -fuse-ld=lld
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-s390x-linux-gnu g++-s390x-linux-gnu -y
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
@@ -170,8 +168,6 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
-            env:
-              CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER: loongarch64-linux-gnu-gcc
 
           # FreeBSD
           - host: ubuntu-latest
@@ -211,16 +207,21 @@ jobs:
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
-        if: ${{ contains(matrix.settings.target, 'musl') }}
+        if: ${{ contains(matrix.settings.target, 'musl') && !matrix.settings.docker }}
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
         uses: taiki-e/install-action@5140f853a1cdf11adb558a08d00d06d67af3dea4 # v2.58.11
-        if: ${{ contains(matrix.settings.target, 'musl') }}
+        if: ${{ contains(matrix.settings.target, 'musl') && !matrix.settings.docker }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tool: cargo-zigbuild
+      - name: Install cross
+        if: ${{ matrix.settings.cross }}
+        # 0.2.5 is getting old, aarch64-unknown-freebsd support added since then...
+        run: cargo install --git https://github.com/cross-rs/cross --rev e281947ca900da425e4ecea7483cfde646c8a1ea cross
+        shell: bash
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -258,7 +259,7 @@ jobs:
         if: ${{ !matrix.settings.docker && matrix.settings.build }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
-        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross && '--use-cross' || '' }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ contains(matrix.settings.target, 'musl') && '-x' || matrix.settings.cross && '--use-cross' || '' }}
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
