@@ -698,18 +698,30 @@ export function logMissingEntryExport(binding: string, exporter: string): Rollup
 export function logMissingExport(
 	binding: string,
 	importingModule: string,
-	exporter: string
+	exporter: string,
+	missingButExportExists: boolean
 ): RollupLog {
-	const isJson = extname(exporter) === '.json';
-	return {
+	const baseLog = {
 		binding,
 		code: MISSING_EXPORT,
 		exporter,
 		id: importingModule,
+		url: getRollupUrl(URL_NAME_IS_NOT_EXPORTED)
+	};
+	if (missingButExportExists) {
+		return {
+			...baseLog,
+			message: `Exported variable "${binding}" is not defined in "${relativeId(exporter)}", but it is imported by "${relativeId(
+				importingModule
+			)}".`
+		};
+	}
+	const isJson = extname(exporter) === '.json';
+	return {
+		...baseLog,
 		message: `"${binding}" is not exported by "${relativeId(exporter)}", imported by "${relativeId(
 			importingModule
-		)}".${isJson ? ' (Note that you need @rollup/plugin-json to import JSON files)' : ''}`,
-		url: getRollupUrl(URL_NAME_IS_NOT_EXPORTED)
+		)}".${isJson ? ' (Note that you need @rollup/plugin-json to import JSON files)' : ''}`
 	};
 }
 

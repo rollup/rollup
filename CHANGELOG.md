@@ -1,5 +1,95 @@
 # rollup changelog
 
+## 4.46.2
+
+_2025-07-29_
+
+### Bug Fixes
+
+- Fix in-operator handling for external namespace and when the left side cannot be analyzed (#6041)
+
+### Pull Requests
+
+- [#6041](https://github.com/rollup/rollup/pull/6041): Correct the logic of include in BinaryExpression and don't optimize external references away (@TrickyPi, @cyyynthia, @lukastaegert)
+
+## 4.46.1
+
+_2025-07-28_
+
+### Bug Fixes
+
+- Do not fail when using the `in` operator on external namespaces (#6036)
+
+### Pull Requests
+
+- [#6036](https://github.com/rollup/rollup/pull/6036): disables optimization for external namespace when using the in operator (@TrickyPi)
+
+## 4.46.0
+
+_2025-07-27_
+
+### Features
+
+- Optimize `in` checks on namespaces to keep them treeshake-able (#6029)
+
+### Pull Requests
+
+- [#5991](https://github.com/rollup/rollup/pull/5991): feat: update linux-loongarch64-gnu (@wojiushixiaobai, @lukastaegert)
+- [#6029](https://github.com/rollup/rollup/pull/6029): feat: optimize `in` checks on namespaces to keep them treeshake-able (@cyyynthia, @lukastaegert)
+- [#6033](https://github.com/rollup/rollup/pull/6033): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+
+## 4.45.3
+
+_2025-07-26_
+
+### Bug Fixes
+
+- Do not fail build if a const is reassigned but warn instead (#6020)
+- Fail with a helpful error message if an exported binding is not defined (#6023)
+
+### Pull Requests
+
+- [#6014](https://github.com/rollup/rollup/pull/6014): chore(deps): update dependency @vue/language-server to v3 (@renovate[bot])
+- [#6015](https://github.com/rollup/rollup/pull/6015): chore(deps): update dependency vue-tsc to v3 (@renovate[bot], @lukastaegert)
+- [#6016](https://github.com/rollup/rollup/pull/6016): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6017](https://github.com/rollup/rollup/pull/6017): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6020](https://github.com/rollup/rollup/pull/6020): Make const reassignments only a warning (@lukastaegert)
+- [#6023](https://github.com/rollup/rollup/pull/6023): Throw descriptive error message for used export is not defined (@TrickyPi)
+- [#6027](https://github.com/rollup/rollup/pull/6027): feat: upgrade to NAPI-RS 3 stable (@Brooooooklyn)
+- [#6028](https://github.com/rollup/rollup/pull/6028): Update eslint-plugin-unicorn to resolve vulnerability (@lukastaegert)
+- [#6034](https://github.com/rollup/rollup/pull/6034): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
+## 4.45.1
+
+_2025-07-15_
+
+### Bug Fixes
+
+- Resolve crash when using certain conditional expressions (#6009)
+
+### Pull Requests
+
+- [#6009](https://github.com/rollup/rollup/pull/6009): Add hasDeoptimizedCache flag for ConditionalExpression (@TrickyPi)
+
+## 4.45.0
+
+_2025-07-12_
+
+### Features
+
+- Improve tree-shaking when both branches of a conditional expression return the same boolean value (#6000)
+- In environments that support both CJS and ESM, prefer the ESM build of Rollup (#6005)
+
+### Bug Fixes
+
+- Ensure static blocks do not prevent tree-shaking if they access `this` (#6001)
+
+### Pull Requests
+
+- [#6000](https://github.com/rollup/rollup/pull/6000): feat: improve get literal value for conditional expression (@ahabhgk, @lukastaegert)
+- [#6001](https://github.com/rollup/rollup/pull/6001): Correct the parent scope for static blocks (@TrickyPi, @lukastaegert)
+- [#6005](https://github.com/rollup/rollup/pull/6005): fix: export field order prefer esm (@DylanPiercey)
+
 ## 4.44.2
 
 _2025-07-04_
