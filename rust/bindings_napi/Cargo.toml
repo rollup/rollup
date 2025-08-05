@@ -18,8 +18,11 @@ xxhash = { path = "../xxhash" }
 [target.'cfg(not(any(target_os = "linux", target_os = "freebsd")))'.dependencies]
 mimalloc-safe = { version = "0.1.54" }
 
-[target.'cfg(any(all(target_os = "linux", not(target_arch = "loongarch64"), not(all(target_arch = "riscv64", target_env = "musl"))), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
+[target.'cfg(any(all(target_os = "linux", not(target_arch = "aarch64"), not(target_arch = "loongarch64"), not(all(target_arch = "riscv64", target_env = "musl"))), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
 mimalloc-safe = { version = "0.1.54", features = ["local_dynamic_tls"] }
+
+[target.'cfg(all(target_os = "linux", target_arch = "aarch64"))'.dependencies]
+mimalloc-safe = { version = "0.1.54", features = ["local_dynamic_tls", "no_opt_arch"] }
 
 [build-dependencies]
 napi-build = "2.2.3"
