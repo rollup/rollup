@@ -14,18 +14,20 @@
 			x: 42
 		};
 		console.log(exports$1);
-		exports.x++;
+		x++;
 	}
 
 	function nestedNoConflict() {
-		const exports = {
+		const exports$1 = {
 			x: 42
 		};
-		console.log(exports);
+		console.log(exports$1);
 	}
 
-	exports.x = 43;
+	var x = 43;
 	nestedConflict();
 	nestedNoConflict();
+
+	exports.x = x;
 
 }));
