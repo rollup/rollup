@@ -221,12 +221,6 @@ function deconflictTopLevelVariables(
 				variable.name
 			)?.value;
 
-			if (cachedSafeVariableName && !usedNames.has(cachedSafeVariableName)) {
-				usedNames.add(cachedSafeVariableName);
-				variable.setRenderNames(null, cachedSafeVariableName);
-				continue;
-			}
-
 			if (
 				variable.included &&
 				// this will only happen for exports in some formats
@@ -235,6 +229,12 @@ function deconflictTopLevelVariables(
 					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
+				if (cachedSafeVariableName && !usedNames.has(cachedSafeVariableName)) {
+					usedNames.add(cachedSafeVariableName);
+					variable.setRenderNames(null, cachedSafeVariableName);
+					continue;
+				}
+
 				variable.setRenderNames(
 					null,
 					getSafeName(variable.name, usedNames, variable.forbiddenNames)
