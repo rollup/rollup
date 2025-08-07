@@ -14,7 +14,7 @@
 			x: 42
 		};
 		console.log(exports$1);
-		x++;
+		exports.x++;
 	}
 
 	function nestedNoConflict() {
@@ -24,10 +24,8 @@
 		console.log(exports$1);
 	}
 
-	var x = 43;
+	exports.x = 43;
 	nestedConflict();
 	nestedNoConflict();
-
-	exports.x = x;
 
 }));

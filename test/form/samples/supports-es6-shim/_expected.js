@@ -18,7 +18,7 @@ var hasRequiredEs6Shim;
 function requireEs6Shim () {
 	if (hasRequiredEs6Shim) return es6Shim$1.exports;
 	hasRequiredEs6Shim = 1;
-	(function (module, exports) {
+	(function (module, exports$1) {
 		// UMD (Universal Module Definition)
 		// see https://github.com/umdjs/umd/blob/master/returnExports.js
 		(function (root, factory) {
