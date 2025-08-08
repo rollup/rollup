@@ -216,11 +216,6 @@ function deconflictTopLevelVariables(
 	for (const module of modules) {
 		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
-			const cachedSafeVariableName = Object.getOwnPropertyDescriptor(
-				module.info.safeVariableNames,
-				variable.name
-			)?.value;
-
 			if (
 				variable.included &&
 				// this will only happen for exports in some formats
@@ -229,6 +224,11 @@ function deconflictTopLevelVariables(
 					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
+				const cachedSafeVariableName = Object.getOwnPropertyDescriptor(
+					module.info.safeVariableNames,
+					variable.name
+				)?.value;
+
 				if (cachedSafeVariableName && !usedNames.has(cachedSafeVariableName)) {
 					usedNames.add(cachedSafeVariableName);
 					variable.setRenderNames(null, cachedSafeVariableName);
