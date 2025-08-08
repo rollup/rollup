@@ -127,6 +127,7 @@ runTestSuiteWithSamples(
 );
 
 async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
+	console.trace('generateAndTestBundle', outputOptions.file);
 	await bundle.write(outputOptions);
 	const actualCode = normaliseOutput(readFileSync(outputOptions.file, 'utf8'));
 	let expectedCode;
