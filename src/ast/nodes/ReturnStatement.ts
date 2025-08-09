@@ -32,9 +32,9 @@ export default class ReturnStatement extends StatementBase {
 		this.argument?.includePath(UNKNOWN_PATH, context);
 	}
 
-	initialise(): void {
-		super.initialise();
+	bind(): void {
 		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
+		super.bind();
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
@@ -44,6 +44,10 @@ export default class ReturnStatement extends StatementBase {
 				code.prependLeft(this.start + 6, ' ');
 			}
 		}
+	}
+
+	haltsCodeFlow(): boolean {
+		return true;
 	}
 }
 

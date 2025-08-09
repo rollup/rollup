@@ -258,6 +258,8 @@ export class ObjectEntity extends ExpressionEntity {
 			// causes an issue with TypeScript enums in files with moduleSideEffects:
 			// false because we cannot properly track whether a "var" has been
 			// initialized. This should be reverted once we can properly track this.
+			// ALSO needs to be updated once this is resolved:
+			// - literals-from-return-expressions-branches/main.js
 			// return UnknownTruthyValue;
 			return UnknownValue;
 		}

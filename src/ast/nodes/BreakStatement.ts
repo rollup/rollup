@@ -34,6 +34,10 @@ export default class BreakStatement extends StatementBase {
 		}
 		context.brokenFlow = true;
 	}
+
+	haltsCodeFlow(): boolean {
+		return true;
+	}
 }
 
 BreakStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;

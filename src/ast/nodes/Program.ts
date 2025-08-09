@@ -105,6 +105,10 @@ export default class Program extends NodeBase {
 			super.render(code, options);
 		}
 	}
+
+	isLocallyReachable(): boolean {
+		return true;
+	}
 }
 
 Program.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
