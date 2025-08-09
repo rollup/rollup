@@ -125,9 +125,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
-			return (this.testValue = tryCastLiteralValueToBoolean(
+			this.testValue = tryCastLiteralValueToBoolean(
 				this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
-			));
+			);
 		}
 		return this.testValue;
 	}
