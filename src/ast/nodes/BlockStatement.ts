@@ -35,6 +35,7 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	private blockEndReached = false;
+	private lastReachableBlock = Infinity;
 
 	addImplicitReturnExpressionToScope(): void {
 		if (!this.blockEndReached) {
@@ -79,10 +80,12 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	bind(): void {
-		for (const node of this.body) {
+		for (let index = 0; index < this.body.length; index++) {
+			const node = this.body[index];
 			node.bind();
-			if (node.haltsCodeFlow()) {
+			if (!this.blockEndReached && node.haltsCodeFlow()) {
 				this.blockEndReached = true;
+				this.lastReachableBlock = index;
 			}
 		}
 	}
@@ -97,18 +100,25 @@ export default class BlockStatement extends StatementBase {
 
 	isLocallyReachable(node?: ExpressionStatement): boolean {
 		if (!super.isLocallyReachable()) return false;
-		if (!node) return true;
 
-		const end = node === UNDEFINED_EXPRESSION ? this.body.length : this.body.indexOf(node);
-		if (end < 0) return false;
+		switch (node) {
+			case undefined:
+				return true;
+			case UNDEFINED_EXPRESSION:
+				return !this.blockEndReached;
+			default: {
+				const blockIndex = this.body.indexOf(node);
+				if (blockIndex < 0 || blockIndex > this.lastReachableBlock) return false;
 
-		for (let index = 0; index < end; index++) {
-			if (this.body[index].haltsCodeFlow(true)) {
-				return false;
+				for (let index = 0; index < blockIndex; index++) {
+					if (this.body[index].haltsCodeFlow(true)) {
+						return false;
+					}
+				}
+
+				return true;
 			}
 		}
-
-		return true;
 	}
 }
 
