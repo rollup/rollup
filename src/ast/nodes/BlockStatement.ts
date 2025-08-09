@@ -1,12 +1,12 @@
 import type MagicString from 'magic-string';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import { UNDEFINED_EXPRESSION } from '../values';
 import ExpressionStatement from './ExpressionStatement';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -34,10 +34,12 @@ export default class BlockStatement extends StatementBase {
 		this.flags = setFlag(this.flags, Flag.directlyIncluded, value);
 	}
 
+	private blockEndReached = false;
+	private lastReachableBlock = Infinity;
+
 	addImplicitReturnExpressionToScope(): void {
-		const lastStatement = this.body[this.body.length - 1];
-		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
-			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
+		if (!this.blockEndReached) {
+			this.scope.addReturnExpression(UNDEFINED_EXPRESSION);
 		}
 	}
 
@@ -77,11 +79,45 @@ export default class BlockStatement extends StatementBase {
 			firstBodyStatement.directive === 'use asm';
 	}
 
+	bind(): void {
+		for (let index = 0; index < this.body.length; index++) {
+			const node = this.body[index];
+			node.bind();
+			if (!this.blockEndReached && node.haltsCodeFlow()) {
+				this.blockEndReached = true;
+				this.lastReachableBlock = index;
+			}
+		}
+	}
+
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.body.length > 0) {
 			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {
 			super.render(code, options);
+		}
+	}
+
+	isLocallyReachable(node?: ExpressionStatement): boolean {
+		if (!super.isLocallyReachable()) return false;
+
+		switch (node) {
+			case undefined:
+				return true;
+			case UNDEFINED_EXPRESSION:
+				return !this.blockEndReached;
+			default: {
+				const blockIndex = this.body.indexOf(node);
+				if (blockIndex < 0 || blockIndex > this.lastReachableBlock) return false;
+
+				for (let index = 0; index < blockIndex; index++) {
+					if (this.body[index].haltsCodeFlow(true)) {
+						return false;
+					}
+				}
+
+				return true;
+			}
 		}
 	}
 }

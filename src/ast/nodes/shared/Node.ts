@@ -132,6 +132,12 @@ export interface Node extends Entity {
 	 * statements.
 	 */
 	shouldBeIncluded(context: InclusionContext): boolean;
+
+	/**
+	 * Whether the current node will halt code flow or not.
+	 * @param allowOptimizations Whether the code flow analysis is allowed to perform optimizations or not.
+	 */
+	haltsCodeFlow(allowOptimizations?: boolean): boolean;
 }
 
 export type StatementNode = Node;
@@ -375,6 +381,16 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			}
 		}
 		this.scope.context.requestTreeshakingPass();
+	}
+
+	haltsCodeFlow(): boolean {
+		return false;
+	}
+
+	isLocallyReachable(node?: ExpressionEntity): boolean {
+		if (node?.included || (!node && this.included)) return true;
+
+		return this.parent instanceof NodeBase ? this.parent.isLocallyReachable(this) : true;
 	}
 }
 
