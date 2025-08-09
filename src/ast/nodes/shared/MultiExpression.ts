@@ -10,6 +10,25 @@ import {
 	UnknownValue
 } from './Expression';
 
+function mergeValues(a: LiteralValueOrUnknown, b: LiteralValueOrUnknown) {
+	if (a === UnknownValue || b === UnknownValue) return UnknownValue;
+	if (a === b) return a;
+
+	if (a === UnknownTruthyValue) {
+		if (b && b !== UnknownFalsyValue) return UnknownTruthyValue;
+		return UnknownValue;
+	}
+
+	if (a === UnknownFalsyValue) {
+		if (!b || b === UnknownFalsyValue) return UnknownFalsyValue;
+		return UnknownValue;
+	}
+
+	if (a && b) return UnknownTruthyValue;
+	if (!a && !b) return UnknownFalsyValue;
+	return UnknownValue;
+}
+
 export class MultiExpression extends ExpressionEntity {
 	constructor(private expressions: readonly ExpressionEntity[]) {
 		super();
@@ -38,16 +57,8 @@ export class MultiExpression extends ExpressionEntity {
 				continue;
 			}
 
-			if (value === UnknownTruthyValue) {
-				if (!exprValue) return UnknownValue;
-			} else if (value === UnknownFalsyValue) {
-				if (exprValue && exprValue !== UnknownFalsyValue) return UnknownValue;
-			} else if (value !== exprValue) {
-				if (value && exprValue) value = UnknownTruthyValue;
-				else if (!value && (!exprValue || exprValue === UnknownFalsyValue))
-					value = UnknownFalsyValue;
-				else return UnknownValue;
-			}
+			value = mergeValues(value, exprValue);
+			if (value === UnknownValue) return UnknownValue;
 		}
 
 		return value;
