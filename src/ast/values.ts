@@ -1,3 +1,4 @@
+import { BLANK } from '../utils/blank';
 import type { HasEffectsContext } from './ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from './NodeInteractions';
 import {
@@ -279,7 +280,7 @@ export function getLiteralMembersForValue<T extends LiteralValueOrBigInt = Liter
 			return literalStringMembers;
 		}
 	}
-	return Object.create(null);
+	return BLANK as MemberDescriptions;
 }
 
 export function hasMemberEffectWhenCalled(
