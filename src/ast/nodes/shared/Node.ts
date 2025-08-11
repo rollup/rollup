@@ -386,12 +386,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	haltsCodeFlow(): boolean {
 		return false;
 	}
-
-	isLocallyReachable(node?: ExpressionEntity): boolean {
-		if (node?.included || (!node && this.included)) return true;
-
-		return this.parent instanceof NodeBase ? this.parent.isLocallyReachable(this) : true;
-	}
 }
 
 export { NodeBase as StatementBase };
