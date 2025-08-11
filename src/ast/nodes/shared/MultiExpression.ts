@@ -10,8 +10,8 @@ import {
 	UnknownValue
 } from './Expression';
 
-function mergeValues(a: LiteralValueOrUnknown, b: LiteralValueOrUnknown) {
-	if (a === UnknownValue || b === UnknownValue) return UnknownValue;
+type Value = Exclude<LiteralValueOrUnknown, typeof UnknownValue>;
+function mergeValues(a: Value, b: Value): LiteralValueOrUnknown {
 	if (a === b) return a;
 
 	if (a === UnknownTruthyValue) {

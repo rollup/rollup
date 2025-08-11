@@ -3,10 +3,10 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import { UNDEFINED_EXPRESSION } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
+import { type ExpressionEntity, LiteralExpression } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -19,6 +19,8 @@ import {
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
 	declare type: NodeType.tBlockStatement;
+
+	private implicitReturnExpression: ExpressionEntity | null = null;
 
 	private get deoptimizeBody(): boolean {
 		return isFlagSet(this.flags, Flag.deoptimizeBody);
@@ -39,7 +41,8 @@ export default class BlockStatement extends StatementBase {
 
 	addImplicitReturnExpressionToScope(): void {
 		if (!this.blockEndReached) {
-			this.scope.addReturnExpression(UNDEFINED_EXPRESSION);
+			this.implicitReturnExpression = new LiteralExpression(undefined, this);
+			this.scope.addReturnExpression(this.implicitReturnExpression);
 		}
 	}
 
@@ -98,27 +101,28 @@ export default class BlockStatement extends StatementBase {
 		}
 	}
 
-	isLocallyReachable(node?: ExpressionStatement): boolean {
+	haltsCodeFlow(allowOptimizations?: boolean): boolean {
+		for (const node of this.body) {
+			if (node.haltsCodeFlow(allowOptimizations)) return true;
+		}
+		return false;
+	}
+
+	isLocallyReachable(node?: ExpressionEntity): boolean {
 		if (!super.isLocallyReachable()) return false;
+		if (!node) return true;
 
-		switch (node) {
-			case undefined:
-				return true;
-			case UNDEFINED_EXPRESSION:
-				return !this.blockEndReached;
-			default: {
-				const blockIndex = this.body.indexOf(node);
-				if (blockIndex < 0 || blockIndex > this.lastReachableBlock) return false;
+		const blockIndex =
+			node === this.implicitReturnExpression ? this.body.length : this.body.indexOf(node as any);
+		if (blockIndex < 0 || blockIndex > this.lastReachableBlock) return false;
 
-				for (let index = 0; index < blockIndex; index++) {
-					if (this.body[index].haltsCodeFlow(true)) {
-						return false;
-					}
-				}
-
-				return true;
+		for (let index = 0; index < blockIndex; index++) {
+			if (this.body[index].haltsCodeFlow(true)) {
+				return false;
 			}
 		}
+
+		return true;
 	}
 }
 

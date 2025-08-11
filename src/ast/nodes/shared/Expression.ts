@@ -110,13 +110,29 @@ export class ExpressionEntity implements WritableEntity {
 	 * Useful when treeshaking status is queried prior of being fully computed.
 	 * @param node The child to check the reachability of.
 	 */
-	isLocallyReachable(_node?: ExpressionEntity): boolean {
-		return true;
+	isLocallyReachable(node?: ExpressionEntity): boolean {
+		if (node?.included || (!node && this.included)) return true;
+
+		return 'parent' in this && this.parent instanceof ExpressionEntity
+			? this.parent.isLocallyReachable(this)
+			: true;
 	}
 }
 
-export const UNKNOWN_EXPRESSION: ExpressionEntity =
-	new (class UnknownExpression extends ExpressionEntity {})();
+export class LiteralExpression extends ExpressionEntity {
+	constructor(
+		private value: LiteralValueOrUnknown,
+		public parent?: ExpressionEntity
+	) {
+		super();
+	}
+
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		return path.length > 0 ? UnknownValue : this.value;
+	}
+}
+
+export const UNKNOWN_EXPRESSION: ExpressionEntity = new LiteralExpression(UnknownValue);
 
 export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: boolean] = [
 	UNKNOWN_EXPRESSION,

@@ -8,6 +8,16 @@ function returnFalseWithDeadBranch() {
 	return true;
 }
 
+function returnTrueWithDeadBranchAlt() {
+	if (false) return false;
+	else return true;
+}
+
+function returnFalseWithDeadBranchAlt() {
+	if (true) return false;
+	else return true;
+}
+
 function returnTrueWithBrokenFlow() {
 	return true;
 	return false;
@@ -50,9 +60,33 @@ function returnMixedFalsy() {
 		case 3: return null;
 		case 4: return undefined;
 		case 5: return 0;
+		default: return ~-1;
 	}
 
-	return ~-1;
+	// Unreachable
+	return true;
+}
+
+function emptyFunction() {}
+
+function complexCase(arg) {
+	if (arg) {
+		const x = arg * 4;
+		if (x % 2) return false; // Unreachable
+
+		{
+			if (arg * arg > 0) return arg; // Reached
+		}
+
+		{
+			return null; // Unreachable
+		}
+	} else {
+		// Unreachable branch
+		console.log('removed')
+	}
+
+	// implicit return
 }
 
 if (returnTrueWithDeadBranch()) {
@@ -61,6 +95,14 @@ if (returnTrueWithDeadBranch()) {
 
 if (returnFalseWithDeadBranch()) {
 	console.log('removed -- returnFalseWithDeadBranch');
+}
+
+if (returnTrueWithDeadBranchAlt()) {
+	console.log('retained -- returnTrueWithDeadBranchAlt');
+}
+
+if (returnFalseWithDeadBranchAlt()) {
+	console.log('removed -- returnFalseWithDeadBranchAlt');
 }
 
 if (returnTrueWithBrokenFlow()) {
@@ -77,4 +119,12 @@ if (returnMixedTruthy()) {
 
 if (returnMixedFalsy()) {
 	console.log('removed -- returnMixedFalsy');
+}
+
+if (emptyFunction()) {
+	console.log('removed -- emptyFunction');
+}
+
+if (complexCase(1)) {
+	console.log('retained -- complexCase(1)');
 }
