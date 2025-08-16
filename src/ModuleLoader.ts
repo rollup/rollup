@@ -567,6 +567,7 @@ export class ModuleLoader {
 				module.id,
 				getAttributesFromImportExpression(dynamicImport.node)
 			);
+			dynamicImport.node.shouldBindAttributes = !resolvedId;
 			if (resolvedId && typeof resolvedId === 'object') {
 				dynamicImport.id = resolvedId.id;
 			}
