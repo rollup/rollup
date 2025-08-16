@@ -21,7 +21,7 @@ import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../uti
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import AwaitExpression from './AwaitExpression';
@@ -68,6 +68,14 @@ export default class ImportExpression extends NodeBase {
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
 
+	get shouldBindAttributes() {
+		return isFlagSet(this.flags, Flag.shouldBindAttributes);
+	}
+
+	set shouldBindAttributes(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.shouldBindAttributes, value);
+	}
+
 	get withinTopLevelAwait() {
 		return isFlagSet(this.flags, Flag.withinTopLevelAwait);
 	}
@@ -76,9 +84,11 @@ export default class ImportExpression extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.withinTopLevelAwait, value);
 	}
 
-	// Do not bind attributes
 	bind(): void {
 		this.source.bind();
+		if (this.shouldBindAttributes) {
+			this.options?.bind();
+		}
 	}
 
 	/**
@@ -187,6 +197,10 @@ export default class ImportExpression extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) this.includeNode();
 		this.source.include(context, includeChildrenRecursively);
+		if (this.options && this.shouldBindAttributes) {
+			this.options.include(context, includeChildrenRecursively);
+			this.options.includePath(UNKNOWN_PATH, context);
+		}
 	}
 
 	includeNode() {
