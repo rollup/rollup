@@ -47,7 +47,7 @@ jobs:
           restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
