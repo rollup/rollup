@@ -529,8 +529,9 @@ jobs:
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
         if: matrix.coverage
         with:
+          fail_ci_if_error: true
+          verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          commit_parent: ${{ github.event.pull_request.head.sha }}
 
   publish:
     permissions:
