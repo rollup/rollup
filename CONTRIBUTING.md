@@ -23,8 +23,8 @@ Rollup now includes some Rust code. To compile it, you need to set up the Rust t
 Make sure you use the same toolchain version as specified in the `/rust/rust-toolchain.toml` file. You should be able to install it with the following commands:
 
 ```shell
-rustup toolchain install stable
-rustup default stable
+rustup toolchain install nightly-2025-07-25
+rustup default nightly-2025-07-25
 ```
 
 You should also install the `wasm32-unknown-unknown` target:
