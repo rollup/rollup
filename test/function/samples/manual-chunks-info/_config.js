@@ -47,6 +47,7 @@ module.exports = defineTest({
 														start: 23,
 														end: 41,
 														options: null,
+														phase: 'instance',
 														source: {
 															type: 'Literal',
 															start: 30,
@@ -184,6 +185,7 @@ module.exports = defineTest({
 														type: 'ImportExpression',
 														start: 23,
 														end: 42,
+														phase: 'instance',
 														options: null,
 														source: {
 															type: 'Literal',

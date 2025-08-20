@@ -4,6 +4,7 @@ import ExternalModule from '../ExternalModule';
 import type Module from '../Module';
 import type ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
+import type ExternalVariable from '../ast/variables/ExternalVariable';
 import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import type Variable from '../ast/variables/Variable';
 import type { GetInterop, InternalModuleFormat } from '../rollup/types';
@@ -19,6 +20,7 @@ import { getSafeName } from './safeName';
 export interface DependenciesToBeDeconflicted {
 	deconflictedDefault: ReadonlySet<ExternalChunk>;
 	deconflictedNamespace: ReadonlySet<Chunk | ExternalChunk>;
+	deconflictedSource: ReadonlySet<ExternalChunk>;
 	dependencies: ReadonlySet<Chunk | ExternalChunk>;
 }
 
@@ -104,6 +106,13 @@ function deconflictImportsEsmOrSystem(
 			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames, null);
 		}
 	}
+	for (const externalModule of dependenciesToBeDeconflicted.deconflictedSource) {
+		externalModule.sourceVariableName = getSafeName(
+			`${externalModule.suggestedVariableName}__source`,
+			usedNames,
+			null
+		);
+	}
 	for (const variable of imports) {
 		const module = variable.module!;
 		const name = variable.name;
@@ -115,6 +124,8 @@ function deconflictImportsEsmOrSystem(
 					: chunkByModule.get(module)!
 				).variableName
 			);
+		} else if (module instanceof ExternalModule && (variable as ExternalVariable).isSourcePhase) {
+			variable.setRenderNames(null, externalChunkByModule.get(module)!.sourceVariableName);
 		} else if (module instanceof ExternalModule && name === 'default') {
 			variable.setRenderNames(
 				null,
@@ -143,7 +154,12 @@ function deconflictImportsEsmOrSystem(
 function deconflictImportsOther(
 	usedNames: Set<string>,
 	imports: ReadonlySet<Variable>,
-	{ deconflictedDefault, deconflictedNamespace, dependencies }: DependenciesToBeDeconflicted,
+	{
+		deconflictedDefault,
+		deconflictedNamespace,
+		deconflictedSource: _,
+		dependencies
+	}: DependenciesToBeDeconflicted,
 	interop: GetInterop,
 	preserveModules: boolean,
 	externalLiveBindings: boolean,

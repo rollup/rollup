@@ -141,6 +141,7 @@
     "@vue/language-server": "^3.0.5",
     "acorn": "^8.15.0",
     "acorn-import-assertions": "^1.9.0",
+    "acorn-import-phases": "^1.0.4",
     "acorn-jsx": "^5.3.2",
     "buble": "^0.20.0",
     "builtin-modules": "^5.0.0",

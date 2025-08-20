@@ -64,3 +64,6 @@ pub const STRING_NOSIDEEFFECTS: [u8; 4] = 59u32.to_ne_bytes(); // noSideEffects
 pub const STRING_SOURCEMAP: [u8; 4] = 60u32.to_ne_bytes(); // sourcemap
 pub const STRING_USING: [u8; 4] = 61u32.to_ne_bytes(); // using
 pub const STRING_AWAIT_USING: [u8; 4] = 62u32.to_ne_bytes(); // await using
+pub const STRING_SOURCE: [u8; 4] = 63u32.to_ne_bytes(); // source
+pub const STRING_DEFER: [u8; 4] = 64u32.to_ne_bytes(); // defer
+pub const STRING_INSTANCE: [u8; 4] = 65u32.to_ne_bytes(); // instance

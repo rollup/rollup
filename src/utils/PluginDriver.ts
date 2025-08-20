@@ -62,6 +62,7 @@ const inputHookNames: Record<InputPluginHooks, 1> = {
 	resolveDynamicImport: 1,
 	resolveId: 1,
 	shouldTransformCachedModule: 1,
+	sourcePhase: 1,
 	transform: 1,
 	watchChange: 1
 };
@@ -331,7 +332,7 @@ export class PluginDriver {
 		const handler = typeof hook === 'object' ? hook.handler : hook;
 
 		if (typeof hook === 'object' && 'filter' in hook && hook.filter) {
-			if (hookName === 'transform') {
+			if (hookName === 'transform' || hookName === 'sourcePhase') {
 				const filter = hook.filter as HookFilter;
 				const hookParameters = parameters as Parameters<FunctionPluginHooks['transform']>;
 				const compiledFilter = getOrCreate(this.compiledPluginFilters.transformFilter, filter, () =>
