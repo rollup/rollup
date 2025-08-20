@@ -31,14 +31,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 24
+          node-version: 24.5.0
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             node_modules
@@ -47,7 +47,7 @@ jobs:
           restore-keys: node-modules-${{ runner.os }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
@@ -198,12 +198,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 24
+          node-version: 24.5.0
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -211,7 +211,7 @@ jobs:
           toolchain: nightly-2025-07-25
           targets: ${{ matrix.settings.target }}
       - name: Restore Cargo cache
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -226,7 +226,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@a416ddeedbd372e614cc1386e8b642692f66865e # v2.57.1
+        uses: taiki-e/install-action@5140f853a1cdf11adb558a08d00d06d67af3dea4 # v2.58.11
         if: ${{ contains(matrix.settings.target, 'musl') }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -238,7 +238,7 @@ jobs:
         shell: bash
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path:  |
             node_modules
@@ -250,7 +250,7 @@ jobs:
         run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts
       - name: Save Node dependencies cache
         if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path:  |
             node_modules
@@ -269,7 +269,7 @@ jobs:
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -311,9 +311,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Restore Cargo cache
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -325,7 +325,7 @@ jobs:
           restore-keys: ${{ matrix.settings.target }}-cargo
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path:  |
             node_modules
@@ -345,7 +345,7 @@ jobs:
             npm run build:napi -- --release --target ${{ matrix.settings.target }}
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -402,10 +402,10 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path:  |
             node_modules
@@ -418,7 +418,7 @@ jobs:
       - name: Build JS
         run: npm run build:cjs
       - name: Download napi artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
@@ -494,7 +494,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -502,7 +502,7 @@ jobs:
           check-latest: true
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path:  |
             node_modules
@@ -513,12 +513,12 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
       - name: Download napi artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: bindings-${{ matrix.settings.target }}
           path: .
       - name: Download wasm artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: bindings-wasm
       - name: Build and test Rollup
@@ -529,8 +529,9 @@ jobs:
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
         if: matrix.coverage
         with:
+          fail_ci_if_error: true
+          verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          commit_parent: ${{ github.event.pull_request.head.sha }}
 
   publish:
     permissions:
@@ -549,7 +550,7 @@ jobs:
     if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           # Necessary to find the commits included in the release
           fetch-depth: 0
@@ -560,7 +561,7 @@ jobs:
           check-latest: true
       - name: Restore Node dependencies cache
         id: cache-node-modules
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path:  |
             node_modules
@@ -571,7 +572,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
       - name: Download all artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           path: artifacts
       - name: Copy wasm files
