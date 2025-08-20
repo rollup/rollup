@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.46.4
+
+_2025-08-20_
+
+### Bug Fixes
+
+- Do not omit synthetic namespaces when only accessed via `in` operator (#6052)
+
+### Pull Requests
+
+- [#6052](https://github.com/rollup/rollup/pull/6052): fix: don't optimize `in` with `syntheticNamedExports` (@hi-ogawa)
+- [#6074](https://github.com/rollup/rollup/pull/6074): Update transitive dependency to fix audit (@lukastaegert)
+
 ## 4.46.3
 
 _2025-08-18_
