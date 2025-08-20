@@ -32,7 +32,6 @@ jobs:
         with:
           toolchain: nightly-2025-07-25
           components: rust-src
-          profile: minimal
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
