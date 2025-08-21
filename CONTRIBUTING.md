@@ -20,18 +20,25 @@ Working on your first Pull Request? You can learn how from this _free_ course, [
 
 Rollup now includes some Rust code. To compile it, you need to set up the Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
-Make sure you use the same toolchain version as specified in the `/rust-toolchain.toml` file. It should automatically be handled, as well as acquiring the required targets. Should you want to do it manually, use the following commands:
+Make sure you use the same toolchain version as specified in the `/rust/rust-toolchain.toml` file. For example, if the file contains the following:
 
-```shell
-# Look at the rust-toolchain.toml file for the precise toolchain used by Rollup
-rustup toolchain install nightly
-rustup default nightly
+```toml
+[toolchain]
+profile = "default"
+channel = "nightly-2025-07-25"
 ```
 
-You should also install the `rust-src` component:
+You should be able to install it with the following commands:
 
 ```shell
-rustup component add rust-src
+rustup toolchain install nightly-2025-07-25
+rustup default nightly-2025-07-25
+```
+
+You should also install the `wasm32-unknown-unknown` target:
+
+```shell
+rustup target add wasm32-unknown-unknown
 ```
 
 In the end, run
