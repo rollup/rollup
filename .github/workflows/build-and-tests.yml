@@ -319,9 +319,6 @@ jobs:
       matrix:
         settings:
           - arch: aarch64
-            distro: ubuntu_latest
-            target: aarch64-unknown-linux-gnu
-          - arch: aarch64
             distro: alpine_latest
             target: aarch64-unknown-linux-musl
           - arch: armv7
@@ -419,6 +416,10 @@ jobs:
             target: x86_64-pc-windows-msvc
           - host: macos-latest
             target: aarch64-apple-darwin
+          - host: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - host: windows-11-arm
+            target: aarch64-pc-windows-msvc
         node:
           - '18.20.0'
           - 24
