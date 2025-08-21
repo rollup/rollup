@@ -23,14 +23,11 @@ impl<'task> ScopedTask<'task> for ParseTask {
   type JsValue = BufferSlice<'task>;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    Ok(
-      parse_ast(
-        self.code.clone(),
-        self.allow_return_outside_function,
-        self.jsx,
-      )
-      .into(),
-    )
+    Ok(parse_ast(
+      self.code.clone(),
+      self.allow_return_outside_function,
+      self.jsx,
+    ))
   }
 
   fn resolve(&mut self, env: &'task Env, output: Self::Output) -> Result<Self::JsValue> {
@@ -39,12 +36,12 @@ impl<'task> ScopedTask<'task> for ParseTask {
 }
 
 #[napi]
-pub fn parse(
-  env: &Env,
+pub fn parse<'env>(
+  env: &'env Env,
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-) -> Result<BufferSlice> {
+) -> Result<BufferSlice<'env>> {
   BufferSlice::from_data(env, parse_ast(code, allow_return_outside_function, jsx))
 }
 
