@@ -36,12 +36,12 @@ impl<'task> ScopedTask<'task> for ParseTask {
 }
 
 #[napi]
-pub fn parse<'env>(
-  env: &'env Env,
+pub fn parse(
+  env: &Env,
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-) -> Result<BufferSlice<'env>> {
+) -> Result<BufferSlice<'_>> {
   BufferSlice::from_data(env, parse_ast(code, allow_return_outside_function, jsx))
 }
 
