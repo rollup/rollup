@@ -43,8 +43,8 @@ jobs:
           path: |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
@@ -252,8 +252,8 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts
@@ -264,7 +264,7 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Build in docker
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         if: ${{ matrix.settings.docker }}
@@ -353,8 +353,8 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
@@ -437,6 +437,11 @@ jobs:
             node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
+        exclude:
+          # Windows ARM builds were not provided for a while
+          - settings:
+              target: aarch64-pc-windows-msvc
+            node: '18.20.0'
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 15
     steps:
@@ -454,8 +459,8 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
@@ -512,8 +517,8 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts

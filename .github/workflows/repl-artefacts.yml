@@ -54,8 +54,8 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
