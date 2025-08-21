@@ -28,7 +28,7 @@ export const enum Flag {
 	hasEffects = 1 << 26,
 	withinTopLevelAwait = 1 << 27,
 	checkedForWarnings = 1 << 28,
-	shouldBindAttributes = 1 << 29
+	shouldIncludeDynamicAttributes = 1 << 29
 }
 
 export function isFlagSet(flags: number, flag: Flag): boolean {

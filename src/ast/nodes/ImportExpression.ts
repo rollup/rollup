@@ -68,12 +68,12 @@ export default class ImportExpression extends NodeBase {
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
 
-	get shouldBindAttributes() {
-		return isFlagSet(this.flags, Flag.shouldBindAttributes);
+	get shouldIncludeDynamicAttributes() {
+		return isFlagSet(this.flags, Flag.shouldIncludeDynamicAttributes);
 	}
 
-	set shouldBindAttributes(value: boolean) {
-		this.flags = setFlag(this.flags, Flag.shouldBindAttributes, value);
+	set shouldIncludeDynamicAttributes(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.shouldIncludeDynamicAttributes, value);
 	}
 
 	get withinTopLevelAwait() {
@@ -86,9 +86,7 @@ export default class ImportExpression extends NodeBase {
 
 	bind(): void {
 		this.source.bind();
-		if (this.shouldBindAttributes) {
-			this.options?.bind();
-		}
+		this.options?.bind();
 	}
 
 	/**
@@ -195,12 +193,13 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
-		this.source.include(context, includeChildrenRecursively);
-		if (this.options && this.shouldBindAttributes) {
-			this.options.include(context, includeChildrenRecursively);
-			this.options.includePath(UNKNOWN_PATH, context);
+		if (!this.included) {
+			this.includeNode();
+			if (this.shouldIncludeDynamicAttributes) this.options?.includePath(UNKNOWN_PATH, context);
 		}
+		this.source.include(context, includeChildrenRecursively);
+		if (this.shouldIncludeDynamicAttributes)
+			this.options?.include(context, includeChildrenRecursively);
 	}
 
 	includeNode() {
