@@ -109,6 +109,8 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
+            env:
+              TARGET_CC: clang
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libatomic1-armhf-cross -y
@@ -118,6 +120,8 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
+            env:
+              TARGET_CC: clang
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu -y
@@ -155,12 +159,18 @@ jobs:
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
+            env:
+              TARGET_CC: clang
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu -y
             cross: napi
           - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
+            env:
+              CC: clang
+              TARGET_CC: clang
+              CFLAGS: -fuse-ld=lld
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-s390x-linux-gnu g++-s390x-linux-gnu -y
