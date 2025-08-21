@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.47.1
+
+_2025-08-21_
+
+### Bug Fixes
+
+- Revert build process changes to investigate issues (#6077)
+
+### Pull Requests
+
+- [#6077](https://github.com/rollup/rollup/pull/6077): Revert "build: aggressively optimize wasm build, improve pipeline (#6053)" (@lukastaegert)
+
 ## 4.47.0
 
 _2025-08-21_
