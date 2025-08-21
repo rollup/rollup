@@ -79,6 +79,14 @@ const _pluginHookFilters: rollup.Plugin = {
 const _amdOutputOptions: rollup.OutputOptions['amd'][] = [
 	{},
 	{
+		autoId: undefined,
+		id: undefined
+	},
+	{
+		id: 'a'
+	},
+	{
+		autoId: undefined,
 		id: 'a'
 	},
 	{
@@ -91,6 +99,11 @@ const _amdOutputOptions: rollup.OutputOptions['amd'][] = [
 	},
 	{
 		autoId: true
+	},
+	{
+		autoId: true,
+		basePath: undefined,
+		id: undefined
 	},
 	{
 		autoId: false
