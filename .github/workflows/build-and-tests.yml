@@ -71,10 +71,7 @@ jobs:
             target: wasm32-unknown-unknown
             name: wasm
             is-wasm-build: true
-            build: >-
-              rustup default nightly-2025-07-25 &&
-              rustup target add wasm32-unknown-unknown &&
-              npm run build:wasm
+            build: npm run build:wasm
             path: |
               wasm/
               .empty
@@ -82,70 +79,55 @@ jobs:
             target: wasm32-unknown-unknown
             name: wasm-node
             is-wasm-build: true
-            build: >-
-              rustup default nightly-2025-07-25 &&
-              rustup target add wasm32-unknown-unknown &&
-              npm run build:wasm:node
+            build: npm run build:wasm:node
             path: |
               wasm-node/
               .empty
 
           # Windows
           - host: windows-latest
-            build: RUSTFLAGS="-C target-feature=+crt-static" npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
+            env:
+              RUSTFLAGS: -Ctarget-feature=+crt-static
           - host: windows-latest
-            build: npm run build:napi -- --release --target i686-pc-windows-msvc
             target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
-            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
 
           # MacOS
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: npm run build:napi -- --release --target x86_64-apple-darwin
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: npm run build:napi -- --release --target aarch64-apple-darwin
 
           # Linux
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            build: TARGET_CC=clang npm run build:napi -- --release --target x86_64-unknown-linux-gnu --use-napi-cross
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            build: npm run build:napi -- --release --target x86_64-unknown-linux-musl -x
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             setup: |
               sudo apt-get update
-              sudo apt-get install libatomic1-armhf-cross -y
-            build: TARGET_CC=clang npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf --use-napi-cross
+              sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libatomic1-armhf-cross -y
           - host: ubuntu-latest
             target: armv7-unknown-linux-musleabihf
-            build: npm run build:napi -- --release --target armv7-unknown-linux-musleabihf -x
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            build: TARGET_CC=clang npm run build:napi -- --release --target aarch64-unknown-linux-gnu --use-napi-cross
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu -y
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
-            build: npm run build:napi -- --release --target aarch64-unknown-linux-musl -x
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            build: npm run build:napi -- --release --target armv7-linux-androideabi --use-napi-cross
           - host: ubuntu-latest
             target: aarch64-linux-android
-            build: npm run build:napi -- --release --target aarch64-linux-android --use-napi-cross
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
-            build: >-
-              rustup default nightly-2025-07-25 &&
-              rustup target add riscv64gc-unknown-linux-gnu &&
-              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -162,19 +144,17 @@ jobs:
                 -C link-args=-L/sysroot-riscv64/usr/lib
                 -C linker=riscv64-alpine-linux-musl-ld
                 " &&
-              rustup default nightly-2025-07-25 &&
-              rustup target add riscv64gc-unknown-linux-musl &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
-            build: CC=clang TARGET_CC=clang npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu --use-napi-cross
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu -y
           - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
-            build: |
-              export TARGET_CC=clang
-              export CC=clang
-              export CFLAGS="-fuse-ld=lld"
-              npm run build:napi -- --release --target s390x-unknown-linux-gnu --use-napi-cross
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-s390x-linux-gnu g++-s390x-linux-gnu -y
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
@@ -188,11 +168,15 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
-            build: >-
-              export CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER=loongarch64-linux-gnu-gcc &&
-              rustup default nightly-2025-07-25 &&
-              rustup target add loongarch64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target loongarch64-unknown-linux-gnu
+
+          # FreeBSD
+          - host: ubuntu-latest
+            target: x86_64-unknown-freebsd
+            cross: true
+          - host: ubuntu-latest
+            target: aarch64-unknown-freebsd
+            cross: true
+
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
@@ -209,7 +193,7 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
-          targets: ${{ matrix.settings.target }}
+          components: rust-src
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
@@ -222,16 +206,21 @@ jobs:
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
-        if: ${{ contains(matrix.settings.target, 'musl') }}
+        if: ${{ contains(matrix.settings.target, 'musl') && !matrix.settings.docker }}
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
         uses: taiki-e/install-action@ad95d4e02e061d4390c4b66ef5ed56c7fee3d2ce # v2.58.17
-        if: ${{ contains(matrix.settings.target, 'musl') }}
+        if: ${{ contains(matrix.settings.target, 'musl') && !matrix.settings.docker }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tool: cargo-zigbuild
+      - name: Install cross
+        if: ${{ matrix.settings.cross }}
+        # 0.2.5 is getting old, aarch64-unknown-freebsd support added since then...
+        run: cargo install --git https://github.com/cross-rs/cross --rev e281947ca900da425e4ecea7483cfde646c8a1ea cross
+        shell: bash
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -263,9 +252,14 @@ jobs:
           image: ${{ matrix.settings.docker }}
           options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
           run: ${{ matrix.settings.build }}
-      - name: Build
+      - name: Build (Matrix override)
+        env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker }}
+        if: ${{ !matrix.settings.docker && matrix.settings.build }}
+      - name: Build (Classic)
+        env: ${{ matrix.settings.env || fromJSON('{}') }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ contains(matrix.settings.target, 'musl') && '-x' || matrix.settings.cross && '--use-cross' || '' }}
+        if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
@@ -292,74 +286,6 @@ jobs:
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
-
-  build-freebsd:
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - name: freebsd
-            architecture: x86-64
-            version: '14.2'
-            target: x86_64-unknown-freebsd
-          - name: freebsd
-            architecture: arm64
-            version: '14.2'
-            target: aarch64-unknown-freebsd
-    name: Build ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Restore Cargo cache
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            .cargo-cache
-            rust/target/
-          key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: ${{ matrix.settings.target }}-cargo
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
-      - name: Build
-        uses: cross-platform-actions/action@e8a7b572196ff79ded1979dc2bb9ee67d1ddb252 # v0.29.0
-        with:
-          operating_system: ${{ matrix.settings.name }}
-          architecture: ${{ matrix.settings.architecture }}
-          version: ${{ matrix.settings.version }}
-          memory: 8G
-          run: |
-            sudo pkg install -y node npm rust cmake
-            ${{ steps.cache-node-modules.outputs.cache-hit != 'true' && 'npm install --ignore-scripts' || 'echo Cache hit' }}
-            npm run build:napi -- --release --target ${{ matrix.settings.target }}
-      - name: Save Cargo cache
-        if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            .cargo-cache
-            rust/target/
-          key: ${{ matrix.settings.target }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
-      - name: Upload napi artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
-          if-no-files-found: error
 
   # smoke test for some architectures that do not receive the full test suite
   smoke-test:
@@ -543,7 +469,6 @@ jobs:
     timeout-minutes: 15
     needs:
       - lint
-      - build-freebsd
       - test
       - smoke-test
     # This needs to be adapted for Rollup 5
