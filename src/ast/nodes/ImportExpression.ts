@@ -193,23 +193,21 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) {
-			this.includeNode();
-			if (this.shouldIncludeDynamicAttributes) this.options?.includePath(UNKNOWN_PATH, context);
-		}
+		if (!this.included) this.includeNode(context);
 		this.source.include(context, includeChildrenRecursively);
 		if (this.shouldIncludeDynamicAttributes)
 			this.options?.include(context, includeChildrenRecursively);
 	}
 
-	includeNode() {
+	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (this.shouldIncludeDynamicAttributes) this.options?.includePath(UNKNOWN_PATH, context);
 		this.scope.context.includeDynamicImport(this);
 		this.scope.addAccessedDynamicImport(this);
 	}
 
-	includePath(path: ObjectPath): void {
-		if (!this.included) this.includeNode();
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
 		// Technically, this is not correct as dynamic imports return a Promise.
 		if (this.hasUnknownAccessedKey) return;
 		if (path[0] === UnknownKey) {
