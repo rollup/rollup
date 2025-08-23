@@ -608,7 +608,7 @@ export function logImportAttributeIsInvalid(importer: string): RollupLog {
 		code: INVALID_IMPORT_ATTRIBUTE,
 		message: `Rollup could not statically analyze an import attribute of a dynamic import in "${relativeId(
 			importer
-		)}". Import attributes need to have string keys and values. The attribute will be removed.`
+		)}". Import attributes need to have string keys and values.`
 	};
 }
 

@@ -246,7 +246,7 @@ export default class LocalVariable extends Variable {
 					declaration.parent.parent.callee.property.name === 'then' &&
 					isImportExpressionNode(declaration.parent.parent.callee.object)
 				) {
-					declaration.parent.parent.callee.object.includePath(path);
+					declaration.parent.parent.callee.object.includePath(path, context);
 				}
 			}
 			// We need to make sure we include the correct path of the init
