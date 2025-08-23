@@ -567,7 +567,10 @@ export class ModuleLoader {
 				module.id,
 				getAttributesFromImportExpression(dynamicImport.node)
 			);
-			if (resolvedId && typeof resolvedId === 'object') {
+			if (!resolvedId || typeof resolvedId === 'string') {
+				dynamicImport.node.shouldIncludeDynamicAttributes = true;
+			} else {
+				dynamicImport.node.shouldIncludeDynamicAttributes = !!resolvedId.external;
 				dynamicImport.id = resolvedId.id;
 			}
 			return [dynamicImport, resolvedId] as const;

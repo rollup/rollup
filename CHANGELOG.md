@@ -1,5 +1,36 @@
 # rollup changelog
 
+## 4.47.1
+
+_2025-08-21_
+
+### Bug Fixes
+
+- Revert build process changes to investigate issues (#6077)
+
+### Pull Requests
+
+- [#6077](https://github.com/rollup/rollup/pull/6077): Revert "build: aggressively optimize wasm build, improve pipeline (#6053)" (@lukastaegert)
+
+## 4.47.0
+
+_2025-08-21_
+
+### Features
+
+- Aggressively reduce WASM build size (#6053)
+
+### Bug Fixes
+
+- Fix illegal instruction error on Android ARM platforms (#6072)
+- Allow to pass explicit `undefined` for optional fields in Rollup types (#6061)
+
+### Pull Requests
+
+- [#6053](https://github.com/rollup/rollup/pull/6053): build: aggressively optimize wasm build, improve pipeline (@cyyynthia)
+- [#6061](https://github.com/rollup/rollup/pull/6061): fix(types): add support for exactOptionalPropertyTypes (@remcohaszing, @lukastaegert)
+- [#6072](https://github.com/rollup/rollup/pull/6072): build(rust): mimalloc-safe/no_opt_arch on aarch64 (@cyyynthia)
+
 ## 4.46.4
 
 _2025-08-20_
