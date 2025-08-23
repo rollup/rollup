@@ -73,5 +73,20 @@ deal with!! </p>
     
 	<span foo="bar
       baz"/>
+    <p>
+
+
+
+
+      x
+
+
+      y
+
+
+
+
+      
+    </p>
   </div>
 )

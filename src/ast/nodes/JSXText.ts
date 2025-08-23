@@ -3,8 +3,8 @@ import type { NormalizedJsxOptions } from '../../rollup/types';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-const RE_WHITESPACE_TRIM = /^[ \t]*\r?\n[ \t]*|[ \t]*\r?\n[ \t]*$/g;
-const RE_WHITESPACE_MERGE = /[ \t]*\r?\n[ \t]*/g;
+const RE_WHITESPACE_TRIM = /^[ \t]*\r?\n[ \t\r\n]*|[ \t]*\r?\n[ \t\r\n]*$/g;
+const RE_WHITESPACE_MERGE = /[ \t]*\r?\n[ \t\r\n]*/g;
 
 export default class JSXText extends NodeBase {
 	type!: NodeType.tJSXText;
