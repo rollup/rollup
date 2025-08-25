@@ -166,6 +166,24 @@ jobs:
               sudo apt-get install gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu -y
             cross: napi
           - host: ubuntu-latest
+            target: powerpc64le-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
+              apk add binutils-ppc64le &&
+              mkdir -p /sysroot-ppc64le/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-ppc64le/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch ppc64le --root /sysroot-ppc64le gcc musl-dev &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-ppc64le/usr/lib/gcc/ppc64le-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-ppc64le/usr/lib
+                -C linker=ppc64le-alpine-linux-musl-ld
+                " &&
+              rustup target add powerpc64le-unknown-linux-musl &&
+              npm run build:napi -- --release --target powerpc64le-unknown-linux-musl
+          - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
             env:
               CC: clang
