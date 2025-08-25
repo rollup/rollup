@@ -223,6 +223,24 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
+          - host: ubuntu-latest
+            target: loongarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
+              apk add binutils-loongarch64 &&
+              mkdir -p /sysroot-loongarch64/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-loongarch64/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch loongarch64 --root /sysroot-loongarch64 gcc musl-dev &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-loongarch64/usr/lib/gcc/loongarch64-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-loongarch64/usr/lib
+                -C linker=loongarch64-alpine-linux-musl-ld
+                " &&
+              rustup target add loongarch64-unknown-linux-musl &&
+              npm run build:napi -- --release --target loongarch64-unknown-linux-musl
 
           # FreeBSD
           - host: ubuntu-latest
