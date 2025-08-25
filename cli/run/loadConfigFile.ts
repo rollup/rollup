@@ -3,7 +3,11 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import * as rollup from '../../src/node-entry';
-import type { ImportAttributesKey, MergedRollupOptions } from '../../src/rollup/types';
+import type {
+	ImportAttributesKey,
+	InputOptionsWithPlugins,
+	MergedRollupOptions
+} from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import {
 	error,
@@ -104,14 +108,27 @@ async function loadTranspiledConfigFile(
 ): Promise<unknown> {
 	const { bundleConfigAsCjs, configPlugin, configImportAttributesKey, silent } = commandOptions;
 	const warnings = batchWarnings(commandOptions);
-	const inputOptions = {
-		external: (id: string) => (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json',
+	const inputOptions: InputOptionsWithPlugins = {
+		// Do *not* specify external callback here - instead, perform the externality check it via fallback-plugin just below this comment.
+		// This allows config plugin to first decide whether some import is external or not, and only then trigger the check in fallback-plugin.
+		// Since the check is ultra-simple during this stage of transforming the config file itself, it should be fallback instead of primary check.
+		// That way, e.g. importing workspace packages will work as expected - the workspace package will be bundled.
 		input: fileName,
 		onwarn: warnings.add,
 		plugins: [],
 		treeshake: false
 	};
 	await addPluginsFromCommandOption(configPlugin, inputOptions);
+	// Add plugin as *last* item after addPluginsFromCommandOption is complete.
+	// This plugin will trigger for imports not resolved by config plugin, and mark all non-relative imports as external.
+	inputOptions.plugins.push({
+		name: 'external-fallback',
+		resolveId: source => {
+			const looksLikeExternal =
+				(source[0] !== '.' && !path.isAbsolute(source)) || source.slice(-5) === '.json';
+			return looksLikeExternal ? false : source;
+		}
+	});
 	const bundle = await rollup.rollup(inputOptions);
 	const {
 		output: [{ code }]
