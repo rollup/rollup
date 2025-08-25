@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.48.1
+
+_2025-08-25_
+
+### Bug Fixes
+
+- Correctly ignore white-space in JSX strings around line-breaks (#6051)
+
+### Pull Requests
+
+- [#6051](https://github.com/rollup/rollup/pull/6051): fix: handle whitespace according to JSX common practice (@cyyynthia)
+- [#6078](https://github.com/rollup/rollup/pull/6078): build: optimize pipeline take two (@cyyynthia)
+
 ## 4.48.0
 
 _2025-08-23_
