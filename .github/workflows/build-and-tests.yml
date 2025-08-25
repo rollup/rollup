@@ -176,6 +176,23 @@ jobs:
               sudo apt-get install gcc-s390x-linux-gnu g++-s390x-linux-gnu -y
             cross: napi
           - host: ubuntu-latest
+            target: s390x-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
+              apk add binutils-s390x &&
+              mkdir -p /sysroot-s390x/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-s390x/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch s390x --root /sysroot-s390x gcc musl-dev rust &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-s390x/usr/lib/gcc/s390x-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-s390x/usr/lib
+                -C linker=s390x-alpine-linux-musl-ld
+                " &&
+              npm run build:napi -- --release --target s390x-unknown-linux-musl
+          - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
               sudo apt-get update

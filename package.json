@@ -27,6 +27,7 @@
       "riscv64gc-unknown-linux-musl",
       "powerpc64le-unknown-linux-gnu",
       "s390x-unknown-linux-gnu",
+      "s390x-unknown-linux-musl",
       "x86_64-apple-darwin",
       "x86_64-pc-windows-msvc",
       "x86_64-unknown-freebsd",
