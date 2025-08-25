@@ -36,7 +36,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly-2025-07-25
-          targets: x86_64-unknown-linux-gnu
+          components: rust-src
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
@@ -59,7 +59,7 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
@@ -87,7 +87,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly-2025-07-25
-          targets: x86_64-unknown-linux-gnu
+          components: rust-src
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
@@ -110,7 +110,7 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts

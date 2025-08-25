@@ -31,7 +31,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly-2025-07-25
-          targets: wasm32-unknown-unknown
+          components: rust-src
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
@@ -54,8 +54,8 @@ jobs:
           path:  |
             node_modules
             ~/.npm
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
       - name: Install Node dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm install --ignore-scripts
