@@ -3,7 +3,7 @@ import JSXEmptyExpression from '../ast/nodes/JSXEmptyExpression';
 import JSXExpressionContainer from '../ast/nodes/JSXExpressionContainer';
 import type JSXFragment from '../ast/nodes/JSXFragment';
 import type JSXSpreadChild from '../ast/nodes/JSXSpreadChild';
-import type JSXText from '../ast/nodes/JSXText';
+import JSXText from '../ast/nodes/JSXText';
 
 export function getRenderedJsxChildren(
 	children: (JSXText | JSXExpressionContainer | JSXElement | JSXFragment | JSXSpreadChild)[]
@@ -11,7 +11,10 @@ export function getRenderedJsxChildren(
 	let renderedChildren = 0;
 	for (const child of children) {
 		if (
-			!(child instanceof JSXExpressionContainer && child.expression instanceof JSXEmptyExpression)
+			!(
+				child instanceof JSXExpressionContainer && child.expression instanceof JSXEmptyExpression
+			) &&
+			(!(child instanceof JSXText) || child.shouldRender())
 		) {
 			renderedChildren++;
 		}

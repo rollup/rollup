@@ -1018,15 +1018,19 @@ export default class Chunk {
 		fileName: string,
 		node: ImportExpression
 	): [importPath: string, attributes: string | null | true] {
+		const { externalImportAttributes } = this.outputOptions;
+		const keepExternalImportAttributes =
+			['es', 'cjs'].includes(this.outputOptions.format) && externalImportAttributes;
 		if (resolution instanceof ExternalModule) {
 			const chunk = this.externalChunkByModule.get(resolution)!;
-			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAttributes(this.snippets)];
+			const dynamicAttributes = chunk.getImportAttributes(this.snippets);
+			return [
+				`'${chunk.getImportPath(fileName)}'`,
+				dynamicAttributes || (keepExternalImportAttributes ? true : null)
+			];
 		}
 		let attributes: string | true | null = null;
-		if (
-			['es', 'cjs'].includes(this.outputOptions.format) &&
-			this.outputOptions.externalImportAttributes
-		) {
+		if (keepExternalImportAttributes) {
 			const attributesFromImportAttributes = getAttributesFromImportExpression(node);
 			attributes =
 				attributesFromImportAttributes === EMPTY_OBJECT

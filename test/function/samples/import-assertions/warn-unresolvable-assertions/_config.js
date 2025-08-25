@@ -4,6 +4,11 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'warns for dynamic import attributes that cannot be resolved',
 	verifyAst: false,
+	context: {
+		bar: 'bar',
+		foo: 'foo',
+		invalid: 'invalid'
+	},
 	options: {
 		external: id => id.startsWith('external')
 	},
@@ -11,7 +16,7 @@ module.exports = defineTest({
 		{
 			code: 'INVALID_IMPORT_ATTRIBUTE',
 			message:
-				'main.js (1:0): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values. The attribute will be removed.',
+				'main.js (1:0): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values.',
 			id: ID_MAIN,
 			pos: 0,
 			loc: {
@@ -28,7 +33,7 @@ module.exports = defineTest({
 		{
 			code: 'INVALID_IMPORT_ATTRIBUTE',
 			message:
-				'main.js (2:0): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values. The attribute will be removed.',
+				'main.js (2:0): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values.',
 			id: ID_MAIN,
 			pos: 32,
 			loc: {
@@ -46,7 +51,7 @@ module.exports = defineTest({
 		{
 			code: 'INVALID_IMPORT_ATTRIBUTE',
 			message:
-				'main.js (4:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values. The attribute will be removed.',
+				'main.js (4:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values.',
 			id: ID_MAIN,
 			pos: 133,
 			loc: {
@@ -65,7 +70,7 @@ module.exports = defineTest({
 		{
 			code: 'INVALID_IMPORT_ATTRIBUTE',
 			message:
-				'main.js (5:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values. The attribute will be removed.',
+				'main.js (5:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values.',
 			id: ID_MAIN,
 			pos: 173,
 			loc: {
@@ -84,7 +89,7 @@ module.exports = defineTest({
 		{
 			code: 'INVALID_IMPORT_ATTRIBUTE',
 			message:
-				'main.js (6:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values. The attribute will be removed.',
+				'main.js (6:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values.',
 			id: ID_MAIN,
 			pos: 218,
 			loc: {
@@ -103,7 +108,7 @@ module.exports = defineTest({
 		{
 			code: 'INVALID_IMPORT_ATTRIBUTE',
 			message:
-				'main.js (7:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values. The attribute will be removed.',
+				'main.js (7:30): Rollup could not statically analyze an import attribute of a dynamic import in "main.js". Import attributes need to have string keys and values.',
 			id: ID_MAIN,
 			pos: 263,
 			loc: {
