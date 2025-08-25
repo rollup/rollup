@@ -36,6 +36,15 @@ rollup --config rollup.config.ts --configPlugin typescript
 
 Using the `--configPlugin` option will always force your config file to be transpiled to CommonJS first. Also have a look at [Config Intellisense](#config-intellisense) for more ways to use TypeScript typings in your config files.
 
+For more complex TS config files, which import e.g. workspace packages (useful when one has one way of doing bundles in multiple packages when e.g. working in monorepos), a `--configUtilizePluginResolveId` option may be used in order to implement more complex check on what exactly is considered _external_ when performing the CommonJS transpilation of config file. When doing this, one might also need to tweak `tsconfig`, `include`, and `exclude` options of `typescript` plugin:
+
+```shell
+rollup \
+  --config rollup.config.ts \
+	--configPlugin typescript={tsconfig:'<path-to-global-tsconfig>',include:'**/*.ts',exclude:'**/node_modules/**/*.ts'}
+	--configUtilizePluginResolveId
+```
+
 Config files support the options listed below. Consult the [big list of options](../configuration-options/index.md) for details on each option:
 
 ```javascript twoslash

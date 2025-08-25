@@ -3,7 +3,13 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import * as rollup from '../../src/node-entry';
-import type { ImportAttributesKey, MergedRollupOptions } from '../../src/rollup/types';
+import type {
+	ImportAttributesKey,
+	InputOptionsWithPlugins,
+	MergedRollupOptions,
+	Plugin,
+	ResolveIdResult
+} from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import {
 	error,
@@ -18,7 +24,7 @@ import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
-import type { LoadConfigFile } from './loadConfigFileType';
+import type { BatchWarnings, LoadConfigFile } from './loadConfigFileType';
 
 export const loadConfigFile: LoadConfigFile = async (
 	fileName,
@@ -102,10 +108,35 @@ async function loadTranspiledConfigFile(
 	fileName: string,
 	commandOptions: Record<string, unknown>
 ): Promise<unknown> {
-	const { bundleConfigAsCjs, configPlugin, configImportAttributesKey, silent } = commandOptions;
+	const {
+		bundleConfigAsCjs,
+		configPlugin,
+		configImportAttributesKey,
+		silent,
+		configUtilizePluginResolveId
+	} = commandOptions;
 	const warnings = batchWarnings(commandOptions);
-	const inputOptions = {
-		external: (id: string) => (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json',
+	const inputOptions: InputOptionsWithPlugins = {
+		external: (id, importer) => {
+			let isExternal = importIsNotPathButMaybeJson(id);
+			if (isExternal && configUtilizePluginResolveId === true) {
+				const pluginResolveResult = tryResolveIdFromLoadedPlugins(
+					warnings,
+					id,
+					importer,
+					inputOptions.plugins
+				);
+				isExternal =
+					typeof pluginResolveResult === 'boolean'
+						? // If it is boolean, use that directly
+							pluginResolveResult
+						: // For strings, check that it is not path string (or maybe is .json)
+							// Otherwise, ensure that it does not include "node_modules" folder
+							importIsNotPathButMaybeJson(pluginResolveResult) ||
+							pluginResolveResult.includes('/node_modules/');
+			}
+			return isExternal;
+		},
 		input: fileName,
 		onwarn: warnings.add,
 		plugins: [],
@@ -172,4 +203,56 @@ async function getConfigList(configFileExport: any, commandOptions: any): Promis
 		return error(logMissingConfig());
 	}
 	return Array.isArray(config) ? config : [config];
+}
+
+function tryResolveIdFromLoadedPlugins(
+	warnings: BatchWarnings,
+	id: string,
+	importer: string | undefined,
+	plugins: readonly Plugin<any>[]
+) {
+	for (const { resolveId, name } of plugins) {
+		const handler = typeof resolveId === 'function' ? resolveId : resolveId?.handler;
+		if (handler) {
+			// Since we don't support promises (because externality check is not defined as supporting them), we don't support plugin context either
+			// There probably is some way to do that (maybe save each plugin context by wrapping its buildStart hook?), but for now, let's just omit that.
+			let resolveIdResult: ResolveIdResult | Promise<ResolveIdResult>;
+			try {
+				resolveIdResult = handler.bind(undefined!)(id, importer, {
+					attributes: {},
+					isEntry: !importer
+				});
+			} catch (error) {
+				warnings.add({
+					cause: error,
+					id,
+					message: 'Error when resolving id for config file transformation',
+					plugin: name
+				});
+			}
+			if (resolveIdResult) {
+				if (typeof resolveIdResult === 'string') {
+					id = resolveIdResult;
+					break;
+				} else if (typeof resolveIdResult === 'object' && !(resolveIdResult instanceof Promise)) {
+					const external = resolveIdResult.external;
+					if (typeof external === 'boolean') {
+						return external;
+					} else {
+						id = resolveIdResult.id;
+						break;
+					}
+				} else {
+					// Throw an error instead of just 'losing' a promise.
+					// But would warning be ok?
+					throw new Error(`Plugin "${name}" returned unsupported value from its "resolveId" hook.`);
+				}
+			}
+		}
+	}
+	return id;
+}
+
+function importIsNotPathButMaybeJson(id: string) {
+	return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json';
 }
