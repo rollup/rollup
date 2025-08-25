@@ -21,7 +21,7 @@ import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../uti
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import AwaitExpression from './AwaitExpression';
@@ -68,6 +68,14 @@ export default class ImportExpression extends NodeBase {
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
 
+	get shouldIncludeDynamicAttributes() {
+		return isFlagSet(this.flags, Flag.shouldIncludeDynamicAttributes);
+	}
+
+	set shouldIncludeDynamicAttributes(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.shouldIncludeDynamicAttributes, value);
+	}
+
 	get withinTopLevelAwait() {
 		return isFlagSet(this.flags, Flag.withinTopLevelAwait);
 	}
@@ -76,9 +84,9 @@ export default class ImportExpression extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.withinTopLevelAwait, value);
 	}
 
-	// Do not bind attributes
 	bind(): void {
 		this.source.bind();
+		this.options?.bind();
 	}
 
 	/**
@@ -185,18 +193,21 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		this.source.include(context, includeChildrenRecursively);
+		if (this.shouldIncludeDynamicAttributes)
+			this.options?.include(context, includeChildrenRecursively);
 	}
 
-	includeNode() {
+	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (this.shouldIncludeDynamicAttributes) this.options?.includePath(UNKNOWN_PATH, context);
 		this.scope.context.includeDynamicImport(this);
 		this.scope.addAccessedDynamicImport(this);
 	}
 
-	includePath(path: ObjectPath): void {
-		if (!this.included) this.includeNode();
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!this.included) this.includeNode(context);
 		// Technically, this is not correct as dynamic imports return a Promise.
 		if (this.hasUnknownAccessedKey) return;
 		if (path[0] === UnknownKey) {

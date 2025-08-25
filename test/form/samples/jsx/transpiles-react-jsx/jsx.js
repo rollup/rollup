@@ -61,3 +61,36 @@ console.log(<Foo {...obj} {...obj} x="1" key="1" y="1" />);
 console.log(<Foo {...obj} {...obj} x="1" key y="1" />);
 console.log(<Foo {...obj} key="1"></Foo>);
 console.log(<Foo {...obj} key="1"><Foo/></Foo>);
+
+// whitespace nightmares
+console.log(
+  <div>
+    Hello
+        World
+    <p> JSX <b>whitespaces</b> are
+          so  A N N O Y I N G  to
+deal with!! </p>
+    
+	<span foo="bar
+      baz"/>
+    <p>
+
+
+
+
+      x
+
+
+      y
+
+
+
+
+      
+    </p>
+    <><div/></>
+    <>
+      <div/>
+    </>
+  </div>
+)
