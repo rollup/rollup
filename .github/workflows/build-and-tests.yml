@@ -36,18 +36,8 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24.6.0
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path: |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
@@ -245,26 +235,8 @@ jobs:
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts
-      - name: Save Node dependencies cache
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Build in docker
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         if: ${{ matrix.settings.docker }}
@@ -346,18 +318,8 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Build JS
         run: npm run build:cjs
       - name: Download napi artifacts
@@ -452,18 +414,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Download napi artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
@@ -510,18 +462,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Download all artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
