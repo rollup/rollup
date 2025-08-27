@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.49.0
+
+_2025-08-27_
+
+### Features
+
+- Allow config plugins to resolve imports first before deciding whether to treat them as external (#6038)
+
+### Pull Requests
+
+- [#6038](https://github.com/rollup/rollup/pull/6038): feat: Run external check in `cli/run/loadConfigFile.ts` as last in order to allow handling of e.g. workspace package imports in TS monorepos correctly (@stazz, @TrickyPi)
+- [#6082](https://github.com/rollup/rollup/pull/6082): Improve build pipeline performance (@lukastaegert)
+
 ## 4.48.1
 
 _2025-08-25_
