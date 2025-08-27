@@ -1,5 +1,49 @@
 # rollup changelog
 
+## 4.49.0
+
+_2025-08-27_
+
+### Features
+
+- Allow config plugins to resolve imports first before deciding whether to treat them as external (#6038)
+
+### Pull Requests
+
+- [#6038](https://github.com/rollup/rollup/pull/6038): feat: Run external check in `cli/run/loadConfigFile.ts` as last in order to allow handling of e.g. workspace package imports in TS monorepos correctly (@stazz, @TrickyPi)
+- [#6082](https://github.com/rollup/rollup/pull/6082): Improve build pipeline performance (@lukastaegert)
+
+## 4.48.1
+
+_2025-08-25_
+
+### Bug Fixes
+
+- Correctly ignore white-space in JSX strings around line-breaks (#6051)
+
+### Pull Requests
+
+- [#6051](https://github.com/rollup/rollup/pull/6051): fix: handle whitespace according to JSX common practice (@cyyynthia)
+- [#6078](https://github.com/rollup/rollup/pull/6078): build: optimize pipeline take two (@cyyynthia)
+
+## 4.48.0
+
+_2025-08-23_
+
+### Features
+
+- If configured, also keep unparseable import attributes of external dynamic imports in the output(#6071)
+
+### Bug Fixes
+
+- Ensure variables referenced in non-removed import attributes are included (#6071)
+
+### Pull Requests
+
+- [#6071](https://github.com/rollup/rollup/pull/6071): Keep attributes for external dynamic imports (@TrickyPi)
+- [#6079](https://github.com/rollup/rollup/pull/6079): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6080](https://github.com/rollup/rollup/pull/6080): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.47.1
 
 _2025-08-21_

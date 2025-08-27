@@ -1,0 +1,15 @@
+[build]
+rustflags = "-Z location-detail=none"
+
+[unstable]
+build-std = ["std", "core", "alloc", "panic_unwind"]
+build-std-features = ["panic-unwind"]
+
+[target.loongarch64-unknown-linux-gnu]
+linker = "loongarch64-linux-gnu-gcc"
+
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"

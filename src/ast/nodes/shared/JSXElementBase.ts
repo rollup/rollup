@@ -6,6 +6,7 @@ import type { InclusionContext } from '../../ExecutionContext';
 import type Variable from '../../variables/Variable';
 import JSXEmptyExpression from '../JSXEmptyExpression';
 import JSXExpressionContainer from '../JSXExpressionContainer';
+import JSXText from '../JSXText';
 import type { JSXChild, JsxMode } from './jsxHelpers';
 import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
@@ -68,8 +69,9 @@ export default class JSXElementBase extends NodeBase {
 		let firstChild: JSXChild | null = null;
 		for (const child of children) {
 			if (
-				child instanceof JSXExpressionContainer &&
-				child.expression instanceof JSXEmptyExpression
+				(child instanceof JSXExpressionContainer &&
+					child.expression instanceof JSXEmptyExpression) ||
+				(child instanceof JSXText && !child.shouldRender())
 			) {
 				code.remove(childrenEnd, child.end);
 			} else {

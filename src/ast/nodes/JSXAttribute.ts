@@ -7,7 +7,7 @@ import type JSXExpressionContainer from './JSXExpressionContainer';
 import type JSXFragment from './JSXFragment';
 import JSXIdentifier from './JSXIdentifier';
 import type JSXNamespacedName from './JSXNamespacedName';
-import type Literal from './Literal';
+import Literal from './Literal';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
@@ -29,6 +29,16 @@ export default class JSXAttribute extends NodeBase {
 				}
 				if (value) {
 					code.overwrite(name.end, value.start, ': ', { contentOnly: true });
+					// foo="aa \n aa"
+					if (
+						value instanceof Literal &&
+						typeof value.value === 'string' &&
+						value.value.includes('\n')
+					) {
+						code.overwrite(value.start, value.end, JSON.stringify(value.value), {
+							contentOnly: true
+						});
+					}
 				} else {
 					code.appendLeft(name.end, ': true');
 				}
