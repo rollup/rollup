@@ -186,6 +186,25 @@ describe('incremental', () => {
 			});
 	});
 
+	it('deconflicts variables again if needed', async () => {
+		modules.entry = `import value from 'foo'; const test = 'main'; export default test + value;`;
+		modules.foo = `const otherTest = 'foo'; export default otherTest;`;
+		const firstBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin]
+		});
+		assert.strictEqual(await executeBundle(firstBundle), 'mainfoo');
+
+		// Now we introduce a name conflict
+		modules.foo = `const test = 'foo'; export default test;`;
+		const secondBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin],
+			cache: firstBundle
+		});
+		assert.strictEqual(await executeBundle(secondBundle), 'mainfoo');
+	});
+
 	it('recovers from errors', () => {
 		modules.entry = `import foo from 'foo'; import bar from 'bar'; export default foo + bar;`;
 

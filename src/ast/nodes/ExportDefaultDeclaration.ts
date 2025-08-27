@@ -67,11 +67,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
 			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
-		this.variable = this.scope.addExportDefaultDeclaration(
-			this.declarationName || this.scope.context.getModuleName(),
-			this,
-			this.scope.context
-		);
+
+		let name = this.declarationName || this.scope.context.getModuleName();
+
+		// check if there's already a variable with the same name in the scope. see no-treeshake-default-export-conflict
+		const existingVariable = this.scope.variables.get(name);
+		if (existingVariable) {
+			name = `${name}_default`;
+		}
+
+		this.variable = this.scope.addExportDefaultDeclaration(name, this, this.scope.context);
 		this.scope.context.addExport(this);
 	}
 
