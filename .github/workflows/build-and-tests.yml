@@ -156,6 +156,24 @@ jobs:
               sudo apt-get install gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu -y
             cross: napi
           - host: ubuntu-latest
+            target: powerpc64le-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
+              apk add binutils-ppc64le &&
+              mkdir -p /sysroot-ppc64le/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-ppc64le/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch ppc64le --root /sysroot-ppc64le gcc musl-dev &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-ppc64le/usr/lib/gcc/ppc64le-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-ppc64le/usr/lib
+                -C linker=ppc64le-alpine-linux-musl-ld
+                " &&
+              rustup target add powerpc64le-unknown-linux-musl &&
+              npm run build:napi -- --release --target powerpc64le-unknown-linux-musl
+          - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
             env:
               CC: clang
@@ -165,6 +183,23 @@ jobs:
               sudo apt-get update
               sudo apt-get install gcc-s390x-linux-gnu g++-s390x-linux-gnu -y
             cross: napi
+          - host: ubuntu-latest
+            target: s390x-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
+              apk add binutils-s390x &&
+              mkdir -p /sysroot-s390x/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-s390x/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch s390x --root /sysroot-s390x gcc musl-dev rust &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-s390x/usr/lib/gcc/s390x-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-s390x/usr/lib
+                -C linker=s390x-alpine-linux-musl-ld
+                " &&
+              npm run build:napi -- --release --target s390x-unknown-linux-musl
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
@@ -178,6 +213,24 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
+          - host: ubuntu-latest
+            target: loongarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              unset CC &&
+              export TARGET_CC=clang &&
+              apk add binutils-loongarch64 &&
+              mkdir -p /sysroot-loongarch64/etc/apk &&
+              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-loongarch64/etc/apk/repositories &&
+              apk add -U --initdb --allow-untrusted --arch loongarch64 --root /sysroot-loongarch64 gcc musl-dev &&
+              export RUSTFLAGS="
+                -C link-args=-L$(echo /sysroot-loongarch64/usr/lib/gcc/loongarch64-alpine-linux-musl/*)
+                -C link-args=-L/sysroot-loongarch64/usr/lib
+                -C linker=loongarch64-alpine-linux-musl-ld
+                " &&
+              rustup target add loongarch64-unknown-linux-musl &&
+              npm run build:napi -- --release --target loongarch64-unknown-linux-musl
 
           # FreeBSD
           - host: ubuntu-latest
