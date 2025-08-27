@@ -178,6 +178,8 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-ohos
 
           # FreeBSD
           - host: ubuntu-latest
@@ -204,6 +206,9 @@ jobs:
         with:
           toolchain: nightly-2025-07-25
           components: rust-src
+      - name: Setup OpenHarmony SDK
+        if: ${{ contains(matrix.settings.target, 'ohos') }}
+        uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
