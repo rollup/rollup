@@ -9,13 +9,15 @@ import {
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
 } from '../../NodeInteractions';
 import { isObjectExpressionNode, isPropertyNode } from '../../utils/identifyNode';
-import type { ObjectPath } from '../../utils/PathTracker';
+import type { ObjectPath, WellKnownSymbol } from '../../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	SHARED_RECURSION_TRACKER,
+	SymbolHasInstance,
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownWellKnown
 } from '../../utils/PathTracker';
 import ArrayExpression from '../ArrayExpression';
 import type { LiteralValueOrUnknown } from './Expression';
@@ -38,6 +40,15 @@ interface GlobalDescription {
 const getUnknownValue = (): LiteralValueOrUnknown => UnknownValue;
 const returnFalse = () => false;
 const returnTrue = () => true;
+
+const mkWellKnownSymbol = (symbol: WellKnownSymbol) => ({
+	__proto__: null,
+	[ValueProperties]: {
+		deoptimizeArgumentsOnCall: doNothing,
+		getLiteralValue: () => symbol,
+		hasEffectsWhenCalled: returnTrue
+	}
+});
 
 const PURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
@@ -147,6 +158,12 @@ const INTL_MEMBER: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE,
 	supportedLocalesOf: PC
+};
+
+const UNKNOWN_WELL_KNOWN: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
+	getLiteralValue: () => UnknownWellKnown,
+	hasEffectsWhenCalled: returnTrue
 };
 
 const knownGlobals: GlobalDescription = {
@@ -349,16 +366,9 @@ const knownGlobals: GlobalDescription = {
 		for: PF,
 		keyFor: PF,
 		prototype: O,
-		toStringTag: {
-			__proto__: null,
-			[ValueProperties]: {
-				deoptimizeArgumentsOnCall: doNothing,
-				getLiteralValue() {
-					return SymbolToStringTag;
-				},
-				hasEffectsWhenCalled: returnTrue
-			}
-		}
+		// Well-known symbols
+		hasInstance: mkWellKnownSymbol(SymbolHasInstance),
+		toStringTag: mkWellKnownSymbol(SymbolToStringTag)
 	},
 	SyntaxError: PC,
 	toLocaleString: O,
@@ -1036,7 +1046,9 @@ export function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 		}
 		currentGlobal = currentGlobal[pathSegment];
 		if (!currentGlobal) {
-			return null;
+			// Well-known symbols very often have a complex meaning and are invoked implicitly by the language.
+			// Resolve them to a special value so they can be distinguished and excluded from treeshaking.
+			return path[0] === 'Symbol' && path.length === 2 ? UNKNOWN_WELL_KNOWN : null;
 		}
 	}
 	return currentGlobal[ValueProperties];

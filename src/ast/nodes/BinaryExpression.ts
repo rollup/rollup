@@ -8,6 +8,7 @@ import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
+	INSTANCEOF_PATH,
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
@@ -160,6 +161,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		if (typeof this.getRenderedLiteralValue() === 'symbol') {
 			this.left.include(context, includeChildrenRecursively, options);
 			this.right.include(context, includeChildrenRecursively, options);
+
+			// `instanceof` will attempt to call RHS's `Symbol.hasInstance` if it exists.
+			if (this.operator === 'instanceof') this.right.includePath(INSTANCEOF_PATH, context);
 		}
 	}
 
