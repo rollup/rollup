@@ -1,3 +1,4 @@
+import { EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -29,9 +30,19 @@ function mergeValues(a: Value, b: Value): LiteralValueOrUnknown {
 	return UnknownValue;
 }
 
-export class MultiExpression extends ExpressionEntity {
+const UNSET = Symbol('unset');
+
+export class MultiExpression extends ExpressionEntity implements DeoptimizableEntity {
+	private literalValue: LiteralValueOrUnknown | typeof UNSET = UNSET;
+	private dependantEntities = new Set<DeoptimizableEntity>();
 	constructor(private expressions: readonly ExpressionEntity[]) {
 		super();
+	}
+
+	deoptimizeCache(): void {
+		this.literalValue = UnknownValue;
+		this.dependantEntities.forEach(v => v.deoptimizeCache());
+		this.dependantEntities = EMPTY_SET;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -41,6 +52,23 @@ export class MultiExpression extends ExpressionEntity {
 	}
 
 	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (path.length === 0) {
+			if (this.literalValue !== UnknownValue) this.dependantEntities.add(origin);
+
+			if (this.literalValue === UNSET)
+				this.literalValue = this.doGetLiteralValueAtPath(path, recursionTracker, this);
+
+			return this.literalValue;
+		}
+
+		return this.doGetLiteralValueAtPath(path, recursionTracker, origin);
+	}
+
+	private doGetLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity

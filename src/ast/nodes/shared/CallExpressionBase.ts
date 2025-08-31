@@ -94,7 +94,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 			returnExpression,
 			() => {
 				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+				return returnExpression.getLiteralValueAtPath(path, recursionTracker, this);
 			},
 			UnknownValue
 		);

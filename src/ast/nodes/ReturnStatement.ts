@@ -2,8 +2,8 @@ import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../values';
 import type * as NodeType from './NodeType';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -33,7 +33,7 @@ export default class ReturnStatement extends StatementBase {
 	}
 
 	bind(): void {
-		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
+		this.scope.addReturnExpression(this.argument || UNDEFINED_EXPRESSION);
 		super.bind();
 	}
 
