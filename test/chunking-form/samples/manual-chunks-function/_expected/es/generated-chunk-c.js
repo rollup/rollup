@@ -1,3 +1,3 @@
-import './generated-chunk-b.js';
+import './generated-dep1.js';
 
 console.log('dep-c');

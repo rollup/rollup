@@ -1,13 +1,10 @@
 'use strict';
 
+var main = require('./generated-main.js');
 var lib1 = require('./generated-lib1.js');
 
-function fn$2 () {
-  console.log('lib2 fn');
-}
-
 function fn$1 () {
-  fn$2();
+  main.fn();
   console.log('dep2 fn');
 }
 

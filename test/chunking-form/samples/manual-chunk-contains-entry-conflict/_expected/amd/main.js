@@ -1,6 +1,4 @@
-define(['exports'], (function (exports) { 'use strict';
-
-	console.log('dep');
+define(['exports', './main2'], (function (exports, main2) { 'use strict';
 
 	console.log('main');
 

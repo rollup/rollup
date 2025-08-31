@@ -1,6 +1,4 @@
-define(['exports'], (function (exports) { 'use strict';
-
-	console.log('dep');
+define(['exports', './generated-dep'], (function (exports, dep) { 'use strict';
 
 	console.log('main');
 

@@ -1,6 +1,4 @@
-define((function () { 'use strict';
-
-	console.log('dep2');
+define(['./generated-dep1'], (function (dep1) { 'use strict';
 
 	console.log('dep-b');
 

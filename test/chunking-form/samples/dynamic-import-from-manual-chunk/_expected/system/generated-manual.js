@@ -1,9 +1,11 @@
-System.register([], (function (exports, module) {
+System.register(['./main.js'], (function (exports, module) {
 	'use strict';
+	var dep2;
 	return {
+		setters: [function (module) {
+			dep2 = module.d;
+		}],
 		execute: (function () {
-
-			const dep2 = exports("d", 'dep2');
 
 			console.log(dep2);
 			module.import('./generated-dynamic.js');

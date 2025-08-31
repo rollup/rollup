@@ -1,0 +1,13 @@
+System.register([], (function (exports) {
+	'use strict';
+	return {
+		execute: (function () {
+
+			console.log('dynamic2');
+
+			const DYNAMIC_A = exports("DYNAMIC_A", 'DYNAMIC_A');
+			const DYNAMIC_B = exports("DYNAMIC_B", 'DYNAMIC_B');
+
+		})
+	};
+}));

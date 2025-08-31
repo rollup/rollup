@@ -1,10 +1,6 @@
-define(['require', 'exports'], (function (require, exports) { 'use strict';
+define(['require', './main'], (function (require, main) { 'use strict';
 
-	const dep2 = 'dep2';
-
-	console.log(dep2);
+	console.log(main.dep2);
 	new Promise(function (resolve, reject) { require(['./generated-dynamic'], resolve, reject); });
-
-	exports.dep2 = dep2;
 
 }));

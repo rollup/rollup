@@ -1,5 +1,5 @@
 'use strict';
 
-var manual = require('./main2.js');
+var dep = require('./generated-dep.js');
 
-console.log('main', manual.reexported);
+console.log('main', dep.value);

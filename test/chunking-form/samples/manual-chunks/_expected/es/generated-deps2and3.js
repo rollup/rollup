@@ -1,8 +1,5 @@
+import { f as fn$2 } from './generated-main.js';
 import { f as fn$3 } from './generated-lib1.js';
-
-function fn$2 () {
-  console.log('lib2 fn');
-}
 
 function fn$1 () {
   fn$2();

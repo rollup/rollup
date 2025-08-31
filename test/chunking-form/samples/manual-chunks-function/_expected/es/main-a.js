@@ -1,7 +1,6 @@
 import './generated-chunk-c.js';
+import './generated-dep1.js';
 import './generated-chunk-b.js';
-
-console.log('dep1');
 
 console.log('dep-a');
 

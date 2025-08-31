@@ -1,6 +1,6 @@
 'use strict';
 
-console.log('dep2');
+require('./generated-dep1.js');
 
 console.log('dep-b');
 
