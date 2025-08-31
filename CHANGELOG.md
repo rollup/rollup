@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.50.0
+
+_2025-08-31_
+
+### Features
+
+- Support openharmony-arm64 platform (#6081)
+
+### Bug Fixes
+
+- Fix loading of extensionless imports in config files (#6084)
+
+### Pull Requests
+
+- [#6081](https://github.com/rollup/rollup/pull/6081): Add support for openharmony-arm64 platform (@hqzing, @lukastaegert)
+- [#6084](https://github.com/rollup/rollup/pull/6084): Return null to defer to the default resolution behavior (@TrickyPi)
+
 ## 4.49.0
 
 _2025-08-27_
