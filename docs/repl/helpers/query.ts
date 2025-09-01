@@ -15,7 +15,8 @@ export async function useUpdateStoresFromQuery() {
 	const query = Object.fromEntries(urlParameters as unknown as Iterable<[string, string]>);
 	try {
 		if (query.shareable) {
-			const json = decodeURIComponent(atob(query.shareable));
+			const rawJson = atob(query.shareable.replace(/_/g, '/').replace(/-/g, '+'));
+			const json = rawJson.startsWith('%') ? decodeURIComponent(rawJson) : rawJson;
 			const {
 				modules: queryModules,
 				options: queryOptions,
@@ -104,7 +105,7 @@ export function useSyncQueryWithStores() {
 				options
 			});
 
-			parameters.shareable = btoa(encodeURIComponent(json));
+			parameters.shareable = btoa(json).replace(/\//g, '_').replace(/\+/g, '-');
 			const queryString = Object.keys(parameters)
 				.map(key => `${key}=${parameters[key]}`)
 				.join('&');
