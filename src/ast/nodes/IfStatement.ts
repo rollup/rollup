@@ -145,6 +145,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 		if (this.consequent === (node as unknown)) return value !== false;
 		if (this.alternate === (node as unknown)) return value !== true;
+
+		/* istanbul ignore next: should never happen if isLocallyReachable is used properly */
 		return false;
 	}
 

@@ -67,6 +67,46 @@ function returnMixedFalsy() {
 	return true;
 }
 
+function returnTruthyTrue() {
+	if (Math.random() > 0.5) return returnMixedTruthy();
+	return true;
+}
+
+function returnTruthyFalse() {
+	if (Math.random() > 0.5) return returnMixedTruthy();
+	return false;
+}
+
+function returnTruthyTruthy() {
+	if (Math.random() > 0.5) return returnMixedTruthy();
+	return returnMixedTruthy();
+}
+
+function returnTruthyFalsy() {
+	if (Math.random() > 0.5) return returnMixedTruthy();
+	return returnMixedFalsy();
+}
+
+function returnFalsyTrue() {
+	if (Math.random() > 0.5) return returnMixedFalsy();
+	return true;
+}
+
+function returnFalsyFalse() {
+	if (Math.random() > 0.5) return returnMixedFalsy();
+	return false;
+}
+
+function returnFalsyTruthy() {
+	if (Math.random() > 0.5) return returnMixedFalsy();
+	return returnMixedTruthy();
+}
+
+function returnFalsyFalsy() {
+	if (Math.random() > 0.5) return returnMixedFalsy();
+	return returnMixedFalsy();
+}
+
 function emptyFunction() {}
 
 function complexCase(arg) {
@@ -127,4 +167,36 @@ if (emptyFunction()) {
 
 if (complexCase(1)) {
 	console.log('retained -- complexCase(1)');
+}
+
+if (returnTruthyTrue()) {
+	console.log('retained -- returnTruthyTrue');
+}
+
+if (returnTruthyFalse()) {
+	console.log('retained + cond -- returnTruthyFalse');
+}
+
+if (returnTruthyTruthy()) {
+	console.log('retained -- returnTruthyTruthy');
+}
+
+if (returnTruthyFalsy()) {
+	console.log('retained + cond -- returnTruthyFalsy');
+}
+
+if (returnFalsyTrue()) {
+	console.log('retained + cond -- returnFalsyTrue');
+}
+
+if (returnFalsyFalse()) {
+	console.log('removed -- returnFalsyFalse');
+}
+
+if (returnFalsyTruthy()) {
+	console.log('retained + cond -- returnFalsyTruthy');
+}
+
+if (returnFalsyFalsy()) {
+	console.log('removed -- returnFalsyFalsy');
 }
