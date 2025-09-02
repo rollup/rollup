@@ -98,9 +98,11 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const returnExpressions = this.expressions.map(expression =>
-			expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-		);
+		const returnExpressions = this.expressions
+			.filter(expr => expr.isLocallyReachable())
+			.map(expression =>
+				expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
+			);
 
 		let pure = true;
 		return [
@@ -115,7 +117,11 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		context: HasEffectsContext
 	): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+			if (
+				expression.isLocallyReachable() &&
+				expression.hasEffectsOnInteractionAtPath(path, interaction, context)
+			)
+				return true;
 		}
 		return false;
 	}

@@ -108,9 +108,8 @@ export default class BlockStatement extends StatementBase {
 		return false;
 	}
 
-	isLocallyReachable(node?: ExpressionEntity): boolean {
-		if (!super.isLocallyReachable()) return false;
-		if (!node) return true;
+	isChildLocallyReachable(node: ExpressionEntity): boolean {
+		if (!this.isLocallyReachable()) return false;
 
 		const blockIndex =
 			node === this.implicitReturnExpression ? this.body.length : this.body.indexOf(node as any);

@@ -137,16 +137,15 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		return this.consequent.haltsCodeFlow() && !!this.alternate?.haltsCodeFlow();
 	}
 
-	isLocallyReachable(node?: ExpressionEntity): boolean {
-		if (!super.isLocallyReachable()) return false;
-		if (!node) return true;
+	isChildLocallyReachable(node: ExpressionEntity): boolean {
+		if (!this.isLocallyReachable()) return false;
 
 		const value = this.getTestValue();
 
 		if (this.consequent === (node as unknown)) return value !== false;
 		if (this.alternate === (node as unknown)) return value !== true;
 
-		/* istanbul ignore next: should never happen if isLocallyReachable is used properly */
+		/* istanbul ignore next: should never happen if isChildLocallyReachable is used properly */
 		return false;
 	}
 
