@@ -7,6 +7,7 @@ import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
+	isAnyWellKnown,
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
@@ -160,7 +161,11 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					this
 				);
 				if (typeof keyValue === 'symbol') {
-					properties.push({ key: UnknownKey, kind, property: definition });
+					properties.push({
+						key: isAnyWellKnown(keyValue) ? keyValue : UnknownKey,
+						kind,
+						property: definition
+					});
 					continue;
 				} else {
 					key = String(keyValue);
