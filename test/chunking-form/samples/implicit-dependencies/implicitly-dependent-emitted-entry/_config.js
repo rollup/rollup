@@ -101,6 +101,7 @@ module.exports = defineTest({
 					isExternal: false,
 					isIncluded: true,
 					meta: {},
+					safeVariableNames: null,
 					syntheticNamedExports: false
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
@@ -180,6 +181,7 @@ module.exports = defineTest({
 					isExternal: false,
 					isIncluded: true,
 					meta: {},
+					safeVariableNames: null,
 					syntheticNamedExports: false
 				});
 			},
