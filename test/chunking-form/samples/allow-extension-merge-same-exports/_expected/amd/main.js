@@ -1,8 +1,8 @@
-define(['./generated-lib1'], (function (libs) { 'use strict';
+define(['./generated-lib1', './generated-vendor'], (function (libs, vendor) { 'use strict';
 
 	console.log(libs.value1);
-	console.log(libs.bar);
+	console.log(vendor.bar);
 	console.log(libs.value2);
-	console.log(libs.bar);
+	console.log(vendor.bar);
 
 }));

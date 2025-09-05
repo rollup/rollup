@@ -1,4 +1,4 @@
-console.log('dep2');
+import './generated-dep1.js';
 
 console.log('dep-b');
 

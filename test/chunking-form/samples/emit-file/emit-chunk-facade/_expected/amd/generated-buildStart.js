@@ -1,7 +1,7 @@
-define(['exports', './generated-build-starter'], (function (exports, buildStarter) { 'use strict';
+define(['exports', './generated-dep'], (function (exports, dep) { 'use strict';
 
+	console.log('startBuild', dep.value);
 
-
-	exports.buildStartValue = buildStarter.value;
+	exports.buildStartValue = dep.value;
 
 }));

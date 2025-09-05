@@ -1,4 +1,4 @@
-System.register(['./generated-build-starter.js'], (function () {
+System.register(['./generated-dep.js'], (function () {
 	'use strict';
 	var value, otherValue;
 	return {

@@ -1,4 +1,4 @@
-console.log('dep');
+import './generated-dep.js';
 
 console.log('main');
 

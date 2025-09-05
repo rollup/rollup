@@ -19,6 +19,7 @@ module.exports = defineTest({
 					assert.deepStrictEqual(Object.keys(bundle), [
 						'main-a.js',
 						'generated-chunk-c.js',
+						'generated-dep1.js',
 						'generated-chunk-b.js'
 					]);
 				}

@@ -1,5 +1,5 @@
 'use strict';
 
-var buildStarter = require('./generated-build-starter.js');
+var dep = require('./generated-dep.js');
 
-console.log('main', buildStarter.value, buildStarter.otherValue);
+console.log('main', dep.value, dep.otherValue);

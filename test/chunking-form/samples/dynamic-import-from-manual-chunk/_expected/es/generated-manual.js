@@ -1,6 +1,4 @@
-const dep2 = 'dep2';
+import { d as dep2 } from './main.js';
 
 console.log(dep2);
 import('./generated-dynamic.js');
-
-export { dep2 as d };
