@@ -445,8 +445,9 @@ export default class MemberExpression
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
+		let included = this.included;
 		if (
-			(this.included ||=
+			(included ||=
 				destructuredInitPath.length > 0 &&
 				!context.brokenFlow &&
 				init.hasEffectsOnInteractionAtPath(
@@ -456,9 +457,11 @@ export default class MemberExpression
 				))
 		) {
 			init.include(context, false);
-			return true;
 		}
-		return false;
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
 	}
 
 	initialise(): void {

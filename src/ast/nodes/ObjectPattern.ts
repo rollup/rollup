@@ -87,25 +87,23 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
-		if (!this.properties.length) return false;
+		if (!this.properties.length) return this.included;
 
 		const lastProperty = this.properties.at(-1)!;
-		const lastPropertyIncluded = lastProperty.includeDestructuredIfNecessary(
-			context,
-			destructuredInitPath,
-			init
-		);
+		let included = lastProperty.includeDestructuredIfNecessary(context, destructuredInitPath, init);
 		const lastPropertyIsRestElement = lastProperty.type === NodeType.RestElement;
 
-		let included = lastPropertyIsRestElement ? lastPropertyIncluded : false;
 		for (const property of this.properties.slice(0, -1)) {
-			if (lastPropertyIsRestElement && lastPropertyIncluded) {
+			if (lastPropertyIsRestElement && included && !property.included) {
 				property.includeNode(context);
 			}
 			included =
 				property.includeDestructuredIfNecessary(context, destructuredInitPath, init) || included;
 		}
-		return (this.included ||= included);
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
 	}
 
 	markDeclarationReached(): void {
