@@ -5,7 +5,7 @@ import type {
 	EmittedFile,
 	ExistingRawSourceMap,
 	LoggingFunctionWithPosition,
-	LogHandler,
+	NormalizedInputOptions,
 	Plugin,
 	PluginContext,
 	RollupError,
@@ -24,15 +24,17 @@ import {
 	error,
 	logInvalidSetAssetSourceCall,
 	logNoTransformMapOrAstWithoutCode,
-	logPluginError
+	logPluginError,
+	warnDeprecationWithOptions
 } from './logs';
 import { normalizeLog } from './options/options';
+import { URL_TRANSFORM } from './urls';
 
 export default async function transform(
 	source: SourceDescription,
 	module: Module,
 	pluginDriver: PluginDriver,
-	log: LogHandler
+	{ onLog: log, strictDeprecations }: NormalizedInputOptions
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -64,6 +66,15 @@ export default async function transform(
 					log(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
 				}
 				return previousCode;
+			}
+			if (result.attributes) {
+				warnDeprecationWithOptions(
+					'Returning attributes from the "transform" hook is forbidden.',
+					URL_TRANSFORM,
+					strictDeprecations,
+					log,
+					false
+				);
 			}
 			({ code, map, ast } = result);
 		} else {
@@ -101,7 +112,13 @@ export default async function transform(
 	try {
 		code = await pluginDriver.hookReduceArg0(
 			'transform',
-			[currentSource, id],
+			[
+				currentSource,
+				id,
+				{
+					attributes: module.info.attributes
+				}
+			],
 			transformReducer,
 			(pluginContext, plugin): TransformPluginContext => {
 				pluginName = plugin.name;
