@@ -115,8 +115,9 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 		}
 		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
+		let included = this.included;
 		if (
-			(this.included ||=
+			(included ||=
 				destructuredInitPath.length > 0 &&
 				!context.brokenFlow &&
 				propertyReadSideEffects &&
@@ -131,9 +132,11 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 				this.scope.context.includeVariableInModule(this.variable, EMPTY_PATH, context);
 			}
 			init.includePath(destructuredInitPath, context);
-			return true;
 		}
-		return false;
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
 	}
 
 	markDeclarationReached(): void {
