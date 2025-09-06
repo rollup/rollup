@@ -1,6 +1,6 @@
 'use strict';
 
-require('./main2.js');
+require('./generated-dep.js');
 
 console.log('main');
 

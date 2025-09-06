@@ -1,10 +1,9 @@
-System.register(['./main.js'], (function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		setters: [null],
 		execute: (function () {
 
-
+			console.log('included');
 
 		})
 	};

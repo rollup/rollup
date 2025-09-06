@@ -1,1 +1,1 @@
-console.log('dep');
+import './generated-dep.js';

@@ -1,4 +1,4 @@
-System.register(['./main.js'], (function () {
+System.register(['./generated-manual-included.js'], (function () {
 	'use strict';
 	return {
 		setters: [null],

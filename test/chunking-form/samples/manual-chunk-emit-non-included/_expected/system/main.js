@@ -1,12 +1,10 @@
-System.register(['./generated-dep.js'], (function (exports) {
+System.register(['./generated-manual-included.js'], (function () {
 	'use strict';
 	return {
 		setters: [null],
 		execute: (function () {
 
 			console.log('main');
-
-			const value = exports("value", 42);
 
 		})
 	};

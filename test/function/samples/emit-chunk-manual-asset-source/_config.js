@@ -1,9 +1,10 @@
 const assert = require('node:assert');
-let referenceId;
 
+let referenceId;
 module.exports = defineTest({
 	description: 'supports setting asset sources as side effect of the manual chunks option',
 	options: {
+		input: ['main.js', 'manual.js'],
 		output: {
 			manualChunks: { foo: ['manual.js'] },
 			assetFileNames: '[name]-[hash][extname]'
@@ -12,7 +13,10 @@ module.exports = defineTest({
 			{
 				transform(code, id) {
 					if (id.endsWith('manual.js')) {
-						referenceId = this.emitFile({ type: 'asset', name: 'emitted.txt' });
+						referenceId = this.emitFile({
+							type: 'asset',
+							name: 'emitted.txt'
+						});
 					}
 				},
 				moduleParsed({ id }) {

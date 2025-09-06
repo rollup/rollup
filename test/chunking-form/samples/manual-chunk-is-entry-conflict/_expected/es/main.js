@@ -1,4 +1,4 @@
-import './main2.js';
+import './generated-dep.js';
 
 console.log('main');
 

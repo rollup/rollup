@@ -1,4 +1,4 @@
-define(['exports', './main2'], (function (exports, main2) { 'use strict';
+define(['exports', './generated-dep'], (function (exports, dep) { 'use strict';
 
 	console.log('main');
 

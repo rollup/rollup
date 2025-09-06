@@ -1,3 +1,4 @@
 'use strict';
 
-console.log('dep');
+require('./generated-dep.js');
+

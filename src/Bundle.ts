@@ -104,25 +104,21 @@ export default class Bundle {
 		return outputBundleBase;
 	}
 
-	private async addManualChunks(
-		manualChunks: Record<string, readonly string[]>
+	private async assignManualChunks(
+		manualChunks: GetManualChunk | Record<string, readonly string[]>
 	): Promise<Map<Module, string>> {
-		const manualChunkAliasByEntry = new Map<Module, string>();
-		const chunkEntries = await Promise.all(
-			Object.entries(manualChunks).map(async ([alias, files]) => ({
-				alias,
-				entries: await this.graph.moduleLoader.addAdditionalModules(files, true)
-			}))
-		);
-		for (const { alias, entries } of chunkEntries) {
-			for (const entry of entries) {
-				addModuleToManualChunk(alias, entry, manualChunkAliasByEntry);
-			}
-		}
-		return manualChunkAliasByEntry;
-	}
-
-	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
+		const getManualChunk: GetManualChunk =
+			typeof manualChunks === 'object'
+				? (id: string) => {
+						for (const [chunkName, patterns] of Object.entries(manualChunks)) {
+							for (const pattern of patterns) {
+								if (id.includes(pattern)) {
+									return chunkName;
+								}
+							}
+						}
+					}
+				: manualChunks;
 		const manualChunkAliasesWithEntry: [alias: string, module: Module][] = [];
 		const manualChunksApi = {
 			getModuleIds: () => this.graph.modulesById.keys(),
@@ -167,10 +163,7 @@ export default class Bundle {
 	): Promise<Chunk[]> {
 		const { experimentalMinChunkSize, inlineDynamicImports, manualChunks, preserveModules } =
 			this.outputOptions;
-		const manualChunkAliasByEntry =
-			typeof manualChunks === 'object'
-				? await this.addManualChunks(manualChunks)
-				: this.assignManualChunks(manualChunks);
+		const manualChunkAliasByEntry = await this.assignManualChunks(manualChunks);
 		const snippets = getGenerateCodeSnippets(this.outputOptions);
 		const includedModules = getIncludedModules(this.graph.modulesById);
 		const inputBase = commondir(getAbsoluteEntryModulePaths(includedModules, preserveModules));
