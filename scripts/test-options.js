@@ -73,7 +73,7 @@ for (const line of splitHelpText) {
 	}
 }
 
-const helpOptionLines = splitHelpText.filter(line => line.startsWith('-'));
+const helpOptionLines = splitHelpText.filter(line => line[0] === '-');
 
 const cliFlagsText = commandReferenceText
 	.split('\n## ')
@@ -85,7 +85,7 @@ const cliMarkdownSection = cliFlagsText.match(/```\n([\S\s]*?)\n```/);
 if (!cliMarkdownSection) {
 	throw new Error('Could not find markdown section in "Command line flags" section.');
 }
-const optionListLines = cliMarkdownSection[1].split('\n').filter(line => line.startsWith('-'));
+const optionListLines = cliMarkdownSection[1].split('\n').filter(line => line[0] === '-');
 
 for (const [index, line] of helpOptionLines.entries()) {
 	const optionListLine = optionListLines[index];

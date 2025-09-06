@@ -966,7 +966,7 @@ export default class Chunk {
 							variable.isNamespace &&
 							namespaceInteropHelpersByInteropType[interop(module.id)] &&
 							(this.imports.has(variable) ||
-								!this.exportNamesByVariable.get(variable)?.every(name => name.startsWith('*')))
+								!this.exportNamesByVariable.get(variable)?.every(name => name[0] === '*'))
 						) {
 							// We only need to deconflict it if the namespace is actually
 							// created as a variable, i.e. because it is used internally or
@@ -1143,7 +1143,7 @@ export default class Chunk {
 				return idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '');
 			} else {
 				// handle edge case in Windows
-				if (this.inputBase === '/' && !idWithoutExtension.startsWith('/')) {
+				if (this.inputBase === '/' && idWithoutExtension[0] !== '/') {
 					return relative(this.inputBase, idWithoutExtension.replace(/^[a-zA-Z]:[/\\]/, '/'));
 				}
 				return relative(this.inputBase, idWithoutExtension);
