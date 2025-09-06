@@ -97,7 +97,7 @@ const getIdMatcher = <T extends any[]>(
 		return () => true;
 	}
 	if (typeof option === 'function') {
-		return (id, ...parameters) => (!id.startsWith('\0') && option(id, ...parameters)) || false;
+		return (id, ...parameters) => (id[0] !== '\0' && option(id, ...parameters)) || false;
 	}
 	if (option) {
 		const ids = new Set<string>();
@@ -241,7 +241,7 @@ const getHasModuleSideEffects = (
 	}
 	if (typeof moduleSideEffectsOption === 'function') {
 		return (id, external) =>
-			id.startsWith('\0') ? true : moduleSideEffectsOption(id, external) !== false;
+			id[0] === '\0' ? true : moduleSideEffectsOption(id, external) !== false;
 	}
 	if (Array.isArray(moduleSideEffectsOption)) {
 		const ids = new Set(moduleSideEffectsOption);

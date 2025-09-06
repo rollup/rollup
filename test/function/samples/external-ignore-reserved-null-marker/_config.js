@@ -2,7 +2,7 @@ module.exports = defineTest({
 	description: 'external function ignores \\0 started ids',
 	options: {
 		external(id) {
-			if (id.startsWith('\0')) {
+			if (id[0] === '\0') {
 				throw new Error('\\0 started ids should not be tested as external');
 			}
 			return true;

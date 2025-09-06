@@ -5,7 +5,7 @@ export const getLogFilter: GetLogFilter = filters => {
 	if (filters.length === 0) return () => true;
 	const normalizedFilters = filters.map(filter =>
 		filter.split('&').map(subFilter => {
-			const inverted = subFilter.startsWith('!');
+			const inverted = subFilter[0] === '!';
 			if (inverted) subFilter = subFilter.slice(1);
 			const [key, ...value] = subFilter.split(':');
 			return { inverted, key: key.split('.'), parts: value.join(':').split('*') };

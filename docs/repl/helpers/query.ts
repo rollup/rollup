@@ -16,7 +16,7 @@ export async function useUpdateStoresFromQuery() {
 	try {
 		if (query.shareable) {
 			const rawJson = atob(query.shareable.replace(/_/g, '/').replace(/-/g, '+'));
-			const json = rawJson.startsWith('%') ? decodeURIComponent(rawJson) : rawJson;
+			const json = rawJson[0] === '%' ? decodeURIComponent(rawJson) : rawJson;
 			const {
 				modules: queryModules,
 				options: queryOptions,
