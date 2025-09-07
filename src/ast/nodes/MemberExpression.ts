@@ -7,7 +7,7 @@ import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createHasEffectsContext, createInclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
@@ -440,25 +440,14 @@ export default class MemberExpression
 		}
 	}
 
-	includeDestructuredIfNecessary(
-		context: InclusionContext,
-		destructuredInitPath: ObjectPath,
-		init: ExpressionEntity
-	): boolean {
-		if (
-			(this.included ||=
-				destructuredInitPath.length > 0 &&
-				!context.brokenFlow &&
-				init.hasEffectsOnInteractionAtPath(
-					destructuredInitPath,
-					NODE_INTERACTION_UNKNOWN_ACCESS,
-					createHasEffectsContext()
-				))
-		) {
-			init.include(context, false);
-			return true;
-		}
-		return false;
+	includeDestructuredIfNecessary(): boolean {
+		/* istanbul ignore next */
+		this.scope.context.error(
+			{
+				message: 'includeDestructuredIfNecessary is currently not supported for MemberExpressions'
+			},
+			this.start
+		);
 	}
 
 	initialise(): void {

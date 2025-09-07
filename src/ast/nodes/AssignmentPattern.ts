@@ -71,13 +71,16 @@ export default class AssignmentPattern extends NodeBase implements DeclarationPa
 		if ((included ||= this.right.shouldBeIncluded(context))) {
 			this.right.include(context, false);
 			if (!this.left.included) {
-				this.left.included = true;
+				this.left.includeNode(context);
 				// Unfortunately, we need to include the left side again now, so that
 				// any declared variables are properly included.
 				this.left.includeDestructuredIfNecessary(context, destructuredInitPath, init);
 			}
 		}
-		return (this.included = included);
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
 	}
 
 	includeNode(context: InclusionContext) {
