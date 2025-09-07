@@ -64,7 +64,7 @@ export default class Bundle {
 			timeStart('generate chunks', 2);
 
 			const getHashPlaceholder = getHashPlaceholderGenerator();
-			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
+			const chunks = this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onLog);
 			}
@@ -104,9 +104,9 @@ export default class Bundle {
 		return outputBundleBase;
 	}
 
-	private async assignManualChunks(
+	private assignManualChunks(
 		manualChunks: GetManualChunk | Record<string, readonly string[]>
-	): Promise<Map<Module, string>> {
+	): Map<Module, string> {
 		const getManualChunk: GetManualChunk =
 			typeof manualChunks === 'object'
 				? (id: string) => {
@@ -157,13 +157,13 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 	}
 
-	private async generateChunks(
+	private generateChunks(
 		bundle: OutputBundleWithPlaceholders,
 		getHashPlaceholder: HashPlaceholderGenerator
-	): Promise<Chunk[]> {
+	): Chunk[] {
 		const { experimentalMinChunkSize, inlineDynamicImports, manualChunks, preserveModules } =
 			this.outputOptions;
-		const manualChunkAliasByEntry = await this.assignManualChunks(manualChunks);
+		const manualChunkAliasByEntry = this.assignManualChunks(manualChunks);
 		const snippets = getGenerateCodeSnippets(this.outputOptions);
 		const includedModules = getIncludedModules(this.graph.modulesById);
 		const inputBase = commondir(getAbsoluteEntryModulePaths(includedModules, preserveModules));
