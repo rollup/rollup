@@ -4,7 +4,7 @@ System.register(['./generated-manual-included.js'], (function () {
 		setters: [null],
 		execute: (function () {
 
-			console.log('main');
+
 
 		})
 	};
