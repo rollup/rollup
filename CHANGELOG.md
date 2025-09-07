@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.50.1
+
+_2025-09-07_
+
+### Bug Fixes
+
+- Resolve a situation where a destructuring default value was removed (#6090)
+
+### Pull Requests
+
+- [#6088](https://github.com/rollup/rollup/pull/6088): feat(www): shorter repl shareables (@cyyynthia, @lukastaegert)
+- [#6090](https://github.com/rollup/rollup/pull/6090): Call includeNode for self or children nodes in includeDestructuredIfNecessary (@TrickyPi)
+- [#6091](https://github.com/rollup/rollup/pull/6091): fix(deps): update rust crate swc_compiler_base to v33 (@renovate[bot])
+- [#6092](https://github.com/rollup/rollup/pull/6092): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6094](https://github.com/rollup/rollup/pull/6094): perf: replace startsWith with strict equality (@btea)
+
 ## 4.50.0
 
 _2025-08-31_
