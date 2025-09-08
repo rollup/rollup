@@ -73,12 +73,15 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
-		return (this.included =
-			this.argument.includeDestructuredIfNecessary(
-				context,
-				getIncludedPatternPath(destructuredInitPath),
-				init
-			) || this.included);
+		const included = this.argument.includeDestructuredIfNecessary(
+			context,
+			getIncludedPatternPath(destructuredInitPath),
+			init
+		);
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {

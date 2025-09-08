@@ -126,7 +126,7 @@ async function loadTranspiledConfigFile(
 		resolveId: source => {
 			const looksLikeExternal =
 				(source[0] !== '.' && !path.isAbsolute(source)) || source.slice(-5) === '.json';
-			return looksLikeExternal ? false : source;
+			return looksLikeExternal ? false : null;
 		}
 	});
 	const bundle = await rollup.rollup(inputOptions);

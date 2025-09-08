@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 24.6.0
+          node-version: 24.7.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
@@ -178,6 +178,8 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-ohos
 
           # FreeBSD
           - host: ubuntu-latest
@@ -197,13 +199,16 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 24.6.0
+          node-version: 24.7.0
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
           components: rust-src
+      - name: Setup OpenHarmony SDK
+        if: ${{ contains(matrix.settings.target, 'ohos') }}
+        uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
@@ -220,7 +225,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@ad95d4e02e061d4390c4b66ef5ed56c7fee3d2ce # v2.58.17
+        uses: taiki-e/install-action@c0dee14250395ae6b1754a99f67c1d693138b102 # v2.58.30
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -430,7 +435,7 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
+        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
         if: matrix.coverage
         with:
           fail_ci_if_error: true

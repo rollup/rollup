@@ -497,7 +497,7 @@ const replaceStringifyValues = (key, value) => {
 		}
 	}
 
-	return key.startsWith('_')
+	return key[0] === '_'
 		? undefined
 		: typeof value == 'bigint'
 			? `~BigInt${value.toString()}`
