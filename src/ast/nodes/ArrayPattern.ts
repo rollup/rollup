@@ -1,3 +1,5 @@
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../utils/PathTracker';
@@ -99,6 +101,20 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 			this.includeNode(context);
 		}
 		return this.included;
+	}
+
+	render(code: MagicString, options: RenderOptions): void {
+		let removedStart = this.start + 1;
+		for (const element of this.elements) {
+			if (!element) continue;
+			if (element.included) {
+				element.render(code, options);
+				removedStart = element.end;
+			} else {
+				code.remove(removedStart, this.end - 1);
+				break;
+			}
+		}
 	}
 
 	markDeclarationReached(): void {
