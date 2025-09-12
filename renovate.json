@@ -67,8 +67,8 @@
   },
   "minimumReleaseAge": "3 days",
   "schedule": [
-    "* 18-23 * * 4",
-    "* 0-8 * * 5"
+    "* * * * 4",
+    "* 0-5 * * 5"
   ],
   "automergeStrategy": "squash"
 }
