@@ -100,18 +100,20 @@ export default class Bundle {
 	}
 
 	private assignManualChunks(
-		manualChunks: GetManualChunk | Record<string, readonly string[]>
+		manualChunks: GetManualChunk | Record<string, readonly (string | RegExp)[]>
 	): Map<Module, string> {
 		const getManualChunk: GetManualChunk =
 			typeof manualChunks === 'object'
-				? (id: string | RegExp) => {
+				? (id: string) => {
 						for (const [chunkName, patterns] of Object.entries(manualChunks)) {
 							for (const pattern of patterns) {
-								if (
-									(typeof id === 'string' && id.includes(pattern)) ||
-									(id instanceof RegExp && id.test(pattern))
-								) {
-									return chunkName;
+								if (typeof pattern === 'string') {
+									if (id.includes(pattern)) return chunkName;
+								} else if (pattern instanceof RegExp) {
+									if (pattern.global) pattern.lastIndex = 0;
+									if (pattern.test(id)) {
+										return chunkName;
+									}
 								}
 							}
 						}
