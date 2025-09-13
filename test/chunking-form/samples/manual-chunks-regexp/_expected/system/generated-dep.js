@@ -3,7 +3,9 @@ System.register([], (function () {
 	return {
 		execute: (function () {
 
-			console.log('included');
+			console.log('dep-a2');
+
+			console.log('dep-ab2');
 
 		})
 	};

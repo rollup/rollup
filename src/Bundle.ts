@@ -17,12 +17,7 @@ import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { LOGLEVEL_WARN } from './utils/logging';
-import {
-	error,
-	logCannotAssignModuleToChunk,
-	logChunkInvalid,
-	logInvalidOption
-} from './utils/logs';
+import { error, logChunkInvalid, logInvalidOption } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { parseAst } from './utils/parseAst';
@@ -64,7 +59,7 @@ export default class Bundle {
 			timeStart('generate chunks', 2);
 
 			const getHashPlaceholder = getHashPlaceholderGenerator();
-			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
+			const chunks = this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onLog);
 			}
@@ -104,25 +99,26 @@ export default class Bundle {
 		return outputBundleBase;
 	}
 
-	private async addManualChunks(
-		manualChunks: Record<string, readonly string[]>
-	): Promise<Map<Module, string>> {
-		const manualChunkAliasByEntry = new Map<Module, string>();
-		const chunkEntries = await Promise.all(
-			Object.entries(manualChunks).map(async ([alias, files]) => ({
-				alias,
-				entries: await this.graph.moduleLoader.addAdditionalModules(files, true)
-			}))
-		);
-		for (const { alias, entries } of chunkEntries) {
-			for (const entry of entries) {
-				addModuleToManualChunk(alias, entry, manualChunkAliasByEntry);
-			}
-		}
-		return manualChunkAliasByEntry;
-	}
-
-	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
+	private assignManualChunks(
+		manualChunks: GetManualChunk | Record<string, readonly (string | RegExp)[]>
+	): Map<Module, string> {
+		const getManualChunk: GetManualChunk =
+			typeof manualChunks === 'object'
+				? (id: string) => {
+						for (const [chunkName, patterns] of Object.entries(manualChunks)) {
+							for (const pattern of patterns) {
+								if (typeof pattern === 'string') {
+									if (id.includes(pattern)) return chunkName;
+								} else if (pattern instanceof RegExp) {
+									if (pattern.global) pattern.lastIndex = 0;
+									if (pattern.test(id)) {
+										return chunkName;
+									}
+								}
+							}
+						}
+					}
+				: manualChunks;
 		const manualChunkAliasesWithEntry: [alias: string, module: Module][] = [];
 		const manualChunksApi = {
 			getModuleIds: () => this.graph.modulesById.keys(),
@@ -141,7 +137,7 @@ export default class Bundle {
 		);
 		const manualChunkAliasByEntry = new Map<Module, string>();
 		for (const [alias, module] of manualChunkAliasesWithEntry) {
-			addModuleToManualChunk(alias, module, manualChunkAliasByEntry);
+			manualChunkAliasByEntry.set(module, alias);
 		}
 		return manualChunkAliasByEntry;
 	}
@@ -161,16 +157,13 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 	}
 
-	private async generateChunks(
+	private generateChunks(
 		bundle: OutputBundleWithPlaceholders,
 		getHashPlaceholder: HashPlaceholderGenerator
-	): Promise<Chunk[]> {
+	): Chunk[] {
 		const { experimentalMinChunkSize, inlineDynamicImports, manualChunks, preserveModules } =
 			this.outputOptions;
-		const manualChunkAliasByEntry =
-			typeof manualChunks === 'object'
-				? await this.addManualChunks(manualChunks)
-				: this.assignManualChunks(manualChunks);
+		const manualChunkAliasByEntry = this.assignManualChunks(manualChunks);
 		const snippets = getGenerateCodeSnippets(this.outputOptions);
 		const includedModules = getIncludedModules(this.graph.modulesById);
 		const inputBase = commondir(getAbsoluteEntryModulePaths(includedModules, preserveModules));
@@ -302,16 +295,4 @@ function getExternalChunkByModule(
 		}
 	}
 	return externalChunkByModule;
-}
-
-function addModuleToManualChunk(
-	alias: string,
-	module: Module,
-	manualChunkAliasByEntry: Map<Module, string>
-): void {
-	const existingAlias = manualChunkAliasByEntry.get(module);
-	if (typeof existingAlias === 'string' && existingAlias !== alias) {
-		return error(logCannotAssignModuleToChunk(module.id, alias, existingAlias));
-	}
-	manualChunkAliasByEntry.set(module, alias);
 }
