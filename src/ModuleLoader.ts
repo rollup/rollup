@@ -21,8 +21,6 @@ import {
 	error,
 	logBadLoader,
 	logEntryCannotBeExternal,
-	logExternalModulesCannotBeIncludedInManualChunks,
-	logExternalModulesCannotBeTransformedToModules,
 	logExternalSyntheticExports,
 	logImplicitDependantCannotBeExternal,
 	logInconsistentImportAttributes,
@@ -100,16 +98,9 @@ export class ModuleLoader {
 			: () => true;
 	}
 
-	async addAdditionalModules(
-		unresolvedModules: readonly string[],
-		isAddForManualChunks: boolean
-	): Promise<Module[]> {
+	async addAdditionalModules(unresolvedModules: readonly string[]): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
-			Promise.all(
-				unresolvedModules.map(id =>
-					this.loadEntryModule(id, false, undefined, null, isAddForManualChunks)
-				)
-			)
+			Promise.all(unresolvedModules.map(id => this.loadEntryModule(id, false, undefined, null)))
 		);
 		await this.awaitLoadModulesPromise();
 		return result;
@@ -398,10 +389,6 @@ export class ModuleLoader {
 			return existingModule;
 		}
 
-		if (existingModule instanceof ExternalModule) {
-			return error(logExternalModulesCannotBeTransformedToModules(existingModule.id));
-		}
-
 		const module = new Module(
 			this.graph,
 			id,
@@ -665,8 +652,7 @@ export class ModuleLoader {
 		unresolvedId: string,
 		isEntry: boolean,
 		importer: string | undefined,
-		implicitlyLoadedBefore: string | null,
-		isLoadForManualChunks = false
+		implicitlyLoadedBefore: string | null
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
@@ -691,9 +677,7 @@ export class ModuleLoader {
 		if (resolveIdResult === false || isExternalModules) {
 			return error(
 				implicitlyLoadedBefore === null
-					? isExternalModules && isLoadForManualChunks
-						? logExternalModulesCannotBeIncludedInManualChunks(unresolvedId)
-						: logEntryCannotBeExternal(unresolvedId)
+					? logEntryCannotBeExternal(unresolvedId)
 					: logImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}

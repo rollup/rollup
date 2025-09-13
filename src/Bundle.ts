@@ -17,12 +17,7 @@ import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { LOGLEVEL_WARN } from './utils/logging';
-import {
-	error,
-	logCannotAssignModuleToChunk,
-	logChunkInvalid,
-	logInvalidOption
-} from './utils/logs';
+import { error, logChunkInvalid, logInvalidOption } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { parseAst } from './utils/parseAst';
@@ -140,7 +135,7 @@ export default class Bundle {
 		);
 		const manualChunkAliasByEntry = new Map<Module, string>();
 		for (const [alias, module] of manualChunkAliasesWithEntry) {
-			addModuleToManualChunk(alias, module, manualChunkAliasByEntry);
+			manualChunkAliasByEntry.set(module, alias);
 		}
 		return manualChunkAliasByEntry;
 	}
@@ -298,16 +293,4 @@ function getExternalChunkByModule(
 		}
 	}
 	return externalChunkByModule;
-}
-
-function addModuleToManualChunk(
-	alias: string,
-	module: Module,
-	manualChunkAliasByEntry: Map<Module, string>
-): void {
-	const existingAlias = manualChunkAliasByEntry.get(module);
-	if (typeof existingAlias === 'string' && existingAlias !== alias) {
-		return error(logCannotAssignModuleToChunk(module.id, alias, existingAlias));
-	}
-	manualChunkAliasByEntry.set(module, alias);
 }
