@@ -1,1 +1,1 @@
-import './main';
+console.log('manual');
