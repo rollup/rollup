@@ -638,7 +638,7 @@ export type GlobalsOption = Record<string, string> | ((name: string) => string);
 
 export type InputOption = string | string[] | Record<string, string>;
 
-export type ManualChunksOption = Record<string, string[]> | GetManualChunk;
+export type ManualChunksOption = Record<string, (string | RegExp)[]> | GetManualChunk;
 
 export type LogHandlerWithDefault = (
 	level: LogLevel,
