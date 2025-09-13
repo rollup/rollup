@@ -1438,7 +1438,7 @@ export default {
 
 |  |  |
 | --: | :-- |
-| Type: | `{ [chunkAlias: string]: string[] } \| ((id: string, {getModuleInfo, getModuleIds}) => string \| void)` |
+| Type: | `{ [chunkAlias: string]: (string \| RexExp)[] } \| ((id: string, {getModuleInfo, getModuleIds}) => string \| void)` |
 
 Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
 
@@ -1447,12 +1447,12 @@ For instance
 ```javascript
 ({
 	manualChunks: {
-		vendor: ['lodash']
+		lodash: ['lodash']
 	}
 });
 ```
 
-will put all lodash modules into a `vendor` chunk.
+will put all lodash modules into a `lodash` chunk.
 
 When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
 
