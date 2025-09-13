@@ -1,8 +1,9 @@
-System.register(['./generated-manual.js'], (function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		setters: [null],
 		execute: (function () {
+
+			console.log('included');
 
 			console.log('main');
 

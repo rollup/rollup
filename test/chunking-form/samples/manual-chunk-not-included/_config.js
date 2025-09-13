@@ -1,5 +1,6 @@
 module.exports = defineTest({
-	description: 'handles manual chunks where the root is not part of the module graph',
+	description:
+		'does not output a bundle for the manual chunks that are not part of the module graph',
 	options: {
 		input: ['main.js'],
 		output: {

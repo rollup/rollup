@@ -8,7 +8,7 @@ module.exports = defineTest({
 		},
 		output: {
 			manualChunks: {
-				outer: ['outer']
+				outer: ['outer', 'main']
 			}
 		}
 	}
