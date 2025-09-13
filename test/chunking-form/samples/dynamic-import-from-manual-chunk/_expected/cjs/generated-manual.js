@@ -1,8 +1,6 @@
 'use strict';
 
-const dep2 = 'dep2';
+var main = require('./main.js');
 
-console.log(dep2);
+console.log(main.dep2);
 Promise.resolve().then(function () { return require('./generated-dynamic.js'); });
-
-exports.dep2 = dep2;

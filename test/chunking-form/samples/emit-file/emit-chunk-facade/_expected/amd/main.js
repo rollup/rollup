@@ -1,5 +1,5 @@
-define(['./generated-build-starter'], (function (buildStarter) { 'use strict';
+define(['./generated-dep'], (function (dep) { 'use strict';
 
-	console.log('main', buildStarter.value, buildStarter.otherValue);
+	console.log('main', dep.value, dep.otherValue);
 
 }));

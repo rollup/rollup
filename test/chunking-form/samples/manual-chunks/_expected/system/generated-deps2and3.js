@@ -1,8 +1,10 @@
-System.register(['./generated-lib1.js'], (function (exports) {
+System.register(['./generated-main.js', './generated-lib1.js'], (function (exports) {
   'use strict';
-  var fn$3;
+  var fn$2, fn$3;
   return {
     setters: [function (module) {
+      fn$2 = module.f;
+    }, function (module) {
       fn$3 = module.f;
     }],
     execute: (function () {
@@ -11,10 +13,6 @@ System.register(['./generated-lib1.js'], (function (exports) {
         a: fn,
         f: fn$1
       });
-
-      function fn$2 () {
-        console.log('lib2 fn');
-      }
 
       function fn$1 () {
         fn$2();

@@ -1,4 +1,4 @@
-define(['./main'], (function (other) { 'use strict';
+define(['./generated-dep'], (function (dep) { 'use strict';
 
 
 

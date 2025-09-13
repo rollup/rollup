@@ -1,11 +1,12 @@
-System.register(['./generated-lib1.js'], (function () {
+System.register(['./generated-lib1.js', './generated-vendor.js'], (function () {
 	'use strict';
-	var value1, bar, value2;
+	var value1, value2, bar;
 	return {
 		setters: [function (module) {
 			value1 = module.value1;
-			bar = module.bar;
 			value2 = module.value2;
+		}, function (module) {
+			bar = module.b;
 		}],
 		execute: (function () {
 

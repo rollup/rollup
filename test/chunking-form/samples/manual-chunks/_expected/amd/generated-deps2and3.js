@@ -1,11 +1,7 @@
-define(['exports', './generated-lib1'], (function (exports, lib1) { 'use strict';
-
-  function fn$2 () {
-    console.log('lib2 fn');
-  }
+define(['exports', './generated-main', './generated-lib1'], (function (exports, main, lib1) { 'use strict';
 
   function fn$1 () {
-    fn$2();
+    main.fn();
     console.log('dep2 fn');
   }
 

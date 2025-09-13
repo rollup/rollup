@@ -1,9 +1,10 @@
-System.register([], (function (exports) {
+System.register(['./generated-vendor.js'], (function (exports) {
 	'use strict';
 	return {
+		setters: [function (module) {
+			exports("bar", module.b);
+		}],
 		execute: (function () {
-
-			const bar = exports("bar", 'vendor-bar');
 
 			const value1 = exports("value1", 'lib1-value');
 

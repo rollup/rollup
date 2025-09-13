@@ -216,11 +216,7 @@ function getChunkDefinitionsFromManualChunks(
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
-		addStaticDependenciesToManualChunk(
-			entry,
-			(manualChunkModulesByAlias[alias] ||= []),
-			modulesInManualChunks
-		);
+		(manualChunkModulesByAlias[alias] ||= []).push(entry);
 	}
 	const manualChunks = Object.entries(manualChunkModulesByAlias);
 	const chunkDefinitions: ChunkDefinitions = new Array(manualChunks.length);
@@ -229,23 +225,6 @@ function getChunkDefinitionsFromManualChunks(
 		chunkDefinitions[index++] = { alias, modules };
 	}
 	return { chunkDefinitions, modulesInManualChunks };
-}
-
-function addStaticDependenciesToManualChunk(
-	entry: Module,
-	manualChunkModules: Module[],
-	modulesInManualChunks: Set<Module>
-): void {
-	const modulesToHandle = new Set([entry]);
-	for (const module of modulesToHandle) {
-		modulesInManualChunks.add(module);
-		manualChunkModules.push(module);
-		for (const dependency of module.dependencies) {
-			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
-				modulesToHandle.add(dependency);
-			}
-		}
-	}
 }
 
 function analyzeModuleGraph(entries: Iterable<Module>): {

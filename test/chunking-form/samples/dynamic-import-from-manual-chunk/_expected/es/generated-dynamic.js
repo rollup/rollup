@@ -1,4 +1,4 @@
-import { d as dep1 } from './main.js';
-import { d as dep2 } from './generated-manual.js';
+import { a as dep1, d as dep2 } from './main.js';
+import './generated-manual.js';
 
 console.log(dep1, dep2);

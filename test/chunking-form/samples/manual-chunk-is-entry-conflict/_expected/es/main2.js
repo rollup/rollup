@@ -1,1 +1,1 @@
-import './main.js';
+import './generated-dep.js';

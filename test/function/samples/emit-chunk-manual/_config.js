@@ -4,6 +4,7 @@ let referenceId;
 module.exports = defineTest({
 	description: 'supports emitting chunks as side effect of the manual chunks option',
 	options: {
+		input: ['main.js', 'manual.js'],
 		output: {
 			manualChunks: { foo: ['manual.js'] },
 			assetFileNames: '[name]-[hash][extname]'
@@ -12,7 +13,11 @@ module.exports = defineTest({
 			{
 				transform(code, id) {
 					if (id.endsWith('manual.js')) {
-						referenceId = this.emitFile({ type: 'asset', name: 'emitted.txt', source: 'emitted' });
+						referenceId = this.emitFile({
+							type: 'asset',
+							name: 'emitted.txt',
+							source: 'emitted'
+						});
 					}
 				},
 				generateBundle() {

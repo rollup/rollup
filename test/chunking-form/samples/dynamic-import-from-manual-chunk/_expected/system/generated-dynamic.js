@@ -3,10 +3,9 @@ System.register(['./main.js', './generated-manual.js'], (function () {
 	var dep1, dep2;
 	return {
 		setters: [function (module) {
-			dep1 = module.d;
-		}, function (module) {
+			dep1 = module.a;
 			dep2 = module.d;
-		}],
+		}, null],
 		execute: (function () {
 
 			console.log(dep1, dep2);

@@ -1,9 +1,8 @@
-System.register([], (function (exports) {
+System.register(['./generated-dep.js'], (function (exports) {
 	'use strict';
 	return {
+		setters: [null],
 		execute: (function () {
-
-			console.log('dep');
 
 			console.log('main');
 
