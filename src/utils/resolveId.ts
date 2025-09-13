@@ -14,6 +14,7 @@ export async function resolveId(
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
 	attributes: Record<string, string>,
+	importerAttributes: Record<string, string> | undefined,
 	fs: RollupFsModule
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
@@ -24,7 +25,8 @@ export async function resolveId(
 		skip,
 		customOptions,
 		isEntry,
-		attributes
+		attributes,
+		importerAttributes
 	);
 
 	if (pluginResult != null) {
