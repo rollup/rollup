@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.50.2
+
+_2025-09-15_
+
+### Bug Fixes
+
+- Resolve an issue where unused destructured array pattern declarations would conflict with included variables (#6100)
+
+### Pull Requests
+
+- [#6100](https://github.com/rollup/rollup/pull/6100): Tree-shake un-included elements in array pattern (@TrickyPi)
+- [#6102](https://github.com/rollup/rollup/pull/6102): chore(deps): update actions/setup-node action to v5 (@renovate[bot])
+- [#6103](https://github.com/rollup/rollup/pull/6103): chore(deps): update dependency eslint-plugin-unicorn to v61 (@renovate[bot])
+- [#6104](https://github.com/rollup/rollup/pull/6104): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6105](https://github.com/rollup/rollup/pull/6105): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6107](https://github.com/rollup/rollup/pull/6107): Improve CI stability (@lukastaegert)
+
 ## 4.50.1
 
 _2025-09-07_
