@@ -122,10 +122,10 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            cross: napi
+            cross: zig
           - host: ubuntu-latest
             target: aarch64-linux-android
-            cross: napi
+            cross: zig
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
