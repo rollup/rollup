@@ -208,7 +208,7 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
-          components: rust-src
+          components: ${{ matrix.settings.build-std == 'true' && 'rust-src' || matrix.settings.target }}
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
