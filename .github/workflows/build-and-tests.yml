@@ -208,8 +208,8 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
-          components: ${{ matrix.settings.build-std == 'true' && 'rust-src' || '' }}
-          targets: ${{ matrix.settings.build-std == 'true' && '' || matrix.settings.target }}
+          components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
+          targets: ${{ matrix.settings.build-std && '' || matrix.settings.target }}
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
@@ -259,7 +259,7 @@ jobs:
         if: ${{ !matrix.settings.docker && matrix.settings.build }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
-        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std == 'true' && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
