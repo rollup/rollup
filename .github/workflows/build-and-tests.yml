@@ -265,7 +265,7 @@ jobs:
         if: ${{ !matrix.settings.docker && matrix.settings.build }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
-        run: npm run build:napi -- -Zbuild-std-features=panic-unwind,compiler-builtins-c --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- -Zbuild-std-features=panic-unwind,compiler-builtins-c
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
