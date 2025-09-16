@@ -214,7 +214,7 @@ jobs:
         run: |
           curl -L -o code.tar.gz https://github.com/rust-lang/llvm-project/archive/rustc/21.1-2025-08-01.tar.gz
           tar xzf code.tar.gz --strip-components 1 llvm-project-rustc-21.1-2025-08-01/compiler-rt
-          echo RUST_COMPILER_RT_ROOT=./compiler-rt >> $GITHUB_ENV
+          echo RUST_COMPILER_RT_ROOT=$PWD/compiler-rt >> $GITHUB_ENV
 
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
