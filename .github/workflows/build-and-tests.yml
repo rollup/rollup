@@ -186,9 +186,11 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-freebsd
             cross: cross
+            build-std: true
           - host: ubuntu-latest
             target: aarch64-unknown-freebsd
             cross: cross
+            build-std: true
 
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -207,15 +209,6 @@ jobs:
         with:
           toolchain: nightly-2025-07-25
           components: rust-src
-      - run: rustup component add llvm-tools-preview
-        if: ${{ !matrix.settings.docker }}
-      - name: Download compiler-rt reference sources
-        if: ${{ !matrix.settings.docker }}
-        run: |
-          curl -L -o code.tar.gz https://github.com/rust-lang/llvm-project/archive/rustc/21.1-2025-08-01.tar.gz
-          tar xzf code.tar.gz --strip-components 1 llvm-project-rustc-21.1-2025-08-01/compiler-rt
-          echo RUST_COMPILER_RT_ROOT=$PWD/compiler-rt >> $GITHUB_ENV
-
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
@@ -265,7 +258,7 @@ jobs:
         if: ${{ !matrix.settings.docker && matrix.settings.build }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
-        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- -Zbuild-std-features=panic-unwind,compiler-builtins-c
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std == 'true' && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
