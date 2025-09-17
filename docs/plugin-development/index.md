@@ -1427,7 +1427,7 @@ Emits a new file that is included in the build output and returns a `referenceId
 
 When emitting chunks or assets, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used. Prebuilt chunks must always have a `fileName`.
 
-You can reference the URL of an emitted file in any code returned by a [`load`](#load) or [`transform`](#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId`. See [File URLs](#file-urls) for more details and an example.
+You can reference the URL of an emitted file in any code returned by a [`load`](#load) or [`transform`](#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId` (returns a string) or `import.meta.ROLLUP_FILE_URL_OBJ_referenceId` (returns a URL object). See [File URLs](#file-urls) for more details and an example.
 
 The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](#this-getfilename) to determine the file name as soon as it is available. If the file name is not set explicitly, then
 
@@ -2122,6 +2122,17 @@ export const size = 6;
 ```
 
 If you build this code, both the main chunk and the worklet will share the code from `config.js` via a shared chunk. This enables us to make use of the browser cache to reduce transmitted data and speed up loading the worklet.
+
+You can also use `import.meta.ROLLUP_FILE_URL_OBJ_referenceId` to get a URL object directly instead of a string. This is more efficient when you need the URL object itself, as it avoids creating the object twice:
+
+```js
+// Using ROLLUP_FILE_URL (returns string, requires wrapping in new URL())
+const urlString = import.meta.ROLLUP_FILE_URL_referenceId;
+const urlObject = new URL(urlString);
+
+// Using ROLLUP_FILE_URL_OBJ (returns URL object directly)
+const urlObject = import.meta.ROLLUP_FILE_URL_OBJ_referenceId;
+```
 
 ## Transformers
 
