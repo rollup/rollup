@@ -122,10 +122,10 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            cross: zig
+            cross: napi
           - host: ubuntu-latest
             target: aarch64-linux-android
-            cross: zig
+            cross: napi
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
@@ -147,6 +147,8 @@ jobs:
                 -C link-args=-L/sysroot-riscv64/usr/lib
                 -C linker=riscv64-alpine-linux-musl-ld
                 " &&
+              rustup default nightly-2025-07-25 &&
+              rustup target add riscv64gc-unknown-linux-musl &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
@@ -209,7 +211,7 @@ jobs:
         with:
           toolchain: nightly-2025-07-25
           components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
-          targets: ${{ matrix.settings.build-std && '' || matrix.settings.target }}
+          targets: ${{ !matrix.settings.build-std && matrix.settings.target || '' }}
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
