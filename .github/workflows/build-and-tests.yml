@@ -122,10 +122,14 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            cross: zig
+            cross: napi
+            # There are compile issues when using the cache with Android
+            cache-cargo: false
           - host: ubuntu-latest
             target: aarch64-linux-android
-            cross: zig
+            cross: napi
+            # There are compile issues when using the cache with Android
+            cache-cargo: false
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
@@ -212,6 +216,7 @@ jobs:
         uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        if: matrix.settings.cache-cargo != false
         with:
           path: |
             ~/.cargo/registry/index/
@@ -260,7 +265,7 @@ jobs:
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
         uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
