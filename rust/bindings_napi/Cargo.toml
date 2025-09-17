@@ -24,7 +24,8 @@ mimalloc-safe = { version = "0.1.54" }
 # 		all(
 # 			target_os = "linux",
 # 			not(target_arch = "loongarch64"),
-# 			not(all(target_arch = "riscv64", target_env = "musl"))
+# 			not(all(target_arch = "riscv64", target_env = "musl")),
+# 			not(target_env = "ohos")
 # 		),
 # 		all(
 # 			target_os = "freebsd",
@@ -32,7 +33,7 @@ mimalloc-safe = { version = "0.1.54" }
 # 		)
 # 	)
 # )
-[target.'cfg(any(all(target_os = "linux", not(target_arch = "loongarch64"), not(all(target_arch = "riscv64", target_env = "musl"))), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
+[target.'cfg(any(all(target_os = "linux", not(target_arch = "loongarch64"), not(all(target_arch = "riscv64", target_env = "musl")), not(target_env = "ohos")), all(target_os = "freebsd", not(target_arch = "aarch64"))))'.dependencies]
 mimalloc-safe = { version = "0.1.54", features = ["local_dynamic_tls"] }
 
 # Disable architecture specific optimizations on aarch64 platforms
