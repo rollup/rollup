@@ -818,6 +818,7 @@ export interface OutputOptions {
 	minifyInternalExports?: boolean | undefined;
 	name?: string | undefined;
 	noConflict?: boolean | undefined;
+	onlyExplicitManualChunks?: boolean | undefined;
 	outro?: string | AddonFunction | undefined;
 	paths?: OptionsPaths | undefined;
 	plugins?: OutputPluginOption | undefined;
@@ -873,6 +874,7 @@ export interface NormalizedOutputOptions {
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	noConflict: boolean;
+	onlyExplicitManualChunks: boolean | undefined;
 	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
