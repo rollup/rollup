@@ -1440,21 +1440,19 @@ export default {
 | --: | :-- |
 | Type: | `{ [chunkAlias: string]: string[] } \| ((id: string, {getModuleInfo, getModuleIds}) => string \| void)` |
 
-Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
+Allows the creation of custom shared common chunks. The object form can be used for an easier and safer manual chunking, and the function form can be used for a more powerful and controlled behavior.
 
-Note that it is not necessary for the listed modules themselves to be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
+When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key. Note that it is not necessary for the listed modules themselves to be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
 
 ```javascript
-({
-	manualChunks: {
-		lodash: ['lodash']
-	}
-});
+manualChunks: {
+	lodash: ['lodash'];
+}
 ```
 
-will put all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
+will merge all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
 
-When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
+When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependencies will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
 
 ```javascript twoslash
 // ---cut-start---
@@ -1468,6 +1466,8 @@ function manualChunks(id) {
 	return null;
 }
 ```
+
+By default, the function form will also merge dependencies of the returned ids into the manualChunk. If you need stricter behavior, you can use [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks), which will be the default in Rollup 5.
 
 Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
 
@@ -3108,3 +3108,53 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 | Default: | `true`                                                       |
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
+
+### output.onlyExplicitManualChunks
+
+|       |           |
+| ----: | :-------- |
+| Type: | `boolean` |
+
+If set to true, using the [output.manualChunks](#output-manualChunks) function form won't merge dependencies into the output chunk.
+
+For instance, with
+
+```js
+// src/main.js (entry point)
+import './manual1';
+import './manual2';
+
+console.log('main');
+
+// src/manual1.js
+import './dep.js';
+
+console.log('manual1');
+
+// src/manual2.js
+import './dep.js';
+
+console.log('manual2');
+
+// src/dep.js
+console.log('dep');
+```
+
+and
+
+<!-- prettier-ignore-start -->
+
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').GetManualChunk} */
+// ---cut-end---
+function manualChunks(id) {
+	if (id.endsWith('manual1.js') && id.endsWith('manual2.js')) {
+		return 'manual';
+	}
+}
+```
+
+the dep.js `export const dep = 'dep';` code, won't be merged into the `manual` output chunk. This gives you full control over what code goes into which manual chunks, and if your manual chunking is very granular, this can prevent import graph inaccuracies and help reduce cache invalidation.
+
+Note: although this option is new in Rollup 4, it is marked as deprecated because it will become the new default for the function form in Rollup 5.

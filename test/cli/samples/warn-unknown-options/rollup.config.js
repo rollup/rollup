@@ -16,9 +16,13 @@ module.exports = function getConfig(commands) {
 		],
 		onwarn(warning) {
 			warnings++;
-			const flags = require('../../../misc/optionList').flags;
 			assert.equal(warning.code, 'UNKNOWN_OPTION');
-			assert.equal(warning.message, `Unknown CLI flags: unknownOption. Allowed options: ${flags}`);
+			assert.equal(
+				warning.message,
+				`Unknown CLI flags: unknownOption. Allowed options: ${
+					require('../../../misc/optionList').flags
+				}`
+			);
 		}
 	};
 };
