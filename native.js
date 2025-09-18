@@ -32,7 +32,11 @@ const bindingsByPlatformAndArch = {
 	win32: {
 		arm64: { base: 'win32-arm64-msvc' },
 		ia32: { base: 'win32-ia32-msvc' },
-		x64: { base: 'win32-x64-msvc' }
+		x64: {
+			base: report.getReport().header.osName.startsWith('MINGW32_NT')
+				? 'win32-x64-gnu'
+				: 'win32-x64-msvc'
+		}
 	}
 };
 
