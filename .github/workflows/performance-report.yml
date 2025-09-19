@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   build-artefacts:
-    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
+    if: >-
+      ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' ||
+          (github.event.action == 'labeled' && github.event.label.name == 'x⁸ ⚙️ build repl artefacts') }}
     strategy:
       matrix:
         settings:
