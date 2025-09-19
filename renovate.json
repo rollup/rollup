@@ -61,12 +61,14 @@
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [
-      "before 4am on Friday"
+      "* 18-23 * * 4",
+      "* 0-8 * * 5"
     ]
   },
   "minimumReleaseAge": "3 days",
   "schedule": [
-    "before 4am on Friday"
+    "* * * * 4",
+    "* 0-5 * * 5"
   ],
   "automergeStrategy": "squash"
 }

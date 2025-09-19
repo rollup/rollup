@@ -821,6 +821,8 @@ export interface OutputOptions {
 	minifyInternalExports?: boolean | undefined;
 	name?: string | undefined;
 	noConflict?: boolean | undefined;
+	/** @deprecated This will be the new default in Rollup 5. */
+	onlyExplicitManualChunks?: boolean | undefined;
 	outro?: string | AddonFunction | undefined;
 	paths?: OptionsPaths | undefined;
 	plugins?: OutputPluginOption | undefined;
@@ -876,6 +878,7 @@ export interface NormalizedOutputOptions {
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	noConflict: boolean;
+	onlyExplicitManualChunks: boolean;
 	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];

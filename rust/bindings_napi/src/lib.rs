@@ -5,6 +5,7 @@ use parse_ast::parse_ast;
 #[cfg(all(
   not(all(target_os = "linux", target_arch = "loongarch64")),
   not(all(target_os = "linux", target_arch = "riscv64", target_env = "musl")),
+  not(all(target_os = "linux", target_env = "ohos")),
   not(all(target_os = "freebsd", target_arch = "aarch64")),
   not(debug_assertions)
 ))]

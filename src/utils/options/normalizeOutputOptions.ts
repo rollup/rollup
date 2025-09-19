@@ -80,6 +80,7 @@ export async function normalizeOutputOptions(
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
 		noConflict: config.noConflict || false,
+		onlyExplicitManualChunks: config.onlyExplicitManualChunks || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
 		plugins: await normalizePluginOption(config.plugins),

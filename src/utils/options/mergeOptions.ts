@@ -272,6 +272,7 @@ async function mergeOutputOptions(
 		minifyInternalExports: getOption('minifyInternalExports'),
 		name: getOption('name'),
 		noConflict: getOption('noConflict'),
+		onlyExplicitManualChunks: getOption('onlyExplicitManualChunks'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
 		plugins: await normalizePluginOption(config.plugins),

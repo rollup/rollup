@@ -33,9 +33,9 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 24.7.0
+          node-version: 24.8.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
@@ -48,6 +48,7 @@ jobs:
         run: npm run test:options
       - name: Generated Code
         run: |
+          git restore .
           npm run build:ast-converters
           git diff HEAD --exit-code --ignore-space-at-eol
 
@@ -83,6 +84,24 @@ jobs:
             target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
+          - host: windows-latest  
+            target: x86_64-pc-windows-gnu
+            msystem: ucrt64
+            toolchain: ucrt-x86_64
+            setup: |
+              rustup default
+              rustVersion=$(sed -n 's/channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)
+              rustup install "$rustVersion"
+              rustup set default-host x86_64-pc-windows-gnu
+              rustup show
+            build: >-
+              set -e &&
+              which rustup &&
+              rustup target add x86_64-pc-windows-gnu &&
+              rustup component add rust-src --toolchain nightly-2025-07-25-x86_64-pc-windows-gnu &&
+              npm run build:napi -- --release --target x86_64-pc-windows-gnu
+            env:
+              MINGW_ARCH: ucrt64
 
           # MacOS
           - host: macos-latest
@@ -122,9 +141,13 @@ jobs:
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             cross: napi
+            # There are compile issues when using the cache with Android
+            cache-cargo: false
           - host: ubuntu-latest
             target: aarch64-linux-android
             cross: napi
+            # There are compile issues when using the cache with Android
+            cache-cargo: false
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
@@ -196,10 +219,23 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        if: ${{ !matrix.settings.docker }}
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
-          node-version: 24.7.0
+          node-version: 24.8.0
+      - uses: msys2/setup-msys2@v2
+        if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
+        with:
+          msystem: ${{ matrix.settings.msystem }}
+          install: mingw-w64-${{ matrix.settings.toolchain }}-toolchain base-devel binutils
+          pacboy: >-
+            rustup:p
+            nodejs:p
+            rust-wasm:p
+            rust-src:p
+          update: true
+          path-type: inherit
+          release: false
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -208,9 +244,10 @@ jobs:
           components: rust-src
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
-        uses: openharmony-rs/setup-ohos-sdk@52d50de65363f895558a43de0dceb1f8e3679b1c # v0.2.3
+        uses: openharmony-rs/setup-ohos-sdk@3c181b3244cec76aaec289ab84fb00f55f2fce3f # v0.2.4
       - name: Restore Cargo cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        if: matrix.settings.cache-cargo != false
         with:
           path: |
             ~/.cargo/registry/index/
@@ -225,7 +262,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@c0dee14250395ae6b1754a99f67c1d693138b102 # v2.58.30
+        uses: taiki-e/install-action@cc60de1d6831d7e9c4342f618ce7a5d6a9f223a4 # v2.61.6
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -249,17 +286,21 @@ jobs:
           image: ${{ matrix.settings.docker }}
           options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
           run: ${{ matrix.settings.build }}
+      - name: Msys2 build
+        if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
+        run: ${{ matrix.settings.build }}
+        shell: msys2 {0}
       - name: Build (Matrix override)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker && matrix.settings.build }}
+        if: ${{ !matrix.settings.docker && matrix.settings.build && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }}
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
         uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
@@ -415,7 +456,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
@@ -435,7 +476,7 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         if: matrix.coverage
         with:
           fail_ci_if_error: true
@@ -463,7 +504,7 @@ jobs:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true

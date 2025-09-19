@@ -52,6 +52,7 @@ module.exports = defineTest({
 						manualChunks: {},
 						minifyInternalExports: false,
 						noConflict: false,
+						onlyExplicitManualChunks: false,
 						paths: {},
 						plugins: [],
 						preserveModules: false,

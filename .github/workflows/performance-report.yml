@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   build-artefacts:
-    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
+    if: >-
+      ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' ||
+          (github.event.action == 'labeled' && github.event.label.name == 'x⁸ ⚙️ build repl artefacts') }}
     strategy:
       matrix:
         settings:
@@ -49,9 +51,9 @@ jobs:
           key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 24.7.0
+          node-version: 24.8.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Build artefacts 123
@@ -91,9 +93,9 @@ jobs:
           key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 24.7.0
+          node-version: 24.8.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Download all artifacts
