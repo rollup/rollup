@@ -153,10 +153,15 @@ export function getChunkAssignments(
 	entries: readonly Module[],
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
-	log: LogHandler
+	log: LogHandler,
+	isManualChunksFunctionForm: boolean,
+	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
-	const { chunkDefinitions, modulesInManualChunks } =
-		getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
+	const { chunkDefinitions, modulesInManualChunks } = getChunkDefinitionsFromManualChunks(
+		manualChunkAliasByEntry,
+		isManualChunksFunctionForm,
+		onlyExplicitManualChunks
+	);
 	const {
 		allEntries,
 		dependentEntriesByModule,
@@ -211,16 +216,22 @@ export function getChunkAssignments(
 }
 
 function getChunkDefinitionsFromManualChunks(
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
+	isManualChunksFunctionForm: boolean,
+	onlyExplicitManualChunks: boolean
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
-		addStaticDependenciesToManualChunk(
-			entry,
-			(manualChunkModulesByAlias[alias] ||= []),
-			modulesInManualChunks
-		);
+		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
+			(manualChunkModulesByAlias[alias] ||= []).push(entry);
+		} else {
+			addStaticDependenciesToManualChunk(
+				entry,
+				(manualChunkModulesByAlias[alias] ||= []),
+				modulesInManualChunks
+			);
+		}
 	}
 	const manualChunks = Object.entries(manualChunkModulesByAlias);
 	const chunkDefinitions: ChunkDefinitions = new Array(manualChunks.length);
