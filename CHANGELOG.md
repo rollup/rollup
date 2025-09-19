@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.51.0
+
+_2025-09-19_
+
+### Features
+
+- Support ROLLUP_FILE_URL_OBJ placeholder to inject file URLs into the generated code (#6108)
+
+### Bug Fixes
+
+- Improve OpenHarmony build to work in more situations (#6115)
+
+### Pull Requests
+
+- [#6108](https://github.com/rollup/rollup/pull/6108): feat: support ROLLUP_FILE_URL_OBJ for URL object instead of string (@guybedford, @lukastaegert)
+- [#6112](https://github.com/rollup/rollup/pull/6112): Disable Cargo cache for Android (@lukastaegert)
+- [#6113](https://github.com/rollup/rollup/pull/6113): fix(deps): update rust crate swc_compiler_base to v35 (@renovate[bot])
+- [#6114](https://github.com/rollup/rollup/pull/6114): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6115](https://github.com/rollup/rollup/pull/6115): Disable local_dynamic_tls for OpenHarmony (@hqzing)
+- [#6116](https://github.com/rollup/rollup/pull/6116): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6117](https://github.com/rollup/rollup/pull/6117): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.50.2
 
 _2025-09-15_
