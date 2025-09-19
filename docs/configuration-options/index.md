@@ -3115,7 +3115,7 @@ Whether to add import assertions to external imports in the output if the output
 | ----: | :-------- |
 | Type: | `boolean` |
 
-If set to true, using the [output.manualChunks](#output-manualChunks) function form won't merge dependencies into the output chunk.
+If set to true, using the [output.manualChunks](#output-manualchunks) function form won't merge dependencies into the output chunk.
 
 For instance, with
 
