@@ -875,7 +875,7 @@ export interface NormalizedOutputOptions {
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	noConflict: boolean;
-	onlyExplicitManualChunks: boolean | undefined;
+	onlyExplicitManualChunks: boolean;
 	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];

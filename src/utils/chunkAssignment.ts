@@ -154,8 +154,8 @@ export function getChunkAssignments(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
 	log: LogHandler,
-	isManualChunksFunctionForm: boolean | undefined,
-	onlyExplicitManualChunks: boolean | undefined
+	isManualChunksFunctionForm: boolean,
+	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
 	const { chunkDefinitions, modulesInManualChunks } = getChunkDefinitionsFromManualChunks(
 		manualChunkAliasByEntry,
@@ -217,8 +217,8 @@ export function getChunkAssignments(
 
 function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
-	isManualChunksFunctionForm: boolean | undefined,
-	onlyExplicitManualChunks: boolean | undefined
+	isManualChunksFunctionForm: boolean,
+	onlyExplicitManualChunks: boolean
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
