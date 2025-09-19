@@ -2,6 +2,6 @@ function foo() {
 	return 'foo';
 }
 
-function foo$1() {
+function foo_default() {
 	return 'default';
 }

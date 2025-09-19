@@ -18,6 +18,6 @@ console.log(d);
 ((() => {console.log(foo$1());})(), 1);
 
 // should maintain this context
-var module = {};
-module.bar = function () { console.log( 'bar' );};
-(0, module.bar)();
+var module$1 = {};
+module$1.bar = function () { console.log( 'bar' );};
+(0, module$1.bar)();

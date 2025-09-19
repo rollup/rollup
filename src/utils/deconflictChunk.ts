@@ -62,14 +62,10 @@ export function deconflictChunk(
 ): void {
 	const reversedModules = [...modules].reverse();
 	for (const module of reversedModules) {
-		module.scope.addUsedOutsideNames(
-			usedNames,
-			format,
-			exportNamesByVariable,
-			accessedGlobalsByScope
-		);
+		module.scope.addUsedOutsideNames(usedNames, accessedGlobalsByScope);
 	}
 	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
+
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
@@ -218,6 +214,7 @@ function deconflictTopLevelVariables(
 	includedNamespaces: ReadonlySet<Module>
 ): void {
 	for (const module of modules) {
+		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
 			if (
 				variable.included &&
@@ -227,10 +224,22 @@ function deconflictTopLevelVariables(
 					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
+				const cachedSafeVariableName = Object.getOwnPropertyDescriptor(
+					module.info.safeVariableNames,
+					variable.name
+				)?.value;
+
+				if (cachedSafeVariableName && !usedNames.has(cachedSafeVariableName)) {
+					usedNames.add(cachedSafeVariableName);
+					variable.setRenderNames(null, cachedSafeVariableName);
+					continue;
+				}
+
 				variable.setRenderNames(
 					null,
 					getSafeName(variable.name, usedNames, variable.forbiddenNames)
 				);
+				module.info.safeVariableNames[variable.name] = variable.renderName!;
 			}
 		}
 		if (includedNamespaces.has(module)) {
