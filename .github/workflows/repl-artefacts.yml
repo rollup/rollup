@@ -19,10 +19,17 @@ jobs:
   upload:
     permissions:
       pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
-    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
+    if: >-
+      ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' ||
+          (github.event.action == 'labeled' && github.event.label.name == 'x⁸ ⚙️ build repl artefacts') }}
     runs-on: ubuntu-latest
     name: Upload
     steps:
+      - name: Remove 'x⁸ ⚙️ build repl artefacts' label if triggered by label
+        if: ${{ github.event.action == 'labeled' }}
+        run: gh pr edit ${{ github.event.pull_request.number }} --remove-label 'x⁸ ⚙️ build repl artefacts'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout Commit
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
