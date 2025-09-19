@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.52.0
+
+_2025-09-19_
+
+### Features
+
+- Add option `output.onlyExplicitManualChunks` to turn off merging additional dependencies into manual chunks (#6087)
+- Add support for x86_64-pc-windows-gnu platform (#6110)
+
+### Pull Requests
+
+- [#6087](https://github.com/rollup/rollup/pull/6087): fix: manualChunks and non manualChunks shared dependencies are merged with the first manualChunk encountered alphabetically (@maiieul)
+- [#6110](https://github.com/rollup/rollup/pull/6110): Add support x86_64-pc-windows-gnu (@lsq, @lukastaegert)
+- [#6118](https://github.com/rollup/rollup/pull/6118): Automatically remove REPL artefacts label from PRs (@lukastaegert)
+
 ## 4.51.0
 
 _2025-09-19_
