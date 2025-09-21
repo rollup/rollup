@@ -526,7 +526,7 @@ function removeUnnecessaryDependentEntries(
 	awaitedAlreadyLoadedAtomsByEntry: bigint[]
 ) {
 	// Remove entries from dependent entries if a chunk is already loaded without
-	// that entry. Do not remove already loaded atoms where all dynamic imports
+	// that entry. Do not remove already loaded atoms where some dynamic imports
 	// are awaited to avoid cycles in the output.
 	let chunkMask = 1n;
 	for (const { dependentEntries } of chunkAtoms) {

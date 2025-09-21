@@ -1379,7 +1379,9 @@ export default class Module {
 		if (resolution instanceof Module) {
 			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);
-				if (node.withinTopLevelAwait) {
+				// If a module has a top-level await, removing this entry can create
+				// deadlocks.
+				if (this.astContext.usesTopLevelAwait) {
 					resolution.includedDirectTopLevelAwaitingDynamicImporters.add(this);
 				}
 			}
