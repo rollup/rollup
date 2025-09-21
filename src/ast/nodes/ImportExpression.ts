@@ -33,8 +33,6 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import FunctionNode from './shared/FunctionNode';
-import type { Node } from './shared/Node';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -76,14 +74,6 @@ export default class ImportExpression extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.shouldIncludeDynamicAttributes, value);
 	}
 
-	get withinTopLevelAwait() {
-		return isFlagSet(this.flags, Flag.withinTopLevelAwait);
-	}
-
-	set withinTopLevelAwait(value: boolean) {
-		this.flags = setFlag(this.flags, Flag.withinTopLevelAwait, value);
-	}
-
 	bind(): void {
 		this.source.bind();
 		this.options?.bind();
@@ -110,7 +100,7 @@ export default class ImportExpression extends NodeBase {
 		if (parent1 instanceof AwaitExpression) {
 			const parent2 = parent1.parent;
 
-			// Side-effect only: await import('bar')
+			// Side effect only: await import('bar')
 			if (parent2 instanceof ExpressionStatement) {
 				return EMPTY_ARRAY;
 			}
@@ -222,25 +212,6 @@ export default class ImportExpression extends NodeBase {
 	initialise(): void {
 		super.initialise();
 		this.scope.context.addDynamicImport(this);
-		let parent = this.parent;
-		let withinAwaitExpression = false;
-		let withinTopLevelAwait = false;
-		do {
-			if (
-				withinAwaitExpression &&
-				(parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
-			) {
-				withinTopLevelAwait = false;
-			}
-			if (parent instanceof AwaitExpression) {
-				withinAwaitExpression = true;
-				withinTopLevelAwait = true;
-			}
-		} while ((parent = (parent as Node).parent as Node));
-
-		if (withinAwaitExpression && withinTopLevelAwait) {
-			this.withinTopLevelAwait = true;
-		}
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
