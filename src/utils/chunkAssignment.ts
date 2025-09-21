@@ -296,8 +296,8 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					dynamicEntryModules.add(resolution);
 					allEntriesSet.add(resolution);
 					dynamicImportsForCurrentEntry.add(resolution);
-					for (const includedDirectTopLevelAwaitingDynamicImporter of resolution.includedDirectTopLevelAwaitingDynamicImporters) {
-						if (staticDependencies.has(includedDirectTopLevelAwaitingDynamicImporter)) {
+					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
+						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
 							awaitedDynamicEntryModules.add(resolution);
 							awaitedDynamicImportsForCurrentEntry.add(resolution);
 							break;
@@ -335,7 +335,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 			dependentEntriesByModule,
 			awaitedDynamicEntries,
 			allEntries,
-			dynamicEntry => dynamicEntry.includedDirectTopLevelAwaitingDynamicImporters
+			dynamicEntry => dynamicEntry.includedTopLevelAwaitingDynamicImporters
 		),
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
