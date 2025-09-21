@@ -1,7 +1,7 @@
-import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { type ObjectPath } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
-import type * as NodeType from './NodeType';
+import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
 import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from './shared/Node';
 
@@ -9,8 +9,12 @@ export default class AwaitExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare type: NodeType.tAwaitExpression;
 
-	hasEffects(): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		const { type } = this.argument;
+		if (type === NodeType.ImportExpression) {
+			return this.argument.hasEffects(context);
+		}
 		return true;
 	}
 
