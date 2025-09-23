@@ -240,7 +240,7 @@ export default class Module {
 	shebang: undefined | string;
 	readonly importers: string[] = [];
 	readonly includedDynamicImporters: Module[] = [];
-	readonly includedDirectTopLevelAwaitingDynamicImporters = new Set<Module>();
+	readonly includedTopLevelAwaitingDynamicImporters = new Set<Module>();
 	readonly includedImports = new Set<Variable>();
 	readonly info: ModuleInfo;
 	isExecuted = false;
@@ -1379,8 +1379,10 @@ export default class Module {
 		if (resolution instanceof Module) {
 			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);
-				if (node.withinTopLevelAwait) {
-					resolution.includedDirectTopLevelAwaitingDynamicImporters.add(this);
+				// If a module has a top-level await, removing this entry can create
+				// deadlocks.
+				if (this.astContext.usesTopLevelAwait) {
+					resolution.includedTopLevelAwaitingDynamicImporters.add(this);
 				}
 			}
 
