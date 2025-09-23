@@ -141,8 +141,6 @@ jobs:
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             cross: napi
-            # There are compile issues when using the cache with Android
-            cache-cargo: false
           - host: ubuntu-latest
             target: aarch64-linux-android
             cross: napi
@@ -169,6 +167,8 @@ jobs:
                 -C link-args=-L/sysroot-riscv64/usr/lib
                 -C linker=riscv64-alpine-linux-musl-ld
                 " &&
+              rustup default nightly-2025-07-25 &&
+              rustup target add riscv64gc-unknown-linux-musl &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
@@ -208,9 +208,11 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-freebsd
             cross: cross
+            build-std: true
           - host: ubuntu-latest
             target: aarch64-unknown-freebsd
             cross: cross
+            build-std: true
 
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -241,7 +243,8 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
-          components: rust-src
+          components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
+          targets: ${{ !matrix.settings.build-std && matrix.settings.target || '' }}
       - name: Setup OpenHarmony SDK
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@3c181b3244cec76aaec289ab84fb00f55f2fce3f # v0.2.4
@@ -296,7 +299,7 @@ jobs:
         if: ${{ !matrix.settings.docker && matrix.settings.build && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
-        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
         if: ${{ !matrix.settings.docker && !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
