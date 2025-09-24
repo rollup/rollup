@@ -2,7 +2,21 @@ const { existsSync } = require('node:fs');
 const path = require('node:path');
 const { platform, arch, report } = require('node:process');
 
-const isMusl = () => !report.getReport().header.glibcVersionRuntime;
+const isMusl = () => {
+  try {
+    return !report.getReport().header.glibcVersionRuntime;
+  } catch (_e) {
+    return false;
+  }
+};
+
+const isMingw32 = () => {
+  try {
+    return report.getReport().header.osName.startsWith('MINGW32_NT');
+  } catch (_e) {
+    return false;
+  }
+};
 
 const bindingsByPlatformAndArch = {
 	android: {
@@ -33,7 +47,7 @@ const bindingsByPlatformAndArch = {
 		arm64: { base: 'win32-arm64-msvc' },
 		ia32: { base: 'win32-ia32-msvc' },
 		x64: {
-			base: report.getReport().header.osName.startsWith('MINGW32_NT')
+			base: isMingw32()
 				? 'win32-x64-gnu'
 				: 'win32-x64-msvc'
 		}
