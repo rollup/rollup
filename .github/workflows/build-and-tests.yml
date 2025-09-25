@@ -225,7 +225,7 @@ jobs:
         if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
           node-version: 24.8.0
-      - uses: msys2/setup-msys2@v2
+      - uses: msys2/setup-msys2@fb197b72ce45fb24f17bf3f807a388985654d1f2 # v2
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         with:
           msystem: ${{ matrix.settings.msystem }}
