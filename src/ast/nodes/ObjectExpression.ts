@@ -9,6 +9,7 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
+	isAnyWellKnown,
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
@@ -150,7 +151,11 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 					this
 				);
 				if (typeof keyValue === 'symbol') {
-					properties.push({ key: UnknownKey, kind: property.kind, property });
+					properties.push({
+						key: isAnyWellKnown(keyValue) ? keyValue : UnknownKey,
+						kind: property.kind,
+						property
+					});
 					continue;
 				} else {
 					key = String(keyValue);
