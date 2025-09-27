@@ -3,19 +3,19 @@ const path = require('node:path');
 const { platform, arch, report } = require('node:process');
 
 const isMusl = () => {
-  try {
-    return !report.getReport().header.glibcVersionRuntime;
-  } catch {
-    return false;
-  }
+	try {
+		return !report.getReport().header.glibcVersionRuntime;
+	} catch {
+		return false;
+	}
 };
 
 const isMingw32 = () => {
-  try {
-    return report.getReport().header.osName.startsWith('MINGW32_NT');
-  } catch {
-    return false;
-  }
+	try {
+		return report.getReport().header.osName.startsWith('MINGW32_NT');
+	} catch {
+		return false;
+	}
 };
 
 const bindingsByPlatformAndArch = {
@@ -47,9 +47,7 @@ const bindingsByPlatformAndArch = {
 		arm64: { base: 'win32-arm64-msvc' },
 		ia32: { base: 'win32-ia32-msvc' },
 		x64: {
-			base: isMingw32()
-				? 'win32-x64-gnu'
-				: 'win32-x64-msvc'
+			base: isMingw32() ? 'win32-x64-gnu' : 'win32-x64-msvc'
 		}
 	}
 };
