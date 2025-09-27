@@ -5,7 +5,7 @@ const { platform, arch, report } = require('node:process');
 const isMusl = () => {
   try {
     return !report.getReport().header.glibcVersionRuntime;
-  } catch (_e) {
+  } catch {
     return false;
   }
 };
