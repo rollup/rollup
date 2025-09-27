@@ -13,7 +13,7 @@ const isMusl = () => {
 const isMingw32 = () => {
   try {
     return report.getReport().header.osName.startsWith('MINGW32_NT');
-  } catch (_e) {
+  } catch {
     return false;
   }
 };
