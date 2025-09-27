@@ -1,5 +1,44 @@
 # rollup changelog
 
+## 4.52.3
+
+_2025-09-27_
+
+### Bug Fixes
+
+- Fix check in native loader for environments that do not support reports (#6123)
+
+### Pull Requests
+
+- [#6123](https://github.com/rollup/rollup/pull/6123): fix(native-loader): safely handle report.getReport() on Termux/Android (@Jobians, @lukastaegert)
+- [#6124](https://github.com/rollup/rollup/pull/6124): chore(deps): pin msys2/setup-msys2 action to fb197b7 (@renovate[bot])
+- [#6125](https://github.com/rollup/rollup/pull/6125): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6126](https://github.com/rollup/rollup/pull/6126): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
+## 4.52.2
+
+_2025-09-23_
+
+### Bug Fixes
+
+- Fix Android build crashing due to failed dlopen (#6109)
+
+### Pull Requests
+
+- [#6109](https://github.com/rollup/rollup/pull/6109): fix(rust): use prebuilt std when it is available (@cyyynthia)
+
+## 4.52.1
+
+_2025-09-23_
+
+### Bug Fixes
+
+- Opt-out of dynamic import optimization when using top-level await to effectively prevent deadlocks (#6121)
+
+### Pull Requests
+
+- [#6121](https://github.com/rollup/rollup/pull/6121): Simplify top-level await deadlock prevention (@lukastaegert)
+
 ## 4.52.0
 
 _2025-09-19_

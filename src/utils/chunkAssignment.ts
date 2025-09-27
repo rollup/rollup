@@ -296,8 +296,8 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					dynamicEntryModules.add(resolution);
 					allEntriesSet.add(resolution);
 					dynamicImportsForCurrentEntry.add(resolution);
-					for (const includedDirectTopLevelAwaitingDynamicImporter of resolution.includedDirectTopLevelAwaitingDynamicImporters) {
-						if (staticDependencies.has(includedDirectTopLevelAwaitingDynamicImporter)) {
+					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
+						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
 							awaitedDynamicEntryModules.add(resolution);
 							awaitedDynamicImportsForCurrentEntry.add(resolution);
 							break;
@@ -335,7 +335,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 			dependentEntriesByModule,
 			awaitedDynamicEntries,
 			allEntries,
-			dynamicEntry => dynamicEntry.includedDirectTopLevelAwaitingDynamicImporters
+			dynamicEntry => dynamicEntry.includedTopLevelAwaitingDynamicImporters
 		),
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
@@ -526,7 +526,7 @@ function removeUnnecessaryDependentEntries(
 	awaitedAlreadyLoadedAtomsByEntry: bigint[]
 ) {
 	// Remove entries from dependent entries if a chunk is already loaded without
-	// that entry. Do not remove already loaded atoms where all dynamic imports
+	// that entry. Do not remove already loaded atoms where some dynamic imports
 	// are awaited to avoid cycles in the output.
 	let chunkMask = 1n;
 	for (const { dependentEntries } of chunkAtoms) {
