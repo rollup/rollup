@@ -22,7 +22,6 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  id-token: write  # Required for OIDC
   contents: read
 
 jobs:
@@ -509,9 +508,9 @@ jobs:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: '20'
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
       - name: Update npm
         run: npm install -g npm@latest
