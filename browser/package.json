@@ -5,7 +5,10 @@
   "main": "dist/rollup.browser.js",
   "module": "dist/es/rollup.browser.js",
   "types": "dist/rollup.browser.d.ts",
-  "repository": "rollup/rollup",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rollup/rollup.git"
+  },
   "keywords": [
     "modules",
     "bundler",
