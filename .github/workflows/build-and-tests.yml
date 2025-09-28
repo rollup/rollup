@@ -512,9 +512,10 @@ jobs:
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-      - name: Update npm
+      - name: Update npm for publishing
         run: npm install -g npm@latest
-      - run: npm ci
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Download all artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
