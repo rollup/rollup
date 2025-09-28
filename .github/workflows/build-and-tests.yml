@@ -509,12 +509,13 @@ jobs:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
-          check-latest: true
-      - name: Install and Cache Node Dependencies
-        uses: ./.github/actions/install-and-cache-node-deps
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Update npm
+        run: npm install -g npm@latest
+      - run: npm ci
       - name: Download all artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
