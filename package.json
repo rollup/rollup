@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "4.52.3",
+  "version": "4.52.4-3",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -90,7 +90,10 @@
     "test:browser": "mocha test/browser/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
-  "repository": "rollup/rollup",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rollup/rollup.git"
+  },
   "keywords": [
     "modules",
     "bundler",

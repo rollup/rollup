@@ -84,7 +84,7 @@ jobs:
             target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
-          - host: windows-latest  
+          - host: windows-latest
             target: x86_64-pc-windows-gnu
             msystem: ucrt64
             toolchain: ucrt-x86_64
@@ -345,23 +345,23 @@ jobs:
           - arch: armv7
             distro: ubuntu_latest
             target: armv7-unknown-linux-gnueabihf
-# There is a bug that hangs the build when running npm
-#          - arch: armv7
-#            distro: alpine_latest
-#            target: armv7-unknown-linux-musleabihf
-# This one has become very flaky as of late
-#          - arch: ppc64le
-#            distro: ubuntu_latest
-#            target: powerpc64le-unknown-linux-gnu
-#            use-nvm: true
+          # There is a bug that hangs the build when running npm
+          #          - arch: armv7
+          #            distro: alpine_latest
+          #            target: armv7-unknown-linux-musleabihf
+          # This one has become very flaky as of late
+          #          - arch: ppc64le
+          #            distro: ubuntu_latest
+          #            target: powerpc64le-unknown-linux-gnu
+          #            use-nvm: true
           - arch: s390x
             distro: ubuntu_latest
             target: s390x-unknown-linux-gnu
             use-nvm: true
-# I could not find a way to install Node without compiling from source
-#          - arch: riscv64
-#            distro: ubuntu_latest
-#            target: riscv64gc-unknown-linux-gnu
+    # I could not find a way to install Node without compiling from source
+    #          - arch: riscv64
+    #            distro: ubuntu_latest
+    #            target: riscv64gc-unknown-linux-gnu
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -491,6 +491,7 @@ jobs:
       pull-requests: write # for writing comments
       issues: write # for writing comments
       contents: write # for creating a release
+      id-token: write  # Required for OIDC
     name: Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -509,8 +510,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+      - name: Update npm for publishing
+        run: npm install -g npm@latest
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Download all artifacts
@@ -528,12 +531,10 @@ jobs:
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
             echo "Publishing regular release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm publish --access public
           elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$";
           then
             echo "Publishing beta release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm publish --tag beta --access public
           else
             echo "Not a release, skipping publish"
