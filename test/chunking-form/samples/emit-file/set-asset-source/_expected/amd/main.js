@@ -1,14 +1,14 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	const renderStart = new URL(require.toUrl('./assets/renderStart-B4XObdBk.txt'), document.baseURI).href;
-	const renderStartNamed = new URL(require.toUrl('./renderStart.txt'), document.baseURI).href;
+	const renderStart = new URL(require.toUrl('./assets/renderStart-B4XObdBk.txt'), new URL(module.uri, document.baseURI).href).href;
+	const renderStartNamed = new URL(require.toUrl('./renderStart.txt'), new URL(module.uri, document.baseURI).href).href;
 	const renderStartNamedImmediately = 'renderStart.txt';
-	const bannerNamed = new URL(require.toUrl('./banner.txt'), document.baseURI).href;
-	const footerNamed = new URL(require.toUrl('./footer.txt'), document.baseURI).href;
-	const introNamed = new URL(require.toUrl('./intro.txt'), document.baseURI).href;
-	const outroNamed = new URL(require.toUrl('./outro.txt'), document.baseURI).href;
-	const renderChunkNamed = new URL(require.toUrl('./renderChunk.txt'), document.baseURI).href;
-	const generateBundleNamed = new URL(require.toUrl('./generateBundle.txt'), document.baseURI).href;
+	const bannerNamed = new URL(require.toUrl('./banner.txt'), new URL(module.uri, document.baseURI).href).href;
+	const footerNamed = new URL(require.toUrl('./footer.txt'), new URL(module.uri, document.baseURI).href).href;
+	const introNamed = new URL(require.toUrl('./intro.txt'), new URL(module.uri, document.baseURI).href).href;
+	const outroNamed = new URL(require.toUrl('./outro.txt'), new URL(module.uri, document.baseURI).href).href;
+	const renderChunkNamed = new URL(require.toUrl('./renderChunk.txt'), new URL(module.uri, document.baseURI).href).href;
+	const generateBundleNamed = new URL(require.toUrl('./generateBundle.txt'), new URL(module.uri, document.baseURI).href).href;
 
 	exports.bannerNamed = bannerNamed;
 	exports.footerNamed = footerNamed;

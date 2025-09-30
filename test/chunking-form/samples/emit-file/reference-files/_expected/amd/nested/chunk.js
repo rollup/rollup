@@ -1,6 +1,6 @@
 define(['require', '../main'], (function (require, main) { 'use strict';
 
-	var logo = new URL(require.toUrl('../assets/logo2-DJfvToLT.svg'), document.baseURI).href;
+	var logo = new URL(require.toUrl('../assets/logo2-DJfvToLT.svg'), new URL(module.uri, document.baseURI).href).href;
 
 	main.showImage(logo);
 
