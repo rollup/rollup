@@ -205,7 +205,7 @@ const relativeUrlMechanisms: Record<
 > = {
 	amd: (relativePath, asObject: boolean) => {
 		if (relativePath[0] !== '.') relativePath = './' + relativePath;
-		return getResolveUrl(`require.toUrl('${escapeId(relativePath)}'), document.baseURI`, asObject);
+		return getResolveUrl(`require.toUrl('${escapeId(relativePath)}'), new URL(module.uri, document.baseURI).href`, asObject);
 	},
 	cjs: (relativePath, asObject: boolean) =>
 		`(typeof document === 'undefined' ? ${getFileUrlFromRelativePath(relativePath, asObject)} : ${getRelativeUrlFromDocument(relativePath, asObject)})`,
