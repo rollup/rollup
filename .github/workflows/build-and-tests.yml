@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 24.8.0
+          node-version: 24.9.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
@@ -224,7 +224,7 @@ jobs:
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
-          node-version: 24.8.0
+          node-version: 24.9.0
       - uses: msys2/setup-msys2@fb197b72ce45fb24f17bf3f807a388985654d1f2 # v2
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         with:
@@ -249,7 +249,7 @@ jobs:
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@3c181b3244cec76aaec289ab84fb00f55f2fce3f # v0.2.4
       - name: Restore Cargo cache
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         if: matrix.settings.cache-cargo != false
         with:
           path: |
@@ -265,7 +265,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@5597bc27da443ba8bf9a3bc4e5459ea59177de42 # v2.62.4
+        uses: taiki-e/install-action@d0f4f69b07c0804d1003ca9a5a5f853423872ed9 # v2.62.13
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -304,7 +304,7 @@ jobs:
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
-        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             ~/.cargo/registry/index/
@@ -510,7 +510,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 24
+          node-version: 24.9.0
           registry-url: 'https://registry.npmjs.org'
       - name: Update npm for publishing
         run: npm install -g npm@latest
