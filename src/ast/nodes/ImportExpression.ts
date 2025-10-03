@@ -179,6 +179,16 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	hasEffects(): boolean {
+		const { resolution } = this.scope.context.module.dynamicImports.find(
+			dynamicImport => dynamicImport.node === this
+		)!;
+		if (
+			typeof resolution === 'object' &&
+			resolution !== null &&
+			!resolution.info.moduleSideEffects
+		) {
+			return false;
+		}
 		return true;
 	}
 
