@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.52.4
+
+_2025-10-03_
+
+### Bug Fixes
+
+- Fix an issue where the wrong branch of nullish coalescing was picked (#6133)
+
+### Pull Requests
+
+- [#6128](https://github.com/rollup/rollup/pull/6128): Enable npm OIDC publishing (@lukastaegert)
+- [#6133](https://github.com/rollup/rollup/pull/6133): Correct nullish coalescing branch resolution for symbol left value (@TrickyPi)
+- [#6134](https://github.com/rollup/rollup/pull/6134): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.52.3
 
 _2025-09-27_
