@@ -46,3 +46,5 @@ export const URL_GENERATEBUNDLE = 'plugin-development/#generatebundle';
 export const URL_RENDERDYNAMICIMPORT = 'plugin-development/#renderdynamicimport';
 export const URL_THIS_GETMODULEIDS = 'plugin-development/#this-getmoduleids';
 export const URL_THIS_GETMODULEINFO = 'plugin-development/#this-getmoduleinfo';
+export const URL_LOAD = 'plugin-development/#load';
+export const URL_TRANSFORM = 'plugin-development/#transform';
