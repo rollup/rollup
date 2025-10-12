@@ -1,4 +1,4 @@
-define(['require', './chunk-dep2-Bf2yYbO2'], (function (require, dep2) { 'use strict';
+define(['module', 'require', './chunk-dep2-Dn_1MukY'], (function (module, require, dep2) { 'use strict';
 
 	var num = 1;
 	console.log('referenced asset', new URL(require.toUrl('./asset-test-C4X7hChn'), new URL(module.uri, document.baseURI).href).href);
@@ -20,15 +20,15 @@ console.log({
   "name": "main1",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main1-CaHH0ffp.js",
+  "fileName": "entry-main1-D9d26K77.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-Bf2yYbO2.js": [
+    "chunk-dep2-Dn_1MukY.js": [
       "num"
     ]
   },
   "imports": [
-    "chunk-dep2-Bf2yYbO2.js"
+    "chunk-dep2-Dn_1MukY.js"
   ],
   "modules": {
     "**/dep1.js": {
@@ -52,5 +52,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-CaHH0ffp.js","entry-main2-C4xeIXIZ.js","chunk-dep2-Bf2yYbO2.js"])
+console.log('all chunks', ["entry-main1-D9d26K77.js","entry-main2-BtW3xAye.js","chunk-dep2-Dn_1MukY.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');

@@ -1,4 +1,4 @@
-define(['require'], (function (require) { 'use strict';
+define(['module', 'require'], (function (module, require) { 'use strict';
 
 	// Test string URL replacement
 								const assetString = new URL(require.toUrl('./assets/test-r6af3lUh.txt'), new URL(module.uri, document.baseURI).href).href;

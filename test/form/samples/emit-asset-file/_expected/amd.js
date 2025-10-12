@@ -1,4 +1,4 @@
-define(['require'], (function (require) { 'use strict';
+define(['module', 'require'], (function (module, require) { 'use strict';
 
 	var logo = new URL(require.toUrl('./assets/logo-zDlmrXar.svg'), new URL(module.uri, document.baseURI).href).href;
 

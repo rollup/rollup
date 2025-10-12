@@ -1,4 +1,4 @@
-define(['require', './chunks/shared'], (function (require, shared) { 'use strict';
+define(['module', 'require', './chunks/shared'], (function (module, require, shared) { 'use strict';
 
 	CSS.paintWorklet.addModule(new URL(require.toUrl('./chunks/worklet.js'), new URL(module.uri, document.baseURI).href).href);
 

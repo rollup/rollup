@@ -156,7 +156,7 @@ const accessedMetaUrlGlobals = {
 };
 
 const accessedFileUrlGlobals = {
-	amd: ['document', 'require', 'URL'],
+	amd: ['document', 'module', 'require', 'URL'],
 	cjs: ['document', 'require', 'URL'],
 	es: [],
 	iife: ['document', 'URL'],

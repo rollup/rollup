@@ -1,4 +1,4 @@
-define(['require'], (function (require) { 'use strict';
+define(['module', 'require'], (function (module, require) { 'use strict';
 
 	var asset1 = new URL(require.toUrl('./assets/asset-C1v24hPj'), new URL(module.uri, document.baseURI).href).href;
 

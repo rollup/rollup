@@ -1,4 +1,4 @@
-define(['require'], (function (require) { 'use strict';
+define(['module', 'require'], (function (module, require) { 'use strict';
 
 	const asset$1 = 'resolved';
 	const chunk$1 = 'resolved';

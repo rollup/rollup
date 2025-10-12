@@ -1,4 +1,4 @@
-define(['require'], (function (require) { 'use strict';
+define(['module', 'require'], (function (module, require) { 'use strict';
 
 	console.log('no importer', new URL(require.toUrl('./generated-lib.js'), new URL(module.uri, document.baseURI).href).href);
 	console.log('from maim', new URL(require.toUrl('./generated-lib.js'), new URL(module.uri, document.baseURI).href).href);

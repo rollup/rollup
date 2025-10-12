@@ -1,4 +1,4 @@
-define(['require', 'exports'], (function (require, exports) { 'use strict';
+define(['module', 'require', 'exports'], (function (module, require, exports) { 'use strict';
 
 	const renderStart = new URL(require.toUrl('./assets/renderStart-B4XObdBk.txt'), new URL(module.uri, document.baseURI).href).href;
 	const renderStartNamed = new URL(require.toUrl('./renderStart.txt'), new URL(module.uri, document.baseURI).href).href;

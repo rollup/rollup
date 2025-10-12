@@ -1,4 +1,4 @@
-define(['require', 'exports'], (function (require, exports) { 'use strict';
+define(['module', 'require', 'exports'], (function (module, require, exports) { 'use strict';
 
 	var num = 2;
 	console.log('referenced asset', new URL(require.toUrl('./asset-test-C4X7hChn'), new URL(module.uri, document.baseURI).href).href);
@@ -20,7 +20,7 @@ console.log({
   "name": "dep2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "chunk-dep2-Bf2yYbO2.js",
+  "fileName": "chunk-dep2-Dn_1MukY.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {},
   "imports": [],
@@ -39,5 +39,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-CaHH0ffp.js","entry-main2-C4xeIXIZ.js","chunk-dep2-Bf2yYbO2.js"])
+console.log('all chunks', ["entry-main1-D9d26K77.js","entry-main2-BtW3xAye.js","chunk-dep2-Dn_1MukY.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');

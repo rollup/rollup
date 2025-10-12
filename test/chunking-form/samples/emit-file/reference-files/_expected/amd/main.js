@@ -1,4 +1,4 @@
-define(['require', 'exports'], (function (require, exports) { 'use strict';
+define(['module', 'require', 'exports'], (function (module, require, exports) { 'use strict';
 
 	var logo = new URL(require.toUrl('./assets/logo1-FquQRdV3.svg'), new URL(module.uri, document.baseURI).href).href;
 

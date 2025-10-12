@@ -1,4 +1,4 @@
-define(['require'], (function (require) { 'use strict';
+define(['module', 'require'], (function (module, require) { 'use strict';
 
 	var asset1 = 'chunkId=amd.js:moduleId=solved:fileName=assets/asset-solved-DSjIjiFN.txt:format=amd:relativePath=assets/asset-solved-DSjIjiFN.txt:referenceId=lj6zEdlc';
 
