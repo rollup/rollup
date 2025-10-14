@@ -16,7 +16,9 @@ pub fn xxhash_base36(input: &[u8]) -> String {
 
 pub fn xxhash_base16(input: &[u8]) -> String {
   // Format each byte as 2 hex digits, preserving leading zeros to always return a 32 digits string.
-  xxh3_128(input).to_le_bytes().iter()
-    .map(|b| format!("{:02x}", b))
+  xxh3_128(input)
+    .to_le_bytes()
+    .iter()
+    .map(|b| format!("{b:02x}"))
     .collect::<String>()
 }
