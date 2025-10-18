@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.52.5
+
+_2025-10-18_
+
+### Bug Fixes
+
+- Always produce valid UUIDs as debugIds in sourcemaps (#6144)
+
+### Pull Requests
+
+- [#6135](https://github.com/rollup/rollup/pull/6135): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6140](https://github.com/rollup/rollup/pull/6140): chore(deps): update peter-evans/create-or-update-comment action to v5 (@renovate[bot])
+- [#6141](https://github.com/rollup/rollup/pull/6141): chore(deps): update peter-evans/find-comment action to v4 (@renovate[bot])
+- [#6142](https://github.com/rollup/rollup/pull/6142): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6143](https://github.com/rollup/rollup/pull/6143): chore: eslint enable concurrency option (@btea)
+- [#6144](https://github.com/rollup/rollup/pull/6144): fix: generation of debugIDs with invalid length (@pablomatiasgomez, @lukastaegert)
+- [#6146](https://github.com/rollup/rollup/pull/6146): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6147](https://github.com/rollup/rollup/pull/6147): chore(deps): update actions/setup-node action to v6 (@renovate[bot])
+
 ## 4.52.4
 
 _2025-10-03_
