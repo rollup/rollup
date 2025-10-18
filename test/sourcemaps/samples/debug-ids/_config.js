@@ -9,7 +9,9 @@ module.exports = defineTest({
 		}
 	},
 	async test(code, map) {
-		const match = code.match(/\/\/# debugId=([a-fA-F0-9-]+)/);
+		const match = code.match(
+			/\/\/# debugId=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/
+		);
 		assert.ok(match, 'Could not find debugId in source');
 		const sourceDebugId = match[1];
 		assert.equal(
