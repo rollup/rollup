@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: 24.9.0
+          node-version: 24.10.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
@@ -224,7 +224,7 @@ jobs:
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
-          node-version: 24.9.0
+          node-version: 24.10.0
       - uses: msys2/setup-msys2@fb197b72ce45fb24f17bf3f807a388985654d1f2 # v2
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         with:
@@ -265,7 +265,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@eba4035583f0f9b001a27be2cce0a136d05d05e3 # v2.62.23
+        uses: taiki-e/install-action@5b5de1b4da26ad411330c0454bdd72929bfcbeb2 # v2.62.29
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -510,7 +510,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: 24.9.0
+          node-version: 24.10.0
           registry-url: 'https://registry.npmjs.org'
       - name: Update npm for publishing
         run: npm install -g npm@latest
