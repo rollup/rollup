@@ -123,7 +123,7 @@ Repository: git+https://gitlab.com/Rich-Harris/locate-character.git
 ## magic-string
 License: MIT
 By: Rich Harris
-Repository: https://github.com/rich-harris/magic-string
+Repository: https://github.com/rich-harris/magic-string.git
 
 > Copyright 2018 Rich Harris
 > 

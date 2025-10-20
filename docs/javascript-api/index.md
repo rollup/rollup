@@ -214,6 +214,7 @@ const outputOptions = {
 	preserveModulesRoot,
 	sourcemap,
 	sourcemapBaseUrl,
+	sourcemapUrlPathPrefix,
 	sourcemapDebugIds,
 	sourcemapExcludeSources,
 	sourcemapFile,

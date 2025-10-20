@@ -28,6 +28,8 @@ export const URL_OUTPUT_MANUALCHUNKS = 'configuration-options/#output-manualchun
 export const URL_OUTPUT_NAME = 'configuration-options/#output-name';
 export const URL_OUTPUT_PRESERVEMODULES = 'configuration-options/#output-preservemodules';
 export const URL_OUTPUT_SOURCEMAPBASEURL = 'configuration-options/#output-sourcemapbaseurl';
+export const URL_OUTPUT_SOURCEMAPURLPATHPREFIX =
+	'configuration-options/#output-sourcemapurlpathprefix';
 export const URL_OUTPUT_SOURCEMAPFILE = 'configuration-options/#output-sourcemapfile';
 export const URL_PRESERVEENTRYSIGNATURES = 'configuration-options/#preserveentrysignatures';
 export const URL_TREESHAKE = 'configuration-options/#treeshake';

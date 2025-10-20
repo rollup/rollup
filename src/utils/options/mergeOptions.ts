@@ -288,6 +288,7 @@ async function mergeOutputOptions(
 		sourcemapFileNames: getOption('sourcemapFileNames'),
 		sourcemapIgnoreList: getOption('sourcemapIgnoreList'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
+		sourcemapUrlPathPrefix: getOption('sourcemapUrlPathPrefix'),
 		strict: getOption('strict'),
 		systemNullSetters: getOption('systemNullSetters'),
 		validate: getOption('validate'),
