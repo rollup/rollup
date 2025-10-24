@@ -86,7 +86,7 @@
     "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
-    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit && tsc --noEmit -p scripts",
+    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
     "test:browser": "mocha test/browser/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
@@ -206,9 +206,10 @@
   },
   "overrides": {
     "axios": "^1.12.2",
-    "semver": "^7.7.3",
+    "esbuild": ">0.24.2",
     "readable-stream": "npm:@built-in/readable-stream@1",
-    "esbuild": ">0.24.2"
+    "semver": "^7.7.3",
+    "vite": "$vite"
   },
   "comments": {
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
