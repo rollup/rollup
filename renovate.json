@@ -38,16 +38,6 @@
         "major"
       ],
       "enabled": false
-    },
-    {
-      "matchPackageNames": [
-        "vue-tsc"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": false,
-      "description": "vue-tsc needs to wait for an update of prettier-plugin-organize-imports to be compatible with version 3"
     }
   ],
   "pinDigests": true,
