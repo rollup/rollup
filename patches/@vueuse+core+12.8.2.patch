@@ -1,0 +1,34 @@
+diff --git a/node_modules/@vueuse/core/index.d.mts b/node_modules/@vueuse/core/index.d.mts
+index d7817ae..a22a85c 100644
+--- a/node_modules/@vueuse/core/index.d.mts
++++ b/node_modules/@vueuse/core/index.d.mts
+@@ -624,7 +624,7 @@ interface UseBluetoothRequestDeviceOptions {
+      * of BluetoothServiceUUIDs, a name parameter, and a namePrefix parameter.
+      *
+      */
+-    filters?: BluetoothLEScanFilter[] | undefined;
++    filters?: any;
+     /**
+      *
+      * An array of BluetoothServiceUUIDs.
+@@ -632,7 +632,7 @@ interface UseBluetoothRequestDeviceOptions {
+      * @see https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTService/uuid
+      *
+      */
+-    optionalServices?: BluetoothServiceUUID[] | undefined;
++    optionalServices?: any;
+ }
+ interface UseBluetoothOptions extends UseBluetoothRequestDeviceOptions, ConfigurableNavigator {
+     /**
+@@ -655,9 +655,9 @@ declare function useBluetooth(options?: UseBluetoothOptions): UseBluetoothReturn
+ interface UseBluetoothReturn {
+     isSupported: ComputedRef<boolean>;
+     isConnected: Readonly<ShallowRef<boolean>>;
+-    device: ShallowRef<BluetoothDevice | undefined>;
++    device: ShallowRef<any>;
+     requestDevice: () => Promise<void>;
+-    server: ShallowRef<BluetoothRemoteGATTServer | undefined>;
++    server: ShallowRef<any>;
+     error: ShallowRef<unknown | null>;
+ }
+ 

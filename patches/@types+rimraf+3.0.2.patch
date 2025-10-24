@@ -1,0 +1,13 @@
+diff --git a/node_modules/@types/rimraf/index.d.ts b/node_modules/@types/rimraf/index.d.ts
+index 4f89241..282933a 100755
+--- a/node_modules/@types/rimraf/index.d.ts
++++ b/node_modules/@types/rimraf/index.d.ts
+@@ -30,7 +30,7 @@ declare namespace rimraf {
+         emfileWait?: number | undefined;
+         /** @default false */
+         disableGlob?: boolean | undefined;
+-        glob?: glob.IOptions | false | undefined;
++        glob?: any;
+ 
+         unlink?: typeof fs.unlink | undefined;
+         chmod?: typeof fs.chmod | undefined;

@@ -72,6 +72,7 @@
     "prepare": "husky && node scripts/check-release.js || npm run build:prepare",
     "prepublishOnly": "node scripts/check-release.js && node scripts/prepublish.js",
     "postpublish": "node scripts/postpublish.js",
+    "postinstall": "patch-package",
     "prepublish:napi": "napi prepublish --no-gh-release",
     "release": "node scripts/prepare-release.js",
     "release:docs": "git fetch --update-head-ok origin master:master && git branch --force documentation-published master && git push origin documentation-published",
@@ -175,6 +176,7 @@
     "mocha": "^11.7.4",
     "nodemon": "^3.1.10",
     "nyc": "^17.1.0",
+    "patch-package": "^8.0.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.3",
     "pinia": "^3.0.3",
@@ -209,7 +211,10 @@
     "esbuild": ">0.24.2",
     "readable-stream": "npm:@built-in/readable-stream@1",
     "semver": "^7.7.3",
-    "vite": "$vite"
+    "vite": "$vite",
+    "path-scurry": {
+      "lru-cache": "^11.2.2"
+    }
   },
   "comments": {
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
