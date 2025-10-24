@@ -3,7 +3,7 @@ const assert = require('node:assert');
  * @type {import('../../src/rollup/types')} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { executeBundle, getObject } = require('../testHelpers.js');
+const { executeBundle, getBundleCode, getObject } = require('../testHelpers.js');
 
 describe('incremental', () => {
 	let resolveIdCalls;
@@ -203,6 +203,27 @@ describe('incremental', () => {
 			cache: firstBundle
 		});
 		assert.strictEqual(await executeBundle(secondBundle), 'mainfoo');
+	});
+
+	it('deconflicts variables again if needed', async () => {
+		modules.entry = `export default 2; const entry = 1; console.log(entry);`;
+		const firstBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin]
+		});
+		const firstCode = await getBundleCode(firstBundle);
+		assert.strictEqual(
+			firstCode,
+			"'use strict';\n\nvar entry_default = 2; const entry = 1; console.log(entry);\n\nmodule.exports = entry_default;\n",
+			'first'
+		);
+
+		const secondBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin],
+			cache: firstBundle
+		});
+		assert.strictEqual(await getBundleCode(secondBundle), firstCode, 'second');
 	});
 
 	it('recovers from errors', () => {
