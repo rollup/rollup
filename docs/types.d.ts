@@ -1,4 +1,4 @@
-import type { RollupOptions } from '../../src/rollup/types';
+import type { RollupOptions } from '../src/rollup/types';
 
 export interface Module {
 	code: string;

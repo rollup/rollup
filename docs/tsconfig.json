@@ -1,18 +1,41 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "target": "ESNext",
-    "moduleResolution": "Bundler",
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "baseUrl": "./",
     "esModuleInterop": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "resolveJsonModule": true,
-    "jsx": "preserve",
-    "lib": ["ESNext", "DOM"],
-    "types": ["vite/client"],
+    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "noEmit": true
+    "jsx": "preserve",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "ESNext",
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "useDefineForClassFields": false
   },
-  "include": ["**/*"],
-  "exclude": ["**/node_modules/**", "**/dist/**", ".vitepress/cache/**", ".vitepress/dist/**"]
+  "include": [
+    "**/*",
+    ".vitepress/**/*",
+    "types",
+    "../src",
+    "../typings"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    ".vitepress/cache/**",
+    ".vitepress/dist/**/*"
+  ]
 }

@@ -1,22 +1,42 @@
 {
-	"compilerOptions": {
-		"allowSyntheticDefaultImports": true,
-		"forceConsistentCasingInFileNames": true,
-		"lib": ["ES2022", "ESNext.Disposable", "DOM"],
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"noEmitOnError": true,
-		"noUnusedParameters": true,
-		"pretty": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"strict": true,
-		"target": "ES2022",
-		"useDefineForClassFields": false,
-		"paths": {
-			"rollup": ["./node_modules/rollup"]
-		}
-	},
-	"include": ["typings", "src", "cli", "browser", "rollup.config.ts", "native"],
-	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "ES2022",
+      "ESNext.Disposable",
+      "DOM"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmitOnError": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "paths": {
+      "rollup": [
+        "./node_modules/rollup"
+      ]
+    },
+    "pretty": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "ES2022",
+    "useDefineForClassFields": false
+  },
+  "include": [
+    "browser",
+    "cli",
+    "native",
+    "rollup.config.ts",
+    "src",
+    "typings"
+  ],
+  "exclude": [
+    "browser/dist",
+    "dist",
+    "node_modules",
+    "test/typescript"
+  ]
 }

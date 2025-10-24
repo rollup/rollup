@@ -72,6 +72,7 @@
     "prepare": "husky && node scripts/check-release.js || npm run build:prepare",
     "prepublishOnly": "node scripts/check-release.js && node scripts/prepublish.js",
     "postpublish": "node scripts/postpublish.js",
+    "postinstall": "patch-package",
     "prepublish:napi": "napi prepublish --no-gh-release",
     "release": "node scripts/prepare-release.js",
     "release:docs": "git fetch --update-head-ok origin master:master && git branch --force documentation-published master && git push origin documentation-published",
@@ -86,7 +87,7 @@
     "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
-    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit && tsc --noEmit -p scripts",
+    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
     "test:browser": "mocha test/browser/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
@@ -139,7 +140,7 @@
     "@rollup/pluginutils": "^5.3.0",
     "@shikijs/vitepress-twoslash": "^3.13.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.22",
+    "@types/node": "^20.19.23",
     "@types/picomatch": "^4.0.2",
     "@types/semver": "^7.7.1",
     "@types/yargs-parser": "^21.0.3",
@@ -175,6 +176,7 @@
     "mocha": "^11.7.4",
     "nodemon": "^3.1.10",
     "nyc": "^17.1.0",
+    "patch-package": "^8.0.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.3",
     "pinia": "^3.0.3",
@@ -196,19 +198,23 @@
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.10",
+    "vite": "^7.1.11",
     "vitepress": "^1.6.4",
     "vue": "^3.5.22",
     "vue-eslint-parser": "^10.2.0",
-    "vue-tsc": "^2.2.12",
+    "vue-tsc": "^3.1.1",
     "wasm-pack": "^0.13.1",
     "yargs-parser": "^21.1.1"
   },
   "overrides": {
     "axios": "^1.12.2",
-    "semver": "^7.7.3",
+    "esbuild": ">0.24.2",
     "readable-stream": "npm:@built-in/readable-stream@1",
-    "esbuild": ">0.24.2"
+    "semver": "^7.7.3",
+    "vite": "$vite",
+    "path-scurry": {
+      "lru-cache": "^11.2.2"
+    }
   },
   "comments": {
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
