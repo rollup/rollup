@@ -7,4 +7,4 @@
 
 	console.log(ns__default);
 
-})(ns);
+})(external);

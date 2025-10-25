@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('a'), require('b'), require('c'), require('d'), require('unresolved')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'a', 'b', 'c', 'd', 'unresolved'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.a, global.b, global.c, global.d$1));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.a, global.b, global.c, global.d));
 })(this, (function (exports, a, b, c, d$1) { 'use strict';
 
 	function _interopNamespaceDefault(e) {

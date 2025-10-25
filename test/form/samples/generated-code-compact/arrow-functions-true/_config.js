@@ -11,7 +11,9 @@ module.exports = defineTest({
 		strictDeprecations: false,
 		output: {
 			compact: true,
+			dynamicImportInCjs: false,
 			generatedCode: { arrowFunctions: true },
+			globals: id => id,
 			interop(id) {
 				if (id === 'externalDefault') {
 					return 'default';
@@ -26,7 +28,6 @@ module.exports = defineTest({
 			},
 			name: 'bundle',
 			noConflict: true,
-			dynamicImportInCjs: false,
 			systemNullSetters: false
 		}
 	},

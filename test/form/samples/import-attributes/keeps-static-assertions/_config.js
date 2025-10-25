@@ -6,6 +6,9 @@ module.exports = defineTest({
 			if (id === 'unresolved') return null;
 			return true;
 		},
-		output: { name: 'bundle' }
+		output: {
+			globals: id => id,
+			name: 'bundle'
+		}
 	}
 });

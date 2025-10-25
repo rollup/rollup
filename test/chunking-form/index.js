@@ -5,7 +5,11 @@ const path = require('node:path');
 // @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
 const { compareLogs } = require('../testHelpers');
-const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../testHelpers.js');
+const {
+	runTestSuiteWithSamples,
+	assertDirectoriesAreEqual,
+	shuffle
+} = require('../testHelpers.js');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
@@ -25,12 +29,12 @@ runTestSuiteWithSamples(
 					after(config.after);
 				}
 				const logs = [];
+				const warnings = [];
 				after(() => config.logs && compareLogs(logs, config.logs));
 
-				for (const format of config.formats || FORMATS) {
+				for (const format of shuffle(config.formats || FORMATS)) {
 					it('generates ' + format, async () => {
 						process.chdir(directory);
-						const warnings = [];
 						bundle =
 							bundle ||
 							(await rollup({
@@ -62,10 +66,10 @@ runTestSuiteWithSamples(
 							for (const { code } of warnings) {
 								codes.add(code);
 							}
+							const messages = warnings.map(({ message }) => `${message}\n\n`).join('');
+							warnings.length = 0;
 							throw new Error(
-								`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
-									.map(({ message }) => `${message}\n\n`)
-									.join('')}` +
+								`Unexpected warnings (${[...codes].join(', ')}): \n${messages}` +
 									'If you expect warnings, list their codes in config.expectedWarnings'
 							);
 						}

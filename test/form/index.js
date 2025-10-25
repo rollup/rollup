@@ -8,8 +8,10 @@ const path = require('node:path');
 const { rollup } = require('../../dist/rollup');
 const {
 	compareLogs,
+	getRandomElement,
 	normaliseOutput,
 	runTestSuiteWithSamples,
+	shuffle,
 	verifyAstPlugin
 } = require('../testHelpers.js');
 
@@ -29,9 +31,9 @@ runTestSuiteWithSamples(
 			() => {
 				let bundle;
 				const logs = [];
+				const warnings = [];
 
 				const runRollupTest = async (inputFile, bundleFile, format, fromCache) => {
-					const warnings = [];
 					if (config.before) {
 						await config.before();
 					}
@@ -83,10 +85,11 @@ runTestSuiteWithSamples(
 						for (const { code } of warnings) {
 							codes.add(code);
 						}
+						const messages = warnings.map(({ message }) => `${message}\n\n`).join('');
+						warnings.length = 0;
 						throw new Error(
-							`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
-								.map(({ message }) => `${message}\n\n`)
-								.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
+							`Unexpected warnings (${[...codes].join(', ')}): \n${messages}` +
+								'If you expect warnings, list their codes in config.expectedWarnings'
 						);
 					}
 				};
@@ -101,7 +104,8 @@ runTestSuiteWithSamples(
 						.then(() => config.logs && compareLogs(logs, config.logs));
 				}
 
-				for (const format of config.formats || FORMATS) {
+				const formats = shuffle(config.formats || FORMATS);
+				for (const format of formats) {
 					after(() => config.logs && compareLogs(logs, config.logs));
 
 					it(`generates ${format}`, () =>
@@ -113,13 +117,13 @@ runTestSuiteWithSamples(
 						));
 				}
 
-				const format = (config.formats || FORMATS)[0];
+				const format = getRandomElement(formats);
 				it(`generates ${format} from the cache`, () =>
 					runRollupTest(
 						`${directory}/_actual/${format}.js`,
 						`${directory}/_expected/${format}.js`,
 						format,
-						false
+						true
 					));
 			}
 		);

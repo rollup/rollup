@@ -49,4 +49,4 @@ var bundle = (function (exports, foo$1) {
 
 	return exports;
 
-})({}, foo$1);
+})({}, external);
