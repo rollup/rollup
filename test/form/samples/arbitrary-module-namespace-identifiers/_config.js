@@ -4,6 +4,9 @@ module.exports = defineTest({
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {
 		external: ['external'],
-		output: { name: 'bundle' }
+		output: {
+			globals: { external: 'external' },
+			name: 'bundle'
+		}
 	}
 });

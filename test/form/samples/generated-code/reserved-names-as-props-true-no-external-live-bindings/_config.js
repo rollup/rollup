@@ -6,6 +6,7 @@ module.exports = defineTest({
 			exports: 'named',
 			externalLiveBindings: false,
 			generatedCode: { reservedNamesAsProps: true },
+			globals: id => id,
 			interop: 'compat',
 			name: 'bundle'
 		}

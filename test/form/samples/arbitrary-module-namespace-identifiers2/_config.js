@@ -4,6 +4,7 @@ module.exports = defineTest({
 	options: {
 		external: ['external'],
 		output: {
+			globals: { external: 'external' },
 			name: 'myBundle'
 		}
 	}

@@ -76,4 +76,4 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 
 	return exports;
 
-})({}, null, defaultCompat, externalAuto, externalDefault, externalDefaultOnly);
+})({}, externalNoImport, external, externalAuto, externalDefault, externalDefaultOnly);

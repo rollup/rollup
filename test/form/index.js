@@ -8,8 +8,10 @@ const path = require('node:path');
 const { rollup } = require('../../dist/rollup');
 const {
 	compareLogs,
+	getRandomElement,
 	normaliseOutput,
 	runTestSuiteWithSamples,
+	shuffle,
 	verifyAstPlugin
 } = require('../testHelpers.js');
 
@@ -101,7 +103,8 @@ runTestSuiteWithSamples(
 						.then(() => config.logs && compareLogs(logs, config.logs));
 				}
 
-				for (const format of config.formats || FORMATS) {
+				const formats = shuffle(config.formats || FORMATS);
+				for (const format of formats) {
 					after(() => config.logs && compareLogs(logs, config.logs));
 
 					it(`generates ${format}`, () =>
@@ -113,13 +116,13 @@ runTestSuiteWithSamples(
 						));
 				}
 
-				const format = (config.formats || FORMATS)[0];
+				const format = getRandomElement(formats);
 				it(`generates ${format} from the cache`, () =>
 					runRollupTest(
 						`${directory}/_actual/${format}.js`,
 						`${directory}/_expected/${format}.js`,
 						format,
-						false
+						true
 					));
 			}
 		);

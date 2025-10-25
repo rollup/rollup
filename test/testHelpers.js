@@ -139,14 +139,23 @@ function deindent(stringValue) {
 
 exports.deindent = deindent;
 
-exports.executeBundle = async function executeBundle(bundle, require) {
+exports.getBundleCode = async function getBundleCode(bundle, { format = 'es' } = {}) {
 	const {
-		output: [cjs]
+		output: [module]
 	} = await bundle.generate({
 		exports: 'auto',
-		format: 'cjs'
+		format
 	});
-	const wrapper = new Function('module', 'exports', 'require', cjs.code);
+	return module.code;
+};
+
+exports.executeBundle = async function executeBundle(bundle, require) {
+	const wrapper = new Function(
+		'module',
+		'exports',
+		'require',
+		await exports.getBundleCode(bundle, { format: 'cjs' })
+	);
 	const module = { exports: {} };
 	wrapper(module, module.exports, require);
 	return module.exports;
@@ -466,6 +475,22 @@ exports.verifyAstPlugin = {
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
 		);
 	}
+};
+
+exports.getRandomElement = function getRandomElement(array) {
+	return array[Math.floor(Math.random() * array.length)];
+};
+
+exports.shuffle = function shuffle(array) {
+	const shuffled = array.slice();
+	for (let shuffledIndex = shuffled.length - 1; shuffledIndex > 0; shuffledIndex--) {
+		const replacedIndex = Math.floor(Math.random() * (shuffledIndex + 1));
+		[shuffled[shuffledIndex], shuffled[replacedIndex]] = [
+			shuffled[replacedIndex],
+			shuffled[shuffledIndex]
+		];
+	}
+	return shuffled;
 };
 
 const replaceStringifyValues = (key, value) => {

@@ -5,11 +5,12 @@ module.exports = defineTest({
 		external: ['external'],
 		shimMissingExports: true,
 		output: {
-			generatedCode: { arrowFunctions: true, constBindings: false },
-			name: 'bundle',
-			noConflict: true,
 			exports: 'named',
-			interop: 'compat'
+			generatedCode: { arrowFunctions: true, constBindings: false },
+			globals: id => id,
+			interop: 'compat',
+			name: 'bundle',
+			noConflict: true
 		},
 		plugins: [
 			{

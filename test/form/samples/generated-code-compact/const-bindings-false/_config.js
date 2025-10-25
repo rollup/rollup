@@ -6,11 +6,12 @@ module.exports = defineTest({
 		shimMissingExports: true,
 		output: {
 			compact: true,
-			generatedCode: { arrowFunctions: true, constBindings: true },
-			name: 'bundle',
-			noConflict: true,
 			exports: 'named',
-			interop: 'compat'
+			generatedCode: { arrowFunctions: true, constBindings: true },
+			globals: id => id,
+			interop: 'compat',
+			name: 'bundle',
+			noConflict: true
 		},
 		plugins: [
 			{

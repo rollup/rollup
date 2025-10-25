@@ -7,8 +7,9 @@ module.exports = defineTest({
 			return true;
 		},
 		output: {
-			name: 'bundle',
-			importAttributesKey: 'with'
+			globals: id => id,
+			importAttributesKey: 'with',
+			name: 'bundle'
 		}
 	}
 });

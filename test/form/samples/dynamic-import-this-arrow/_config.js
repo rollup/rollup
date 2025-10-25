@@ -3,9 +3,10 @@ module.exports = defineTest({
 	options: {
 		external: ['input', 'output'],
 		output: {
+			dynamicImportInCjs: false,
 			generatedCode: { arrowFunctions: true },
-			name: 'bundle',
-			dynamicImportInCjs: false
+			globals: { input: 'input', output: 'output' },
+			name: 'bundle'
 		}
 	}
 });

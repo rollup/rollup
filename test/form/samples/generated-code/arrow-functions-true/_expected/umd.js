@@ -4,7 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, (() => {
 		var current = global.bundle;
 		var exports = global.bundle = {};
-		factory(exports, null, global.defaultCompat, global.externalAuto, global.externalDefault, global.externalDefaultOnly);
+		factory(exports, global.externalNoImport, global.external, global.externalAuto, global.externalDefault, global.externalDefaultOnly);
 		exports.noConflict = () => { global.bundle = current; return exports; };
 	})());
 })(this, (function (exports, externalNoImport, defaultCompat, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';

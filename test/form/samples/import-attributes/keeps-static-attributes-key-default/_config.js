@@ -7,6 +7,7 @@ module.exports = defineTest({
 			return true;
 		},
 		output: {
+			globals: id => id,
 			name: 'bundle'
 		}
 	}
