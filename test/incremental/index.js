@@ -205,7 +205,7 @@ describe('incremental', () => {
 		assert.strictEqual(await executeBundle(secondBundle), 'mainfoo');
 	});
 
-	it('deconflicts variables again if needed', async () => {
+	it('consistently deconflicts default exports', async () => {
 		modules.entry = `export default 2; const entry = 1; console.log(entry);`;
 		const firstBundle = await rollup.rollup({
 			input: 'entry',
@@ -214,7 +214,7 @@ describe('incremental', () => {
 		const firstCode = await getBundleCode(firstBundle);
 		assert.strictEqual(
 			firstCode,
-			"'use strict';\n\nvar entry_default = 2; const entry = 1; console.log(entry);\n\nmodule.exports = entry_default;\n",
+			'var entry_default = 2; const entry = 1; console.log(entry);\n\nexport { entry_default as default };\n',
 			'first'
 		);
 
@@ -224,6 +224,47 @@ describe('incremental', () => {
 			cache: firstBundle
 		});
 		assert.strictEqual(await getBundleCode(secondBundle), firstCode, 'second');
+	});
+
+	it('uses consistent variable names between formats', async () => {
+		modules.entry = `{
+  const _interopDefault = 1;
+  const _interopNamespace = 1;
+  const module = 1;
+  const require = 1;
+  const exports = 1;
+  const document = 1;
+  const URL = 1;
+  console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL, import.meta.url);
+  import('external').then(console.log);
+}`;
+		const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
+		for (const targetFormat of FORMATS) {
+			const initialCode = await getBundleCode(
+				await rollup.rollup({
+					input: 'entry',
+					plugins: [plugin]
+				}),
+				{ format: targetFormat }
+			);
+			for (const otherFormat of FORMATS) {
+				const firstBundle = await rollup.rollup({
+					input: 'entry',
+					plugins: [plugin]
+				});
+				await getBundleCode(firstBundle, { format: otherFormat });
+				const secondBundle = await rollup.rollup({
+					input: 'entry',
+					plugins: [plugin],
+					cache: firstBundle
+				});
+				assert.strictEqual(
+					await getBundleCode(secondBundle, { format: targetFormat }),
+					initialCode,
+					'second'
+				);
+			}
+		}
 	});
 
 	it('recovers from errors', () => {
