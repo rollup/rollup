@@ -31,9 +31,9 @@ runTestSuiteWithSamples(
 			() => {
 				let bundle;
 				const logs = [];
+				const warnings = [];
 
 				const runRollupTest = async (inputFile, bundleFile, format, fromCache) => {
-					const warnings = [];
 					if (config.before) {
 						await config.before();
 					}
@@ -85,10 +85,11 @@ runTestSuiteWithSamples(
 						for (const { code } of warnings) {
 							codes.add(code);
 						}
+						const messages = warnings.map(({ message }) => `${message}\n\n`).join('');
+						warnings.length = 0;
 						throw new Error(
-							`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
-								.map(({ message }) => `${message}\n\n`)
-								.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
+							`Unexpected warnings (${[...codes].join(', ')}): \n${messages}` +
+								'If you expect warnings, list their codes in config.expectedWarnings'
 						);
 					}
 				};
