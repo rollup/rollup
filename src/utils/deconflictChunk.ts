@@ -1,11 +1,11 @@
-import type Chunk from '../Chunk';
-import ExternalChunk from '../ExternalChunk';
-import ExternalModule from '../ExternalModule';
-import type Module from '../Module';
 import type ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
 import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import type Variable from '../ast/variables/Variable';
+import type Chunk from '../Chunk';
+import ExternalChunk from '../ExternalChunk';
+import ExternalModule from '../ExternalModule';
+import type Module from '../Module';
 import type { GetInterop, InternalModuleFormat } from '../rollup/types';
 import { makeLegal } from './identifierHelpers';
 import {
@@ -224,6 +224,8 @@ function deconflictTopLevelVariables(
 					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
+				// We need to make sure that variables that corresponding to object
+				// prototype methods are not accidentally matched.
 				const cachedSafeVariableName = Object.getOwnPropertyDescriptor(
 					module.info.safeVariableNames,
 					variable.name
