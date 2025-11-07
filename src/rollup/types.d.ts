@@ -125,6 +125,7 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 export interface TransformModuleJSON {
 	ast?: ProgramNode | undefined;
 	code: string;
+	safeVariableNames: Record<string, string> | null;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
 	originalCode: string;
@@ -134,6 +135,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
+	safeVariableNames: Record<string, string> | null;
 	ast: ProgramNode;
 	dependencies: string[];
 	id: string;
@@ -198,6 +200,7 @@ export interface ModuleInfo extends ModuleOptions {
 	dynamicallyImportedIds: readonly string[];
 	exportedBindings: Record<string, string[]> | null;
 	exports: string[] | null;
+	safeVariableNames: Record<string, string> | null;
 	hasDefaultExport: boolean | null;
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];

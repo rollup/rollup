@@ -104,7 +104,9 @@ runTestSuiteWithSamples(
 						.then(() => config.logs && compareLogs(logs, config.logs));
 				}
 
-				const formats = shuffle(config.formats || FORMATS);
+				const unshuffledFormats = config.formats || FORMATS;
+				const formats =
+					config.shuffleFormats === false ? unshuffledFormats : shuffle(unshuffledFormats);
 				for (const format of formats) {
 					after(() => config.logs && compareLogs(logs, config.logs));
 

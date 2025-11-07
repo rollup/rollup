@@ -3,7 +3,7 @@ const assert = require('node:assert');
  * @type {import('../../src/rollup/types')} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { executeBundle, getObject } = require('../testHelpers.js');
+const { executeBundle, getBundleCode, getObject } = require('../testHelpers.js');
 
 describe('incremental', () => {
 	let resolveIdCalls;
@@ -184,6 +184,87 @@ describe('incremental', () => {
 			.then(result => {
 				assert.strictEqual(result, 43);
 			});
+	});
+
+	it('deconflicts variables again if needed', async () => {
+		modules.entry = `import value from 'foo'; const test = 'main'; export default test + value;`;
+		modules.foo = `const otherTest = 'foo'; export default otherTest;`;
+		const firstBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin]
+		});
+		assert.strictEqual(await executeBundle(firstBundle), 'mainfoo');
+
+		// Now we introduce a name conflict
+		modules.foo = `const test = 'foo'; export default test;`;
+		const secondBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin],
+			cache: firstBundle
+		});
+		assert.strictEqual(await executeBundle(secondBundle), 'mainfoo');
+	});
+
+	it('consistently deconflicts default exports', async () => {
+		modules.entry = `export default 2; const entry = 1; console.log(entry);`;
+		const firstBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin]
+		});
+		const firstCode = await getBundleCode(firstBundle);
+		assert.strictEqual(
+			firstCode,
+			'var entry_default = 2; const entry = 1; console.log(entry);\n\nexport { entry_default as default };\n',
+			'first'
+		);
+
+		const secondBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [plugin],
+			cache: firstBundle
+		});
+		assert.strictEqual(await getBundleCode(secondBundle), firstCode, 'second');
+	});
+
+	it('uses consistent variable names between formats', async () => {
+		modules.entry = `{
+  const _interopDefault = 1;
+  const _interopNamespace = 1;
+  const module = 1;
+  const require = 1;
+  const exports = 1;
+  const document = 1;
+  const URL = 1;
+  console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL, import.meta.url);
+  import('external').then(console.log);
+}`;
+		const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
+		for (const targetFormat of FORMATS) {
+			const initialCode = await getBundleCode(
+				await rollup.rollup({
+					input: 'entry',
+					plugins: [plugin]
+				}),
+				{ format: targetFormat }
+			);
+			for (const otherFormat of FORMATS) {
+				const firstBundle = await rollup.rollup({
+					input: 'entry',
+					plugins: [plugin]
+				});
+				await getBundleCode(firstBundle, { format: otherFormat });
+				const secondBundle = await rollup.rollup({
+					input: 'entry',
+					plugins: [plugin],
+					cache: firstBundle
+				});
+				assert.strictEqual(
+					await getBundleCode(secondBundle, { format: targetFormat }),
+					initialCode,
+					'second'
+				);
+			}
+		}
 	});
 
 	it('recovers from errors', () => {

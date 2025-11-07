@@ -1,11 +1,11 @@
-import type Chunk from '../Chunk';
-import ExternalChunk from '../ExternalChunk';
-import ExternalModule from '../ExternalModule';
-import type Module from '../Module';
 import type ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
 import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import type Variable from '../ast/variables/Variable';
+import type Chunk from '../Chunk';
+import ExternalChunk from '../ExternalChunk';
+import ExternalModule from '../ExternalModule';
+import type Module from '../Module';
 import type { GetInterop, InternalModuleFormat } from '../rollup/types';
 import { makeLegal } from './identifierHelpers';
 import {
@@ -62,14 +62,10 @@ export function deconflictChunk(
 ): void {
 	const reversedModules = [...modules].reverse();
 	for (const module of reversedModules) {
-		module.scope.addUsedOutsideNames(
-			usedNames,
-			format,
-			exportNamesByVariable,
-			accessedGlobalsByScope
-		);
+		module.scope.addUsedOutsideNames(usedNames, accessedGlobalsByScope);
 	}
 	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
+
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
@@ -218,6 +214,7 @@ function deconflictTopLevelVariables(
 	includedNamespaces: ReadonlySet<Module>
 ): void {
 	for (const module of modules) {
+		module.info.safeVariableNames ||= {};
 		for (const variable of module.scope.variables.values()) {
 			if (
 				variable.included &&
@@ -227,10 +224,24 @@ function deconflictTopLevelVariables(
 					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
+				// We need to make sure that variables that corresponding to object
+				// prototype methods are not accidentally matched.
+				const cachedSafeVariableName = Object.getOwnPropertyDescriptor(
+					module.info.safeVariableNames,
+					variable.name
+				)?.value;
+
+				if (cachedSafeVariableName && !usedNames.has(cachedSafeVariableName)) {
+					usedNames.add(cachedSafeVariableName);
+					variable.setRenderNames(null, cachedSafeVariableName);
+					continue;
+				}
+
 				variable.setRenderNames(
 					null,
 					getSafeName(variable.name, usedNames, variable.forbiddenNames)
 				);
+				module.info.safeVariableNames[variable.name] = variable.renderName!;
 			}
 		}
 		if (includedNamespaces.has(module)) {

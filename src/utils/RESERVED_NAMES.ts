@@ -14,6 +14,7 @@ const RESERVED_NAMES: ReadonlySet<string> = new Set([
 	'enum',
 	'eval',
 	'export',
+	'exports',
 	'extends',
 	'false',
 	'finally',

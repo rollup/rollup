@@ -82,6 +82,7 @@ module.exports = defineTest({
 					exports: [],
 					hasDefaultExport: false,
 					moduleSideEffects: true,
+					safeVariableNames: null,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [
@@ -161,6 +162,7 @@ module.exports = defineTest({
 					exports: [],
 					hasDefaultExport: false,
 					moduleSideEffects: true,
+					safeVariableNames: null,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [

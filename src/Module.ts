@@ -387,6 +387,7 @@ export default class Module {
 			},
 			meta: { ...meta },
 			moduleSideEffects,
+			safeVariableNames: null,
 			syntheticNamedExports
 		};
 	}
@@ -840,6 +841,7 @@ export default class Module {
 		sourcemapChain,
 		transformDependencies,
 		transformFiles,
+		safeVariableNames,
 		...moduleOptions
 	}: TransformModuleJSON & {
 		resolvedIds?: ResolvedIdMap;
@@ -852,6 +854,7 @@ export default class Module {
 		}
 
 		this.info.code = code;
+		this.info.safeVariableNames = safeVariableNames;
 		this.originalCode = originalCode;
 
 		// We need to call decodedSourcemap on the input in case they were hydrated from json in the cache and don't
@@ -964,7 +967,6 @@ export default class Module {
 			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
-
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
 			meta: this.info.meta,
@@ -972,6 +974,7 @@ export default class Module {
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
+			safeVariableNames: this.info.safeVariableNames,
 			sourcemapChain: this.sourcemapChain,
 			syntheticNamedExports: this.info.syntheticNamedExports,
 			transformDependencies: this.transformDependencies,

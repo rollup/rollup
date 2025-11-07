@@ -119,6 +119,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
 						[getId('lib')]: {
@@ -155,6 +156,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
 						[getId('main')]: {
@@ -293,6 +295,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
 						external: {
@@ -316,6 +319,7 @@ module.exports = defineTest({
 							isExternal: true,
 							isIncluded: null,
 							meta: {},
+							safeVariableNames: null,
 							syntheticNamedExports: false
 						}
 					}
