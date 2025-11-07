@@ -72,7 +72,7 @@
     "prepare": "husky && node scripts/check-release.js || npm run build:prepare",
     "prepublishOnly": "node scripts/check-release.js && node scripts/prepublish.js",
     "postpublish": "node scripts/postpublish.js",
-    "postinstall": "patch-package",
+    "postinstall": "patch-package || true",
     "prepublish:napi": "napi prepublish --no-gh-release",
     "release": "node scripts/prepare-release.js",
     "release:docs": "git fetch --update-head-ok origin master:master && git branch --force documentation-published master && git push origin documentation-published",
