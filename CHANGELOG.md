@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 4.53.0
+
+_2025-11-07_
+
+### Features
+
+- Improve rendering performance by caching generated variable names (#5947)
+
+### Pull Requests
+
+- [#5947](https://github.com/rollup/rollup/pull/5947): refactor: store safe variable names in cache for subsequent usage (@Aslemammad, @lukastaegert, @Service account user)
+- [#6149](https://github.com/rollup/rollup/pull/6149): chore(deps): update dependency vite to v7.1.11 [security] (@renovate[bot], @Service account user)
+- [#6151](https://github.com/rollup/rollup/pull/6151): fix(deps): update swc monorepo (major) (@renovate[bot], @Service account user)
+- [#6152](https://github.com/rollup/rollup/pull/6152): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @Service account user)
+- [#6153](https://github.com/rollup/rollup/pull/6153): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @Service account user)
+- [#6155](https://github.com/rollup/rollup/pull/6155): Fix tests: Do not swallow warnings for multi-format tests (@lukastaegert, @Service account user)
+- [#6159](https://github.com/rollup/rollup/pull/6159): chore(deps): update dependency eslint-plugin-unicorn to v62 (@renovate[bot])
+- [#6160](https://github.com/rollup/rollup/pull/6160): chore(deps): update github artifact actions (major) (@renovate[bot])
+- [#6161](https://github.com/rollup/rollup/pull/6161): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6164](https://github.com/rollup/rollup/pull/6164): chore(deps): update dependency @rollup/plugin-alias to v6 (@renovate[bot])
+- [#6165](https://github.com/rollup/rollup/pull/6165): chore(deps): update dependency @rollup/plugin-commonjs to v29 (@renovate[bot])
+- [#6166](https://github.com/rollup/rollup/pull/6166): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6167](https://github.com/rollup/rollup/pull/6167): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.52.5
 
 _2025-10-18_
