@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.100"
-swc_atoms = "7.0.0"
-swc_compiler_base = "37.0.0"
+swc_atoms = "9.0.0"
+swc_compiler_base = "39.0.0"
 swc_config = "3.1.2"
-swc_common = { version = "15.0.0", features = ["parking_lot"] }
-swc_ecma_ast = "16.0.0"
-swc_ecma_parser = "25.0.0"
+swc_common = { version = "17.0.0", features = ["parking_lot"] }
+swc_ecma_ast = "18.0.0"
+swc_ecma_parser = "27.0.2"
 parking_lot = "0.12.5"

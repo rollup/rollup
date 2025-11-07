@@ -186,6 +186,10 @@ export interface TestConfigForm extends TestConfigBase {
 	 */
 	options?: RollupOptions;
 	/**
+	 * Set to "false" to disable shuffling of output formats.
+	 */
+	shuffleFormats?: boolean;
+	/**
 	 * Verify that the AST returned by SWC is the same as the one returned by
 	 * Acorn. The default behavior is to verify.
 	 */

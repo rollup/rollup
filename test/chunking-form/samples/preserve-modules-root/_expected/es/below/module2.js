@@ -1,17 +1,17 @@
 import { __require as requireMyBasePkg } from '../custom_modules/@my-scope/my-base-pkg/index.js';
 
-var module;
+var module$1;
 var hasRequiredModule;
 
 function requireModule () {
-	if (hasRequiredModule) return module;
+	if (hasRequiredModule) return module$1;
 	hasRequiredModule = 1;
 	const base2 = requireMyBasePkg();
 
-	module = {
+	module$1 = {
 	  base2,
 	};
-	return module;
+	return module$1;
 }
 
 export { requireModule as __require };

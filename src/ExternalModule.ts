@@ -56,6 +56,7 @@ export default class ExternalModule {
 			isIncluded: null,
 			meta,
 			moduleSideEffects,
+			safeVariableNames: null,
 			syntheticNamedExports: false
 		};
 	}

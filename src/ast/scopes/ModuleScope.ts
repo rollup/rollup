@@ -40,11 +40,10 @@ export default class ModuleScope extends ChildScope {
 	}
 
 	addExportDefaultDeclaration(
-		name: string,
 		exportDefaultDeclaration: ExportDefaultDeclaration,
 		context: AstContext
 	): ExportDefaultVariable {
-		const variable = new ExportDefaultVariable(name, exportDefaultDeclaration, context);
+		const variable = new ExportDefaultVariable(exportDefaultDeclaration, context);
 		this.variables.set('default', variable);
 		return variable;
 	}
