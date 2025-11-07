@@ -129,7 +129,7 @@
     "@jridgewell/sourcemap-codec": "^1.5.5",
     "@mermaid-js/mermaid-cli": "^11.4.0",
     "@napi-rs/cli": "^3.4.1",
-    "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-buble": "^1.0.3",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.1.0",
