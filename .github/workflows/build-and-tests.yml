@@ -530,18 +530,23 @@ jobs:
         with:
           path: artifacts
       - name: Copy wasm files
+        shell: bash
         run: cp -R artifacts/bindings-wasm/wasm .
       - name: Build JavaScript
+        shell: bash
         run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
       - name: Move artifacts
+        shell: bash
         run: npm run ci:artifacts
       - name: Pack into tarball
         id: pack
+        shell: bash
         run: |
           TARBALL_DIR=$(mktemp -d)
           npm pack --pack-destination $TARBALL_DIR
           echo "tarball=$TARBALL_DIR" >> $GITHUB_OUTPUT
       - name: Test install of packed tarball
+        shell: bash
         run: |
           TARBALL_DIR="${{ steps.pack.outputs.tarball }}"
           TMP_DIR=$(mktemp -d)
