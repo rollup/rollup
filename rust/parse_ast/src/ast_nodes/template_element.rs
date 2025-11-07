@@ -9,7 +9,7 @@ impl AstConverter<'_> {
       self,
       span => &template_element.span,
       tail => template_element.tail,
-      cooked => template_element.cooked.as_ref(),
+      cooked => template_element.cooked.as_ref().unwrap().as_atom(),
       raw => &template_element.raw
     );
   }
