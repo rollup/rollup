@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.53.1
+
+_2025-11-07_
+
+### Bug Fixes
+
+- Fix install script (#6172)
+
+### Pull Requests
+
+- [#6172](https://github.com/rollup/rollup/pull/6172): fix: move patch-package from postinstall to prepare script (@mshima)
+
 ## 4.53.0
 
 _2025-11-07_
