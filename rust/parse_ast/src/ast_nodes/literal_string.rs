@@ -8,7 +8,7 @@ impl AstConverter<'_> {
     store_literal_string!(
       self,
       span => &literal.span,
-      value => &literal.value,
+      value => literal.value.as_atom().map_or("", |atom| atom.as_ref()),
       raw => &literal.raw
     );
   }

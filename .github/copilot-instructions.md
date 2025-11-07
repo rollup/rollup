@@ -24,6 +24,7 @@ This is the Rollup project, a module bundler for JavaScript.
   - first run either `npm run update:js` if TypeScript code was updated, or `npm run update:napi` if Rust code was updated.
   - then run `npm run test:only` to only run tests against the built artifact without rebuilding.
   - you can focus specific tests by adding `solo: true´ in their `\_config.js` file.
+  - to compile only the Rust parts, run `npm run build:napi`
 
 ## Copilot-Specific Behaviors
 

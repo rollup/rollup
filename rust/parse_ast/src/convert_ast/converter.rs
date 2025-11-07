@@ -487,7 +487,7 @@ impl<'a> AstConverter<'a> {
 
   pub(crate) fn convert_jsx_attribute_value(&mut self, jsx_attribute_value: &JSXAttrValue) {
     match jsx_attribute_value {
-      JSXAttrValue::Lit(literal) => self.convert_literal(literal),
+      JSXAttrValue::Str(string_literal) => self.store_literal_string(string_literal),
       JSXAttrValue::JSXExprContainer(expression_container) => {
         self.store_jsx_expression_container(expression_container)
       }
