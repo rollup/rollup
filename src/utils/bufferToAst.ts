@@ -855,7 +855,7 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 	function templateElement(position, buffer): TemplateElementNode {
 		const flags = buffer[position + 2];
 		const cookedPosition = buffer[position + 3];
-		const cooked = cookedPosition === 0 ? undefined : buffer.convertString(cookedPosition);
+		const cooked = cookedPosition === 0 ? null : buffer.convertString(cookedPosition);
 		const raw = buffer.convertString(buffer[position + 4]);
 		return {
 			type: 'TemplateElement',
