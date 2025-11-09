@@ -334,10 +334,10 @@ jobs:
       matrix:
         settings:
           - target: x86_64-unknown-openbsd
-            os_version: '7.6'
+            os_version: '7.8'
             arch: x86-64
           - target: aarch64-unknown-openbsd
-            os_version: '7.6'
+            os_version: '7.8'
             arch: arm64
     name: Build ${{ matrix.settings.target }}
     runs-on: ubuntu-latest
