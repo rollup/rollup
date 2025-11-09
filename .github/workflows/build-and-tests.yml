@@ -214,16 +214,6 @@ jobs:
             cross: cross
             build-std: true
 
-          # OpenBSD
-          - host: ubuntu-latest
-            target: x86_64-unknown-openbsd
-            cross: cross
-            build-std: true
-          - host: ubuntu-latest
-            target: aarch64-unknown-openbsd
-            cross: cross
-            build-std: true
-
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
@@ -338,6 +328,49 @@ jobs:
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
+  build-openbsd:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: x86_64-unknown-openbsd
+            os_version: '7.6'
+            arch: x86-64
+          - target: aarch64-unknown-openbsd
+            os_version: '7.6'
+            arch: arm64
+    name: Build ${{ matrix.settings.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Build on OpenBSD
+        uses: cross-platform-actions/action@v0.25.0
+        with:
+          operating_system: openbsd
+          version: ${{ matrix.settings.os_version }}
+          architecture: ${{ matrix.settings.arch }}
+          shell: bash
+          run: |
+            set -e
+            sudo pkg_add node curl
+            node -v
+            npm -v
+            rustc --version || true
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly-2025-07-25
+            source $HOME/.cargo/env
+            rustup component add rust-src
+            rustup target add ${{ matrix.settings.target }}
+            npm ci
+            npm run build:napi -- --release --target ${{ matrix.settings.target }} -- -Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind
+      - name: Upload napi artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: rollup.*.node
+          if-no-files-found: error
+
   # smoke test for some architectures that do not receive the full test suite
   smoke-test:
     permissions:
@@ -345,6 +378,7 @@ jobs:
     name: Smoke Test ${{ matrix.settings.target }}
     needs:
       - build
+      - build-openbsd
     strategy:
       fail-fast: false
       matrix:
@@ -427,6 +461,7 @@ jobs:
     name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
+      - build-openbsd
     strategy:
       fail-fast: false
       matrix:
@@ -509,6 +544,7 @@ jobs:
       - lint
       - test
       - smoke-test
+      - build-openbsd
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
