@@ -31,6 +31,10 @@ const bindingsByPlatformAndArch = {
 		arm64: { base: 'freebsd-arm64' },
 		x64: { base: 'freebsd-x64' }
 	},
+	openbsd: {
+		arm64: { base: 'openbsd-arm64' },
+		x64: { base: 'openbsd-x64' }
+	},
 	linux: {
 		arm: { base: 'linux-arm-gnueabihf', musl: 'linux-arm-musleabihf' },
 		arm64: { base: 'linux-arm64-gnu', musl: 'linux-arm64-musl' },
