@@ -5,7 +5,7 @@ import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node
 export default class TemplateElement extends NodeBase {
 	declare type: NodeType.tTemplateElement;
 	declare value: {
-		cooked: string | undefined;
+		cooked: string | null;
 		raw: string;
 	};
 

@@ -87,7 +87,8 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 		case 'InvalidAnnotations': {
 			return `const ${fieldName} = convertAnnotations(${dataStart}, buffer)${typeCastString};\n`;
 		}
-		case 'OptionalString': {
+		case 'OptionalString':
+		case 'NullableString': {
 			return `const ${fieldName}Position = ${dataStart};\n`;
 		}
 		default: {
@@ -149,8 +150,9 @@ function getFieldPropertyBase([fieldName, fieldType], node, originalNode, offset
 		case 'String': {
 			return `buffer.convertString(${dataStart})${typeCastString}`;
 		}
-		case 'OptionalString': {
-			return `${fieldName}Position === 0 ? undefined : buffer.convertString(${fieldName}Position)${typeCastString}`;
+		case 'OptionalString':
+		case 'NullableString': {
+			return `${fieldName}Position === 0 ? ${fieldType === 'OptionalString' ? 'undefined' : 'null'} : buffer.convertString(${fieldName}Position)${typeCastString}`;
 		}
 		case 'FixedString': {
 			return `FIXED_STRINGS[${dataStart}]${typeCastString}`;
