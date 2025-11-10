@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.53.2
+
+_2025-11-10_
+
+### Bug Fixes
+
+- Do not throw when using invalid escape sequences in template literals (#6177)
+
+### Pull Requests
+
+- [#6177](https://github.com/rollup/rollup/pull/6177): handle TemplateElement with null cooked value (@TrickyPi)
+
 ## 4.53.1
 
 _2025-11-07_
