@@ -14,7 +14,7 @@ runs:
         restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
     - name: Install Node dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare --if-present
+      run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare:patch
       shell: bash
     - name: Save Node dependencies cache
       if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
