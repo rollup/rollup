@@ -466,17 +466,30 @@ jobs:
           check-latest: true
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
-      - name: Download napi artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          name: bindings-${{ matrix.settings.target }}
-          path: .
-      - name: Download wasm artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: bindings-wasm
-      - name: Build and test Rollup
-        run: npm run ${{ matrix.command || 'ci:test:only' }}
+          path: artifacts
+      - name: Copy WASM files
+        shell: bash
+        run: cp -R artifacts/bindings-wasm/wasm .
+      - name: Build JavaScript
+        shell: bash
+        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
+      - name: Test install
+        shell: bash
+        run: |
+          npm run ci:artifacts
+          TARBALL_DIR=$(mktemp -d)
+          npm pack --pack-destination $TARBALL_DIR
+          INSTALL_DIR=$(mktemp -d)
+          cd "$INSTALL_DIR"
+          npm init -y
+          npm install $TARBALL_DIR/*
+          node -e "require('rollup');"
+      - name: Test Rollup
+        shell: bash
+        run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
         env:
           CI: true
       - name: Upload coverage
@@ -521,7 +534,7 @@ jobs:
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           path: artifacts
-      - name: Copy wasm files
+      - name: Copy WASM files
         run: cp -R artifacts/bindings-wasm/wasm .
       - name: Build JavaScript
         run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
