@@ -424,14 +424,19 @@ jobs:
         settings:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            package: linux-x64-gnu
           - host: windows-latest
             target: x86_64-pc-windows-msvc
+            package: win32-x64-msvc
           - host: macos-latest
             target: aarch64-apple-darwin
+            package: darwin-arm64
           - host: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
+            package: linux-arm64-gnu
           - host: windows-11-arm
             target: aarch64-pc-windows-msvc
+            package: win32-arm64-msvc
         node:
           - '18.20.0'
           - 24
@@ -439,6 +444,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
+              package: linux-x64-gnu
             node: 24
             command: 'ci:coverage'
             additionalName: ' with Coverage'
@@ -446,68 +452,10 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
+              package: linux-x64-gnu
             node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
-        exclude:
-          # Windows ARM builds were not provided for a while
-          - settings:
-              target: aarch64-pc-windows-msvc
-            node: '18.20.0'
-    runs-on: ${{ matrix.settings.host }}
-    timeout-minutes: 15
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Setup Node
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-        with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - name: Install and Cache Node Dependencies
-        uses: ./.github/actions/install-and-cache-node-deps
-      - name: Download napi artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: .
-      - name: Download wasm artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: bindings-wasm
-      - name: Build and test Rollup
-        run: npm run ${{ matrix.command || 'ci:test:only' }}
-        env:
-          CI: true
-      - name: Upload coverage
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
-        if: matrix.coverage
-        with:
-          fail_ci_if_error: true
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-  test-install:
-    name: TestInstall${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-          - host: macos-latest
-            target: aarch64-apple-darwin
-          - host: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
-          - host: windows-11-arm
-            target: aarch64-pc-windows-msvc
-        node:
-          - '18.20.0'
-          - 24
         exclude:
           # Windows ARM builds were not provided for a while
           - settings:
@@ -529,31 +477,38 @@ jobs:
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           path: artifacts
-      - name: Copy wasm files
+      - name: Copy WASM files
         shell: bash
         run: cp -R artifacts/bindings-wasm/wasm .
       - name: Build JavaScript
         shell: bash
         run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
-      - name: Move artifacts
-        shell: bash
-        run: npm run ci:artifacts
-      - name: Pack into tarball
-        id: pack
+      - name: Test install
         shell: bash
         run: |
+          npm run ci:artifacts
           TARBALL_DIR=$(mktemp -d)
-          npm pack --pack-destination $TARBALL_DIR
-          echo "tarball=$TARBALL_DIR" >> $GITHUB_OUTPUT
-      - name: Test install of packed tarball
-        shell: bash
-        run: |
-          TARBALL_DIR="${{ steps.pack.outputs.tarball }}"
-          TMP_DIR=$(mktemp -d)
-          cd "$TMP_DIR"
+          npm pack --ignore-scripts --pack-destination $TARBALL_DIR
+          echo "Testing installation of package ${{ matrix.settings.package }}"
+          cd npm/${{ matrix.settings.package }}
+          npm pack --ignore-scripts --pack-destination $TARBALL_DIR
+          INSTALL_DIR=$(mktemp -d)
+          cd "$INSTALL_DIR"
           npm init -y
           npm install $TARBALL_DIR/*
-          node -e "require('rollup');"
+          node -e "console.log(require('rollup'))"
+      - name: Test Rollup
+        shell: bash
+        run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
+        env:
+          CI: true
+      - name: Upload coverage
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        if: matrix.coverage
+        with:
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   publish:
     permissions:
@@ -567,7 +522,6 @@ jobs:
     needs:
       - lint
       - test
-      - test-install
       - smoke-test
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
@@ -590,7 +544,7 @@ jobs:
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           path: artifacts
-      - name: Copy wasm files
+      - name: Copy WASM files
         run: cp -R artifacts/bindings-wasm/wasm .
       - name: Build JavaScript
         run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
