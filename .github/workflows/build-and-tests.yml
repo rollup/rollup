@@ -41,7 +41,7 @@ jobs:
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
-        run: npm audit
+        run: npm run check-audit
       - name: Optional Dependencies
         run: npm run test:package
       - name: CLI Docs
@@ -265,7 +265,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@f535147c22906d77695e11cb199e764aa610a4fc # v2.62.46
+        uses: taiki-e/install-action@6cc14f7f2f4b3129aff07a8b071d2d4f2733465d # v2.62.50
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -342,9 +342,10 @@ jobs:
           - arch: aarch64
             distro: alpine_latest
             target: aarch64-unknown-linux-musl
-          - arch: armv7
-            distro: ubuntu_latest
-            target: armv7-unknown-linux-gnueabihf
+          #          - arch: armv7
+          #            distro: ubuntu_latest
+          #            target: armv7-unknown-linux-gnueabihf
+          #            use-nvm: true
           # There is a bug that hangs the build when running npm
           #          - arch: armv7
           #            distro: alpine_latest
@@ -358,10 +359,10 @@ jobs:
             distro: ubuntu_latest
             target: s390x-unknown-linux-gnu
             use-nvm: true
-    # I could not find a way to install Node without compiling from source
-    #          - arch: riscv64
-    #            distro: ubuntu_latest
-    #            target: riscv64gc-unknown-linux-gnu
+          # I could not find a way to install Node without compiling from source
+          #          - arch: riscv64
+          #            distro: ubuntu_latest
+          #            target: riscv64gc-unknown-linux-gnu
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:

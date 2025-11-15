@@ -10,8 +10,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "3.4.0", default-features = false, features = ["napi4"] }
-napi-derive = "3.3.0"
+napi = { version = "3.5.2", default-features = false, features = ["napi4"] }
+napi-derive = "3.3.3"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
 
@@ -43,4 +43,4 @@ mimalloc-safe = { version = "0.1.55", features = ["local_dynamic_tls"] }
 mimalloc-safe = { version = "0.1.55", features = ["no_opt_arch"] }
 
 [build-dependencies]
-napi-build = "2.2.4"
+napi-build = "2.3.1"
