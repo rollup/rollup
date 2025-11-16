@@ -343,6 +343,10 @@ export const useOptions = defineStore('options2', () => {
 		available: optionOutputSourcemap.value,
 		name: 'output.sourcemapBaseUrl'
 	});
+	const optionOutputSourcemapUrlPathPrefix = getString({
+		available: optionOutputSourcemap.value,
+		name: 'output.sourcemapUrlPathPrefix'
+	});
 	const optionOutputSourcemapExcludeSources = getBoolean({
 		available: optionOutputSourcemap.value,
 		name: 'output.sourcemapExcludeSources'
@@ -508,6 +512,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputSourcemapFileNames,
 		optionOutputSanitizeFileName,
 		optionOutputSourcemapBaseUrl,
+		optionOutputSourcemapUrlPathPrefix,
 		optionOutputSourcemapExcludeSources,
 		optionOutputStrict,
 		optionOutputValidate,

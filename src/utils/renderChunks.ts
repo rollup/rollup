@@ -389,16 +389,25 @@ function emitSourceMapAndGetComment(
 	fileName: string,
 	map: SourceMap,
 	pluginDriver: PluginDriver,
-	{ sourcemap, sourcemapBaseUrl }: NormalizedOutputOptions
+	{ sourcemap, sourcemapBaseUrl, sourcemapUrlPathPrefix }: NormalizedOutputOptions
 ) {
 	let url: string;
 	if (sourcemap === 'inline') {
 		url = map.toUrl();
 	} else {
 		const sourcemapFileName = basename(fileName);
-		url = sourcemapBaseUrl
-			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
+		const urlPath = sourcemapUrlPathPrefix
+			? sourcemapUrlPathPrefix + sourcemapFileName
 			: sourcemapFileName;
+
+		if (sourcemapBaseUrl) {
+			const baseUrl = new URL(sourcemapBaseUrl);
+			const combinedPath =
+				baseUrl.pathname + (urlPath.startsWith('/') ? urlPath.slice(1) : urlPath);
+			url = new URL(combinedPath, baseUrl.origin).toString();
+		} else {
+			url = urlPath;
+		}
 		pluginDriver.emitFile({
 			fileName,
 			originalFileName: null,

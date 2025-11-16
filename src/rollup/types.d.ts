@@ -832,6 +832,7 @@ export interface OutputOptions {
 	sanitizeFileName?: boolean | ((fileName: string) => string) | undefined;
 	sourcemap?: boolean | 'inline' | 'hidden' | undefined;
 	sourcemapBaseUrl?: string | undefined;
+	sourcemapUrlPathPrefix?: string | undefined;
 	sourcemapExcludeSources?: boolean | undefined;
 	sourcemapFile?: string | undefined;
 	sourcemapFileNames?: string | ((chunkInfo: PreRenderedChunk) => string) | undefined;
@@ -888,6 +889,7 @@ export interface NormalizedOutputOptions {
 	sanitizeFileName: (fileName: string) => string;
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapBaseUrl: string | undefined;
+	sourcemapUrlPathPrefix: string | undefined;
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
 	sourcemapFileNames: string | ((chunkInfo: PreRenderedChunk) => string) | undefined;

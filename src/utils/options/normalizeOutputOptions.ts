@@ -9,7 +9,7 @@ import type {
 import { error, logInvalidExportOptionValue, logInvalidOption, warnDeprecation } from '../logs';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
-import { addTrailingSlashIfMissed, isValidUrl } from '../url';
+import { addTrailingSlashIfMissed, isValidUrl, isValidUrlPath } from '../url';
 import {
 	URL_OUTPUT_AMD_BASEPATH,
 	URL_OUTPUT_AMD_ID,
@@ -21,6 +21,7 @@ import {
 	URL_OUTPUT_INTEROP,
 	URL_OUTPUT_MANUALCHUNKS,
 	URL_OUTPUT_SOURCEMAPBASEURL,
+	URL_OUTPUT_SOURCEMAPURLPATHPREFIX,
 	URL_PRESERVEENTRYSIGNATURES
 } from '../urls';
 import {
@@ -108,6 +109,7 @@ export async function normalizeOutputOptions(
 		sourcemapPathTransform: config.sourcemapPathTransform as
 			| SourcemapPathTransformOption
 			| undefined,
+		sourcemapUrlPathPrefix: getSourcemapUrlPathPrefix(config),
 		strict: config.strict ?? true,
 		systemNullSetters: config.systemNullSetters ?? true,
 		validate: config.validate || false,
@@ -479,6 +481,24 @@ const getSourcemapBaseUrl = (
 				'output.sourcemapBaseUrl',
 				URL_OUTPUT_SOURCEMAPBASEURL,
 				`must be a valid URL, received ${JSON.stringify(sourcemapBaseUrl)}`
+			)
+		);
+	}
+};
+
+const getSourcemapUrlPathPrefix = (
+	config: OutputOptions
+): NormalizedOutputOptions['sourcemapUrlPathPrefix'] => {
+	const { sourcemapUrlPathPrefix } = config;
+	if (sourcemapUrlPathPrefix) {
+		if (isValidUrlPath(sourcemapUrlPathPrefix)) {
+			return addTrailingSlashIfMissed(sourcemapUrlPathPrefix);
+		}
+		return error(
+			logInvalidOption(
+				'output.sourcemapUrlPathPrefix',
+				URL_OUTPUT_SOURCEMAPURLPATHPREFIX,
+				`must be a valid URL path prefix, received ${JSON.stringify(sourcemapUrlPathPrefix)}`
 			)
 		);
 	}
