@@ -473,20 +473,11 @@ jobs:
           check-latest: true
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
-      - name: Download all artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          path: artifacts
-      - name: Copy WASM files
-        shell: bash
-        run: cp -R artifacts/bindings-wasm/wasm .
-      - name: Build JavaScript
-        shell: bash
-        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
+      - name: Prepare Build Artifacts
+        uses: ./.github/actions/prepare-build-artifacts
       - name: Test install
         shell: bash
         run: |
-          npm run ci:artifacts
           TARBALL_DIR=$(mktemp -d)
           npm pack --ignore-scripts --pack-destination $TARBALL_DIR
           echo "Testing installation of package ${{ matrix.settings.package }}"
@@ -540,16 +531,8 @@ jobs:
         run: npm install -g npm@latest
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
-      - name: Download all artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          path: artifacts
-      - name: Copy WASM files
-        run: cp -R artifacts/bindings-wasm/wasm .
-      - name: Build JavaScript
-        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
-      - name: Move artifacts
-        run: npm run ci:artifacts
+      - name: Prepare Build Artifacts
+        uses: ./.github/actions/prepare-build-artifacts
       - name: Publish
         run: |
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
