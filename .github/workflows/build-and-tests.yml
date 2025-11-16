@@ -424,14 +424,19 @@ jobs:
         settings:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            package: linux-x64-gnu
           - host: windows-latest
             target: x86_64-pc-windows-msvc
+            package: win32-x64-msvc
           - host: macos-latest
             target: aarch64-apple-darwin
+            package: darwin-arm64
           - host: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
+            package: linux-arm64-gnu
           - host: windows-11-arm
             target: aarch64-pc-windows-msvc
+            package: win32-arm64-msvc
         node:
           - '18.20.0'
           - 24
@@ -439,6 +444,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
+              package: linux-x64-gnu
             node: 24
             command: 'ci:coverage'
             additionalName: ' with Coverage'
@@ -446,6 +452,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
+              package: linux-x64-gnu
             node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
@@ -466,17 +473,24 @@ jobs:
           check-latest: true
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
-      - name: Download napi artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: .
-      - name: Download wasm artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: bindings-wasm
-      - name: Build and test Rollup
-        run: npm run ${{ matrix.command || 'ci:test:only' }}
+      - name: Prepare Build Artifacts
+        uses: ./.github/actions/prepare-build-artifacts
+      - name: Test install
+        shell: bash
+        run: |
+          TARBALL_DIR=$(mktemp -d)
+          npm pack --ignore-scripts --pack-destination $TARBALL_DIR
+          echo "Testing installation of package ${{ matrix.settings.package }}"
+          cd npm/${{ matrix.settings.package }}
+          npm pack --ignore-scripts --pack-destination $TARBALL_DIR
+          INSTALL_DIR=$(mktemp -d)
+          cd "$INSTALL_DIR"
+          npm init -y
+          npm install $TARBALL_DIR/*
+          node -e "console.log(require('rollup'))"
+      - name: Test Rollup
+        shell: bash
+        run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
         env:
           CI: true
       - name: Upload coverage
@@ -517,16 +531,8 @@ jobs:
         run: npm install -g npm@latest
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
-      - name: Download all artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          path: artifacts
-      - name: Copy wasm files
-        run: cp -R artifacts/bindings-wasm/wasm .
-      - name: Build JavaScript
-        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
-      - name: Move artifacts
-        run: npm run ci:artifacts
+      - name: Prepare Build Artifacts
+        uses: ./.github/actions/prepare-build-artifacts
       - name: Publish
         run: |
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
