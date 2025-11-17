@@ -167,7 +167,7 @@ function getVariableForExportNameRecursive(
 	importerForSideEffects: Module | undefined,
 	isExportAllSearch: boolean | undefined,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>(),
-	importChain: string[] = []
+	importChain: string[]
 ): [variable: Variable | null, options?: VariableOptions] {
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {

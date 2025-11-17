@@ -1,6 +1,6 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
-import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils/blank';
+import { EMPTY_ARRAY } from './utils/blank';
 import { getOrCreate } from './utils/getOrCreate';
 import { cacheObjectGetters } from './utils/getter';
 import { makeLegal } from './utils/identifierHelpers';
@@ -69,7 +69,7 @@ export default class ExternalModule {
 
 	getVariableForExportName(
 		name: string,
-		{ importChain = [] }: { importChain?: string[] } = EMPTY_OBJECT
+		{ importChain }: { importChain: string[] }
 	): [variable: ExternalVariable] {
 		const declaration = this.declarations.get(name);
 		for (const module of importChain) {
