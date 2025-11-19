@@ -20,6 +20,7 @@ import {
 	type InclusionContext
 } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ASSIGNED } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
@@ -69,7 +70,10 @@ export default class AssignmentExpression extends NodeBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.right.hasEffectsOnInteractionAtPath(path, interaction, context);
+		return (
+			(interaction.type === INTERACTION_ASSIGNED && this.left.included) ||
+			this.right.hasEffectsOnInteractionAtPath(path, interaction, context)
+		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
