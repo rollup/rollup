@@ -1,6 +1,7 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
+import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { cacheObjectGetters } from './utils/getter';
 import { makeLegal } from './utils/identifierHelpers';
 import { LOGLEVEL_WARN } from './utils/logging';
@@ -17,6 +18,7 @@ export default class ExternalModule {
 	used = false;
 
 	private readonly declarations = new Map<string, ExternalVariable>();
+	private readonly importersByExportedName = new Map<string, Set<string>>();
 	private mostCommonSuggestion = 0;
 	private readonly nameSuggestions = new Map<string, number>();
 
@@ -65,8 +67,14 @@ export default class ExternalModule {
 		cacheObjectGetters(this.info, ['dynamicImporters', 'importers']);
 	}
 
-	getVariableForExportName(name: string): [variable: ExternalVariable] {
+	getVariableForExportName(
+		name: string,
+		{ importChain }: { importChain: string[] }
+	): [variable: ExternalVariable] {
 		const declaration = this.declarations.get(name);
+		for (const module of importChain) {
+			getOrCreate(this.importersByExportedName, name, getNewSet).add(module);
+		}
 		if (declaration) return [declaration];
 		const externalVariable = new ExternalVariable(this, name);
 
@@ -97,7 +105,9 @@ export default class ExternalModule {
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			for (const importer of this.declarations.get(name)!.module.importers) {
+			const importersOfName = this.importersByExportedName.get(name);
+			for (const importer of this.importers) {
+				if (!importersOfName?.has(importer)) continue;
 				importersSet.add(importer);
 			}
 		}
