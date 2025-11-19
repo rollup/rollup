@@ -1,7 +1,7 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
-import { getOrCreate } from './utils/getOrCreate';
+import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { cacheObjectGetters } from './utils/getter';
 import { makeLegal } from './utils/identifierHelpers';
 import { LOGLEVEL_WARN } from './utils/logging';
@@ -73,7 +73,7 @@ export default class ExternalModule {
 	): [variable: ExternalVariable] {
 		const declaration = this.declarations.get(name);
 		for (const module of importChain) {
-			getOrCreate(this.importersByExportedName, name, () => new Set()).add(module);
+			getOrCreate(this.importersByExportedName, name, getNewSet).add(module);
 		}
 		if (declaration) return [declaration];
 		const externalVariable = new ExternalVariable(this, name);
