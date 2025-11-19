@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.53.3
+
+_2025-11-19_
+
+### Bug Fixes
+
+- Fix an error where too many modules where flagged for having an unused external import (#6182)
+- Fix an error where an assignment was wrongly tree-shaken when mutating it (#6183)
+
+### Pull Requests
+
+- [#6171](https://github.com/rollup/rollup/pull/6171): Add test-install CI job to test packaging, installation and importing of rollup package (@antoninkriz, @lukastaegert)
+- [#6174](https://github.com/rollup/rollup/pull/6174): Re-enable TypeScript test (@lukastaegert)
+- [#6180](https://github.com/rollup/rollup/pull/6180): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6182](https://github.com/rollup/rollup/pull/6182): Tracing the importers chain for exported variables in external module (@TrickyPi, @lukastaegert)
+- [#6183](https://github.com/rollup/rollup/pull/6183): Check if left side is included when checking if assigning to an assignment has side effects (@lukastaegert)
+
 ## 4.53.2
 
 _2025-11-10_
