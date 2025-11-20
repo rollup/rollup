@@ -367,16 +367,22 @@ jobs:
             # Install npm dependencies
             npm ci
 
-            # Build natively on OpenBSD
+            # Build natively on OpenBSD (direct cargo build, not cross)
             cd rust/bindings_napi
             cargo +nightly-2025-07-25 build --release -Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind
+            cd ../..
 
-            # Copy binary to root
-            cp ../../target/release/librollup.so ../../rollup.${{ matrix.settings.target }}.node || \
-            cp ../../target/release/librollup.dylib ../../rollup.${{ matrix.settings.target }}.node || \
-            cp ../../target/release/librollup.a ../../rollup.${{ matrix.settings.target }}.node || \
-            echo "Warning: Could not find built library"
-            ls -la ../../target/release/
+            # Find and rename the built library
+            LIB_FILE=$(find target/release -name "libbindings_napi.*" -type f | grep -E '\.(so|dylib)$' | head -1)
+            if [ -n "$LIB_FILE" ]; then
+              cp "$LIB_FILE" rollup.${{ matrix.settings.target }}.node
+              echo "Built: rollup.${{ matrix.settings.target }}.node"
+              ls -lh rollup.${{ matrix.settings.target }}.node
+            else
+              echo "Error: Could not find built library"
+              ls -la target/release/
+              exit 1
+            fi
       - name: Upload napi artifact
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
