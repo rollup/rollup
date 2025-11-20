@@ -79,7 +79,8 @@ const astMacros = astNodeNamesWithFieldOrder
     }`;
 					break;
 				}
-				case 'OptionalString': {
+				case 'OptionalString':
+				case 'NullableString': {
 					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
 					fieldConverters += `
     if let Some(value) = $${fieldName}_value.as_ref() {

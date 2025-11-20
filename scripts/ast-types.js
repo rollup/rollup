@@ -26,7 +26,7 @@
  * For JSX, see also https://github.com/facebook/jsx/blob/main/AST.md
  */
 
-/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"Float"} FieldType */
+/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"NullableString"|"Float"} FieldType */
 
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
@@ -683,7 +683,7 @@ export const AST_NODES = {
 		},
 		baseForAdditionalFields: ['cooked', 'raw'],
 		fields: [
-			['cooked', 'OptionalString'],
+			['cooked', 'NullableString'],
 			['raw', 'String']
 		],
 		flags: ['tail'],

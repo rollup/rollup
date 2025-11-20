@@ -1,0 +1,19 @@
+name: Prepare Build Artifacts
+description: Downloads all artifacts, copies WASM files, builds JavaScript, and moves artifacts
+runs:
+  using: composite
+  steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        path: artifacts
+    - name: Copy WASM files
+      shell: bash
+      run: cp -R artifacts/bindings-wasm/wasm .
+    - name: Build JavaScript
+      shell: bash
+      run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
+    - name: Move artifacts
+      shell: bash
+      run: npm run ci:artifacts
+

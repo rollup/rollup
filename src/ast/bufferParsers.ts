@@ -835,7 +835,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const flags = buffer[position];
 		node.tail = (flags & 1) === 1;
 		const cookedPosition = buffer[position + 1];
-		const cooked = cookedPosition === 0 ? undefined : buffer.convertString(cookedPosition);
+		const cooked = cookedPosition === 0 ? null : buffer.convertString(cookedPosition);
 		const raw = buffer.convertString(buffer[position + 2]);
 		node.value = { cooked, raw };
 	},
