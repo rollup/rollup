@@ -31,10 +31,6 @@ const bindingsByPlatformAndArch = {
 		arm64: { base: 'freebsd-arm64' },
 		x64: { base: 'freebsd-x64' }
 	},
-	openbsd: {
-		arm64: { base: 'openbsd-arm64' },
-		x64: { base: 'openbsd-x64' }
-	},
 	linux: {
 		arm: { base: 'linux-arm-gnueabihf', musl: 'linux-arm-musleabihf' },
 		arm64: { base: 'linux-arm64-gnu', musl: 'linux-arm64-musl' },
@@ -43,6 +39,10 @@ const bindingsByPlatformAndArch = {
 		riscv64: { base: 'linux-riscv64-gnu', musl: 'linux-riscv64-musl' },
 		s390x: { base: 'linux-s390x-gnu', musl: null },
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
+	},
+	openbsd: {
+		arm64: { base: 'openbsd-arm64' },
+		x64: { base: 'openbsd-x64' }
 	},
 	openharmony: {
 		arm64: { base: 'openharmony-arm64' }

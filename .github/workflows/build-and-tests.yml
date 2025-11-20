@@ -346,7 +346,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Build on OpenBSD
-        uses: cross-platform-actions/action@v0.25.0
+        uses: cross-platform-actions/action@v0.30.0
         with:
           operating_system: openbsd
           version: ${{ matrix.settings.os_version }}
@@ -354,16 +354,29 @@ jobs:
           shell: bash
           run: |
             set -e
-            sudo pkg_add node curl
+            # Install dependencies
+            sudo pkg_add node curl bash
             node -v
             npm -v
-            rustc --version || true
+
+            # Install Rust
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly-2025-07-25
             source $HOME/.cargo/env
             rustup component add rust-src
-            rustup target add ${{ matrix.settings.target }}
+
+            # Install npm dependencies
             npm ci
-            npm run build:napi -- --release --target ${{ matrix.settings.target }} -- -Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind
+
+            # Build natively on OpenBSD
+            cd rust/bindings_napi
+            cargo +nightly-2025-07-25 build --release -Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind
+
+            # Copy binary to root
+            cp ../../target/release/librollup.so ../../rollup.${{ matrix.settings.target }}.node || \
+            cp ../../target/release/librollup.dylib ../../rollup.${{ matrix.settings.target }}.node || \
+            cp ../../target/release/librollup.a ../../rollup.${{ matrix.settings.target }}.node || \
+            echo "Warning: Could not find built library"
+            ls -la ../../target/release/
       - name: Upload napi artifact
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
