@@ -126,7 +126,7 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.8",
     "@eslint/js": "^9.39.1",
-    "@inquirer/prompts": "^7.10.1",
+    "@inquirer/prompts": "^8.0.1",
     "@jridgewell/sourcemap-codec": "^1.5.5",
     "@mermaid-js/mermaid-cli": "^11.12.0",
     "@napi-rs/cli": "^3.4.1",
