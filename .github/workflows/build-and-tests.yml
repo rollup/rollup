@@ -355,22 +355,26 @@ jobs:
           run: |
             set -e
             # Install dependencies
-            sudo pkg_add node curl bash
+            sudo pkg_add node curl bash gcc gmake
             node -v
             npm -v
 
-            # Install Rust
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly-2025-07-25
-            source $HOME/.cargo/env
-            rustup component add rust-src
+            # Install Rust via OpenBSD packages
+            # OpenBSD doesn't support rustup, but pkg provides Rust
+            sudo pkg_add rust
+            rustc --version
+            cargo --version
 
             # Install npm dependencies
             npm ci
 
-            # Build natively on OpenBSD (direct cargo build, not cross)
+            # Build natively on OpenBSD
+            # Temporarily override rust-toolchain.toml since OpenBSD doesn't support rustup
+            mv rust-toolchain.toml rust-toolchain.toml.bak || true
             cd rust/bindings_napi
-            cargo +nightly-2025-07-25 build --release -Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind
+            cargo build --release
             cd ../..
+            mv rust-toolchain.toml.bak rust-toolchain.toml || true
 
             # Find and rename the built library
             LIB_FILE=$(find target/release -name "libbindings_napi.*" -type f | grep -E '\.(so|dylib)$' | head -1)
