@@ -1446,7 +1446,7 @@ When using the object form, each property represents a chunk that contains the l
 
 ```javascript
 manualChunks: {
-	lodash: ['lodash'];
+	lodash: ['lodash'],
 }
 ```
 
