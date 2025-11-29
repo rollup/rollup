@@ -562,7 +562,8 @@ export type PluginHooks = {
 };
 
 export interface OutputPlugin
-	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
+	extends
+		Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
 		Partial<Record<AddonHooks, ObjectHook<AddonHook>>> {
 	cacheKey?: string | undefined;
 	name: string;
@@ -618,8 +619,9 @@ export interface NormalizedTreeshakingOptions {
 	unknownGlobalSideEffects: boolean;
 }
 
-export interface TreeshakingOptions
-	extends Partial<Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>> {
+export interface TreeshakingOptions extends Partial<
+	Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>
+> {
 	moduleSideEffects?: ModuleSideEffectsOption | undefined;
 	preset?: TreeshakingPreset | undefined;
 }

@@ -136,7 +136,7 @@ function hasValidType(emittedFile: unknown): emittedFile is {
 } {
 	return Boolean(
 		emittedFile &&
-			emittedFileTypes.has((emittedFile as { [key: string]: unknown; type: EmittedFileType }).type)
+		emittedFileTypes.has((emittedFile as { [key: string]: unknown; type: EmittedFileType }).type)
 	);
 }
 
