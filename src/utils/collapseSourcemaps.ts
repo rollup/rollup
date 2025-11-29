@@ -230,13 +230,17 @@ export function collapseSourcemaps(
 		file = basename(file);
 	}
 
-	sourcesContent = (excludeContent ? null : sourcesContent) as string[];
-
 	for (const module of modules) {
 		resetSourcemapCache(module.originalSourcemap, module.sourcemapChain);
 	}
 
-	return new SourceMap({ file, mappings, names, sources, sourcesContent });
+	return new SourceMap({
+		file,
+		mappings,
+		names,
+		sources,
+		sourcesContent: excludeContent ? undefined : sourcesContent
+	});
 }
 
 export function collapseSourcemap(
