@@ -147,18 +147,14 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 
 	try {
 		actualMap = JSON.parse(readFileSync(outputOptions.file + '.map', 'utf8'));
-		actualMap.sourcesContent = actualMap.sourcesContent
-			? actualMap.sourcesContent.map(normaliseOutput)
-			: null;
+		actualMap.sourcesContent &&= actualMap.sourcesContent.map(normaliseOutput);
 	} catch (error) {
 		assert.strictEqual(error.code, 'ENOENT');
 	}
 
 	try {
 		expectedMap = JSON.parse(readFileSync(expectedFile + '.map', 'utf8'));
-		expectedMap.sourcesContent = actualMap.sourcesContent
-			? expectedMap.sourcesContent.map(normaliseOutput)
-			: null;
+		expectedMap.sourcesContent &&= expectedMap.sourcesContent.map(normaliseOutput);
 	} catch (error) {
 		assert.equal(error.code, 'ENOENT');
 	}
