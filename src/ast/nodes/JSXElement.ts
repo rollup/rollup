@@ -150,15 +150,15 @@ export default class JSXElement extends JSXElementBase {
 			// This will appear to the left of the moved code...
 			code.appendLeft(childrenEnd, ', ');
 			if (value) {
-				code.move(value.start, value.end, childrenEnd);
+				code.appendLeft(childrenEnd, code.slice(value.start, value.end));
+				code.remove(value.start, value.end);
 			} else {
 				code.appendLeft(childrenEnd, 'true');
 			}
 		}
 
 		if (selfClosing) {
-			// Moving the key attribute will also move the parenthesis to the right position
-			code.appendLeft(keyAttribute?.value?.end || end, ')');
+			code.appendLeft(end, ')');
 		} else {
 			closingElement!.render(code, options);
 		}
