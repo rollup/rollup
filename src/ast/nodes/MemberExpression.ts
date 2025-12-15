@@ -27,10 +27,10 @@ import {
 	type ObjectPath,
 	type ObjectPathKey,
 	SHARED_RECURSION_TRACKER,
-	SymbolToStringTag,
 	UNKNOWN_PATH,
 	UnknownKey,
-	UnknownNonAccessorKey
+	UnknownNonAccessorKey,
+	WELL_KNOWN_SYMBOLS
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
@@ -559,11 +559,11 @@ export default class MemberExpression
 			this.dynamicPropertyKey = this.propertyKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
 			return (this.dynamicPropertyKey =
-				value === SymbolToStringTag
-					? value
-					: typeof value === 'symbol'
-						? UnknownKey
-						: String(value));
+				typeof value === 'symbol'
+					? WELL_KNOWN_SYMBOLS.has(value)
+						? value
+						: UnknownKey
+					: String(value));
 		}
 		return this.dynamicPropertyKey;
 	}

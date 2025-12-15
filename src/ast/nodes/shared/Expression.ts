@@ -2,7 +2,7 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
-import type { EntityPathTracker, ObjectPath, SymbolToStringTag } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath, WellKnownSymbol } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
@@ -17,7 +17,7 @@ export type LiteralValueOrUnknown =
 	| typeof UnknownValue
 	| typeof UnknownTruthyValue
 	| typeof UnknownFalsyValue
-	| typeof SymbolToStringTag;
+	| WellKnownSymbol;
 
 export interface InclusionOptions {
 	/**

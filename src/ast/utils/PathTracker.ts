@@ -8,13 +8,25 @@ export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
 export const SymbolToStringTag = Symbol('Symbol.toStringTag');
+export const SymbolDispose = Symbol('Symbol.asyncDispose');
+export const SymbolAsyncDispose = Symbol('Symbol.dispose');
+
+const WELL_KNOWN_SYMBOLS_LIST = [SymbolToStringTag, SymbolDispose, SymbolAsyncDispose] as const;
+export type WellKnownSymbol = (typeof WELL_KNOWN_SYMBOLS_LIST)[number];
+
+interface WellKnownSymbolSet extends Set<symbol> {
+	has(symbol: symbol): symbol is WellKnownSymbol;
+}
+export const WELL_KNOWN_SYMBOLS = new Set(WELL_KNOWN_SYMBOLS_LIST) as WellKnownSymbolSet;
 
 export type ObjectPathKey =
 	| string
 	| typeof UnknownKey
 	| typeof UnknownNonAccessorKey
 	| typeof UnknownInteger
-	| typeof SymbolToStringTag;
+	| typeof SymbolToStringTag
+	| typeof SymbolDispose
+	| typeof SymbolAsyncDispose;
 
 export type ObjectPath = readonly ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
@@ -32,13 +44,15 @@ interface EntityPaths {
 	[pathSegment: string]: EntityPaths;
 	[EntitiesKey]: Set<Entity>;
 	[SymbolToStringTag]?: EntityPaths;
+	[SymbolDispose]?: EntityPaths;
+	[SymbolAsyncDispose]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
 	[UnknownNonAccessorKey]?: EntityPaths;
 }
 
 export class EntityPathTracker {
-	private entityPaths: EntityPaths = Object.create(null, {
+	private readonly entityPaths: EntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Set<Entity>() }
 	});
 
@@ -80,13 +94,15 @@ interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
 	[SymbolToStringTag]?: DiscriminatedEntityPaths;
+	[SymbolDispose]?: DiscriminatedEntityPaths;
+	[SymbolAsyncDispose]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
 	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;
 }
 
 export class DiscriminatedPathTracker {
-	private entityPaths: DiscriminatedEntityPaths = Object.create(null, {
+	private readonly entityPaths: DiscriminatedEntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Map<unknown, Set<Entity>>() }
 	});
 

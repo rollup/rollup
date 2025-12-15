@@ -30,28 +30,10 @@ import {
 import type { VariableDeclarationKind } from './shared/VariableKinds';
 import type VariableDeclarator from './VariableDeclarator';
 
-function areAllDeclarationsIncludedAndNotExported(
-	declarations: readonly VariableDeclarator[],
-	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
-): boolean {
-	for (const declarator of declarations) {
-		if (!declarator.id.included) return false;
-		if (declarator.id.type === NodeType.Identifier) {
-			if (exportNamesByVariable.has(declarator.id.variable!)) return false;
-		} else {
-			const exportedVariables: Variable[] = [];
-			declarator.id.addExportedVariables(exportedVariables, exportNamesByVariable);
-			if (exportedVariables.length > 0) return false;
-		}
-	}
-	return true;
-}
-
 export default class VariableDeclaration extends NodeBase {
 	declare declarations: readonly VariableDeclarator[];
 	declare kind: VariableDeclarationKind;
 	declare type: NodeType.tVariableDeclaration;
-	declare isUsingDeclaration: boolean;
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
@@ -90,9 +72,8 @@ export default class VariableDeclaration extends NodeBase {
 
 	initialise(): void {
 		super.initialise();
-		this.isUsingDeclaration = this.kind === 'await using' || this.kind === 'using';
 		for (const declarator of this.declarations) {
-			declarator.declareDeclarator(this.kind, this.isUsingDeclaration);
+			declarator.declareDeclarator(this.kind);
 		}
 	}
 
@@ -105,10 +86,7 @@ export default class VariableDeclaration extends NodeBase {
 		options: RenderOptions,
 		nodeRenderOptions: NodeRenderOptions = BLANK
 	): void {
-		if (
-			this.isUsingDeclaration ||
-			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
-		) {
+		if (this.areAllDeclarationsIncludedAndNotExported(options.exportNamesByVariable)) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
@@ -248,6 +226,25 @@ export default class VariableDeclaration extends NodeBase {
 			aggregatedSystemExports,
 			options
 		);
+	}
+
+	private areAllDeclarationsIncludedAndNotExported(
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+	): boolean {
+		if (this.kind === 'await using' || this.kind === 'using') {
+			return true;
+		}
+		for (const declarator of this.declarations) {
+			if (!declarator.id.included) return false;
+			if (declarator.id.type === NodeType.Identifier) {
+				if (exportNamesByVariable.has(declarator.id.variable!)) return false;
+			} else {
+				const exportedVariables: Variable[] = [];
+				declarator.id.addExportedVariables(exportedVariables, exportNamesByVariable);
+				if (exportedVariables.length > 0) return false;
+			}
+		}
+		return true;
 	}
 }
 
