@@ -13,6 +13,7 @@ import type { ObjectPath } from '../../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	SHARED_RECURSION_TRACKER,
+	SymbolAsyncDispose,
 	SymbolDispose,
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
@@ -350,6 +351,17 @@ const knownGlobals: GlobalDescription = {
 		for: PF,
 		keyFor: PF,
 		prototype: O,
+		asyncDispose: {
+			__proto__: null,
+			[ValueProperties]: {
+				deoptimizeArgumentsOnCall: doNothing,
+				getLiteralValue() {
+					return SymbolAsyncDispose;
+				},
+				// This might not be needed, but then we need to check a few more cases
+				hasEffectsWhenCalled: returnTrue
+			}
+		},
 		dispose: {
 			__proto__: null,
 			[ValueProperties]: {

@@ -8,7 +8,12 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH, type ObjectPath, SymbolDispose } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	SymbolAsyncDispose,
+	SymbolDispose
+} from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
@@ -27,9 +32,11 @@ export default class VariableDeclarator extends NodeBase {
 	declare init: ExpressionNode | null;
 	declare type: NodeType.tVariableDeclarator;
 	declare isUsingDeclaration: boolean;
+	declare isAsyncUsingDeclaration: boolean;
 
-	declareDeclarator(kind: VariableKind, isUsingDeclaration: boolean): void {
-		this.isUsingDeclaration = isUsingDeclaration;
+	declareDeclarator(kind: VariableKind): void {
+		this.isUsingDeclaration = kind === 'using';
+		this.isAsyncUsingDeclaration = kind === 'await using';
 		this.id.declare(kind, EMPTY_PATH, this.init || UNDEFINED_EXPRESSION);
 	}
 
@@ -43,6 +50,7 @@ export default class VariableDeclarator extends NodeBase {
 		return (
 			initEffect ||
 			this.isUsingDeclaration ||
+			this.isAsyncUsingDeclaration ||
 			this.id.hasEffects(context) ||
 			((this.scope.context.options.treeshake as NormalizedTreeshakingOptions)
 				.propertyReadSideEffects &&
@@ -72,7 +80,7 @@ export default class VariableDeclarator extends NodeBase {
 			snippets: { _, getPropertyAccess }
 		} = options;
 		const { end, id, init, start } = this;
-		const renderId = id.included || this.isUsingDeclaration;
+		const renderId = id.included || this.isUsingDeclaration || this.isAsyncUsingDeclaration;
 		if (renderId) {
 			id.render(code, options);
 		} else {
@@ -105,6 +113,8 @@ export default class VariableDeclarator extends NodeBase {
 		if (init) {
 			if (this.isUsingDeclaration) {
 				init.includePath(SYMBOL_DISPOSE_PATH, context);
+			} else if (this.isAsyncUsingDeclaration) {
+				init.includePath(SYMBOL_ASYNC_DISPOSE_PATH, context);
 			}
 			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
 				const { name, variable } = id;
@@ -121,3 +131,4 @@ export default class VariableDeclarator extends NodeBase {
 VariableDeclarator.prototype.applyDeoptimizations = doNotDeoptimize;
 
 const SYMBOL_DISPOSE_PATH: ObjectPath = [SymbolDispose];
+const SYMBOL_ASYNC_DISPOSE_PATH: ObjectPath = [SymbolAsyncDispose];

@@ -8,12 +8,16 @@ export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
 export const SymbolToStringTag = Symbol('Symbol.toStringTag');
-export const SymbolDispose = Symbol('Symbol.dispose');
+export const SymbolDispose = Symbol('Symbol.asyncDispose');
+export const SymbolAsyncDispose = Symbol('Symbol.dispose');
+
+const WELL_KNOWN_SYMBOLS_LIST = [SymbolToStringTag, SymbolDispose, SymbolAsyncDispose] as const;
+export type WellKnownSymbol = (typeof WELL_KNOWN_SYMBOLS_LIST)[number];
 
 interface WellKnownSymbolSet extends Set<symbol> {
-	has(symbol: symbol): symbol is typeof SymbolToStringTag | typeof SymbolDispose;
+	has(symbol: symbol): symbol is WellKnownSymbol;
 }
-export const WELL_KNOWN_SYMBOLS = new Set([SymbolToStringTag, SymbolDispose]) as WellKnownSymbolSet;
+export const WELL_KNOWN_SYMBOLS = new Set(WELL_KNOWN_SYMBOLS_LIST) as WellKnownSymbolSet;
 
 export type ObjectPathKey =
 	| string
@@ -21,7 +25,8 @@ export type ObjectPathKey =
 	| typeof UnknownNonAccessorKey
 	| typeof UnknownInteger
 	| typeof SymbolToStringTag
-	| typeof SymbolDispose;
+	| typeof SymbolDispose
+	| typeof SymbolAsyncDispose;
 
 export type ObjectPath = readonly ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
@@ -40,6 +45,7 @@ interface EntityPaths {
 	[EntitiesKey]: Set<Entity>;
 	[SymbolToStringTag]?: EntityPaths;
 	[SymbolDispose]?: EntityPaths;
+	[SymbolAsyncDispose]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
 	[UnknownNonAccessorKey]?: EntityPaths;
@@ -89,6 +95,7 @@ interface DiscriminatedEntityPaths {
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
 	[SymbolToStringTag]?: DiscriminatedEntityPaths;
 	[SymbolDispose]?: DiscriminatedEntityPaths;
+	[SymbolAsyncDispose]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
 	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;
