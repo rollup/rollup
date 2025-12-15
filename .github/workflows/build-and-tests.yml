@@ -31,9 +31,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.10.0
       - name: Install and Cache Node Dependencies
@@ -153,23 +153,7 @@ jobs:
               sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: >-
-              set -e &&
-              unset CC &&
-              export TARGET_CC=clang &&
-              apk add binutils-riscv64 &&
-              mkdir -p /sysroot-riscv64/etc/apk &&
-              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-riscv64/etc/apk/repositories &&
-              apk add -U --initdb --allow-untrusted --arch riscv64 --root /sysroot-riscv64 gcc musl-dev &&
-              export RUSTFLAGS="
-                -C link-args=-L$(echo /sysroot-riscv64/usr/lib/gcc/riscv64-alpine-linux-musl/*)
-                -C link-args=-L/sysroot-riscv64/usr/lib
-                -C linker=riscv64-alpine-linux-musl-ld
-                " &&
-              rustup default nightly-2025-07-25 &&
-              rustup target add riscv64gc-unknown-linux-musl &&
-              npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
+            cross: zig
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             env:
@@ -219,10 +203,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-        if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        if: ${{ matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
           node-version: 24.10.0
       - uses: msys2/setup-msys2@fb197b72ce45fb24f17bf3f807a388985654d1f2 # v2
@@ -240,7 +224,6 @@ jobs:
           release: false
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
           components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
@@ -265,7 +248,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@763e3324d4fd026c9bd284c504378585777a87d5 # v2.62.57
+        uses: taiki-e/install-action@073d46cba2cde38f6698c798566c1b3e24feeb44 # v2.62.67
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -282,13 +265,6 @@ jobs:
         shell: bash
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
-      - name: Build in docker
-        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
-        if: ${{ matrix.settings.docker }}
-        with:
-          image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
-          run: ${{ matrix.settings.build }}
       - name: Msys2 build
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         run: ${{ matrix.settings.build }}
@@ -296,11 +272,11 @@ jobs:
       - name: Build (Matrix override)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker && matrix.settings.build && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
+        if: ${{ matrix.settings.build && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
-        if: ${{ !matrix.settings.docker && !matrix.settings.build }}
+        if: ${{ !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
@@ -367,7 +343,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Build JS
@@ -465,9 +441,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
@@ -494,7 +470,7 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         if: matrix.coverage
         with:
           fail_ci_if_error: true
@@ -518,12 +494,12 @@ jobs:
     if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 24.10.0
           registry-url: 'https://registry.npmjs.org'

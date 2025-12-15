@@ -25,14 +25,16 @@
         "node",
         "npm",
         "fsevents",
-        "core-js"
+        "core-js",
+        "@napi-rs/cli"
       ],
       "enabled": false
     },
     {
       "matchPackageNames": [
         "@types/node",
-        "yargs-parser"
+        "yargs-parser",
+        "@inquirer/prompts"
       ],
       "matchUpdateTypes": [
         "major"
