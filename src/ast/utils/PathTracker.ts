@@ -8,13 +8,20 @@ export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
 export const SymbolToStringTag = Symbol('Symbol.toStringTag');
+export const SymbolDispose = Symbol('Symbol.dispose');
+
+interface WellKnownSymbolSet extends Set<symbol> {
+	has(symbol: symbol): symbol is typeof SymbolToStringTag | typeof SymbolDispose;
+}
+export const WELL_KNOWN_SYMBOLS = new Set([SymbolToStringTag, SymbolDispose]) as WellKnownSymbolSet;
 
 export type ObjectPathKey =
 	| string
 	| typeof UnknownKey
 	| typeof UnknownNonAccessorKey
 	| typeof UnknownInteger
-	| typeof SymbolToStringTag;
+	| typeof SymbolToStringTag
+	| typeof SymbolDispose;
 
 export type ObjectPath = readonly ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
@@ -32,13 +39,14 @@ interface EntityPaths {
 	[pathSegment: string]: EntityPaths;
 	[EntitiesKey]: Set<Entity>;
 	[SymbolToStringTag]?: EntityPaths;
+	[SymbolDispose]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
 	[UnknownNonAccessorKey]?: EntityPaths;
 }
 
 export class EntityPathTracker {
-	private entityPaths: EntityPaths = Object.create(null, {
+	private readonly entityPaths: EntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Set<Entity>() }
 	});
 
@@ -80,13 +88,14 @@ interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
 	[SymbolToStringTag]?: DiscriminatedEntityPaths;
+	[SymbolDispose]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
 	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;
 }
 
 export class DiscriminatedPathTracker {
-	private entityPaths: DiscriminatedEntityPaths = Object.create(null, {
+	private readonly entityPaths: DiscriminatedEntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Map<unknown, Set<Entity>>() }
 	});
 

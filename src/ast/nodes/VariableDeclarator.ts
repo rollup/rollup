@@ -8,7 +8,7 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath, SymbolDispose } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
@@ -52,7 +52,7 @@ export default class VariableDeclarator extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const { id, init } = this;
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		init?.include(context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively) {
@@ -99,14 +99,19 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	includeNode() {
+	includeNode(context: InclusionContext): void {
 		this.included = true;
 		const { id, init } = this;
-		if (init && id instanceof Identifier && init instanceof ClassExpression && !init.id) {
-			const { name, variable } = id;
-			for (const accessedVariable of init.scope.accessedOutsideVariables.values()) {
-				if (accessedVariable !== variable) {
-					accessedVariable.forbidName(name);
+		if (init) {
+			if (this.isUsingDeclaration) {
+				init.includePath(SYMBOL_DISPOSE_PATH, context);
+			}
+			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
+				const { name, variable } = id;
+				for (const accessedVariable of init.scope.accessedOutsideVariables.values()) {
+					if (accessedVariable !== variable) {
+						accessedVariable.forbidName(name);
+					}
 				}
 			}
 		}
@@ -114,3 +119,5 @@ export default class VariableDeclarator extends NodeBase {
 }
 
 VariableDeclarator.prototype.applyDeoptimizations = doNotDeoptimize;
+
+const SYMBOL_DISPOSE_PATH: ObjectPath = [SymbolDispose];
