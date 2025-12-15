@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.53.4
+
+_2025-12-15_
+
+### Bug Fixes
+
+- Ensure `Symbol.dispose` and `Symbol.asyncDispose` properties are never removed with `(await) using` declarations. (#6209)
+
+### Pull Requests
+
+- [#6185](https://github.com/rollup/rollup/pull/6185): chore(deps): update dependency @inquirer/prompts to v8 (@renovate[bot], @lukastaegert)
+- [#6186](https://github.com/rollup/rollup/pull/6186): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6187](https://github.com/rollup/rollup/pull/6187): chore(deps): lock file maintenance (@renovate[bot])
+- [#6188](https://github.com/rollup/rollup/pull/6188): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6190](https://github.com/rollup/rollup/pull/6190): Fix syntax error in manualChunks example (@jonnyeom)
+- [#6194](https://github.com/rollup/rollup/pull/6194): chore(deps): update actions/checkout action to v6 (@renovate[bot])
+- [#6195](https://github.com/rollup/rollup/pull/6195): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6202](https://github.com/rollup/rollup/pull/6202): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6203](https://github.com/rollup/rollup/pull/6203): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6209](https://github.com/rollup/rollup/pull/6209): Do not tree-shake handlers for "using" (@lukastaegert)
+
 ## 4.53.3
 
 _2025-11-19_
