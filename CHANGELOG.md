@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.53.5
+
+_2025-12-16_
+
+### Bug Fixes
+
+- Fix wrong semicolon insertion position when using JSX (#6206)
+- Generate spec-compliant sourcemaps when sources content is excluded (#6196)
+
+### Pull Requests
+
+- [#6196](https://github.com/rollup/rollup/pull/6196): fix: set sourcesContent to undefined instead of null when excluding sources content (@TrickyPi)
+- [#6206](https://github.com/rollup/rollup/pull/6206): Fix semicolon order in JSX (@TrickyPi)
+
 ## 4.53.4
 
 _2025-12-15_
