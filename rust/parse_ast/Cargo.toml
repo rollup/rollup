@@ -12,5 +12,5 @@ swc_compiler_base = "41.0.0"
 swc_config = "3.1.2"
 swc_common = { version = "18.0.1", features = ["parking_lot"] }
 swc_ecma_ast = "19.0.0"
-swc_ecma_parser = "29.0.1"
+swc_ecma_parser = "29.0.2"
 parking_lot = "0.12.5"
