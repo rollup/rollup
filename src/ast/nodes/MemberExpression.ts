@@ -367,6 +367,9 @@ export default class MemberExpression
 		if (!this.included) this.includeNode(context);
 		this.object.include(context, includeChildrenRecursively);
 		this.property.include(context, includeChildrenRecursively);
+		if (includeChildrenRecursively) {
+			this.variable?.includePath(UNKNOWN_PATH, context);
+		}
 	}
 
 	includeNode(context: InclusionContext) {
