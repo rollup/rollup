@@ -40,7 +40,7 @@ function verifyAnchorsOnPage(page: string, slugs: Set<string>) {
 	let match: (RegExpExecArray & { groups?: { href?: string } }) | null;
 	while ((match = markdownLinkRegExp.exec(text)) !== null) {
 		const [href] = match;
-		if (href.startsWith('#')) {
+		if (href[0] === '#') {
 			const anchor = href.slice(1);
 			if (!slugs.has(anchor)) {
 				console.log(slugs);

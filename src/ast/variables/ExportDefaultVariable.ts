@@ -16,13 +16,9 @@ export default class ExportDefaultVariable extends LocalVariable {
 	private readonly originalId: IdentifierWithVariable | null = null;
 	private originalVariable: Variable | null = null;
 
-	constructor(
-		name: string,
-		exportDefaultDeclaration: ExportDefaultDeclaration,
-		context: AstContext
-	) {
+	constructor(exportDefaultDeclaration: ExportDefaultDeclaration, context: AstContext) {
 		super(
-			name,
+			'default',
 			exportDefaultDeclaration,
 			exportDefaultDeclaration.declaration,
 			EMPTY_PATH,

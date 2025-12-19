@@ -134,6 +134,16 @@ interface FacadeName {
 
 type RenderedDependencies = Map<Chunk | ExternalChunk, ChunkDependency>;
 
+const RESERVED_USED_NAMES = [
+	'Object',
+	'Promise',
+	'module',
+	'exports',
+	'require',
+	'__filename',
+	'__dirname',
+	...HELPER_NAMES
+];
 const NON_ASSET_EXTENSIONS = new Set([
 	'.js',
 	'.jsx',
@@ -966,7 +976,7 @@ export default class Chunk {
 							variable.isNamespace &&
 							namespaceInteropHelpersByInteropType[interop(module.id)] &&
 							(this.imports.has(variable) ||
-								!this.exportNamesByVariable.get(variable)?.every(name => name.startsWith('*')))
+								!this.exportNamesByVariable.get(variable)?.every(name => name[0] === '*'))
 						) {
 							// We only need to deconflict it if the namespace is actually
 							// created as a variable, i.e. because it is used internally or
@@ -1143,7 +1153,7 @@ export default class Chunk {
 				return idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '');
 			} else {
 				// handle edge case in Windows
-				if (this.inputBase === '/' && !idWithoutExtension.startsWith('/')) {
+				if (this.inputBase === '/' && idWithoutExtension[0] !== '/') {
 					return relative(this.inputBase, idWithoutExtension.replace(/^[a-zA-Z]:[/\\]/, '/'));
 				}
 				return relative(this.inputBase, idWithoutExtension);
@@ -1448,31 +1458,12 @@ export default class Chunk {
 				break;
 			}
 		}
-		const usedNames = new Set(['Object', 'Promise']);
+		const usedNames = new Set(RESERVED_USED_NAMES);
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
 		if (symbols) {
 			usedNames.add('Symbol');
-		}
-		switch (format) {
-			case 'system': {
-				usedNames.add('module').add('exports');
-				break;
-			}
-			case 'es': {
-				break;
-			}
-			case 'cjs': {
-				usedNames.add('module').add('require').add('__filename').add('__dirname');
-			}
-			// fallthrough
-			default: {
-				usedNames.add('exports');
-				for (const helper of HELPER_NAMES) {
-					usedNames.add(helper);
-				}
-			}
 		}
 
 		deconflictChunk(

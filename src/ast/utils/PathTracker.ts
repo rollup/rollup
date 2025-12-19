@@ -9,19 +9,25 @@ export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
 export const UnknownWellKnown = Symbol('Unknown Well-Known');
 export const SymbolToStringTag = Symbol('Symbol.toStringTag');
+export const SymbolDispose = Symbol('Symbol.asyncDispose');
+export const SymbolAsyncDispose = Symbol('Symbol.dispose');
 export const SymbolHasInstance = Symbol('Symbol.hasInstance');
 
-export type WellKnownSymbol = typeof SymbolToStringTag | typeof SymbolHasInstance;
+const WELL_KNOWN_SYMBOLS_LIST = [
+	SymbolToStringTag,
+	SymbolDispose,
+	SymbolAsyncDispose,
+	SymbolHasInstance
+] as const;
+export type WellKnownSymbol = (typeof WELL_KNOWN_SYMBOLS_LIST)[number];
 export type AnyWellKnownSymbol = WellKnownSymbol | typeof UnknownWellKnown;
 
-const WELL_KNOWN_SYMBOLS: WellKnownSymbol[] = [SymbolToStringTag, SymbolHasInstance];
-const OPTIMIZED_WELL_KNOWN_SYMBOLS: WellKnownSymbol[] = [SymbolHasInstance];
-
-export const isWellKnown = (v: any): v is WellKnownSymbol => WELL_KNOWN_SYMBOLS.includes(v);
+interface WellKnownSymbolSet extends Set<symbol> {
+	has(symbol: symbol): symbol is WellKnownSymbol;
+}
+export const WELL_KNOWN_SYMBOLS = new Set(WELL_KNOWN_SYMBOLS_LIST) as WellKnownSymbolSet;
 export const isAnyWellKnown = (v: any): v is AnyWellKnownSymbol =>
-	WELL_KNOWN_SYMBOLS.includes(v) || v === UnknownWellKnown;
-export const isOptimizedWellKnown = (v: any): boolean =>
-	OPTIMIZED_WELL_KNOWN_SYMBOLS.includes(v as never);
+	WELL_KNOWN_SYMBOLS.has(v) || v === UnknownWellKnown;
 
 export type ConcreteKey = string | WellKnownSymbol;
 export type ObjectPathKey =
@@ -32,7 +38,7 @@ export type ObjectPathKey =
 	| typeof UnknownInteger;
 
 export const isConcreteKey = (v: ObjectPathKey): v is ConcreteKey =>
-	typeof v === 'string' || WELL_KNOWN_SYMBOLS.includes(v as never);
+	typeof v === 'string' || WELL_KNOWN_SYMBOLS.has(v);
 
 export type ObjectPath = readonly ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
@@ -52,6 +58,8 @@ interface EntityPaths {
 	[EntitiesKey]: Set<Entity>;
 	[SymbolToStringTag]?: EntityPaths;
 	[SymbolHasInstance]?: EntityPaths;
+	[SymbolDispose]?: EntityPaths;
+	[SymbolAsyncDispose]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
 	[UnknownWellKnown]?: EntityPaths;
@@ -59,7 +67,7 @@ interface EntityPaths {
 }
 
 export class EntityPathTracker {
-	private entityPaths: EntityPaths = Object.create(null, {
+	private readonly entityPaths: EntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Set<Entity>() }
 	});
 
@@ -102,6 +110,8 @@ interface DiscriminatedEntityPaths {
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
 	[SymbolToStringTag]?: DiscriminatedEntityPaths;
 	[SymbolHasInstance]?: DiscriminatedEntityPaths;
+	[SymbolDispose]?: DiscriminatedEntityPaths;
+	[SymbolAsyncDispose]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
 	[UnknownWellKnown]?: DiscriminatedEntityPaths;
@@ -109,7 +119,7 @@ interface DiscriminatedEntityPaths {
 }
 
 export class DiscriminatedPathTracker {
-	private entityPaths: DiscriminatedEntityPaths = Object.create(null, {
+	private readonly entityPaths: DiscriminatedEntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Map<unknown, Set<Entity>>() }
 	});
 

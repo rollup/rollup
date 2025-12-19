@@ -35,4 +35,4 @@ var bundle = (function (exports, a, b, c, d$1) {
 
 	return exports;
 
-})({}, a, b, c, d$1);
+})({}, a, b, c, d);

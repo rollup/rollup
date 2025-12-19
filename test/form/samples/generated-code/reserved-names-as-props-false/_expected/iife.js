@@ -71,4 +71,4 @@ var bundle = (function (exports, external, defaultOnly, someDefault) {
 
 	return exports;
 
-})({}, external, defaultOnly, someDefault);
+})({}, external, externalDefaultOnly, external2);

@@ -20,7 +20,7 @@ interface OptionTypeSelect<T> extends BaseOptionType<T> {
 }
 
 interface OptionTypeString extends BaseOptionType<string> {
-	placeholder: string | null;
+	placeholder: string | undefined;
 	type: 'string';
 }
 
@@ -30,7 +30,7 @@ interface OptionTypeStringMapping extends BaseOptionType<Record<string, string>>
 }
 
 interface OptionTypeNumber extends BaseOptionType<number> {
-	placeholder: string | null;
+	placeholder: string | undefined;
 	type: 'number';
 }
 
@@ -617,7 +617,7 @@ function getString({
 		available: typeof available === 'function' ? computed(available) : available || alwaysTrue,
 		defaultValue: defaultValue ?? '',
 		name,
-		placeholder: placeholder || null,
+		placeholder,
 		required: required ? computed(required) : alwaysFalse,
 		type: 'string',
 		value: ref(undefined)
@@ -664,7 +664,7 @@ function getNumber({
 		available: typeof available === 'function' ? computed(available) : available || alwaysTrue,
 		defaultValue: defaultValue ?? 0,
 		name,
-		placeholder: placeholder || null,
+		placeholder,
 		required: required ? computed(required) : alwaysFalse,
 		type: 'number',
 		value: ref(undefined)

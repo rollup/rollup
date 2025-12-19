@@ -145,9 +145,10 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 				needsScope: false
 			};
 		}
-		case 'OptionalString': {
+		case 'OptionalString':
+		case 'NullableString': {
 			return {
-				definition: `const ${fieldName}Position = ${dataStart};\n${assignmentLeftHand}${fieldName}Position === 0 ? undefined : buffer.convertString(${fieldName}Position)${typeCastString};`,
+				definition: `const ${fieldName}Position = ${dataStart};\n${assignmentLeftHand}${fieldName}Position === 0 ? ${fieldType === 'OptionalString' ? 'undefined' : 'null'} : buffer.convertString(${fieldName}Position)${typeCastString};`,
 				needsScope: false
 			};
 		}

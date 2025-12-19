@@ -2,7 +2,21 @@ const { existsSync } = require('node:fs');
 const path = require('node:path');
 const { platform, arch, report } = require('node:process');
 
-const isMusl = () => !report.getReport().header.glibcVersionRuntime;
+const isMusl = () => {
+	try {
+		return !report.getReport().header.glibcVersionRuntime;
+	} catch {
+		return false;
+	}
+};
+
+const isMingw32 = () => {
+	try {
+		return report.getReport().header.osName.startsWith('MINGW32_NT');
+	} catch {
+		return false;
+	}
+};
 
 const bindingsByPlatformAndArch = {
 	android: {
@@ -20,16 +34,21 @@ const bindingsByPlatformAndArch = {
 	linux: {
 		arm: { base: 'linux-arm-gnueabihf', musl: 'linux-arm-musleabihf' },
 		arm64: { base: 'linux-arm64-gnu', musl: 'linux-arm64-musl' },
-		loong64: { base: 'linux-loongarch64-gnu', musl: null },
+		loong64: { base: 'linux-loong64-gnu', musl: null },
 		ppc64: { base: 'linux-ppc64-gnu', musl: null },
 		riscv64: { base: 'linux-riscv64-gnu', musl: 'linux-riscv64-musl' },
 		s390x: { base: 'linux-s390x-gnu', musl: null },
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
 	},
+	openharmony: {
+		arm64: { base: 'openharmony-arm64' }
+	},
 	win32: {
 		arm64: { base: 'win32-arm64-msvc' },
 		ia32: { base: 'win32-ia32-msvc' },
-		x64: { base: 'win32-x64-msvc' }
+		x64: {
+			base: isMingw32() ? 'win32-x64-gnu' : 'win32-x64-msvc'
+		}
 	}
 };
 

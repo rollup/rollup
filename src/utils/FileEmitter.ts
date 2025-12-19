@@ -13,7 +13,7 @@ import type {
 import { BuildPhase } from './buildPhase';
 import type { GetHash } from './crypto';
 import { getHash64, hasherByType } from './crypto';
-import { getOrCreate } from './getOrCreate';
+import { getNewArray, getOrCreate } from './getOrCreate';
 import { DEFAULT_HASH_SIZE, MAX_HASH_SIZE } from './hashPlaceholders';
 import { LOGLEVEL_WARN } from './logging';
 import {
@@ -136,7 +136,7 @@ function hasValidType(emittedFile: unknown): emittedFile is {
 } {
 	return Boolean(
 		emittedFile &&
-			emittedFileTypes.has((emittedFile as { [key: string]: unknown; type: EmittedFileType }).type)
+		emittedFileTypes.has((emittedFile as { [key: string]: unknown; type: EmittedFileType }).type)
 	);
 }
 
@@ -309,7 +309,7 @@ export class FileEmitter {
 					this.finalizeAdditionalAsset(consumedFile, consumedFile.source, output);
 				} else {
 					const sourceHash = getHash(consumedFile.source);
-					getOrCreate(consumedAssetsByHash, sourceHash, () => []).push(consumedFile);
+					getOrCreate(consumedAssetsByHash, sourceHash, getNewArray).push(consumedFile);
 				}
 			} else if (consumedFile.type === 'prebuilt-chunk') {
 				this.output.bundle[consumedFile.fileName] = this.createPrebuiltChunk(consumedFile);

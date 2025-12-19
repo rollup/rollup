@@ -24,7 +24,7 @@ System.register([], (function (exports) {
 			let a = 1, b = 2, c = 3; exports({ a: a, a2: a, b: b, c: c, c2: c });
 
 			// Export default expression
-			var a$1 = exports("default", a);
+			var a_default = exports("default", a);
 
 			// Assignment Expression
 			a = exports("b", b = (c = 0, exports({ c: c, c2: c }), c)), exports({ a: a, a2: a }), a;

@@ -3,7 +3,7 @@ import { throwNoFileSystem } from './error';
 import type * as FsType from './fs.ts';
 
 // Ensure this satisfies the RollupFsModule API, will be removed by tree-shaking
-const _typeTest = null as unknown as typeof FsType satisfies RollupFsModule;
+void (null as unknown as typeof FsType satisfies RollupFsModule);
 
 export const appendFile = throwNoFileSystem('fs.appendFile');
 export const copyFile = throwNoFileSystem('fs.copyFile');

@@ -59,10 +59,10 @@ define(['module', 'require', 'exports', 'external'], (function (module, require,
 		const _interopNamespace = 1;
 		const module = 1;
 		const require = 1;
-		const exports = 1;
+		const exports$1 = 1;
 		const document = 1;
 		const URL = 1;
-		console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL);
+		console.log(_interopDefault, _interopNamespace, module, require, exports$1, document, URL);
 	}
 
 	nested2();

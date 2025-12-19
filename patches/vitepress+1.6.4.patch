@@ -1,0 +1,12 @@
+diff --git a/node_modules/vitepress/dist/node/index.d.ts b/node_modules/vitepress/dist/node/index.d.ts
+index 03aef89..c8103db 100644
+--- a/node_modules/vitepress/dist/node/index.d.ts
++++ b/node_modules/vitepress/dist/node/index.d.ts
+@@ -1950,7 +1950,6 @@ interface TocPluginOptions {
+ }
+ 
+ declare namespace anchor {
+-  export type Token = Token
+   export type State = StateCore
+   export type RenderHref = (slug: string, state: State) => string;
+   export type RenderAttrs = (slug: string, state: State) => Record<string, string | number>;

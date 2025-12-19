@@ -31,33 +31,24 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
-          node-version: 24.6.0
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path: |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
-        run: npm audit
+        run: npm run check-audit
       - name: Optional Dependencies
         run: npm run test:package
       - name: CLI Docs
         run: npm run test:options
       - name: Generated Code
         run: |
+          git restore .
           npm run build:ast-converters
           git diff HEAD --exit-code --ignore-space-at-eol
 
@@ -93,6 +84,24 @@ jobs:
             target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
+          - host: windows-latest
+            target: x86_64-pc-windows-gnu
+            msystem: ucrt64
+            toolchain: ucrt-x86_64
+            setup: |
+              rustup default
+              rustVersion=$(sed -n 's/channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)
+              rustup install "$rustVersion"
+              rustup set default-host x86_64-pc-windows-gnu
+              rustup show
+            build: >-
+              set -e &&
+              which rustup &&
+              rustup target add x86_64-pc-windows-gnu &&
+              rustup component add rust-src --toolchain nightly-2025-07-25-x86_64-pc-windows-gnu &&
+              npm run build:napi -- --release --target x86_64-pc-windows-gnu
+            env:
+              MINGW_ARCH: ucrt64
 
           # MacOS
           - host: macos-latest
@@ -135,6 +144,8 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-linux-android
             cross: napi
+            # There are compile issues when using the cache with Android
+            cache-cargo: false
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
@@ -142,21 +153,7 @@ jobs:
               sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: >-
-              set -e &&
-              unset CC &&
-              export TARGET_CC=clang &&
-              apk add binutils-riscv64 &&
-              mkdir -p /sysroot-riscv64/etc/apk &&
-              echo 'https://dl-cdn.alpinelinux.org/alpine/edge/main' > /sysroot-riscv64/etc/apk/repositories &&
-              apk add -U --initdb --allow-untrusted --arch riscv64 --root /sysroot-riscv64 gcc musl-dev &&
-              export RUSTFLAGS="
-                -C link-args=-L$(echo /sysroot-riscv64/usr/lib/gcc/riscv64-alpine-linux-musl/*)
-                -C link-args=-L/sysroot-riscv64/usr/lib
-                -C linker=riscv64-alpine-linux-musl-ld
-                " &&
-              npm run build:napi -- --release --target riscv64gc-unknown-linux-musl
+            cross: zig
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             env:
@@ -188,34 +185,55 @@ jobs:
                 --slave /usr/bin/loongarch64-linux-gnu-gcov loongarch64-linux-gnu-gcov /usr/bin/loongarch64-linux-gnu-gcov-13
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-cpp loongarch64-linux-gnu-cpp /usr/bin/loongarch64-linux-gnu-cpp-13 100
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-ohos
 
           # FreeBSD
           - host: ubuntu-latest
             target: x86_64-unknown-freebsd
             cross: cross
+            build-std: true
           - host: ubuntu-latest
             target: aarch64-unknown-freebsd
             cross: cross
+            build-std: true
 
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        if: ${{ !matrix.settings.docker }}
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        if: ${{ matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
-          node-version: 24.6.0
+          node-version: 24.10.0
+      - uses: msys2/setup-msys2@4f806de0a5a7294ffabaff804b38a9b435a73bda # v2
+        if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
+        with:
+          msystem: ${{ matrix.settings.msystem }}
+          install: mingw-w64-${{ matrix.settings.toolchain }}-toolchain base-devel binutils
+          pacboy: >-
+            rustup:p
+            nodejs:p
+            rust-wasm:p
+            rust-src:p
+          update: true
+          path-type: inherit
+          release: false
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: ${{ !matrix.settings.docker }}
         with:
           toolchain: nightly-2025-07-25
-          components: rust-src
+          components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
+          targets: ${{ !matrix.settings.build-std && matrix.settings.target || '' }}
+      - name: Setup OpenHarmony SDK
+        if: ${{ contains(matrix.settings.target, 'ohos') }}
+        uses: openharmony-rs/setup-ohos-sdk@3c181b3244cec76aaec289ab84fb00f55f2fce3f # v0.2.4
       - name: Restore Cargo cache
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        if: matrix.settings.cache-cargo != false
         with:
           path: |
             ~/.cargo/registry/index/
@@ -230,7 +248,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@ad95d4e02e061d4390c4b66ef5ed56c7fee3d2ce # v2.58.17
+        uses: taiki-e/install-action@d850aa816998e5cf15f67a78c7b933f2a5033f8a # v2.63.3
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -245,45 +263,24 @@ jobs:
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts
-      - name: Save Node dependencies cache
-        if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
-        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Build in docker
-        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
-        if: ${{ matrix.settings.docker }}
-        with:
-          image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
-          run: ${{ matrix.settings.build }}
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Msys2 build
+        if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
+        run: ${{ matrix.settings.build }}
+        shell: msys2 {0}
       - name: Build (Matrix override)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker && matrix.settings.build }}
+        if: ${{ matrix.settings.build && matrix.settings.target != 'x86_64-pc-windows-gnu' }}
       - name: Build (Classic)
         env: ${{ matrix.settings.env || fromJSON('{}') }}
-        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }}
-        if: ${{ !matrix.settings.docker && !matrix.settings.build }}
+        run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
+        if: ${{ !matrix.settings.build }}
         shell: bash
       - name: Save Cargo cache
-        if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
@@ -293,14 +290,14 @@ jobs:
             rust/target/
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload wasm artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: bindings-${{ matrix.settings.name }}
           path: ${{ matrix.settings.path }}
           if-no-files-found: error
         if: ${{ matrix.settings.is-wasm-build }}
       - name: Upload napi artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
@@ -321,47 +318,38 @@ jobs:
           - arch: aarch64
             distro: alpine_latest
             target: aarch64-unknown-linux-musl
-          - arch: armv7
-            distro: ubuntu_latest
-            target: armv7-unknown-linux-gnueabihf
-# There is a bug that hangs the build when running npm
-#          - arch: armv7
-#            distro: alpine_latest
-#            target: armv7-unknown-linux-musleabihf
-# This one has become very flaky as of late
-#          - arch: ppc64le
-#            distro: ubuntu_latest
-#            target: powerpc64le-unknown-linux-gnu
-#            use-nvm: true
+          #          - arch: armv7
+          #            distro: ubuntu_latest
+          #            target: armv7-unknown-linux-gnueabihf
+          #            use-nvm: true
+          # There is a bug that hangs the build when running npm
+          #          - arch: armv7
+          #            distro: alpine_latest
+          #            target: armv7-unknown-linux-musleabihf
+          # This one has become very flaky as of late
+          #          - arch: ppc64le
+          #            distro: ubuntu_latest
+          #            target: powerpc64le-unknown-linux-gnu
+          #            use-nvm: true
           - arch: s390x
             distro: ubuntu_latest
             target: s390x-unknown-linux-gnu
             use-nvm: true
-# I could not find a way to install Node without compiling from source
-#          - arch: riscv64
-#            distro: ubuntu_latest
-#            target: riscv64gc-unknown-linux-gnu
+          # I could not find a way to install Node without compiling from source
+          #          - arch: riscv64
+          #            distro: ubuntu_latest
+          #            target: riscv64gc-unknown-linux-gnu
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Build JS
         run: npm run build:cjs
       - name: Download napi artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
@@ -412,14 +400,19 @@ jobs:
         settings:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            package: linux-x64-gnu
           - host: windows-latest
             target: x86_64-pc-windows-msvc
+            package: win32-x64-msvc
           - host: macos-latest
             target: aarch64-apple-darwin
+            package: darwin-arm64
           - host: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
+            package: linux-arm64-gnu
           - host: windows-11-arm
             target: aarch64-pc-windows-msvc
+            package: win32-arm64-msvc
         node:
           - '18.20.0'
           - 24
@@ -427,6 +420,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
+              package: linux-x64-gnu
             node: 24
             command: 'ci:coverage'
             additionalName: ' with Coverage'
@@ -434,6 +428,7 @@ jobs:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
+              package: linux-x64-gnu
             node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
@@ -446,39 +441,36 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
-      - name: Download napi artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: .
-      - name: Download wasm artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: bindings-wasm
-      - name: Build and test Rollup
-        run: npm run ${{ matrix.command || 'ci:test:only' }}
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Prepare Build Artifacts
+        uses: ./.github/actions/prepare-build-artifacts
+      - name: Test install
+        shell: bash
+        run: |
+          TARBALL_DIR=$(mktemp -d)
+          npm pack --ignore-scripts --pack-destination $TARBALL_DIR
+          echo "Testing installation of package ${{ matrix.settings.package }}"
+          cd npm/${{ matrix.settings.package }}
+          npm pack --ignore-scripts --pack-destination $TARBALL_DIR
+          INSTALL_DIR=$(mktemp -d)
+          cd "$INSTALL_DIR"
+          npm init -y
+          npm install $TARBALL_DIR/*
+          node -e "console.log(require('rollup'))"
+      - name: Test Rollup
+        shell: bash
+        run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         if: matrix.coverage
         with:
           fail_ci_if_error: true
@@ -490,6 +482,7 @@ jobs:
       pull-requests: write # for writing comments
       issues: write # for writing comments
       contents: write # for creating a release
+      id-token: write  # Required for OIDC
     name: Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -501,48 +494,30 @@ jobs:
     if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
-      - name: Download all artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          path: artifacts
-      - name: Copy wasm files
-        run: cp -R artifacts/bindings-wasm/wasm .
-      - name: Build JavaScript
-        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
-      - name: Move artifacts
-        run: npm run ci:artifacts
+          node-version: 24.10.0
+          registry-url: 'https://registry.npmjs.org'
+      - name: Update npm for publishing
+        run: npm install -g npm@11.6.2
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Prepare Build Artifacts
+        uses: ./.github/actions/prepare-build-artifacts
       - name: Publish
         run: |
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
             echo "Publishing regular release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm publish --access public
           elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$";
           then
             echo "Publishing beta release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm publish --tag beta --access public
           else
             echo "Not a release, skipping publish"

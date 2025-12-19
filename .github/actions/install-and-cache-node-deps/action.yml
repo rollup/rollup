@@ -1,0 +1,27 @@
+name: Install and Cache Node Dependencies
+description: Installs Node dependencies and saves cache if not already cached.
+runs:
+  using: composite
+  steps:
+    - name: Restore Node dependencies cache
+      id: cache-node-modules
+      uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      with:
+        path:  |
+          node_modules
+          ~/.npm
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
+    - name: Install Node dependencies
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare:patch
+      shell: bash
+    - name: Save Node dependencies cache
+      if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
+      uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      with:
+        path: |
+          node_modules
+          ~/.npm
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+

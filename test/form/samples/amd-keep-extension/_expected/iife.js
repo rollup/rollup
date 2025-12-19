@@ -3,4 +3,4 @@
 
 	console.log(relative, absolute, relativeExtension, absoluteExtension);
 
-})(relative, absolute, relativeExtension, absoluteExtension);
+})(relative, lute, relative_js, lute_js);

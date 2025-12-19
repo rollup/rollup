@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   build-artefacts:
-    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
+    if: >-
+      ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' ||
+          (github.event.action == 'labeled' && github.event.label.name == 'x⁸ ⚙️ build repl artefacts') }}
     strategy:
       matrix:
         settings:
@@ -29,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{matrix.settings.ref}}
       - name: Install Toolchain
@@ -38,7 +40,7 @@ jobs:
           toolchain: nightly-2025-07-25
           components: rust-src
       - name: Restore Cargo cache
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
@@ -49,24 +51,15 @@ jobs:
           key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
-          node-version: 24.6.0
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install Node dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm install --ignore-scripts
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Build artefacts 123
         run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ matrix.settings.name }}
           path: dist/
@@ -80,7 +73,7 @@ jobs:
     name: Report Performance
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: refs/pull/${{ github.event.number }}/merge
       - name: Install Toolchain
@@ -89,7 +82,7 @@ jobs:
           toolchain: nightly-2025-07-25
           components: rust-src
       - name: Restore Cargo cache
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
@@ -100,22 +93,13 @@ jobs:
           key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
-          node-version: 24.6.0
-      - name: Restore Node dependencies cache
-        id: cache-node-modules
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path:  |
-            node_modules
-            ~/.npm
-          key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
       - name: Download all artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: _benchmark
       - name: Change rollup import in internal benchmark
@@ -125,14 +109,14 @@ jobs:
       - name: Run internal benchmark
         run: node --expose-gc scripts/perf-report/index.js
       - name: Find Performance report
-        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         id: findPerformanceReport
         with:
           issue-number: ${{ github.event.number }}
           comment-author: 'github-actions[bot]'
           body-includes: 'Performance report'
       - name: Create or update Performance report
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         id: createOrUpdatePerformanceReport
         with:
           comment-id: ${{ steps.findPerformanceReport.outputs.comment-id }}

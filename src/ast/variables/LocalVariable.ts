@@ -192,6 +192,7 @@ export default class LocalVariable extends Variable {
 			case INTERACTION_ASSIGNED: {
 				if (this.included) return true;
 				if (path.length === 0) return false;
+				// if (this.isReassigned || this.init.included) return true;
 				if (this.isReassigned) return true;
 				return (
 					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&

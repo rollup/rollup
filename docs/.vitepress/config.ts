@@ -1,9 +1,9 @@
 import alias from '@rollup/plugin-alias';
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
-import type { Plugin } from 'vite';
 import { defineConfig } from 'vitepress';
 import { moduleAliases } from '../../build-plugins/aliases';
 import replaceBrowserModules from '../../build-plugins/replace-browser-modules';
+import type { ShikiTransformer } from '../../node_modules/vitepress/node_modules/@shikijs/types/dist/index';
 import '../declarations.d';
 import { examplesPlugin } from './create-examples';
 import { renderMermaidGraphsPlugin } from './mermaid';
@@ -57,7 +57,7 @@ export default defineConfig({
 						types: ['node']
 					}
 				}
-			})
+			}) as ShikiTransformer
 		],
 		config(md) {
 			transposeTables(md);
@@ -179,7 +179,7 @@ export default defineConfig({
 				}
 			},
 			examplesPlugin(),
-			alias(moduleAliases) as unknown as Plugin
+			alias(moduleAliases)
 		]
 	}
 });

@@ -153,10 +153,15 @@ export function getChunkAssignments(
 	entries: readonly Module[],
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
-	log: LogHandler
+	log: LogHandler,
+	isManualChunksFunctionForm: boolean,
+	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
-	const { chunkDefinitions, modulesInManualChunks } =
-		getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
+	const { chunkDefinitions, modulesInManualChunks } = getChunkDefinitionsFromManualChunks(
+		manualChunkAliasByEntry,
+		isManualChunksFunctionForm,
+		onlyExplicitManualChunks
+	);
 	const {
 		allEntries,
 		dependentEntriesByModule,
@@ -211,16 +216,22 @@ export function getChunkAssignments(
 }
 
 function getChunkDefinitionsFromManualChunks(
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
+	isManualChunksFunctionForm: boolean,
+	onlyExplicitManualChunks: boolean
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
-		addStaticDependenciesToManualChunk(
-			entry,
-			(manualChunkModulesByAlias[alias] ||= []),
-			modulesInManualChunks
-		);
+		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
+			(manualChunkModulesByAlias[alias] ||= []).push(entry);
+		} else {
+			addStaticDependenciesToManualChunk(
+				entry,
+				(manualChunkModulesByAlias[alias] ||= []),
+				modulesInManualChunks
+			);
+		}
 	}
 	const manualChunks = Object.entries(manualChunkModulesByAlias);
 	const chunkDefinitions: ChunkDefinitions = new Array(manualChunks.length);
@@ -285,8 +296,8 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					dynamicEntryModules.add(resolution);
 					allEntriesSet.add(resolution);
 					dynamicImportsForCurrentEntry.add(resolution);
-					for (const includedDirectTopLevelAwaitingDynamicImporter of resolution.includedDirectTopLevelAwaitingDynamicImporters) {
-						if (staticDependencies.has(includedDirectTopLevelAwaitingDynamicImporter)) {
+					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
+						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
 							awaitedDynamicEntryModules.add(resolution);
 							awaitedDynamicImportsForCurrentEntry.add(resolution);
 							break;
@@ -324,7 +335,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 			dependentEntriesByModule,
 			awaitedDynamicEntries,
 			allEntries,
-			dynamicEntry => dynamicEntry.includedDirectTopLevelAwaitingDynamicImporters
+			dynamicEntry => dynamicEntry.includedTopLevelAwaitingDynamicImporters
 		),
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
@@ -515,7 +526,7 @@ function removeUnnecessaryDependentEntries(
 	awaitedAlreadyLoadedAtomsByEntry: bigint[]
 ) {
 	// Remove entries from dependent entries if a chunk is already loaded without
-	// that entry. Do not remove already loaded atoms where all dynamic imports
+	// that entry. Do not remove already loaded atoms where some dynamic imports
 	// are awaited to avoid cycles in the output.
 	let chunkMask = 1n;
 	for (const { dependentEntries } of chunkAtoms) {

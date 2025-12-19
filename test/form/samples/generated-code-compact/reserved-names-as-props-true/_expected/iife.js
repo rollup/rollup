@@ -4,4 +4,4 @@ var bundle=(function(exports,external,defaultOnly,someDefault){'use strict';func
 console.log(undefined, undefined);
 
 exports.function = 1;
-exports.function++;Object.defineProperty(exports,"bar",{enumerable:true,get:function(){return external.function}});exports.default=external__namespace;Object.defineProperty(exports,"void",{enumerable:true,get:function(){return external__namespace.default}});Object.defineProperty(exports,'__esModule',{value:true});return exports;})({},external,defaultOnly,someDefault);
+exports.function++;Object.defineProperty(exports,"bar",{enumerable:true,get:function(){return external.function}});exports.default=external__namespace;Object.defineProperty(exports,"void",{enumerable:true,get:function(){return external__namespace.default}});Object.defineProperty(exports,'__esModule',{value:true});return exports;})({},external,externalDefaultOnly,external2);

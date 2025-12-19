@@ -8,7 +8,12 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	SymbolAsyncDispose,
+	SymbolDispose
+} from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
@@ -27,9 +32,11 @@ export default class VariableDeclarator extends NodeBase {
 	declare init: ExpressionNode | null;
 	declare type: NodeType.tVariableDeclarator;
 	declare isUsingDeclaration: boolean;
+	declare isAsyncUsingDeclaration: boolean;
 
-	declareDeclarator(kind: VariableKind, isUsingDeclaration: boolean): void {
-		this.isUsingDeclaration = isUsingDeclaration;
+	declareDeclarator(kind: VariableKind): void {
+		this.isUsingDeclaration = kind === 'using';
+		this.isAsyncUsingDeclaration = kind === 'await using';
 		this.id.declare(kind, EMPTY_PATH, this.init || UNDEFINED_EXPRESSION);
 	}
 
@@ -43,6 +50,7 @@ export default class VariableDeclarator extends NodeBase {
 		return (
 			initEffect ||
 			this.isUsingDeclaration ||
+			this.isAsyncUsingDeclaration ||
 			this.id.hasEffects(context) ||
 			((this.scope.context.options.treeshake as NormalizedTreeshakingOptions)
 				.propertyReadSideEffects &&
@@ -52,7 +60,7 @@ export default class VariableDeclarator extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const { id, init } = this;
-		if (!this.included) this.includeNode();
+		if (!this.included) this.includeNode(context);
 		init?.include(context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively) {
@@ -72,7 +80,7 @@ export default class VariableDeclarator extends NodeBase {
 			snippets: { _, getPropertyAccess }
 		} = options;
 		const { end, id, init, start } = this;
-		const renderId = id.included || this.isUsingDeclaration;
+		const renderId = id.included || this.isUsingDeclaration || this.isAsyncUsingDeclaration;
 		if (renderId) {
 			id.render(code, options);
 		} else {
@@ -99,14 +107,21 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	includeNode() {
+	includeNode(context: InclusionContext): void {
 		this.included = true;
 		const { id, init } = this;
-		if (init && id instanceof Identifier && init instanceof ClassExpression && !init.id) {
-			const { name, variable } = id;
-			for (const accessedVariable of init.scope.accessedOutsideVariables.values()) {
-				if (accessedVariable !== variable) {
-					accessedVariable.forbidName(name);
+		if (init) {
+			if (this.isUsingDeclaration) {
+				init.includePath(SYMBOL_DISPOSE_PATH, context);
+			} else if (this.isAsyncUsingDeclaration) {
+				init.includePath(SYMBOL_ASYNC_DISPOSE_PATH, context);
+			}
+			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
+				const { name, variable } = id;
+				for (const accessedVariable of init.scope.accessedOutsideVariables.values()) {
+					if (accessedVariable !== variable) {
+						accessedVariable.forbidName(name);
+					}
 				}
 			}
 		}
@@ -114,3 +129,6 @@ export default class VariableDeclarator extends NodeBase {
 }
 
 VariableDeclarator.prototype.applyDeoptimizations = doNotDeoptimize;
+
+const SYMBOL_DISPOSE_PATH: ObjectPath = [SymbolDispose];
+const SYMBOL_ASYNC_DISPOSE_PATH: ObjectPath = [SymbolAsyncDispose];

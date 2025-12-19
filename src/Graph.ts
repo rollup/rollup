@@ -230,7 +230,8 @@ export default class Graph {
 			for (const importDescription of module.importDescriptions.values()) {
 				if (importDescription.name !== '*') {
 					const [variable, options] = importDescription.module.getVariableForExportName(
-						importDescription.name
+						importDescription.name,
+						{ importChain: [module.id] }
 					);
 					if (!variable) {
 						module.log(

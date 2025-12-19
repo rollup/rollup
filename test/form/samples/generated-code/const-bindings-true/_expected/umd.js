@@ -4,7 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, (() => {
 		const current = global.bundle;
 		const exports = global.bundle = {};
-		factory(exports, global.foo$1);
+		factory(exports, global.external);
 		exports.noConflict = () => { global.bundle = current; return exports; };
 	})());
 })(this, (function (exports, foo$1) { 'use strict';

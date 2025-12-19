@@ -5,6 +5,7 @@ module.exports = defineTest({
 		output: {
 			exports: 'named',
 			generatedCode: { reservedNamesAsProps: true },
+			globals: id => id,
 			interop(id) {
 				if (id === 'externalDefaultOnly') return 'defaultOnly';
 				return 'auto';

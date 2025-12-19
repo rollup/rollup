@@ -23,7 +23,7 @@
 					v-else-if="option.type === 'string'"
 					:value="option.value"
 					:placeholder="option.placeholder"
-					@input="optionsStore.set(option.name, $event.target.value)"
+					@input="optionsStore.set(option.name, ($event.target as HTMLInputElement).value)"
 				/>
 				<input
 					v-else-if="option.type === 'number'"
@@ -32,7 +32,7 @@
 					type="number"
 					min="0"
 					step="1"
-					@input="optionsStore.set(option.name, Number($event.target.value))"
+					@input="optionsStore.set(option.name, Number(($event.target as HTMLInputElement).value))"
 				/>
 				<div
 					v-for="imported in option.keys"
@@ -41,9 +41,12 @@
 					class="input-with-label"
 				>
 					<input
-						:value="option.value[imported]"
+						:value="option.value?.[imported]"
 						@input="
-							optionsStore.set(option.name, { ...option.value, [imported]: $event.target.value })
+							optionsStore.set(option.name, {
+								...option.value,
+								[imported]: ($event.target as HTMLInputElement).value
+							})
 						"
 					/>
 					<code>'{{ imported }}'</code>
@@ -53,8 +56,8 @@
 		<div v-if="optionsStore.additionalAvailableOptions.length > 0" class="add-option">
 			<select
 				@input="
-					optionsStore.addOption($event.target.value);
-					$event.target.value = '_';
+					optionsStore.addOption(($event.target as HTMLSelectElement).value);
+					($event.target as HTMLSelectElement).value = '_';
 				"
 			>
 				<option disabled selected value="_">add option</option>

@@ -25,48 +25,37 @@
         "node",
         "npm",
         "fsevents",
-        "core-js"
+        "core-js",
+        "@napi-rs/cli"
       ],
       "enabled": false
     },
     {
       "matchPackageNames": [
         "@types/node",
-        "yargs-parser"
+        "yargs-parser",
+        "@inquirer/prompts"
       ],
       "matchUpdateTypes": [
         "major"
       ],
       "enabled": false
-    },
-   {
-      "matchPackageNames": [
-        "vue-tsc"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": false,
-     "description": "vue-tsc needs to wait for an update of prettier-plugin-organize-imports to be compatible with version 3"
-    },
-    {
-      "matchDepTypes": [
-        "action"
-      ],
-      "pinDigests": true
     }
   ],
+  "pinDigests": true,
   "automerge": false,
   "internalChecksFilter": "strict",
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [
-      "before 4am on Friday"
+      "* 18-23 * * 4",
+      "* 0-5 * * 5"
     ]
   },
   "minimumReleaseAge": "3 days",
   "schedule": [
-    "before 4am on Friday"
+    "* 18-23 * * 4",
+    "* 0-5 * * 5"
   ],
   "automergeStrategy": "squash"
 }

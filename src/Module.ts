@@ -166,7 +166,8 @@ function getVariableForExportNameRecursive(
 	name: string,
 	importerForSideEffects: Module | undefined,
 	isExportAllSearch: boolean | undefined,
-	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
+	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>(),
+	importChain: string[]
 ): [variable: Variable | null, options?: VariableOptions] {
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
@@ -178,6 +179,7 @@ function getVariableForExportNameRecursive(
 		searchedNamesAndModules.set(name, new Set([target]));
 	}
 	return target.getVariableForExportName(name, {
+		importChain,
 		importerForSideEffects,
 		isExportAllSearch,
 		searchedNamesAndModules
@@ -240,7 +242,7 @@ export default class Module {
 	shebang: undefined | string;
 	readonly importers: string[] = [];
 	readonly includedDynamicImporters: Module[] = [];
-	readonly includedDirectTopLevelAwaitingDynamicImporters = new Set<Module>();
+	readonly includedTopLevelAwaitingDynamicImporters = new Set<Module>();
 	readonly includedImports = new Set<Variable>();
 	readonly info: ModuleInfo;
 	isExecuted = false;
@@ -387,6 +389,7 @@ export default class Module {
 			},
 			meta: { ...meta },
 			moduleSideEffects,
+			safeVariableNames: null,
 			syntheticNamedExports
 		};
 	}
@@ -595,11 +598,13 @@ export default class Module {
 		name: string,
 		{
 			importerForSideEffects,
+			importChain = [],
 			isExportAllSearch,
 			onlyExplicit,
 			searchedNamesAndModules
 		}: {
 			importerForSideEffects?: Module;
+			importChain?: string[];
 			isExportAllSearch?: boolean;
 			onlyExplicit?: boolean;
 			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
@@ -612,7 +617,9 @@ export default class Module {
 			}
 			// export * from 'external'
 			const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
-			return module.getVariableForExportName('*');
+			return module.getVariableForExportName('*', {
+				importChain: [...importChain, this.id]
+			});
 		}
 
 		// export { foo } from './other'
@@ -623,7 +630,8 @@ export default class Module {
 				reexportDeclaration.localName,
 				importerForSideEffects,
 				false,
-				searchedNamesAndModules
+				searchedNamesAndModules,
+				[...importChain, this.id]
 			);
 			if (!variable) {
 				return this.error(
@@ -683,7 +691,8 @@ export default class Module {
 				this.getVariableFromNamespaceReexports(
 					name,
 					importerForSideEffects,
-					searchedNamesAndModules
+					searchedNamesAndModules,
+					[...importChain, this.id]
 				);
 			this.namespaceReexportsByName.set(name, foundNamespaceReexport);
 			if (foundNamespaceReexport[0]) {
@@ -840,6 +849,7 @@ export default class Module {
 		sourcemapChain,
 		transformDependencies,
 		transformFiles,
+		safeVariableNames,
 		...moduleOptions
 	}: TransformModuleJSON & {
 		resolvedIds?: ResolvedIdMap;
@@ -852,6 +862,7 @@ export default class Module {
 		}
 
 		this.info.code = code;
+		this.info.safeVariableNames = safeVariableNames;
 		this.originalCode = originalCode;
 
 		// We need to call decodedSourcemap on the input in case they were hydrated from json in the cache and don't
@@ -964,7 +975,6 @@ export default class Module {
 			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
-
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
 			meta: this.info.meta,
@@ -972,6 +982,7 @@ export default class Module {
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
+			safeVariableNames: this.info.safeVariableNames,
 			sourcemapChain: this.sourcemapChain,
 			syntheticNamedExports: this.info.syntheticNamedExports,
 			transformDependencies: this.transformDependencies,
@@ -1009,7 +1020,8 @@ export default class Module {
 				importDescription.name,
 				importerForSideEffects || this,
 				isExportAllSearch,
-				searchedNamesAndModules
+				searchedNamesAndModules,
+				[this.id]
 			);
 
 			if (!declaration) {
@@ -1273,7 +1285,7 @@ export default class Module {
 	): Variable {
 		const { id } = this.resolvedIds[importSource!];
 		const module = this.graph.modulesById.get(id)!;
-		const [variable] = module.getVariableForExportName(baseName);
+		const [variable] = module.getVariableForExportName(baseName, { importChain: [this.id] });
 		if (!variable) {
 			return this.error(logMissingJsxExport(baseName, id, this.id), nodeStart);
 		}
@@ -1282,8 +1294,9 @@ export default class Module {
 
 	private getVariableFromNamespaceReexports(
 		name: string,
-		importerForSideEffects?: Module,
-		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
+		importerForSideEffects: Module | undefined,
+		searchedNamesAndModules: Map<string, Set<Module | ExternalModule>> | undefined,
+		importChain: string[]
 	): [variable: Variable | null, options?: VariableOptions] {
 		let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
 		const foundInternalDeclarations = new Map<Variable, Module>();
@@ -1300,7 +1313,8 @@ export default class Module {
 				true,
 				// We are creating a copy to handle the case where the same binding is
 				// imported through different namespace reexports gracefully
-				copyNameToModulesMap(searchedNamesAndModules)
+				copyNameToModulesMap(searchedNamesAndModules),
+				importChain
 			);
 
 			if (module instanceof ExternalModule || options?.indirectExternal) {
@@ -1357,7 +1371,9 @@ export default class Module {
 		const syntheticNamespaces = new Set<Variable>();
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
-				const [externalVariable] = module.getVariableForExportName('*');
+				const [externalVariable] = module.getVariableForExportName('*', {
+					importChain: [this.id]
+				});
 				externalVariable.includePath(UNKNOWN_PATH, createInclusionContext());
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
@@ -1379,8 +1395,10 @@ export default class Module {
 		if (resolution instanceof Module) {
 			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);
-				if (node.withinTopLevelAwait) {
-					resolution.includedDirectTopLevelAwaitingDynamicImporters.add(this);
+				// If a module has a top-level await, removing this entry can create
+				// deadlocks.
+				if (this.astContext.usesTopLevelAwait) {
+					resolution.includedTopLevelAwaitingDynamicImporters.add(this);
 				}
 			}
 

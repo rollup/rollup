@@ -11,7 +11,7 @@ import type {
 import {
 	isAnyWellKnown,
 	isConcreteKey,
-	isOptimizedWellKnown,
+	SymbolHasInstance,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
@@ -419,7 +419,7 @@ export class ObjectEntity extends ExpressionEntity {
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);
-			if (isAnyWellKnown(key) && !isOptimizedWellKnown(key)) {
+			if (isAnyWellKnown(key) && key != SymbolHasInstance) {
 				// Never treeshake well-known symbols (unless Rollup can optimize them)
 				// They are most likely called implicitly by language semantics, don't get rid of them
 				alwaysIncludedProperties.add(property);

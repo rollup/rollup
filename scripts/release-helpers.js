@@ -77,7 +77,9 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 				repo.listCommitsOnPR(pr)
 			]);
 			const mainAuthor = pullRequest.user.login;
-			const otherAuthors = new Set(commits.map(({ author: { login } }) => login));
+			const otherAuthors = new Set(
+				commits.map(({ author, commit }) => author?.login || commit.author.name)
+			);
 			otherAuthors.delete(mainAuthor);
 			const bodyWithoutComments = pullRequest.body.replace(/<!--[\S\s]*?-->/g, '');
 			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;

@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external'), require('externalDefaultOnly'), require('external2')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external', 'externalDefaultOnly', 'external2'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.external, global.defaultOnly, global.someDefault));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.external, global.externalDefaultOnly, global.external2));
 })(this, (function (exports, external, defaultOnly, someDefault) { 'use strict';
 
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }

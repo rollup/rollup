@@ -19,11 +19,11 @@ export const UnknownFalsyValue = Symbol('Unknown Falsy Value');
 
 export type LiteralValueOrUnknown =
 	| LiteralValue
-	| WellKnownSymbol
 	| typeof UnknownValue
 	| typeof UnknownWellKnown
 	| typeof UnknownTruthyValue
-	| typeof UnknownFalsyValue;
+	| typeof UnknownFalsyValue
+	| WellKnownSymbol;
 
 export interface InclusionOptions {
 	/**

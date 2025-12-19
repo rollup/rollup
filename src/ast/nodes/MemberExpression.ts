@@ -7,7 +7,7 @@ import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createHasEffectsContext, createInclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
@@ -27,10 +27,10 @@ import {
 	type ObjectPath,
 	type ObjectPathKey,
 	SHARED_RECURSION_TRACKER,
-	SymbolToStringTag,
 	UNKNOWN_PATH,
 	UnknownKey,
-	UnknownNonAccessorKey
+	UnknownNonAccessorKey,
+	WELL_KNOWN_SYMBOLS
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
@@ -440,25 +440,14 @@ export default class MemberExpression
 		}
 	}
 
-	includeDestructuredIfNecessary(
-		context: InclusionContext,
-		destructuredInitPath: ObjectPath,
-		init: ExpressionEntity
-	): boolean {
-		if (
-			(this.included ||=
-				destructuredInitPath.length > 0 &&
-				!context.brokenFlow &&
-				init.hasEffectsOnInteractionAtPath(
-					destructuredInitPath,
-					NODE_INTERACTION_UNKNOWN_ACCESS,
-					createHasEffectsContext()
-				))
-		) {
-			init.include(context, false);
-			return true;
-		}
-		return false;
+	includeDestructuredIfNecessary(): boolean {
+		/* istanbul ignore next */
+		this.scope.context.error(
+			{
+				message: 'includeDestructuredIfNecessary is currently not supported for MemberExpressions'
+			},
+			this.start
+		);
 	}
 
 	initialise(): void {
@@ -570,11 +559,11 @@ export default class MemberExpression
 			this.dynamicPropertyKey = this.propertyKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
 			return (this.dynamicPropertyKey =
-				value === SymbolToStringTag
-					? value
-					: typeof value === 'symbol'
-						? UnknownKey
-						: String(value));
+				typeof value === 'symbol'
+					? WELL_KNOWN_SYMBOLS.has(value)
+						? value
+						: UnknownKey
+					: String(value));
 		}
 		return this.dynamicPropertyKey;
 	}

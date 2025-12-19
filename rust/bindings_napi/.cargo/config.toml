@@ -1,10 +1,6 @@
 [build]
 rustflags = "-Z location-detail=none"
 
-[unstable]
-build-std = ["std", "core", "alloc", "panic_unwind"]
-build-std-features = ["panic-unwind"]
-
 [target.loongarch64-unknown-linux-gnu]
 linker = "loongarch64-linux-gnu-gcc"
 

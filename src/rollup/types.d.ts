@@ -125,6 +125,7 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 export interface TransformModuleJSON {
 	ast?: ProgramNode | undefined;
 	code: string;
+	safeVariableNames: Record<string, string> | null;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
 	originalCode: string;
@@ -134,6 +135,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
+	safeVariableNames: Record<string, string> | null;
 	ast: ProgramNode;
 	dependencies: string[];
 	id: string;
@@ -198,6 +200,7 @@ export interface ModuleInfo extends ModuleOptions {
 	dynamicallyImportedIds: readonly string[];
 	exportedBindings: Record<string, string[]> | null;
 	exports: string[] | null;
+	safeVariableNames: Record<string, string> | null;
 	hasDefaultExport: boolean | null;
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
@@ -559,7 +562,8 @@ export type PluginHooks = {
 };
 
 export interface OutputPlugin
-	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
+	extends
+		Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
 		Partial<Record<AddonHooks, ObjectHook<AddonHook>>> {
 	cacheKey?: string | undefined;
 	name: string;
@@ -615,8 +619,9 @@ export interface NormalizedTreeshakingOptions {
 	unknownGlobalSideEffects: boolean;
 }
 
-export interface TreeshakingOptions
-	extends Partial<Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>> {
+export interface TreeshakingOptions extends Partial<
+	Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>
+> {
 	moduleSideEffects?: ModuleSideEffectsOption | undefined;
 	preset?: TreeshakingPreset | undefined;
 }
@@ -818,6 +823,8 @@ export interface OutputOptions {
 	minifyInternalExports?: boolean | undefined;
 	name?: string | undefined;
 	noConflict?: boolean | undefined;
+	/** @deprecated This will be the new default in Rollup 5. */
+	onlyExplicitManualChunks?: boolean | undefined;
 	outro?: string | AddonFunction | undefined;
 	paths?: OptionsPaths | undefined;
 	plugins?: OutputPluginOption | undefined;
@@ -873,6 +880,7 @@ export interface NormalizedOutputOptions {
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	noConflict: boolean;
+	onlyExplicitManualChunks: boolean;
 	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];

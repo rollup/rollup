@@ -13,6 +13,8 @@ import type { ObjectPath, WellKnownSymbol } from '../../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	SHARED_RECURSION_TRACKER,
+	SymbolAsyncDispose,
+	SymbolDispose,
 	SymbolHasInstance,
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
@@ -41,7 +43,7 @@ const getUnknownValue = (): LiteralValueOrUnknown => UnknownValue;
 const returnFalse = () => false;
 const returnTrue = () => true;
 
-const mkWellKnownSymbol = (symbol: WellKnownSymbol) => ({
+const getWellKnownSymbol = (symbol: WellKnownSymbol) => ({
 	__proto__: null,
 	[ValueProperties]: {
 		deoptimizeArgumentsOnCall: doNothing,
@@ -366,9 +368,10 @@ const knownGlobals: GlobalDescription = {
 		for: PF,
 		keyFor: PF,
 		prototype: O,
-		// Well-known symbols
-		hasInstance: mkWellKnownSymbol(SymbolHasInstance),
-		toStringTag: mkWellKnownSymbol(SymbolToStringTag)
+		asyncDispose: getWellKnownSymbol(SymbolAsyncDispose),
+		dispose: getWellKnownSymbol(SymbolDispose),
+		hasInstance: getWellKnownSymbol(SymbolHasInstance),
+		toStringTag: getWellKnownSymbol(SymbolToStringTag)
 	},
 	SyntaxError: PC,
 	toLocaleString: O,

@@ -1,3 +1,5 @@
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../utils/PathTracker';
@@ -86,24 +88,33 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 	): boolean {
 		let included = false;
 		const includedPatternPath = getIncludedPatternPath(destructuredInitPath);
-		for (const element of this.elements) {
+		for (const element of [...this.elements].reverse()) {
 			if (element) {
-				element.included ||= included;
+				if (included && !element.included) {
+					element.includeNode(context);
+				}
 				included =
 					element.includeDestructuredIfNecessary(context, includedPatternPath, init) || included;
 			}
 		}
-		if (included) {
-			// This is necessary so that if any pattern element is included, all are
-			// included for proper deconflicting
-			for (const element of this.elements) {
-				if (element && !element.included) {
-					element.included = true;
-					element.includeDestructuredIfNecessary(context, includedPatternPath, init);
-				}
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
+	}
+
+	render(code: MagicString, options: RenderOptions): void {
+		let removedStart = this.start + 1;
+		for (const element of this.elements) {
+			if (!element) continue;
+			if (element.included) {
+				element.render(code, options);
+				removedStart = element.end;
+			} else {
+				code.remove(removedStart, this.end - 1);
+				break;
 			}
 		}
-		return (this.included ||= included);
 	}
 
 	markDeclarationReached(): void {

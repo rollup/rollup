@@ -1,5 +1,5 @@
 {
-  "name": "@rollup/rollup-linux-loongarch64-gnu",
+  "name": "@rollup/rollup-linux-loong64-gnu",
   "version": "0.0.0",
   "os": [
     "linux"
@@ -8,15 +8,18 @@
     "loong64"
   ],
   "files": [
-    "rollup.linux-loongarch64-gnu.node"
+    "rollup.linux-loong64-gnu.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
   "homepage": "https://rollupjs.org/",
   "license": "MIT",
-  "repository": "rollup/rollup",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rollup/rollup.git"
+  },
   "libc": [
     "glibc"
   ],
-  "main": "./rollup.linux-loongarch64-gnu.node"
+  "main": "./rollup.linux-loong64-gnu.node"
 }

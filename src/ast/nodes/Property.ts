@@ -84,13 +84,16 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		if ((included ||= this.key.hasEffects(createHasEffectsContext()))) {
 			this.key.include(context, false);
 			if (!this.value.included) {
-				this.value.included = true;
+				this.value.includeNode(context);
 				// Unfortunately, we need to include the value again now, so that any
 				// declared variables are properly included.
 				(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init);
 			}
 		}
-		return (this.included = included);
+		if (!this.included && included) {
+			this.includeNode(context);
+		}
+		return this.included;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {

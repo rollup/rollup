@@ -27,7 +27,7 @@ impl AstConverter<'_> {
         if *can_be_directive {
           if let Stmt::Expr(expression) = statement {
             if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
-              ast_converter.store_directive(expression, &string.value);
+              ast_converter.store_directive(expression, string.value.as_atom().unwrap());
               return (true, None);
             }
           }
