@@ -209,7 +209,7 @@ jobs:
         if: ${{ matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
           node-version: 24.10.0
-      - uses: msys2/setup-msys2@fb197b72ce45fb24f17bf3f807a388985654d1f2 # v2
+      - uses: msys2/setup-msys2@4f806de0a5a7294ffabaff804b38a9b435a73bda # v2
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         with:
           msystem: ${{ matrix.settings.msystem }}
@@ -232,7 +232,7 @@ jobs:
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@3c181b3244cec76aaec289ab84fb00f55f2fce3f # v0.2.4
       - name: Restore Cargo cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         if: matrix.settings.cache-cargo != false
         with:
           path: |
@@ -248,7 +248,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@073d46cba2cde38f6698c798566c1b3e24feeb44 # v2.62.67
+        uses: taiki-e/install-action@d850aa816998e5cf15f67a78c7b933f2a5033f8a # v2.63.3
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -280,7 +280,7 @@ jobs:
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
             ~/.cargo/registry/index/
@@ -290,14 +290,14 @@ jobs:
             rust/target/
           key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload wasm artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: bindings-${{ matrix.settings.name }}
           path: ${{ matrix.settings.path }}
           if-no-files-found: error
         if: ${{ matrix.settings.is-wasm-build }}
       - name: Upload napi artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
@@ -349,7 +349,7 @@ jobs:
       - name: Build JS
         run: npm run build:cjs
       - name: Download napi artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
