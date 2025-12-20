@@ -13,6 +13,10 @@ export const SymbolDispose = Symbol('Symbol.asyncDispose');
 export const SymbolAsyncDispose = Symbol('Symbol.dispose');
 export const SymbolHasInstance = Symbol('Symbol.hasInstance');
 
+interface SymbolSet<T extends symbol> extends Set<T> {
+	has(symbol: symbol): symbol is T;
+}
+
 const WELL_KNOWN_SYMBOLS_LIST = [
 	SymbolToStringTag,
 	SymbolDispose,
@@ -20,14 +24,17 @@ const WELL_KNOWN_SYMBOLS_LIST = [
 	SymbolHasInstance
 ] as const;
 export type WellKnownSymbol = (typeof WELL_KNOWN_SYMBOLS_LIST)[number];
-export type AnyWellKnownSymbol = WellKnownSymbol | typeof UnknownWellKnown;
+export const WELL_KNOWN_SYMBOLS = new Set(WELL_KNOWN_SYMBOLS_LIST) as SymbolSet<WellKnownSymbol>;
 
-interface WellKnownSymbolSet extends Set<symbol> {
-	has(symbol: symbol): symbol is WellKnownSymbol;
-}
-export const WELL_KNOWN_SYMBOLS = new Set(WELL_KNOWN_SYMBOLS_LIST) as WellKnownSymbolSet;
+type AnyWellKnownSymbol = WellKnownSymbol | typeof UnknownWellKnown;
 export const isAnyWellKnown = (v: any): v is AnyWellKnownSymbol =>
 	WELL_KNOWN_SYMBOLS.has(v) || v === UnknownWellKnown;
+
+const TREE_SHAKEABLE_SYMBOLS_LIST = [SymbolHasInstance, SymbolDispose, SymbolAsyncDispose] as const;
+type TreeShakeableSymbol = (typeof TREE_SHAKEABLE_SYMBOLS_LIST)[number];
+export const TREE_SHAKEABLE_SYMBOLS = new Set(
+	TREE_SHAKEABLE_SYMBOLS_LIST
+) as SymbolSet<TreeShakeableSymbol>;
 
 export type ConcreteKey = string | WellKnownSymbol;
 export type ObjectPathKey =
