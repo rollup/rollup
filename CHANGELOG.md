@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 4.54.0
+
+_2025-12-20_
+
+### Features
+
+- Enable tree-shaking for `Symbol.hasInstance`, `Symbol.dispose` and `Symbol.asyncDispose` properties if unused (#6046)
+
+### Bug Fixes
+
+- Ensure that well-known-Symbol-valued properties are not tree-shaken except in select cases (#6046)
+- Ensure namespace properties are included when referenced only from a try-catch (#6216)
+
+### Pull Requests
+
+- [#6046](https://github.com/rollup/rollup/pull/6046): fix: correctly handle wellknown protocols (@cyyynthia, @lukastaegert)
+- [#6201](https://github.com/rollup/rollup/pull/6201): chore(deps): update dependency lru-cache to v11 (@renovate[bot], @lukastaegert)
+- [#6211](https://github.com/rollup/rollup/pull/6211): chore(deps): update msys2/setup-msys2 digest to 4f806de (@renovate[bot], @lukastaegert)
+- [#6212](https://github.com/rollup/rollup/pull/6212): chore(deps): update actions/cache action to v5 (@renovate[bot])
+- [#6213](https://github.com/rollup/rollup/pull/6213): chore(deps): update github artifact actions (major) (@renovate[bot])
+- [#6214](https://github.com/rollup/rollup/pull/6214): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6215](https://github.com/rollup/rollup/pull/6215): chore(deps): lock file maintenance (@renovate[bot])
+- [#6216](https://github.com/rollup/rollup/pull/6216): fix: include namespace variable paths during try-catch deoptimization (@schwing)
+
 ## 4.53.5
 
 _2025-12-16_
