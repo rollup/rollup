@@ -9,15 +9,17 @@ import {
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
 } from '../../NodeInteractions';
 import { isObjectExpressionNode, isPropertyNode } from '../../utils/identifyNode';
-import type { ObjectPath } from '../../utils/PathTracker';
+import type { ObjectPath, WellKnownSymbol } from '../../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	SHARED_RECURSION_TRACKER,
 	SymbolAsyncDispose,
 	SymbolDispose,
+	SymbolHasInstance,
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownWellKnown
 } from '../../utils/PathTracker';
 import ArrayExpression from '../ArrayExpression';
 import type { LiteralValueOrUnknown } from './Expression';
@@ -40,6 +42,15 @@ interface GlobalDescription {
 const getUnknownValue = (): LiteralValueOrUnknown => UnknownValue;
 const returnFalse = () => false;
 const returnTrue = () => true;
+
+const getWellKnownSymbol = (symbol: WellKnownSymbol) => ({
+	__proto__: null,
+	[ValueProperties]: {
+		deoptimizeArgumentsOnCall: doNothing,
+		getLiteralValue: () => symbol,
+		hasEffectsWhenCalled: returnTrue
+	}
+});
 
 const PURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
@@ -149,6 +160,12 @@ const INTL_MEMBER: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE,
 	supportedLocalesOf: PC
+};
+
+const UNKNOWN_WELL_KNOWN: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
+	getLiteralValue: () => UnknownWellKnown,
+	hasEffectsWhenCalled: returnTrue
 };
 
 const knownGlobals: GlobalDescription = {
@@ -351,37 +368,10 @@ const knownGlobals: GlobalDescription = {
 		for: PF,
 		keyFor: PF,
 		prototype: O,
-		asyncDispose: {
-			__proto__: null,
-			[ValueProperties]: {
-				deoptimizeArgumentsOnCall: doNothing,
-				getLiteralValue() {
-					return SymbolAsyncDispose;
-				},
-				// This might not be needed, but then we need to check a few more cases
-				hasEffectsWhenCalled: returnTrue
-			}
-		},
-		dispose: {
-			__proto__: null,
-			[ValueProperties]: {
-				deoptimizeArgumentsOnCall: doNothing,
-				getLiteralValue() {
-					return SymbolDispose;
-				},
-				hasEffectsWhenCalled: returnTrue
-			}
-		},
-		toStringTag: {
-			__proto__: null,
-			[ValueProperties]: {
-				deoptimizeArgumentsOnCall: doNothing,
-				getLiteralValue() {
-					return SymbolToStringTag;
-				},
-				hasEffectsWhenCalled: returnTrue
-			}
-		}
+		asyncDispose: getWellKnownSymbol(SymbolAsyncDispose),
+		dispose: getWellKnownSymbol(SymbolDispose),
+		hasInstance: getWellKnownSymbol(SymbolHasInstance),
+		toStringTag: getWellKnownSymbol(SymbolToStringTag)
 	},
 	SyntaxError: PC,
 	toLocaleString: O,
@@ -1059,7 +1049,9 @@ export function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 		}
 		currentGlobal = currentGlobal[pathSegment];
 		if (!currentGlobal) {
-			return null;
+			// Well-known symbols very often have a complex meaning and are invoked implicitly by the language.
+			// Resolve them to a special value so they can be distinguished and excluded from treeshaking.
+			return path[0] === 'Symbol' && path.length === 2 ? UNKNOWN_WELL_KNOWN : null;
 		}
 	}
 	return currentGlobal[ValueProperties];

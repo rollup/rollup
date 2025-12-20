@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	description: 'preserves Symbol.dispose side effects when used in using statement',
+	description: 'preserves Symbol.asyncDispose side effects when used in an async using statement',
 	minNodeVersion: 24,
 	async exports({ run }) {
 		await run();

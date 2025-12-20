@@ -2,13 +2,22 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
-import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
+import type {
+	ConcreteKey,
+	EntityPathTracker,
+	ObjectPath,
+	ObjectPathKey
+} from '../../utils/PathTracker';
 import {
+	isAnyWellKnown,
+	isConcreteKey,
+	TREE_SHAKEABLE_SYMBOLS,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
 	UnknownKey,
-	UnknownNonAccessorKey
+	UnknownNonAccessorKey,
+	UnknownWellKnown
 } from '../../utils/PathTracker';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { LiteralValueOrUnknown } from './Expression';
@@ -27,7 +36,7 @@ export interface ObjectProperty {
 	property: ExpressionEntity;
 }
 
-export type PropertyMap = Record<string, ExpressionEntity[]>;
+export type PropertyMap = Map<ConcreteKey, ExpressionEntity[]>;
 const INTEGER_REG_EXP = /^\d+$/;
 
 export class ObjectEntity extends ExpressionEntity {
@@ -54,14 +63,14 @@ export class ObjectEntity extends ExpressionEntity {
 
 	private readonly additionalExpressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly allProperties: ExpressionEntity[] = [];
-	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
-	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
-		Object.create(null);
-	private readonly gettersByKey: PropertyMap = Object.create(null);
+	private readonly alwaysIncludedProperties = new Set<ExpressionEntity>();
+	private readonly deoptimizedPaths = new Map<ConcreteKey, boolean>();
+	private readonly expressionsToBeDeoptimizedByKey = new Map<ConcreteKey, DeoptimizableEntity[]>();
+	private readonly gettersByKey: PropertyMap = new Map();
 
-	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
-	private readonly propertiesAndSettersByKey: PropertyMap = Object.create(null);
-	private readonly settersByKey: PropertyMap = Object.create(null);
+	private readonly propertiesAndGettersByKey: PropertyMap = new Map();
+	private readonly propertiesAndSettersByKey: PropertyMap = new Map();
+	private readonly settersByKey: PropertyMap = new Map();
 	private readonly unknownIntegerProps: ExpressionEntity[] = [];
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
@@ -80,7 +89,7 @@ export class ObjectEntity extends ExpressionEntity {
 			this.buildPropertyMaps(properties);
 		} else {
 			this.propertiesAndGettersByKey = this.propertiesAndSettersByKey = properties;
-			for (const propertiesForKey of Object.values(properties)) {
+			for (const propertiesForKey of properties.values()) {
 				this.allProperties.push(...propertiesForKey);
 			}
 		}
@@ -97,8 +106,8 @@ export class ObjectEntity extends ExpressionEntity {
 			return;
 		}
 		for (const properties of [
-			...Object.values(this.propertiesAndGettersByKey),
-			...Object.values(this.settersByKey)
+			...this.propertiesAndGettersByKey.values(),
+			...this.settersByKey.values()
 		]) {
 			for (const property of properties) {
 				property.deoptimizePath(UNKNOWN_PATH);
@@ -122,7 +131,7 @@ export class ObjectEntity extends ExpressionEntity {
 			// single paths that are deoptimized will not become getters or setters
 			((type === INTERACTION_CALLED || path.length > 1) &&
 				(this.hasUnknownDeoptimizedProperty ||
-					(typeof key === 'string' && this.deoptimizedPaths[key])))
+					(isConcreteKey(key) && this.deoptimizedPaths.get(key))))
 		) {
 			deoptimizeInteraction(interaction);
 			return;
@@ -139,9 +148,9 @@ export class ObjectEntity extends ExpressionEntity {
 					? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
 					: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 
-		if (typeof key === 'string') {
-			if (propertiesForExactMatchByKey[key]) {
-				const properties = relevantPropertiesByKey[key];
+		if (isConcreteKey(key)) {
+			if (propertiesForExactMatchByKey.get(key)) {
+				const properties = relevantPropertiesByKey.get(key);
 				if (properties) {
 					for (const property of properties) {
 						property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
@@ -159,14 +168,14 @@ export class ObjectEntity extends ExpressionEntity {
 			for (const property of relevantUnmatchableProperties) {
 				property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
-			if (INTEGER_REG_EXP.test(key)) {
+			if (typeof key === 'string' && INTEGER_REG_EXP.test(key)) {
 				for (const property of this.unknownIntegerProps) {
 					property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 		} else {
 			for (const properties of [
-				...Object.values(relevantPropertiesByKey),
+				...relevantPropertiesByKey.values(),
 				relevantUnmatchableProperties
 			]) {
 				for (const property of properties) {
@@ -200,8 +209,9 @@ export class ObjectEntity extends ExpressionEntity {
 			return;
 		}
 		this.hasUnknownDeoptimizedInteger = true;
-		for (const [key, propertiesAndGetters] of Object.entries(this.propertiesAndGettersByKey)) {
-			if (INTEGER_REG_EXP.test(key)) {
+		// Omits symbol keys but that's unimportant here
+		for (const [key, propertiesAndGetters] of this.propertiesAndGettersByKey.entries()) {
+			if (typeof key === 'string' && INTEGER_REG_EXP.test(key)) {
 				for (const property of propertiesAndGetters) {
 					property.deoptimizePath(UNKNOWN_PATH);
 				}
@@ -219,15 +229,15 @@ export class ObjectEntity extends ExpressionEntity {
 		if (path.length === 1) {
 			if (key === UnknownInteger) {
 				return this.deoptimizeIntegerProperties();
-			} else if (typeof key !== 'string') {
+			} else if (!isConcreteKey(key)) {
 				return this.deoptimizeAllProperties(key === UnknownNonAccessorKey);
 			}
-			if (!this.deoptimizedPaths[key]) {
-				this.deoptimizedPaths[key] = true;
+			if (!this.deoptimizedPaths.get(key)) {
+				this.deoptimizedPaths.set(key, true);
 
 				// we only deoptimizeCache exact matches as in all other cases,
 				// we do not return a literal value or return expression
-				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimizedByKey[key];
+				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimizedByKey.get(key);
 				if (expressionsToBeDeoptimized) {
 					for (const expression of expressionsToBeDeoptimized) {
 						expression.deoptimizeCache();
@@ -237,10 +247,10 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
-		for (const property of typeof key === 'string'
+		for (const property of isConcreteKey(key)
 			? [
-					...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-					...(this.settersByKey[key] || this.unmatchableSetters)
+					...(this.propertiesAndGettersByKey.get(key) || this.unmatchablePropertiesAndGetters),
+					...(this.settersByKey.get(key) || this.unmatchableSetters)
 				]
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
@@ -327,9 +337,9 @@ export class ObjectEntity extends ExpressionEntity {
 			interaction.type === INTERACTION_ACCESSED
 				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
 				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
-		if (typeof key === 'string') {
-			if (propertiesAndAccessorsByKey[key]) {
-				const accessors = accessorsByKey[key];
+		if (isConcreteKey(key)) {
+			if (propertiesAndAccessorsByKey.get(key)) {
+				const accessors = accessorsByKey.get(key);
 				if (accessors) {
 					for (const accessor of accessors) {
 						if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
@@ -343,7 +353,7 @@ export class ObjectEntity extends ExpressionEntity {
 				}
 			}
 		} else {
-			for (const accessors of [...Object.values(accessorsByKey), unmatchableAccessors]) {
+			for (const accessors of [...accessorsByKey.values(), unmatchableAccessors]) {
 				for (const accessor of accessors) {
 					if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
 				}
@@ -358,7 +368,11 @@ export class ObjectEntity extends ExpressionEntity {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const property of this.allProperties) {
-			if (includeChildrenRecursively || property.shouldBeIncluded(context)) {
+			if (
+				includeChildrenRecursively ||
+				property.shouldBeIncluded(context) ||
+				this.alwaysIncludedProperties.has(property)
+			) {
 				property.include(context, includeChildrenRecursively);
 			}
 		}
@@ -367,18 +381,21 @@ export class ObjectEntity extends ExpressionEntity {
 
 	includePath(path: ObjectPath, context: InclusionContext) {
 		this.included = true;
+		for (const property of this.alwaysIncludedProperties) {
+			property.includePath(UNKNOWN_PATH, context);
+		}
+
 		if (path.length === 0) return;
 		const [key, ...subPath] = path;
-		const [includedMembers, includedPath] =
-			typeof key === 'string'
-				? [
-						new Set([
-							...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-							...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
-						]),
-						subPath
-					]
-				: [this.allProperties, UNKNOWN_PATH];
+		const [includedMembers, includedPath] = isConcreteKey(key)
+			? [
+					new Set([
+						...(this.propertiesAndGettersByKey.get(key) || this.unmatchablePropertiesAndGetters),
+						...(this.propertiesAndSettersByKey.get(key) || this.unmatchablePropertiesAndSetters)
+					]),
+					subPath
+				]
+			: [this.allProperties, UNKNOWN_PATH];
 		for (const property of includedMembers) {
 			property.includePath(includedPath, context);
 		}
@@ -388,6 +405,7 @@ export class ObjectEntity extends ExpressionEntity {
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
 		const {
 			allProperties,
+			alwaysIncludedProperties,
 			propertiesAndGettersByKey,
 			propertiesAndSettersByKey,
 			settersByKey,
@@ -401,23 +419,30 @@ export class ObjectEntity extends ExpressionEntity {
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);
-			if (typeof key === 'string') {
+			if (isAnyWellKnown(key) && !TREE_SHAKEABLE_SYMBOLS.has(key)) {
+				// Never treeshake well-known symbols (unless Rollup can optimize them)
+				// They are most likely called implicitly by language semantics, don't get rid of them
+				alwaysIncludedProperties.add(property);
+				if (key === UnknownWellKnown) continue;
+			}
+
+			if (isConcreteKey(key)) {
 				if (kind === 'set') {
-					if (!propertiesAndSettersByKey[key]) {
-						propertiesAndSettersByKey[key] = [property, ...unmatchablePropertiesAndSetters];
-						settersByKey[key] = [property, ...unmatchableSetters];
+					if (!propertiesAndSettersByKey.has(key)) {
+						propertiesAndSettersByKey.set(key, [property, ...unmatchablePropertiesAndSetters]);
+						settersByKey.set(key, [property, ...unmatchableSetters]);
 					}
 				} else if (kind === 'get') {
-					if (!propertiesAndGettersByKey[key]) {
-						propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters];
-						gettersByKey[key] = [property, ...unmatchableGetters];
+					if (!propertiesAndGettersByKey.has(key)) {
+						propertiesAndGettersByKey.set(key, [property, ...unmatchablePropertiesAndGetters]);
+						gettersByKey.set(key, [property, ...unmatchableGetters]);
 					}
 				} else {
-					if (!propertiesAndSettersByKey[key]) {
-						propertiesAndSettersByKey[key] = [property, ...unmatchablePropertiesAndSetters];
+					if (!propertiesAndSettersByKey.has(key)) {
+						propertiesAndSettersByKey.set(key, [property, ...unmatchablePropertiesAndSetters]);
 					}
-					if (!propertiesAndGettersByKey[key]) {
-						propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters];
+					if (!propertiesAndGettersByKey.has(key)) {
+						propertiesAndGettersByKey.set(key, [property, ...unmatchablePropertiesAndGetters]);
 					}
 				}
 			} else {
@@ -434,7 +459,7 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	private deoptimizeCachedEntities() {
-		for (const expressionsToBeDeoptimized of Object.values(this.expressionsToBeDeoptimizedByKey)) {
+		for (const expressionsToBeDeoptimized of this.expressionsToBeDeoptimizedByKey.values()) {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
@@ -445,10 +470,11 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	private deoptimizeCachedIntegerEntities() {
-		for (const [key, expressionsToBeDeoptimized] of Object.entries(
-			this.expressionsToBeDeoptimizedByKey
-		)) {
-			if (INTEGER_REG_EXP.test(key)) {
+		for (const [
+			key,
+			expressionsToBeDeoptimized
+		] of this.expressionsToBeDeoptimizedByKey.entries()) {
+			if (typeof key === 'string' && INTEGER_REG_EXP.test(key)) {
 				for (const expression of expressionsToBeDeoptimized) {
 					expression.deoptimizeCache();
 				}
@@ -463,20 +489,20 @@ export class ObjectEntity extends ExpressionEntity {
 		if (
 			this.hasLostTrack ||
 			this.hasUnknownDeoptimizedProperty ||
-			typeof key !== 'string' ||
-			(this.hasUnknownDeoptimizedInteger && INTEGER_REG_EXP.test(key)) ||
-			this.deoptimizedPaths[key]
+			!isConcreteKey(key) ||
+			(this.hasUnknownDeoptimizedInteger && typeof key === 'string' && INTEGER_REG_EXP.test(key)) ||
+			this.deoptimizedPaths.get(key)
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
-		const properties = this.propertiesAndGettersByKey[key];
+		const properties = this.propertiesAndGettersByKey.get(key);
 		if (properties?.length === 1) {
 			return properties[0];
 		}
 		if (
 			properties ||
 			this.unmatchablePropertiesAndGetters.length > 0 ||
-			(this.unknownIntegerProps.length > 0 && INTEGER_REG_EXP.test(key))
+			(this.unknownIntegerProps.length > 0 && typeof key === 'string' && INTEGER_REG_EXP.test(key))
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
@@ -487,13 +513,15 @@ export class ObjectEntity extends ExpressionEntity {
 		key: ObjectPathKey,
 		origin: DeoptimizableEntity
 	): ExpressionEntity | null {
-		if (typeof key !== 'string') {
+		if (!isConcreteKey(key)) {
 			return UNKNOWN_EXPRESSION;
 		}
 		const expression = this.getMemberExpression(key);
 		if (!(expression === UNKNOWN_EXPRESSION || this.immutable)) {
-			const expressionsToBeDeoptimized = (this.expressionsToBeDeoptimizedByKey[key] =
-				this.expressionsToBeDeoptimizedByKey[key] || []);
+			let expressionsToBeDeoptimized = this.expressionsToBeDeoptimizedByKey.get(key);
+			if (!expressionsToBeDeoptimized) {
+				this.expressionsToBeDeoptimizedByKey.set(key, (expressionsToBeDeoptimized = []));
+			}
 			expressionsToBeDeoptimized.push(origin);
 		}
 		return expression;

@@ -2,7 +2,12 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
-import type { EntityPathTracker, ObjectPath, WellKnownSymbol } from '../../utils/PathTracker';
+import type {
+	EntityPathTracker,
+	ObjectPath,
+	UnknownWellKnown,
+	WellKnownSymbol
+} from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
@@ -15,6 +20,7 @@ export const UnknownFalsyValue = Symbol('Unknown Falsy Value');
 export type LiteralValueOrUnknown =
 	| LiteralValue
 	| typeof UnknownValue
+	| typeof UnknownWellKnown
 	| typeof UnknownTruthyValue
 	| typeof UnknownFalsyValue
 	| WellKnownSymbol;

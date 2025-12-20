@@ -29,7 +29,7 @@ export default class FunctionNode extends FunctionBase {
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new FunctionScope(parentScope, this);
-		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
+		this.constructedEntity = new ObjectEntity(new Map(), OBJECT_PROTOTYPE);
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.
 		this.scope.thisVariable.addArgumentForDeoptimization(this.constructedEntity);
