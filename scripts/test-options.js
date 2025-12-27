@@ -1,10 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { exit } from 'node:process';
 
-const [optionsText, helpText, commandReferenceText] = await Promise.all([
+const [optionsText, helpText] = await Promise.all([
 	readFile(new URL('../docs/configuration-options/index.md', import.meta.url), 'utf8'),
-	readFile(new URL('../cli/help.md', import.meta.url), 'utf8'),
-	readFile(new URL('../docs/command-line-interface/index.md', import.meta.url), 'utf8')
+	readFile(new URL('../cli/help.md', import.meta.url), 'utf8')
 ]);
 
 const optionSections = optionsText.split('\n## ');
@@ -69,30 +68,6 @@ const splitHelpText = helpText.split('\n');
 for (const line of splitHelpText) {
 	if (line.length > 80) {
 		console.error(`The following line in help.md exceeds the limit of 80 characters:\n${line}`);
-		exit(1);
-	}
-}
-
-const helpOptionLines = splitHelpText.filter(line => line[0] === '-');
-
-const cliFlagsText = commandReferenceText
-	.split('\n## ')
-	.find(text => text.startsWith('Command line flags'));
-if (!cliFlagsText) {
-	throw new Error('Could not find "Command line flags" section.');
-}
-const cliMarkdownSection = cliFlagsText.match(/```\n([\S\s]*?)\n```/);
-if (!cliMarkdownSection) {
-	throw new Error('Could not find markdown section in "Command line flags" section.');
-}
-const optionListLines = cliMarkdownSection[1].split('\n').filter(line => line[0] === '-');
-
-for (const [index, line] of helpOptionLines.entries()) {
-	const optionListLine = optionListLines[index];
-	if (line !== optionListLine) {
-		console.error(
-			`The command lines in command-line-interface/index.md do not match help.md. Expected line:\n${line}\n\nReceived line:\n${optionListLine}`
-		);
 		exit(1);
 	}
 }

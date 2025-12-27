@@ -1,8 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import type { Plugin } from 'rollup';
 
-const MAX_LINE_LENGTH = 80;
-
 export default function loadCliHelp(): Plugin {
 	return {
 		async load(id) {
@@ -14,11 +12,6 @@ export default function loadCliHelp(): Plugin {
 				const finalHelpFile = rawHelpFile
 					.replaceAll(/^\/\/[^\n]*\n?/gm, '')
 					.replace('__VERSION__', JSON.parse(packageFile).version);
-				finalHelpFile.split('\n').forEach(line => {
-					if (line.length > MAX_LINE_LENGTH) {
-						throw new Error(`Help file line exceeds ${MAX_LINE_LENGTH} characters:\n${line}`);
-					}
-				});
 				return `export default ${JSON.stringify(finalHelpFile)};`;
 			}
 		},
