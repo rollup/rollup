@@ -6,7 +6,9 @@ Usage: rollup [options] <entry file>
 Basic options:
 
 -c, --config <filename>     Use this config file (if argument is used but value
-                              is unspecified, defaults to rollup.config.js)
+							is unspecified, Rollup will try to load configuration files
+							in the following order:
+							rollup.config.mjs -> rollup.config.cjs -> rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
 -e, --external <ids>        Comma-separate list of module IDs to exclude
 -f, --format <format>       Type of output (amd, cjs, es, iife, umd, system)
