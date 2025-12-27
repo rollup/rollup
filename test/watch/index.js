@@ -565,7 +565,7 @@ describe('rollup.watch', function () {
 			},
 			'START',
 			'BUNDLE_START',
-			"ERROR:main.js (1:7): Expected '{', got 'nope'",
+			"ERROR:main.js (1:7): Expected '{', got 'ident'",
 			'END',
 			() => {
 				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
@@ -713,7 +713,7 @@ describe('rollup.watch', function () {
 			},
 			'START',
 			'BUNDLE_START',
-			"ERROR:main.js (1:7): Expected '{', got 'nope'",
+			"ERROR:main.js (1:7): Expected '{', got 'ident'",
 			'END',
 			() => {
 				unlinkSync(ENTRY_FILE);
@@ -751,7 +751,7 @@ describe('rollup.watch', function () {
 			},
 			'START',
 			'BUNDLE_START',
-			"ERROR:dep.js (1:7): Expected '{', got 'nope'",
+			"ERROR:dep.js (1:7): Expected '{', got 'ident'",
 			'END',
 			() => {
 				unlinkSync(path.join(INPUT_DIR, 'dep.js'));
