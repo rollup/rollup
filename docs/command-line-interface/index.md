@@ -376,7 +376,8 @@ Many options have command line equivalents. In those cases, any arguments passed
 
 ```
 -c, --config <filename>     Use this config file (if argument is used but value
-							is unspecified, Rollup will try to load configuration files in the following order:
+							is unspecified, Rollup will try to load configuration files
+							in the following order:
 							rollup.config.mjs -> rollup.config.cjs -> rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
 -e, --external <ids>        Comma-separate list of module IDs to exclude
