@@ -15,6 +15,6 @@ export default function loadCliHelp(): Plugin {
 				return `export default ${JSON.stringify(finalHelpFile)};`;
 			}
 		},
-		name: 'load-help.md'
+		name: 'load-cli-help'
 	};
 }
