@@ -173,7 +173,11 @@ export function getChunkAssignments(
 
 	// Each chunk is identified by its position in this array
 	const chunkAtoms = getChunksWithSameDependentEntries(
-		getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
+		getModulesWithDependentEntriesAndHandleTLACycles(
+			dependentEntriesByModule,
+			modulesInManualChunks,
+			chunkDefinitions
+		)
 	);
 	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(allEntries, chunkAtoms);
 	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
@@ -441,12 +445,20 @@ function getChunksWithSameDependentEntries(
 	return Object.values(chunkModules);
 }
 
-function* getModulesWithDependentEntries(
+function* getModulesWithDependentEntriesAndHandleTLACycles(
 	dependentEntriesByModule: Map<Module, Set<number>>,
-	modulesInManualChunks: Set<Module>
+	modulesInManualChunks: Set<Module>,
+	chunkDefinitions: ChunkDefinitions
 ) {
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
 		if (!modulesInManualChunks.has(module)) {
+			if (module.cycles.size > 0 && module.includedTopLevelAwaitingDynamicImporters.size > 0) {
+				chunkDefinitions.push({
+					alias: null,
+					modules: [module]
+				});
+				continue;
+			}
 			yield { dependentEntries, modules: [module] };
 		}
 	}
