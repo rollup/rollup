@@ -189,7 +189,6 @@
     "requirejs": "^2.3.8",
     "rollup": "^4.54.0",
     "rollup-plugin-license": "^3.6.0",
-    "rollup-plugin-string": "^3.0.0",
     "semver": "^7.7.3",
     "shx": "^0.4.0",
     "signal-exit": "^4.1.0",

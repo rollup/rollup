@@ -7,7 +7,6 @@ import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { fileURLToPath } from 'node:url';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
-import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
@@ -20,6 +19,7 @@ import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
+import loadCliHelp from './build-plugins/load-cli-help';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import './typings/declarations';
 
@@ -43,7 +43,7 @@ const nodePlugins: readonly Plugin[] = [
 	alias(moduleAliases),
 	nodeResolve({ preferBuiltins: true }),
 	json(),
-	string({ include: '**/*.md' }),
+	loadCliHelp(),
 	commonjs({
 		ignoreTryCatch: false,
 		include: 'node_modules/**'

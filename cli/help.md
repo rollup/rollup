@@ -3,12 +3,13 @@ rollup version __VERSION__
 
 Usage: rollup [options] <entry file>
 
-Basic options:
+Options:
 
+// #region options
 -c, --config <filename>     Use this config file (if argument is used but value
-							is unspecified, Rollup will try to load configuration files
-							in the following order:
-							rollup.config.mjs -> rollup.config.cjs -> rollup.config.js)
+                 is unspecified, Rollup will try to load configuration files in
+                 the following order:
+                 rollup.config.mjs -> rollup.config.cjs -> rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
 -e, --external <ids>        Comma-separate list of module IDs to exclude
 -f, --format <format>       Type of output (amd, cjs, es, iife, umd, system)
@@ -93,7 +94,7 @@ Basic options:
 --validate                  Validate output
 --waitForBundleInput        Wait for bundle input files
 --watch.allowInputInsideOutputPath Whether the input path is allowed to be a
-                                    subpath of the output path
+                 subpath of the output path
 --watch.buildDelay <number> Throttle watch rebuilds
 --no-watch.clearScreen      Do not clear the screen when rebuilding
 --watch.exclude <files>     Exclude files from being watched
@@ -104,6 +105,7 @@ Basic options:
 --watch.onError <cmd>       Shell command to run on `"ERROR"` event
 --watch.onStart <cmd>       Shell command to run on `"START"` event
 --watch.skipWrite           Do not write files to disk when watching
+// #endregion options
 
 Examples:
 
