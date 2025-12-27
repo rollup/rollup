@@ -1,9 +1,13 @@
 /* tslint:disable */
 /* eslint-disable */
+
 export function parse(code: string, allow_return_outside_function: boolean, jsx: boolean): Uint8Array;
-export function xxhashBase64Url(input: Uint8Array): string;
-export function xxhashBase36(input: Uint8Array): string;
+
 export function xxhashBase16(input: Uint8Array): string;
+
+export function xxhashBase36(input: Uint8Array): string;
+
+export function xxhashBase64Url(input: Uint8Array): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -20,6 +24,7 @@ export interface InitOutput {
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
+
 /**
 * Instantiates the given `module`, which can either be bytes or
 * a precompiled `WebAssembly.Module`.
