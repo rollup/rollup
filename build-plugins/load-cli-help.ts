@@ -10,10 +10,11 @@ export default function loadCliHelp(): Plugin {
 					readFile(new URL('../package.json', import.meta.url), 'utf8')
 				]);
 				const finalHelpFile = rawHelpFile
-					.replaceAll(/^\/\/[^\n]*\n?/gm, '')
+					.replaceAll(/^\/\/\s*#(end)?region[^\n]*\n/gm, '')
 					.replace('__VERSION__', JSON.parse(packageFile).version);
 				return `export default ${JSON.stringify(finalHelpFile)};`;
 			}
+			return null;
 		},
 		name: 'load-cli-help'
 	};
