@@ -8,7 +8,7 @@ module.exports = defineTest({
 	result(stdout) {
 		const [firstLine, ...restLines] = stdout.trim().split('\n');
 		assert.match(firstLine, /^rollup version \d+\.\d+\.\d+$/);
-		const expected = readFileSync(join(__dirname, '_expected.md'), 'utf8');
+		const expected = readFileSync(join(__dirname, '_expected'), 'utf8');
 		assert.equal([...restLines].join('\n'), expected.trim());
 	}
 });
