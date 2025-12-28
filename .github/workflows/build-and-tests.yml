@@ -304,6 +304,72 @@ jobs:
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
+  build-openbsd:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: x86_64-unknown-openbsd
+            os_version: '7.8'
+            arch: x86-64
+          - target: aarch64-unknown-openbsd
+            os_version: '7.8'
+            arch: arm64
+    name: Build ${{ matrix.settings.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - name: Build on OpenBSD
+        uses: cross-platform-actions/action@v0.30.0
+        with:
+          operating_system: openbsd
+          version: ${{ matrix.settings.os_version }}
+          architecture: ${{ matrix.settings.arch }}
+          shell: bash
+          run: |
+            set -e
+            # Install dependencies
+            sudo pkg_add node curl bash gcc gmake
+            node -v
+            npm -v
+
+            # Install Rust via OpenBSD packages
+            # OpenBSD doesn't support rustup, but pkg provides Rust
+            sudo pkg_add rust
+            rustc --version
+            cargo --version
+
+            # Install npm dependencies
+            npm ci
+
+            # Build natively on OpenBSD
+            # Temporarily override rust-toolchain.toml since OpenBSD doesn't support rustup
+            mv rust-toolchain.toml rust-toolchain.toml.bak || true
+            cd rust/bindings_napi
+            cargo build --release
+            cd ../..
+            mv rust-toolchain.toml.bak rust-toolchain.toml || true
+
+            # Find and rename the built library
+            LIB_FILE=$(find target/release -name "libbindings_napi.*" -type f | grep -E '\.(so|dylib)$' | head -1)
+            if [ -n "$LIB_FILE" ]; then
+              cp "$LIB_FILE" rollup.${{ matrix.settings.target }}.node
+              echo "Built: rollup.${{ matrix.settings.target }}.node"
+              ls -lh rollup.${{ matrix.settings.target }}.node
+            else
+              echo "Error: Could not find built library"
+              ls -la target/release/
+              exit 1
+            fi
+      - name: Upload napi artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: rollup.*.node
+          if-no-files-found: error
+
   # smoke test for some architectures that do not receive the full test suite
   smoke-test:
     permissions:
@@ -311,6 +377,7 @@ jobs:
     name: Smoke Test ${{ matrix.settings.target }}
     needs:
       - build
+      - build-openbsd
     strategy:
       fail-fast: false
       matrix:
@@ -394,6 +461,7 @@ jobs:
     name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
+      - build-openbsd
     strategy:
       fail-fast: false
       matrix:
@@ -490,6 +558,7 @@ jobs:
       - lint
       - test
       - smoke-test
+      - build-openbsd
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
