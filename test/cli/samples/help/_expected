@@ -1,11 +1,9 @@
-rollup version __VERSION__
 =====================================
 
 Usage: rollup [options] <entry file>
 
 Options:
 
-// #region options
 -c, --config <filename>     Use this config file (if argument is used but value
                  is unspecified, Rollup will try to load configuration files in
                  the following order:
@@ -105,7 +103,6 @@ Options:
 --watch.onError <cmd>       Shell command to run on `"ERROR"` event
 --watch.onStart <cmd>       Shell command to run on `"START"` event
 --watch.skipWrite           Do not write files to disk when watching
-// #endregion options
 
 Examples:
 

@@ -12,7 +12,7 @@ const command = argParser(process.argv.slice(2), {
 });
 
 if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
-	console.log(`\n${help.replace('__VERSION__', version)}\n`);
+	console.log(`\n${help}\n`);
 } else if (command.version) {
 	console.log(`rollup v${version}`);
 } else {
