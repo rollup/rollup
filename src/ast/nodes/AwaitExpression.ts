@@ -41,6 +41,7 @@ export default class AwaitExpression extends NodeBase {
 		this.included = true;
 		if (!this.deoptimized) this.applyDeoptimizations();
 		// Thenables need to be included
+		// TODO #6120 This should not be conditional as it is not repeated on every pass
 		if (this.shouldIncludeArgument(context)) {
 			this.argument.includePath(THEN_PATH, context);
 		}
@@ -49,15 +50,17 @@ export default class AwaitExpression extends NodeBase {
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
+		// TODO #6120 This should not be conditional as it is not repeated on every pass
 		if (this.shouldIncludeArgument(context)) {
 			this.argument.includePath(path, context);
 		}
 	}
+
 	render(code: MagicString, options: RenderOptions): void {
-		if (!this.argument.included) {
-			code.overwrite(this.argument.start, this.argument.end, '0');
-		} else {
+		if (this.argument.included) {
 			this.argument.render(code, options);
+		} else {
+			code.overwrite(this.argument.start, this.argument.end, '0');
 		}
 	}
 }
