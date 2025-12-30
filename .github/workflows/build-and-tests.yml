@@ -320,7 +320,6 @@ jobs:
 
       - name: Restore Cargo cache
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
-        if: matrix.settings.cache-cargo != false
         with:
           path: |
             ~/.cargo/registry/index/
@@ -328,8 +327,8 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-${{ matrix.settings.host }}
+          key: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-ubuntu-latest
 
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
@@ -346,7 +345,7 @@ jobs:
             npm run build:napi
 
       - name: Save Cargo cache
-        if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
+        if: github.ref == 'refs/heads/master'
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
@@ -355,7 +354,7 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
+          key: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
 
       - name: Upload napi artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -454,6 +453,7 @@ jobs:
     name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
+      - build-openbsd
     strategy:
       fail-fast: false
       matrix:
