@@ -114,6 +114,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	CHUNK_INVALID = 'CHUNK_INVALID',
+	CIRCULAR_CHUNK = 'CIRCULAR_CHUNK',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
 	CONST_REASSIGN = 'CONST_REASSIGN',
@@ -299,6 +300,18 @@ export function logCircularDependency(cyclePath: string[]): RollupLog {
 		code: CIRCULAR_DEPENDENCY,
 		ids: cyclePath,
 		message: `Circular dependency: ${cyclePath.map(relativeId).join(' -> ')}`
+	};
+}
+
+export function logCircularChunk(cyclePath: string[], isManualChunkConflict: boolean): RollupLog {
+	return {
+		code: CIRCULAR_CHUNK,
+		ids: cyclePath,
+		message: `Circular chunk: ${cyclePath.join(' -> ')}. ${
+			isManualChunkConflict
+				? `Please adjust the manual chunk logic for these chunks.`
+				: `Consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes the static dependencies of the manual chunk "${cyclePath.at(-2)}" to be bundled into the chunk "${cyclePath.at(-1)}".`
+		}`
 	};
 }
 

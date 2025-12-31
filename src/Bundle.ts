@@ -21,6 +21,7 @@ import {
 	error,
 	logCannotAssignModuleToChunk,
 	logChunkInvalid,
+	logCircularChunk,
 	logInvalidOption
 } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
@@ -223,11 +224,57 @@ export default class Bundle {
 		for (const chunk of chunks) {
 			chunk.link();
 		}
+
+		if (!inlineDynamicImports && !preserveModules) {
+			this.checkCircularChunks(chunks);
+		}
+
 		const facades: Chunk[] = [];
 		for (const chunk of chunks) {
 			facades.push(...chunk.generateFacades());
 		}
 		return [...chunks, ...facades];
+	}
+
+	private checkCircularChunks(chunks: Chunk[]): void {
+		const visited = new Set<Chunk>();
+		const parents = new Map<Chunk, Chunk>();
+
+		const handleDependency = (chunk: Chunk, parent: Chunk): void => {
+			if (parents.has(chunk)) {
+				if (!visited.has(chunk)) {
+					const path = [chunk.getChunkName()];
+					let isManualChunkConflict = chunk.isManualChunk;
+					let nextChunk: Chunk | undefined = parent;
+					while (nextChunk !== chunk && nextChunk) {
+						path.push(nextChunk.getChunkName());
+						isManualChunkConflict &&= nextChunk.isManualChunk;
+						nextChunk = parents.get(nextChunk);
+					}
+					path.push(path[0]);
+					path.reverse();
+					this.inputOptions.onLog(LOGLEVEL_WARN, logCircularChunk(path, isManualChunkConflict));
+				}
+				return;
+			}
+			parents.set(chunk, parent);
+			analyseChunk(chunk);
+		};
+
+		const analyseChunk = (chunk: Chunk): void => {
+			for (const dependency of chunk.dependencies) {
+				if (dependency instanceof Chunk) {
+					handleDependency(dependency, chunk);
+				}
+			}
+			visited.add(chunk);
+		};
+
+		for (const chunk of chunks) {
+			if (!parents.has(chunk)) {
+				analyseChunk(chunk);
+			}
+		}
 	}
 }
 
