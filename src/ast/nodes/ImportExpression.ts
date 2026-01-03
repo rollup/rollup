@@ -179,6 +179,18 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	hasEffects(): boolean {
+		// TODO #6120 Can we replace the find with a Map lookup?
+		const { resolution } = this.scope.context.module.dynamicImports.find(
+			dynamicImport => dynamicImport.node === this
+		)!;
+		// TODO #6120 It would be nice to fall back to a .hasEffects check on the program Node
+		if (
+			typeof resolution === 'object' &&
+			resolution !== null &&
+			!resolution.info.moduleSideEffects
+		) {
+			return false;
+		}
 		return true;
 	}
 
