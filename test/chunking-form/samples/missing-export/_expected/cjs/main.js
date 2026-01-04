@@ -2,5 +2,5 @@
 
 var dep = require('./dep.js');
 
-dep.missingFn();
-dep.x(dep.missingFn);
+dep.default();
+dep.x(dep.default);
