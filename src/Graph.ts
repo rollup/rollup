@@ -193,6 +193,7 @@ export default class Graph {
 					// the TDZ detection logic
 					for (const module of entryModules) {
 						if (module.preserveSignature !== false) {
+							// TODO #6230 verify if it is fine that we do not include merged external namespaces here
 							module.includeAllExports(false);
 							this.needsTreeshakingPass = true;
 						}

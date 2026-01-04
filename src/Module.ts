@@ -767,9 +767,11 @@ export default class Module {
 
 	includeAllInBundle(): void {
 		this.ast!.include(createInclusionContext(), true);
+		// TODO #6230 verify if it is fine that we do not include merged external namespaces here
 		this.includeAllExports(false);
 	}
 
+	// TODO #6230 we do not need to deoptimize by default
 	includeExportsByNames(names: readonly string[]): void {
 		if (!this.isExecuted) {
 			markModuleAndImpureDependenciesAsExecuted(this);
