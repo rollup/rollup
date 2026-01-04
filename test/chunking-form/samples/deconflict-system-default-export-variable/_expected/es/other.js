@@ -1,3 +1,3 @@
-const foo = 'bar';
+const main = 'bar';
 
-export { foo };
+export { main };

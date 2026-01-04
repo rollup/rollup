@@ -11,7 +11,7 @@ import { deoptimizeInteraction, UnknownValue } from '../nodes/shared/Expression'
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
 import type ChildScope from '../scopes/ChildScope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
-import { SymbolToStringTag } from '../utils/PathTracker';
+import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -19,6 +19,7 @@ export default class NamespaceVariable extends Variable {
 	declare isNamespace: true;
 	readonly module: Module;
 
+	private areAllMembersDeoptimized = false;
 	private memberVariables: Record<string, Variable> | null = null;
 	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
@@ -59,6 +60,11 @@ export default class NamespaceVariable extends Variable {
 			const key = path[0];
 			if (typeof key === 'string') {
 				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
+			} else if (!this.areAllMembersDeoptimized) {
+				this.areAllMembersDeoptimized = true;
+				for (const variable of Object.values(this.getMemberVariables())) {
+					variable.deoptimizePath(UNKNOWN_PATH);
+				}
 			}
 		}
 	}
@@ -70,6 +76,7 @@ export default class NamespaceVariable extends Variable {
 		return UnknownValue;
 	}
 
+	// TODO #6230 there is duplication between here and the Module class, maybe this should be part of the module?
 	getMemberVariables(): Record<string, Variable> {
 		if (this.memberVariables) {
 			return this.memberVariables;
@@ -115,7 +122,14 @@ export default class NamespaceVariable extends Variable {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		super.includePath(path, context);
-		this.context.includeAllExports();
+		if (path.length > 0) {
+			const key = path[0];
+			if (typeof key === 'string') {
+				this.context.module.includeExportsByNames([key]);
+			} else {
+				this.context.includeAllExports();
+			}
+		}
 	}
 
 	prepare(accessedGlobalsByScope: Map<ChildScope, Set<string>>): void {
