@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.55.1
+
+_2026-01-05_
+
+### Bug Fixes
+
+- Fix artifact reference for OpenBSD (#6231)
+
+### Pull Requests
+
+- [#6231](https://github.com/rollup/rollup/pull/6231): Fix OpenBSD artifacts and ensure OIDC is working (@lukastaegert)
+
 ## 4.55.0
 
 _2026-01-05_
