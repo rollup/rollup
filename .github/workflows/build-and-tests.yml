@@ -327,8 +327,8 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-ubuntu-latest
+          key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-openbsd-cargo-ubuntu-latest
 
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
@@ -354,12 +354,12 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: x86_64-unknown-openbsd${{ matrix.os.version }}-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
 
       - name: Upload napi artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: bindings-x86_64-unknown-openbsd${{ matrix.os.version }}
+          name: bindings-x86_64-unknown-openbsd
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
 
