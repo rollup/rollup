@@ -40,6 +40,9 @@ const bindingsByPlatformAndArch = {
 		s390x: { base: 'linux-s390x-gnu', musl: null },
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
 	},
+	openbsd: {
+		x64: { base: 'openbsd7.8-x64' }
+	},
 	openharmony: {
 		arm64: { base: 'openharmony-arm64' }
 	},

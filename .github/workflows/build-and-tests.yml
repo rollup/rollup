@@ -310,6 +310,65 @@ jobs:
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
+  build-openbsd:
+    name: Build x86_64-unknown-openbsd
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - name: openbsd
+            architecture: x86-64
+            version: '7.8'
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-openbsd-cargo-ubuntu-latest
+
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+
+      - name: Build (OpenBSD)
+        uses: cross-platform-actions/action@v0.32.0
+        with:
+          operating_system: ${{ matrix.os.name }}
+          architecture: ${{ matrix.os.architecture }}
+          version: ${{ matrix.os.version }}
+          run: |
+            sudo pkg_add rust node cmake
+            sed -i 's^rustflags.*^^g' rust/bindings_napi/.cargo/config.toml
+            npm run build:napi
+
+      - name: Save Cargo cache
+        if: github.ref == 'refs/heads/master'
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Upload napi artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: bindings-x86_64-unknown-openbsd
+          path: ${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
+
   # smoke test for some architectures that do not receive the full test suite
   smoke-test:
     permissions:
@@ -400,6 +459,7 @@ jobs:
     name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
+      - build-openbsd
     strategy:
       fail-fast: false
       matrix:
