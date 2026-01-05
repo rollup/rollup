@@ -1,5 +1,36 @@
 # rollup changelog
 
+## 4.55.0
+
+_2026-01-05_
+
+### Features
+
+- Natively support ppc64 Linux Musl targets (#5997)
+- Natively support loong64 Linux Musl targets (#5997)
+- Natively support OpenBSD targets (#6224)
+
+### Bug Fixes
+
+- Prevent some cycles when using top-level-await (#6221)
+- Warn when generating cycling manual chunks (#6225)
+
+### Pull Requests
+
+- [#5997](https://github.com/rollup/rollup/pull/5997): Add support for ppc64 & loong64 musl linux (@fossdd)
+- [#6218](https://github.com/rollup/rollup/pull/6218): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6219](https://github.com/rollup/rollup/pull/6219): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6220](https://github.com/rollup/rollup/pull/6220): chore(deps): lock file maintenance (@renovate[bot])
+- [#6221](https://github.com/rollup/rollup/pull/6221): Handle TLA dynamic import cycles in chunkAssignment (@TrickyPi)
+- [#6222](https://github.com/rollup/rollup/pull/6222): Apply to adjust the description of the command-line parameter 'rollup… (@image-gif, @lukastaegert)
+- [#6223](https://github.com/rollup/rollup/pull/6223): Deduplicate CLI help file (@lukastaegert)
+- [#6224](https://github.com/rollup/rollup/pull/6224): OpenBSD support (@edshot99, @lukastaegert)
+- [#6225](https://github.com/rollup/rollup/pull/6225): Throw a warning for circular chunks (@TrickyPi)
+- [#6226](https://github.com/rollup/rollup/pull/6226): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6227](https://github.com/rollup/rollup/pull/6227): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6228](https://github.com/rollup/rollup/pull/6228): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6229](https://github.com/rollup/rollup/pull/6229): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.54.0
 
 _2025-12-20_
