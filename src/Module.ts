@@ -122,12 +122,10 @@ export interface AstContext {
 	deoptimizationTracker: EntityPathTracker;
 	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
-	getExports: () => string[];
 	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getNodeConstructor: (name: string) => typeof NodeBase;
-	getReexports: () => string[];
 	importDescriptions: Map<string, ImportDescription>;
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
@@ -260,7 +258,7 @@ export default class Module {
 	readonly sourcesWithAttributes = new Map<string, Record<string, string>>();
 	declare transformFiles?: EmittedFile[];
 
-	private allExportNames: Set<string> | null = null;
+	private allExportNames: string[] | null = null;
 	private allExportsIncluded = false;
 	private ast: Program | null = null;
 	declare private astContext: AstContext;
@@ -440,29 +438,34 @@ export default class Module {
 		return size;
 	}
 
-	getAllExportNames(): Set<string> {
+	getAllExportNames(): string[] {
 		if (this.allExportNames) {
 			return this.allExportNames;
 		}
-		this.allExportNames = new Set(
-			[...this.exportDescriptions.keys(), ...this.reexportDescriptions.keys()].sort()
-		);
+		const allExportNames = (this.allExportNames = [...this.reexportDescriptions.keys()]);
+		for (const name of this.exportDescriptions.keys()) {
+			// We do not count the synthetic namespace as a regular export to hide it
+			// from entry signatures and namespace objects
+			if (name !== this.info.syntheticNamedExports) {
+				allExportNames.push(name);
+			}
+		}
+		const allExportNamesSet = new Set(allExportNames);
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
-				this.allExportNames.add(`*${module.id}`);
+				allExportNames.push(`*${module.id}`);
 				continue;
 			}
 
 			for (const name of module.getAllExportNames()) {
-				if (name !== 'default') this.allExportNames.add(name);
+				if (name !== 'default' && !allExportNamesSet.has(name)) {
+					allExportNamesSet.add(name);
+					allExportNames.push(name);
+				}
 			}
 		}
-		// We do not count the synthetic namespace as a regular export to hide it
-		// from entry signatures and namespace objects
-		if (typeof this.info.syntheticNamedExports === 'string') {
-			this.allExportNames.delete(this.info.syntheticNamedExports);
-		}
-		return this.allExportNames;
+		allExportNames.sort();
+		return allExportNames;
 	}
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
@@ -516,6 +519,7 @@ export default class Module {
 		return this.relevantDependencies;
 	}
 
+	// TODO #6230 Use this to speed up more processes
 	getExportedVariablesByName(): Map<string, Variable> {
 		if (this.exportedVariablesByName) {
 			return this.exportedVariablesByName;
@@ -922,12 +926,10 @@ export default class Module {
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			getExports: this.getExports.bind(this),
 			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
-			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
 			includeAllExports: () => this.includeAllExports(true),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
