@@ -539,15 +539,10 @@ export default class Module {
 			return this.exportNamesByVariable;
 		}
 		const exportNamesByVariable = new Map<Variable, string[]>();
-		for (const exportName of this.getAllExportNames()) {
-			let [tracedVariable] = this.getVariableForExportName(exportName);
-			if (tracedVariable instanceof ExportDefaultVariable) {
-				tracedVariable = tracedVariable.getOriginalVariable();
-			}
-			if (
-				!tracedVariable ||
-				!(tracedVariable.included || tracedVariable instanceof ExternalVariable)
-			) {
+		for (const [exportName, variable] of this.getExportedVariablesByName().entries()) {
+			const tracedVariable =
+				variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
+			if (!variable || !(variable.included || variable instanceof ExternalVariable)) {
 				continue;
 			}
 			const existingExportNames = exportNamesByVariable.get(tracedVariable);
@@ -614,6 +609,7 @@ export default class Module {
 		return this.syntheticNamespace;
 	}
 
+	// TODO #6230 check all usages
 	getVariableForExportName(
 		name: string,
 		{
