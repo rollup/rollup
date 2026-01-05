@@ -183,6 +183,7 @@ export default class Chunk {
 	namespaceVariableName = '';
 	suggestedVariableName: string;
 	variableName = '';
+	isManualChunk = false;
 
 	private readonly accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
 	private readonly dynamicEntryModules: Module[] = [];
@@ -257,6 +258,7 @@ export default class Chunk {
 			}
 		}
 		this.suggestedVariableName = makeLegal(this.generateVariableName());
+		this.isManualChunk = manualChunkAlias !== null;
 	}
 
 	private static generateFacade(
