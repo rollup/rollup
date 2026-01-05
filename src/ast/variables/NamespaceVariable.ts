@@ -20,7 +20,6 @@ export default class NamespaceVariable extends Variable {
 	readonly module: Module;
 
 	private areAllMembersDeoptimized = false;
-	private memberVariables: Record<string, Variable> | null = null;
 	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
 	private references: IdentifierBase[] = [];
@@ -44,11 +43,10 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 1 || (path.length === 1 && interaction.type === INTERACTION_CALLED)) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizeArgumentsOnInteractionAtPath(
-					interaction,
-					path.slice(1),
-					recursionTracker
-				);
+				this.module
+					.getExportedVariablesByName()
+					.get(key)
+					?.deoptimizeArgumentsOnInteractionAtPath(interaction, path.slice(1), recursionTracker);
 			} else {
 				deoptimizeInteraction(interaction);
 			}
@@ -59,10 +57,10 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 1) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
+				this.module.getExportedVariablesByName().get(key)?.deoptimizePath(path.slice(1));
 			} else if (!this.areAllMembersDeoptimized) {
 				this.areAllMembersDeoptimized = true;
-				for (const variable of Object.values(this.getMemberVariables())) {
+				for (const variable of this.module.getExportedVariablesByName().values()) {
 					variable.deoptimizePath(UNKNOWN_PATH);
 				}
 			}
@@ -74,21 +72,6 @@ export default class NamespaceVariable extends Variable {
 			return 'Module';
 		}
 		return UnknownValue;
-	}
-
-	// TODO #6230 there is duplication between here and the Module class, maybe this should be part of the module?
-	getMemberVariables(): Record<string, Variable> {
-		if (this.memberVariables) {
-			return this.memberVariables;
-		}
-
-		const memberVariables: Record<string, Variable> = Object.create(null);
-		for (const [name, variable] of this.module.getExportedVariablesByName()) {
-			if (!name.startsWith('*')) {
-				memberVariables[name] = variable;
-			}
-		}
-		return (this.memberVariables = memberVariables);
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -108,7 +91,7 @@ export default class NamespaceVariable extends Variable {
 		if (typeof key !== 'string') {
 			return true;
 		}
-		const memberVariable = this.getMemberVariables()[key];
+		const memberVariable = this.module.getExportedVariablesByName().get(key);
 		return (
 			!memberVariable ||
 			memberVariable.hasEffectsOnInteractionAtPath(path.slice(1), interaction, context)
@@ -142,9 +125,9 @@ export default class NamespaceVariable extends Variable {
 			symbols,
 			snippets: { _, cnst, getObject, getPropertyAccess, n, s }
 		} = options;
-		const memberVariables = this.getMemberVariables();
-		const members: [key: string | null, value: string][] = Object.entries(memberVariables)
-			.filter(([_, variable]) => variable.included)
+		const memberVariables = this.module.getExportedVariablesByName();
+		const members: [key: string | null, value: string][] = [...memberVariables.entries()]
+			.filter(([name, variable]) => !name.startsWith('*') && variable.included)
 			.map(([name, variable]) => {
 				if (this.referencedEarly || variable.isReassigned || variable === this) {
 					return [

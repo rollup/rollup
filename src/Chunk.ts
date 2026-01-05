@@ -1512,8 +1512,7 @@ export default class Chunk {
 		// when we are not preserving modules, we need to make all namespace variables available for
 		// rendering the namespace object
 		if (!this.outputOptions.preserveModules && this.includedNamespaces.has(module)) {
-			const memberVariables = module.namespace.getMemberVariables();
-			for (const variable of Object.values(memberVariables)) {
+			for (const variable of module.getExportedVariablesByName().values()) {
 				if (variable.included) {
 					moduleImports.add(variable);
 				}
