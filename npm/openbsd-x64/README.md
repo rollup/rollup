@@ -1,3 +1,3 @@
-# `@rollup/rollup-openbsd7.8-x64`
+# `@rollup/rollup-openbsd-x64`
 
-This is the **amd64-unknown-openbsd7.8** binary for `rollup`
+This is the **x86_64-unknown-openbsd** binary for `rollup`

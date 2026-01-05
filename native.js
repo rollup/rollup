@@ -41,7 +41,7 @@ const bindingsByPlatformAndArch = {
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
 	},
 	openbsd: {
-		x64: { base: 'openbsd7.8-x64' }
+		x64: { base: 'openbsd-x64' }
 	},
 	openharmony: {
 		arm64: { base: 'openharmony-arm64' }
