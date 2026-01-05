@@ -1,5 +1,5 @@
 {
-  "name": "@rollup/rollup-openbsd7.8-x64",
+  "name": "@rollup/rollup-openbsd-x64",
   "version": "0.0.0",
   "os": [
     "openbsd"
