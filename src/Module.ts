@@ -585,8 +585,10 @@ export default class Module {
 		const renderedExports: string[] = [];
 		const removedExports: string[] = [];
 		for (const exportName of this.exportDescriptions.keys()) {
-			const [variable] = this.getVariableForExportName(exportName);
-			(variable?.included ? renderedExports : removedExports).push(exportName);
+			(this.getExportedVariablesByName().get(exportName)?.included
+				? renderedExports
+				: removedExports
+			).push(exportName);
 		}
 		return { removedExports, renderedExports };
 	}
@@ -758,19 +760,26 @@ export default class Module {
 		}
 
 		const inclusionContext = createInclusionContext();
+		// TODO #6230 If we add the synthetic namespace to the cached values, can we then just iterate over the cached map?
 		for (const exportName of this.exportDescriptions.keys()) {
-			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
-				const variable = this.getVariableForExportName(exportName)[0];
+			let variable: Variable | undefined;
+			if (exportName !== this.info.syntheticNamedExports) {
+				variable = this.getExportedVariablesByName().get(exportName);
 				if (!variable) {
+					// TODO #6230 can we move this into getExportedVariablesByName?
 					return error(logMissingEntryExport(exportName, this.id));
 				}
+			} else if (includeNamespaceMembers) {
+				variable = this.getSyntheticNamespace();
+			}
+			if (variable) {
 				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
 				variable.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 
 		for (const name of this.getReexports()) {
-			const [variable] = this.getVariableForExportName(name);
+			const variable = this.getExportedVariablesByName().get(name);
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
@@ -798,7 +807,7 @@ export default class Module {
 
 		const inclusionContext = createInclusionContext();
 		for (const name of names) {
-			const variable = this.getVariableForExportName(name)[0];
+			const variable = this.getExportedVariablesByName().get(name);
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
