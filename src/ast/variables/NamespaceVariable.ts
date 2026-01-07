@@ -105,7 +105,7 @@ export default class NamespaceVariable extends Variable {
 			if (typeof key === 'string') {
 				this.context.module.includeExportsByNames([key]);
 			} else {
-				this.context.includeAllExports();
+				this.context.module.includeNamespace();
 			}
 		}
 	}
