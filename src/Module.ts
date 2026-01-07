@@ -127,7 +127,6 @@ export interface AstContext {
 	getModuleName: () => string;
 	getNodeConstructor: (name: string) => typeof NodeBase;
 	importDescriptions: Map<string, ImportDescription>;
-	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariableInModule: (
 		variable: Variable,
@@ -266,8 +265,10 @@ export default class Module {
 	private readonly exportAllModules: (Module | ExternalModule)[] = [];
 	private readonly exportAllSources = new Set<string>();
 	private readonly exportDescriptions = new Map<string, ExportDescription>();
+	private exportedVariablesByName: Map<string, Variable> | null = null;
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private readonly exportShimVariable = new ExportShimVariable(this);
+	private namespaceIncluded = false;
 	private readonly namespaceReexportsByName = new Map<
 		string,
 		[variable: Variable | null, options?: VariableOptions]
@@ -278,7 +279,6 @@ export default class Module {
 	private syntheticNamespace: Variable | null | undefined = null;
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
-	private exportedVariablesByName: Map<string, Variable> | null = null;
 
 	constructor(
 		private readonly graph: Graph,
@@ -748,13 +748,29 @@ export default class Module {
 		if (this.ast!.shouldBeIncluded(context)) this.ast!.include(context, false);
 	}
 
-	includeAllExports(includeNamespaceMembers: boolean): void {
-		if (includeNamespaceMembers) {
-			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
-		}
-
+	includeAllExports(): void {
 		if (this.allExportsIncluded) return;
 		this.allExportsIncluded = true;
+		if (!this.isExecuted) {
+			markModuleAndImpureDependenciesAsExecuted(this);
+			this.graph.needsTreeshakingPass = true;
+		}
+
+		const inclusionContext = createInclusionContext();
+		for (const variable of this.getExportedVariablesByName().values()) {
+			this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
+			variable.deoptimizePath(UNKNOWN_PATH);
+			if (variable instanceof ExternalVariable) {
+				variable.module.reexported = true;
+			}
+		}
+	}
+
+	// TODO #6230 Maybe this can be replaced by a different mechanism?
+	includeNamespace(): void {
+		if (this.namespaceIncluded) return;
+		this.namespaceIncluded = true;
+		this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		if (!this.isExecuted) {
 			markModuleAndImpureDependenciesAsExecuted(this);
 			this.graph.needsTreeshakingPass = true;
@@ -764,10 +780,10 @@ export default class Module {
 		// TODO #6230 If we add the synthetic namespace to the cached values, can we then just iterate over the cached map?
 		for (const exportName of this.exportDescriptions.keys()) {
 			let variable: Variable | undefined;
-			if (exportName !== this.info.syntheticNamedExports) {
-				variable = this.getExportedVariablesByName().get(exportName);
-			} else if (includeNamespaceMembers) {
+			if (exportName === this.info.syntheticNamedExports) {
 				variable = this.getSyntheticNamespace();
+			} else {
+				variable = this.getExportedVariablesByName().get(exportName);
 			}
 			if (variable) {
 				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
@@ -789,8 +805,7 @@ export default class Module {
 
 	includeAllInBundle(): void {
 		this.ast!.include(createInclusionContext(), true);
-		// TODO #6230 verify if it is fine that we do not include merged external namespaces here
-		this.includeAllExports(false);
+		this.includeAllExports();
 	}
 
 	// TODO #6230 we do not need to deoptimize by default
@@ -800,7 +815,7 @@ export default class Module {
 			this.graph.needsTreeshakingPass = true;
 		}
 
-		let includeNamespaceMembers = false;
+		let includeNonExplicitNamespaces = false;
 
 		const inclusionContext = createInclusionContext();
 		for (const name of names) {
@@ -811,11 +826,11 @@ export default class Module {
 			}
 
 			if (!this.exportDescriptions.has(name) && !this.reexportDescriptions.has(name)) {
-				includeNamespaceMembers = true;
+				includeNonExplicitNamespaces = true;
 			}
 		}
 
-		if (includeNamespaceMembers) {
+		if (includeNonExplicitNamespaces) {
 			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
@@ -933,7 +948,6 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
 			importDescriptions: this.importDescriptions,
-			includeAllExports: () => this.includeAllExports(true),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariableInModule: this.includeVariableInModule.bind(this),
 			log: this.log.bind(this),
@@ -1431,7 +1445,7 @@ export default class Module {
 			if (importedNames) {
 				resolution.includeExportsByNames(importedNames);
 			} else {
-				resolution.includeAllExports(true);
+				resolution.includeNamespace();
 			}
 		}
 	}
@@ -1443,19 +1457,20 @@ export default class Module {
 			if (variableModule instanceof Module && variableModule !== this) {
 				getAndExtendSideEffectModules(variable, this);
 			}
-		} else {
-			this.graph.needsTreeshakingPass = true;
-			if (variableModule instanceof Module) {
-				if (!variableModule.isExecuted) {
-					markModuleAndImpureDependenciesAsExecuted(variableModule);
-				}
-				if (variableModule !== this) {
-					const sideEffectModules = getAndExtendSideEffectModules(variable, this);
-					for (const module of sideEffectModules) {
-						if (!module.isExecuted) {
-							markModuleAndImpureDependenciesAsExecuted(module);
-						}
-					}
+			return;
+		}
+		this.graph.needsTreeshakingPass = true;
+		if (!(variableModule instanceof Module)) {
+			return;
+		}
+		if (!variableModule.isExecuted) {
+			markModuleAndImpureDependenciesAsExecuted(variableModule);
+		}
+		if (variableModule !== this) {
+			const sideEffectModules = getAndExtendSideEffectModules(variable, this);
+			for (const module of sideEffectModules) {
+				if (!module.isExecuted) {
+					markModuleAndImpureDependenciesAsExecuted(module);
 				}
 			}
 		}
