@@ -258,7 +258,6 @@ export default class Module {
 	readonly sourcesWithAttributes = new Map<string, Record<string, string>>();
 	declare transformFiles?: EmittedFile[];
 
-	private allExportNames: string[] | null = null;
 	private allExportsIncluded = false;
 	private ast: Program | null = null;
 	declare private astContext: AstContext;
@@ -438,36 +437,6 @@ export default class Module {
 		return size;
 	}
 
-	getAllExportNames(): string[] {
-		if (this.allExportNames) {
-			return this.allExportNames;
-		}
-		const allExportNames = (this.allExportNames = [...this.reexportDescriptions.keys()]);
-		for (const name of this.exportDescriptions.keys()) {
-			// We do not count the synthetic namespace as a regular export to hide it
-			// from entry signatures and namespace objects
-			if (name !== this.info.syntheticNamedExports) {
-				allExportNames.push(name);
-			}
-		}
-		const allExportNamesSet = new Set(allExportNames);
-		for (const module of this.exportAllModules) {
-			if (module instanceof ExternalModule) {
-				allExportNames.push(`*${module.id}`);
-				continue;
-			}
-
-			for (const name of module.getAllExportNames()) {
-				if (name !== 'default' && !allExportNamesSet.has(name)) {
-					allExportNamesSet.add(name);
-					allExportNames.push(name);
-				}
-			}
-		}
-		allExportNames.sort();
-		return allExportNames;
-	}
-
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
 
@@ -524,14 +493,48 @@ export default class Module {
 		if (this.exportedVariablesByName) {
 			return this.exportedVariablesByName;
 		}
-		const exportedVariablesByName = new Map<string, Variable>();
-		for (const name of this.getAllExportNames()) {
+		const exportedVariablesByName = (this.exportedVariablesByName = new Map<string, Variable>());
+		for (const name of this.exportDescriptions.keys()) {
+			// We do not count the synthetic namespace as a regular export to hide it
+			// from entry signatures and namespace objects
+			if (name !== this.info.syntheticNamedExports) {
+				const [exportedVariable] = this.getVariableForExportName(name);
+				if (exportedVariable) {
+					exportedVariablesByName.set(name, exportedVariable);
+				} else {
+					return error(logMissingEntryExport(name, this.id));
+				}
+			}
+		}
+		for (const name of this.reexportDescriptions.keys()) {
 			const [exportedVariable] = this.getVariableForExportName(name);
 			if (exportedVariable) {
 				exportedVariablesByName.set(name, exportedVariable);
 			}
 		}
-		return (this.exportedVariablesByName = exportedVariablesByName);
+		for (const module of this.exportAllModules) {
+			if (module instanceof ExternalModule) {
+				exportedVariablesByName.set(
+					`*${module.id}`,
+					module.getVariableForExportName('*', {
+						importChain: [this.id]
+					})[0]
+				);
+				continue;
+			}
+
+			for (const name of module.getExportedVariablesByName().keys()) {
+				if (name !== 'default' && !exportedVariablesByName.has(name)) {
+					const [exportedVariable] = this.getVariableForExportName(name);
+					if (exportedVariable) {
+						exportedVariablesByName.set(name, exportedVariable);
+					}
+				}
+			}
+		}
+		return (this.exportedVariablesByName = new Map(
+			[...exportedVariablesByName].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+		));
 	}
 
 	getExportNamesByVariable(): Map<Variable, string[]> {
@@ -555,10 +558,8 @@ export default class Module {
 		return (this.exportNamesByVariable = exportNamesByVariable);
 	}
 
-	getExports(): string[] {
-		return [...this.exportDescriptions.keys()];
-	}
-
+	// TODO #6230 We want to be able to handle "illegal" export names "*" and starting with "*"
+	// TODO #6230 We want to remove this eventually
 	getReexports(): string[] {
 		if (this.transitiveReexports) {
 			return this.transitiveReexports;
@@ -572,7 +573,7 @@ export default class Module {
 			if (module instanceof ExternalModule) {
 				reexports.add(`*${module.id}`);
 			} else {
-				for (const name of module.getAllExportNames()) {
+				for (const name of module.getExportedVariablesByName().keys()) {
 					if (name !== 'default') reexports.add(name);
 				}
 			}
@@ -765,10 +766,6 @@ export default class Module {
 			let variable: Variable | undefined;
 			if (exportName !== this.info.syntheticNamedExports) {
 				variable = this.getExportedVariablesByName().get(exportName);
-				if (!variable) {
-					// TODO #6230 can we move this into getExportedVariablesByName?
-					return error(logMissingEntryExport(exportName, this.id));
-				}
 			} else if (includeNamespaceMembers) {
 				variable = this.getSyntheticNamespace();
 			}
