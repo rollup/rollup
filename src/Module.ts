@@ -268,17 +268,16 @@ export default class Module {
 	private exportedVariablesByName: Map<string, Variable> | null = null;
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private readonly exportShimVariable = new ExportShimVariable(this);
-	private namespaceIncluded = false;
 	private readonly namespaceReexportsByName = new Map<
 		string,
 		[variable: Variable | null, options?: VariableOptions]
 	>();
+	private nonExplicitNamespacesIncluded = false;
 	private readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private readonly syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private syntheticNamespace: Variable | null | undefined = null;
 	private transformDependencies: string[] = [];
-	private transitiveReexports: string[] | null = null;
 
 	constructor(
 		private readonly graph: Graph,
@@ -488,7 +487,6 @@ export default class Module {
 		return this.relevantDependencies;
 	}
 
-	// TODO #6230 Use this to speed up more processes
 	getExportedVariablesByName(): Map<string, Variable> {
 		if (this.exportedVariablesByName) {
 			return this.exportedVariablesByName;
@@ -532,8 +530,9 @@ export default class Module {
 				}
 			}
 		}
+
 		return (this.exportedVariablesByName = new Map(
-			[...exportedVariablesByName].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+			[...exportedVariablesByName].sort(sortExportedVariables)
 		));
 	}
 
@@ -556,29 +555,6 @@ export default class Module {
 			}
 		}
 		return (this.exportNamesByVariable = exportNamesByVariable);
-	}
-
-	// TODO #6230 We want to be able to handle "illegal" export names "*" and starting with "*"
-	// TODO #6230 We want to remove this eventually
-	getReexports(): string[] {
-		if (this.transitiveReexports) {
-			return this.transitiveReexports;
-		}
-		// to avoid infinite recursion when using circular `export * from X`
-		this.transitiveReexports = [];
-
-		const reexports = new Set(this.reexportDescriptions.keys());
-
-		for (const module of this.exportAllModules) {
-			if (module instanceof ExternalModule) {
-				reexports.add(`*${module.id}`);
-			} else {
-				for (const name of module.getExportedVariablesByName().keys()) {
-					if (name !== 'default') reexports.add(name);
-				}
-			}
-		}
-		return (this.transitiveReexports = [...reexports]);
 	}
 
 	getRenderedExports(): { removedExports: string[]; renderedExports: string[] } {
@@ -612,7 +588,6 @@ export default class Module {
 		return this.syntheticNamespace;
 	}
 
-	// TODO #6230 check all usages
 	getVariableForExportName(
 		name: string,
 		{
@@ -768,38 +743,10 @@ export default class Module {
 
 	// TODO #6230 Maybe this can be replaced by a different mechanism?
 	includeNamespace(): void {
-		if (this.namespaceIncluded) return;
-		this.namespaceIncluded = true;
-		this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
-		if (!this.isExecuted) {
-			markModuleAndImpureDependenciesAsExecuted(this);
-			this.graph.needsTreeshakingPass = true;
-		}
-
-		const inclusionContext = createInclusionContext();
-		// TODO #6230 If we add the synthetic namespace to the cached values, can we then just iterate over the cached map?
-		for (const exportName of this.exportDescriptions.keys()) {
-			let variable: Variable | undefined;
-			if (exportName === this.info.syntheticNamedExports) {
-				variable = this.getSyntheticNamespace();
-			} else {
-				variable = this.getExportedVariablesByName().get(exportName);
-			}
-			if (variable) {
-				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
-				variable.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
-
-		for (const name of this.getReexports()) {
-			const variable = this.getExportedVariablesByName().get(name);
-			if (variable) {
-				variable.deoptimizePath(UNKNOWN_PATH);
-				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
-				if (variable instanceof ExternalVariable) {
-					variable.module.reexported = true;
-				}
-			}
+		this.includeAllExports();
+		if (!this.nonExplicitNamespacesIncluded) {
+			this.nonExplicitNamespacesIncluded = true;
+			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
@@ -823,14 +770,13 @@ export default class Module {
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
-			}
-
-			if (!this.exportDescriptions.has(name) && !this.reexportDescriptions.has(name)) {
+			} else {
 				includeNonExplicitNamespaces = true;
 			}
 		}
 
-		if (includeNonExplicitNamespaces) {
+		if (includeNonExplicitNamespaces && !this.nonExplicitNamespacesIncluded) {
+			this.nonExplicitNamespacesIncluded = true;
 			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
@@ -1534,3 +1480,6 @@ interface VariableOptions {
 	indirectExternal?: boolean;
 	missingButExportExists?: boolean;
 }
+
+const sortExportedVariables = ([a]: [string, Variable], [b]: [string, Variable]) =>
+	a < b ? -1 : a > b ? 1 : 0;
