@@ -353,13 +353,13 @@ export class ModuleLoader {
 	): Promise<void> {
 		const dependencies = await Promise.all(
 			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
-				resolveDynamicImportPromise.then(async ([dynamicImport, resolvedId]) => {
+				resolveDynamicImportPromise.then(async ([{ node }, resolvedId]) => {
 					if (resolvedId === null) return null;
 					if (typeof resolvedId === 'string') {
-						dynamicImport.resolution = resolvedId;
+						node.resolution = resolvedId;
 						return null;
 					}
-					return (dynamicImport.resolution = await this.fetchResolvedDependency(
+					return (node.resolution = await this.fetchResolvedDependency(
 						relativeId(resolvedId.id),
 						module.id,
 						resolvedId
