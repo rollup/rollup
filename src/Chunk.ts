@@ -251,6 +251,8 @@ export default class Chunk {
 						includedNamespaces.add(module);
 						this.exports.add(module.namespace);
 					}
+					// This only needs to run once
+					break;
 				}
 			}
 			if (module.implicitlyLoadedAfter.size > 0) {
