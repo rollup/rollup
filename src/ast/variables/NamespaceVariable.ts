@@ -11,7 +11,7 @@ import { deoptimizeInteraction, UnknownValue } from '../nodes/shared/Expression'
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
 import type ChildScope from '../scopes/ChildScope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
-import { SymbolToStringTag } from '../utils/PathTracker';
+import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -19,7 +19,7 @@ export default class NamespaceVariable extends Variable {
 	declare isNamespace: true;
 	readonly module: Module;
 
-	private memberVariables: Record<string, Variable> | null = null;
+	private areAllMembersDeoptimized = false;
 	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
 	private references: IdentifierBase[] = [];
@@ -43,11 +43,10 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 1 || (path.length === 1 && interaction.type === INTERACTION_CALLED)) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizeArgumentsOnInteractionAtPath(
-					interaction,
-					path.slice(1),
-					recursionTracker
-				);
+				this.module
+					.getExportedVariablesByName()
+					.get(key)
+					?.deoptimizeArgumentsOnInteractionAtPath(interaction, path.slice(1), recursionTracker);
 			} else {
 				deoptimizeInteraction(interaction);
 			}
@@ -58,7 +57,12 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 1) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
+				this.module.getExportedVariablesByName().get(key)?.deoptimizePath(path.slice(1));
+			} else if (!this.areAllMembersDeoptimized) {
+				this.areAllMembersDeoptimized = true;
+				for (const variable of this.module.getExportedVariablesByName().values()) {
+					variable.deoptimizePath(UNKNOWN_PATH);
+				}
 			}
 		}
 	}
@@ -68,25 +72,6 @@ export default class NamespaceVariable extends Variable {
 			return 'Module';
 		}
 		return UnknownValue;
-	}
-
-	getMemberVariables(): Record<string, Variable> {
-		if (this.memberVariables) {
-			return this.memberVariables;
-		}
-
-		const memberVariables: Record<string, Variable> = Object.create(null);
-		const sortedExports = [...this.context.getExports(), ...this.context.getReexports()].sort();
-
-		for (const name of sortedExports) {
-			if (name[0] !== '*' && name !== this.module.info.syntheticNamedExports) {
-				const [exportedVariable] = this.context.traceExport(name);
-				if (exportedVariable) {
-					memberVariables[name] = exportedVariable;
-				}
-			}
-		}
-		return (this.memberVariables = memberVariables);
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -106,7 +91,7 @@ export default class NamespaceVariable extends Variable {
 		if (typeof key !== 'string') {
 			return true;
 		}
-		const memberVariable = this.getMemberVariables()[key];
+		const memberVariable = this.module.getExportedVariablesByName().get(key);
 		return (
 			!memberVariable ||
 			memberVariable.hasEffectsOnInteractionAtPath(path.slice(1), interaction, context)
@@ -115,7 +100,14 @@ export default class NamespaceVariable extends Variable {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		super.includePath(path, context);
-		this.context.includeAllExports();
+		if (path.length > 0) {
+			const key = path[0];
+			if (typeof key === 'string') {
+				this.context.module.includeExportsByNames([key]);
+			} else {
+				this.context.module.includeNamespace();
+			}
+		}
 	}
 
 	prepare(accessedGlobalsByScope: Map<ChildScope, Set<string>>): void {
@@ -133,9 +125,9 @@ export default class NamespaceVariable extends Variable {
 			symbols,
 			snippets: { _, cnst, getObject, getPropertyAccess, n, s }
 		} = options;
-		const memberVariables = this.getMemberVariables();
-		const members: [key: string | null, value: string][] = Object.entries(memberVariables)
-			.filter(([_, variable]) => variable.included)
+		const memberVariables = this.module.getExportedVariablesByName();
+		const members: [key: string | null, value: string][] = [...memberVariables.entries()]
+			.filter(([name, variable]) => !name.startsWith('*') && variable.included)
 			.map(([name, variable]) => {
 				if (this.referencedEarly || variable.isReassigned || variable === this) {
 					return [

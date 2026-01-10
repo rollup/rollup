@@ -1,2 +1,2 @@
-'use strict';var dep=require('./dep.js');dep.missingFn();
-dep.x(dep.missingFn);
+'use strict';var dep=require('./dep.js');dep.missingExport();
+dep.x(dep.missingExport);
