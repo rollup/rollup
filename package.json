@@ -170,7 +170,7 @@
     "flru": "^1.0.2",
     "fs-extra": "^11.3.3",
     "github-api": "^3.4.0",
-    "globals": "^16.5.0",
+    "globals": "^17.0.0",
     "husky": "^9.1.7",
     "is-reference": "^3.0.3",
     "lint-staged": "^16.2.7",
