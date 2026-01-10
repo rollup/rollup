@@ -50,9 +50,11 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 			for (const dependency of module.implicitlyLoadedBefore) {
 				dynamicImports.add(dependency);
 			}
-			for (const { resolution, node } of module.dynamicImports) {
+			for (const {
+				node: { resolution, scope }
+			} of module.dynamicImports) {
 				if (resolution instanceof Module) {
-					if (node.scope.context.usesTopLevelAwait) {
+					if (scope.context.usesTopLevelAwait) {
 						handleSyncLoadedModule(resolution, module);
 					} else {
 						dynamicImports.add(resolution);

@@ -1098,10 +1098,11 @@ export default class Chunk {
 		}
 		const includedDynamicImports: ResolvedDynamicImport[] = [];
 		for (const module of this.orderedModules) {
-			for (const { node, resolution } of module.dynamicImports) {
+			for (const { node } of module.dynamicImports) {
 				if (!node.included) {
 					continue;
 				}
+				const { resolution } = node;
 				includedDynamicImports.push(
 					resolution instanceof Module
 						? {
@@ -1396,7 +1397,6 @@ export default class Chunk {
 				} else {
 					node.setExternalResolution(
 						(facadeChunk || chunk).exportMode,
-						resolution,
 						outputOptions,
 						snippets,
 						pluginDriver,
@@ -1417,7 +1417,6 @@ export default class Chunk {
 				);
 				node.setExternalResolution(
 					'external',
-					resolution,
 					outputOptions,
 					snippets,
 					pluginDriver,
@@ -1547,9 +1546,11 @@ export default class Chunk {
 		) {
 			this.ensureReexportsAreAvailableForModule(module);
 		}
-		for (const { node, resolution } of module.dynamicImports) {
+		for (const {
+			node: { included, resolution }
+		} of module.dynamicImports) {
 			if (
-				node.included &&
+				included &&
 				resolution instanceof Module &&
 				this.chunkByModule.get(resolution) === this &&
 				!this.includedNamespaces.has(resolution)
