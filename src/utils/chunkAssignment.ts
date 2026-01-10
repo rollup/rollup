@@ -294,7 +294,9 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 					staticDependencies.add(dependency);
 				}
 			}
-			for (const { resolution } of module.dynamicImports) {
+			for (const {
+				node: { resolution }
+			} of module.dynamicImports) {
 				if (
 					resolution instanceof Module &&
 					resolution.includedDynamicImporters.length > 0 &&

@@ -150,7 +150,6 @@ export interface DynamicImport {
 	argument: string | AstNode;
 	id: string | null;
 	node: ImportExpression;
-	resolution: Module | ExternalModule | string | null;
 }
 
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
@@ -1055,7 +1054,7 @@ export default class Module {
 		) {
 			argument = (argument as LiteralStringNode).value!;
 		}
-		this.dynamicImports.push({ argument, id: null, node, resolution: null });
+		this.dynamicImports.push({ argument, id: null, node });
 	}
 
 	private assertUniqueExportName(name: string, nodeStart: number) {
@@ -1369,11 +1368,9 @@ export default class Module {
 		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
+	// TODO #6230 This might be better placed on the ImportExpression node
 	private includeDynamicImport(node: ImportExpression): void {
-		const resolution = this.dynamicImports.find(
-			dynamicImport => dynamicImport.node === node
-		)!.resolution;
-
+		const { resolution } = node;
 		if (resolution instanceof Module) {
 			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);

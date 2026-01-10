@@ -57,13 +57,13 @@ export default class ImportExpression extends NodeBase {
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;
+	resolution: Module | ExternalModule | string | null = null;
 
 	private hasUnknownAccessedKey = false;
 	private accessedPropKey = new Set<string>();
 	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
-	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
 
 	get shouldIncludeDynamicAttributes() {
@@ -275,27 +275,24 @@ export default class ImportExpression extends NodeBase {
 
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'external',
-		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
 		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
 		namespaceExportName: string | false | undefined,
-		attributes: string | null | true,
+		attributes: string | true | null,
 		ownChunk: Chunk,
 		targetChunk: Chunk | null
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
-		this.resolution = resolution;
 		this.resolutionString = resolutionString;
 		this.namespaceExportName = namespaceExportName;
 		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(
-			resolution,
 			exportMode,
 			options,
 			snippets,
@@ -316,7 +313,6 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	private getDynamicImportMechanismAndHelper(
-		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		{
 			compact,
@@ -330,10 +326,11 @@ export default class ImportExpression extends NodeBase {
 		ownChunk: Chunk,
 		targetChunk: Chunk | null
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
+		const { resolution, scope } = this;
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
 				chunk: getChunkInfoWithPath(ownChunk),
-				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
+				customResolution: typeof resolution === 'string' ? resolution : null,
 				format,
 				getTargetChunkImports(): DynamicImportTargetChunk[] | null {
 					if (targetChunk === null) return null;
@@ -358,16 +355,15 @@ export default class ImportExpression extends NodeBase {
 					}
 					return chunkInfos;
 				},
-				moduleId: this.scope.context.module.id,
+				moduleId: scope.context.module.id,
 				targetChunk: targetChunk ? getChunkInfoWithPath(targetChunk) : null,
-				targetModuleId:
-					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
+				targetModuleId: resolution && typeof resolution !== 'string' ? resolution.id : null
 			}
 		]);
 		if (mechanism) {
 			return { helper: null, mechanism };
 		}
-		const hasDynamicTarget = !this.resolution || typeof this.resolution === 'string';
+		const hasDynamicTarget = !resolution || typeof resolution === 'string';
 		switch (format) {
 			case 'cjs': {
 				if (
