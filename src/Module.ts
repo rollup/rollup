@@ -271,7 +271,6 @@ export default class Module {
 		string,
 		[variable: Variable | null, options?: VariableOptions]
 	>();
-	private nonExplicitNamespacesIncluded = false;
 	private readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private readonly syntheticExports = new Map<string, SyntheticNamedExportVariable>();
@@ -725,11 +724,7 @@ export default class Module {
 	includeAllExports(): void {
 		if (this.allExportsIncluded) return;
 		this.allExportsIncluded = true;
-		if (!this.isExecuted) {
-			markModuleAndImpureDependenciesAsExecuted(this);
-			this.graph.needsTreeshakingPass = true;
-		}
-
+		this.includeModuleInExecution();
 		const inclusionContext = createInclusionContext();
 		for (const variable of this.getExportedVariablesByName().values()) {
 			this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
@@ -740,43 +735,15 @@ export default class Module {
 		}
 	}
 
-	// TODO #6230 Maybe this can be replaced by a different mechanism?
-	includeNamespace(): void {
-		this.includeAllExports();
-		if (!this.nonExplicitNamespacesIncluded) {
-			this.nonExplicitNamespacesIncluded = true;
-			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
-		}
-	}
-
 	includeAllInBundle(): void {
 		this.ast!.include(createInclusionContext(), true);
 		this.includeAllExports();
 	}
 
-	// TODO #6230 we do not need to deoptimize by default
-	includeExportsByNames(names: readonly string[]): void {
+	includeModuleInExecution(): void {
 		if (!this.isExecuted) {
 			markModuleAndImpureDependenciesAsExecuted(this);
 			this.graph.needsTreeshakingPass = true;
-		}
-
-		let includeNonExplicitNamespaces = false;
-
-		const inclusionContext = createInclusionContext();
-		for (const name of names) {
-			const variable = this.getExportedVariablesByName().get(name);
-			if (variable) {
-				variable.deoptimizePath(UNKNOWN_PATH);
-				this.includeVariable(variable, UNKNOWN_PATH, inclusionContext);
-			} else {
-				includeNonExplicitNamespaces = true;
-			}
-		}
-
-		if (includeNonExplicitNamespaces && !this.nonExplicitNamespacesIncluded) {
-			this.nonExplicitNamespacesIncluded = true;
-			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
@@ -1347,7 +1314,7 @@ export default class Module {
 		return [null];
 	}
 
-	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
+	includeAndGetAdditionalMergedNamespaces(): Variable[] {
 		const externalNamespaces = new Set<Variable>();
 		const syntheticNamespaces = new Set<Variable>();
 		for (const module of [this, ...this.exportAllModules]) {
@@ -1380,16 +1347,6 @@ export default class Module {
 					resolution.includedTopLevelAwaitingDynamicImporters.add(this);
 				}
 			}
-
-			const importedNames = this.options.treeshake
-				? node.getDeterministicImportedNames()
-				: undefined;
-
-			if (importedNames) {
-				resolution.includeExportsByNames(importedNames);
-			} else {
-				resolution.includeNamespace();
-			}
 		}
 	}
 
@@ -1406,15 +1363,11 @@ export default class Module {
 		if (!(variableModule instanceof Module)) {
 			return;
 		}
-		if (!variableModule.isExecuted) {
-			markModuleAndImpureDependenciesAsExecuted(variableModule);
-		}
+		variableModule.includeModuleInExecution();
 		if (variableModule !== this) {
 			const sideEffectModules = getAndExtendSideEffectModules(variable, this);
 			for (const module of sideEffectModules) {
-				if (!module.isExecuted) {
-					markModuleAndImpureDependenciesAsExecuted(module);
-				}
+				module.includeModuleInExecution();
 			}
 		}
 	}

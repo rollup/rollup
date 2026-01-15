@@ -9,6 +9,11 @@ export default class AwaitExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare type: NodeType.tAwaitExpression;
 
+	// TODO CO-6230 What about deoptimizeCallArguments and includeCallArguments? Do they bring benefit?
+	deoptimizePath(path: ObjectPath) {
+		this.argument.deoptimizePath(path);
+	}
+
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		return true;

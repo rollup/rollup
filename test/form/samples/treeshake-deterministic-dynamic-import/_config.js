@@ -1,4 +1,7 @@
 module.exports = {
+	// TODO #6230 Create tests for exported object property tree-shaking for await expression and then-expression
+	// TODO #6230 Create tests for tree-shaking on non-destructured dynamic import assignments
+	// TODO #6230 Calling ;(await import('./sub2.js')).bar2 currently deoptimizes everything
 	description: 'treeshakes dynamic imports when the target is deterministic',
 	options: {
 		output: {
