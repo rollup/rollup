@@ -30,10 +30,6 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.flags = setFlag(this.flags, Flag.checkedForWarnings, value);
 	}
 
-	bind(): void {
-		super.bind();
-	}
-
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const argument of this.quasi.expressions) {

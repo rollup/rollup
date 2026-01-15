@@ -21,8 +21,9 @@ export default class NamespaceVariable extends Variable {
 
 	private areAllMembersDeoptimized = false;
 	private mergedNamespaces: readonly Variable[] = [];
+	private nonExplicitNamespacesIncluded = false;
 	private referencedEarly = false;
-	private references: IdentifierBase[] = [];
+	private readonly references: IdentifierBase[] = [];
 
 	constructor(context: AstContext) {
 		super(context.getModuleName());
@@ -53,6 +54,7 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
+	// TODO #6230 What about deoptimizeCallArguments and includeArgumentsWhenCalledAtPath, does this provide benefits?
 	deoptimizePath(path: ObjectPath) {
 		if (path.length > 1) {
 			const key = path[0];
@@ -100,12 +102,22 @@ export default class NamespaceVariable extends Variable {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		super.includePath(path, context);
+		this.includeMemberPath(path, context);
+	}
+
+	includeMemberPath(path: ObjectPath, context: InclusionContext): void {
 		if (path.length > 0) {
-			const key = path[0];
-			if (typeof key === 'string') {
-				this.context.module.includeExportsByNames([key]);
-			} else {
-				this.context.module.includeNamespace();
+			const [name, ...remainingPath] = path;
+			if (typeof name === 'string') {
+				const variable = this.module.getExportedVariablesByName().get(name);
+				if (variable) {
+					this.context.includeVariableInModule(variable, remainingPath, context);
+				} else {
+					this.includeNonExplicitNamespaces();
+				}
+			} else if (name) {
+				this.context.module.includeAllExports();
+				this.includeNonExplicitNamespaces();
 			}
 		}
 	}
@@ -187,6 +199,23 @@ export default class NamespaceVariable extends Variable {
 			}
 		}
 	}
+
+	private includeNonExplicitNamespaces(): void {
+		if (!this.nonExplicitNamespacesIncluded) {
+			this.nonExplicitNamespacesIncluded = true;
+			this.setMergedNamespaces(this.context.module.includeAndGetAdditionalMergedNamespaces());
+		}
+	}
 }
 
 NamespaceVariable.prototype.isNamespace = true;
+
+// This is a proxy that does not include the namespace object when a path is included
+export const getDynamicNamespaceVariable = (namespace: NamespaceVariable): NamespaceVariable =>
+	Object.create(namespace, {
+		includePath: {
+			value(path: ObjectPath, context: InclusionContext): void {
+				namespace.includeMemberPath(path, context);
+			}
+		}
+	});
