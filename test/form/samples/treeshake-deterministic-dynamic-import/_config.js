@@ -1,6 +1,4 @@
 module.exports = {
-	// TODO #6230 Create tests for exported object property tree-shaking for await expression and then-expression
-	// TODO #6230 Create tests for tree-shaking on non-destructured dynamic import assignments
 	description: 'treeshakes dynamic imports when the target is deterministic',
 	options: {
 		output: {
