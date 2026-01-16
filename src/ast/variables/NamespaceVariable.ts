@@ -54,7 +54,6 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	// TODO #6230 What about deoptimizeCallArguments and includeArgumentsWhenCalledAtPath, does this provide benefits?
 	deoptimizePath(path: ObjectPath) {
 		if (path.length > 1) {
 			const key = path[0];

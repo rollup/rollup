@@ -177,7 +177,6 @@ export default class MemberExpression
 		recursionTracker: EntityPathTracker
 	): void {
 		if (this.promiseHandler) {
-			// TODO #6230 This probably does not deoptimize the function return value, is that taken care of?
 			this.promiseHandler.deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
 				path,
@@ -505,7 +504,9 @@ export default class MemberExpression
 			);
 			this.scope.context.requestTreeshakingPass();
 		}
-		if (this.variable) {
+		if (this.promiseHandler) {
+			this.promiseHandler.applyDeoptimizations();
+		} else if (this.variable) {
 			this.variable.addUsedPlace(this);
 			this.scope.context.requestTreeshakingPass();
 		}

@@ -485,6 +485,7 @@ export default class Module {
 		return this.relevantDependencies;
 	}
 
+	// TODO #6230 Can we avoid the getters here?
 	getExportedVariablesByName(): Map<string, Variable> {
 		if (this.exportedVariablesByName) {
 			return this.exportedVariablesByName;
@@ -1335,7 +1336,6 @@ export default class Module {
 		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
-	// TODO #6230 This might be better placed on the ImportExpression node
 	private includeDynamicImport(node: ImportExpression): void {
 		const { resolution } = node;
 		if (resolution instanceof Module) {

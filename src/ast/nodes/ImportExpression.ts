@@ -113,13 +113,15 @@ export default class ImportExpression extends NodeBase {
 			const propertyName = currentParent.property.name;
 			callExpression = currentParent.parent;
 			if (propertyName === 'then') {
+				const firstArgument = callExpression.arguments[0];
 				if (
-					callExpression.arguments.length === 0 ||
-					isFunctionExpressionNode(callExpression.arguments[0]) ||
-					isArrowFunctionExpressionNode(callExpression.arguments[0])
+					firstArgument === undefined ||
+					isFunctionExpressionNode(firstArgument) ||
+					isArrowFunctionExpressionNode(firstArgument)
 				) {
 					currentParent.promiseHandler = new ObjectPromiseHandler(
-						getDynamicNamespaceVariable(resolution.namespace)
+						getDynamicNamespaceVariable(resolution.namespace),
+						firstArgument
 					);
 					this.localResolution = { resolution, tracked: true };
 					return;
@@ -176,7 +178,6 @@ export default class ImportExpression extends NodeBase {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) this.includeNode(context);
-		// TODO #6230 Handle external modules
 		this.localResolution?.resolution?.namespace.includeMemberPath(path, context);
 	}
 
