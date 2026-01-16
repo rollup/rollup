@@ -34,7 +34,7 @@ import {
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
-import type PromiseHandler from '../variables/PromiseHandler';
+import type { PromiseHandler } from '../variables/PromiseHandler';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';

@@ -1,7 +1,6 @@
 module.exports = {
 	// TODO #6230 Create tests for exported object property tree-shaking for await expression and then-expression
 	// TODO #6230 Create tests for tree-shaking on non-destructured dynamic import assignments
-	// TODO #6230 Calling ;(await import('./sub2.js')).bar2 currently deoptimizes everything
 	description: 'treeshakes dynamic imports when the target is deterministic',
 	options: {
 		output: {
@@ -19,18 +18,19 @@ module.exports = {
 				load(id) {
 					const match = /(bail|effect)-(\d+).js$/.exec(id);
 					if (match) {
-						if (match[1] === 'bail')
+						const [, name, index] = match;
+						if (name === 'bail')
 							return {
 								code: [
-									`export default '@included-bail-${match[2]}'`,
-									`export const named${match[2]} = 'bail${match[2]}';`
+									`export default '@included-bail-${index}'`,
+									`export const named${index} = 'bail${index}';`
 								].join('\n')
 							};
-						else if (match[1] === 'effect') {
+						else if (name === 'effect') {
 							return {
 								code: [
-									'export function fn() { /* @tree-shaken */ }',
-									`console.log('@included-effect-${match[2]}');`
+									`export function fn${index}() { /* @tree-shaken */ }`,
+									`console.log('@included-effect-${index}');`
 								].join('\n')
 							};
 						}

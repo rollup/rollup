@@ -6,7 +6,17 @@ import { isArrowFunctionExpressionNode, isFunctionExpressionNode } from '../util
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import type Variable from './Variable';
 
-export default class PromiseHandler {
+export interface PromiseHandler {
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker
+	): void;
+
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void;
+}
+
+export class ObjectPromiseHandler implements PromiseHandler {
 	private readonly interaction: NodeInteractionCalled;
 
 	constructor(resolvedVariable: Variable) {
@@ -50,4 +60,10 @@ export default class PromiseHandler {
 			interaction.args[1].includeCallArguments(this.interaction, context);
 		}
 	}
+}
+
+export class EmptyPromiseHandler implements PromiseHandler {
+	deoptimizeArgumentsOnInteractionAtPath() {}
+
+	includeCallArguments() {}
 }
