@@ -115,7 +115,7 @@ export default class NamespaceVariable extends Variable {
 					this.includeNonExplicitNamespaces();
 				}
 			} else if (name) {
-				this.context.module.includeAllExports();
+				this.module.includeAllExports();
 				this.includeNonExplicitNamespaces();
 			}
 		}
@@ -202,7 +202,7 @@ export default class NamespaceVariable extends Variable {
 	private includeNonExplicitNamespaces(): void {
 		if (!this.nonExplicitNamespacesIncluded) {
 			this.nonExplicitNamespacesIncluded = true;
-			this.setMergedNamespaces(this.context.module.includeAndGetAdditionalMergedNamespaces());
+			this.setMergedNamespaces(this.module.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 }
