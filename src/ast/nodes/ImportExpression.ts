@@ -32,7 +32,8 @@ import type { ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import { getDynamicNamespaceVariable } from '../variables/NamespaceVariable';
-import PromiseHandler from '../variables/PromiseHandler';
+import { EmptyPromiseHandler, ObjectPromiseHandler } from '../variables/PromiseHandler';
+import type CallExpression from './CallExpression';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
@@ -82,30 +83,62 @@ export default class ImportExpression extends NodeBase {
 		source.bind();
 		options?.bind();
 		// Check if we resolved to a Module without using instanceof
-		if (typeof resolution === 'object' && resolution && 'namespace' in resolution) {
-			// In these cases, we can track exactly what is included or deoptimized:
-			// * import('foo'); // as statement
-			// * await import('foo') // use as awaited expression in any way
-			// * import('foo').then(n => {...}) // only if .then is called directly on the import()
-			if (isExpressionStatementNode(parent) || isAwaitExpressionNode(parent)) {
-				this.localResolution = { resolution, tracked: true };
-			} else if (
-				isMemberExpressionNode(parent) &&
-				parent.object === this &&
-				isIdentifierNode(parent.property) &&
-				parent.property.name === 'then' &&
-				isCallExpressionNode(parent.parent) &&
-				(isFunctionExpressionNode(parent.parent.arguments[0]) ||
-					isArrowFunctionExpressionNode(parent.parent.arguments[0]))
-			) {
-				parent.promiseHandler = new PromiseHandler(
-					getDynamicNamespaceVariable(resolution.namespace)
-				);
-				this.localResolution = { resolution, tracked: true };
-			} else {
-				this.localResolution = { resolution, tracked: false };
-			}
+		if (typeof resolution !== 'object' || !resolution || !('namespace' in resolution)) {
+			return;
 		}
+		// In these cases, we can track exactly what is included or deoptimized:
+		// * import('foo'); // as statement
+		// * await import('foo') // use as awaited expression in any way
+		// * import('foo').then(n => {...}) // only if .then is called directly on the import()
+		if (isExpressionStatementNode(parent) || isAwaitExpressionNode(parent)) {
+			this.localResolution = { resolution, tracked: true };
+			return;
+		}
+		if (!isMemberExpressionNode(parent)) {
+			this.localResolution = { resolution, tracked: false };
+			return;
+		}
+		let currentParent = parent;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		let callExpression: ImportExpression | CallExpression = this;
+		while (true) {
+			if (
+				currentParent.computed ||
+				currentParent.object !== callExpression ||
+				!isIdentifierNode(currentParent.property) ||
+				!isCallExpressionNode(currentParent.parent)
+			) {
+				break;
+			}
+			const propertyName = currentParent.property.name;
+			callExpression = currentParent.parent;
+			if (propertyName === 'then') {
+				if (
+					callExpression.arguments.length === 0 ||
+					isFunctionExpressionNode(callExpression.arguments[0]) ||
+					isArrowFunctionExpressionNode(callExpression.arguments[0])
+				) {
+					currentParent.promiseHandler = new ObjectPromiseHandler(
+						getDynamicNamespaceVariable(resolution.namespace)
+					);
+					this.localResolution = { resolution, tracked: true };
+					return;
+				}
+			} else if (propertyName === 'catch' || propertyName === 'finally') {
+				if (isMemberExpressionNode(callExpression.parent)) {
+					currentParent.promiseHandler = new EmptyPromiseHandler();
+					currentParent = callExpression.parent;
+					continue;
+				}
+				if (isExpressionStatementNode(callExpression.parent)) {
+					currentParent.promiseHandler = new EmptyPromiseHandler();
+					this.localResolution = { resolution, tracked: true };
+					return;
+				}
+			}
+			break;
+		}
+		this.localResolution = { resolution, tracked: false };
 	}
 
 	deoptimizePath(path: ObjectPath): void {

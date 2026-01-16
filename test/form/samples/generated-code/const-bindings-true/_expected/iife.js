@@ -31,9 +31,9 @@ var bundle = (function (exports, foo$1) {
 		missing: _missingExportShim
 	});
 
-	const synthetic = { bar: 'baz' };
+	const synthetic = { bar: 'baz'};
 
-	console.log(foo__namespace.default, foo__namespace, other, bar, _missingExportShim);
+	console.log(foo__namespace.default, foo__namespace, other, synthetic.bar, _missingExportShim);
 	const main = 42;
 
 	exports.default = main;
