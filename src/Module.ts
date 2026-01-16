@@ -91,7 +91,7 @@ import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
-interface ImportDescription {
+export interface ImportDescription {
 	module: Module | ExternalModule;
 	name: string;
 	source: string;
@@ -485,7 +485,6 @@ export default class Module {
 		return this.relevantDependencies;
 	}
 
-	// TODO #6230 Can we avoid the getters here?
 	getExportedVariablesByName(): Map<string, Variable> {
 		if (this.exportedVariablesByName) {
 			return this.exportedVariablesByName;
@@ -876,7 +875,7 @@ export default class Module {
 			usesTopLevelAwait: false
 		};
 
-		this.scope = new ModuleScope(this.graph.scope, this.astContext);
+		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
 		const programParent = { context: this.astContext, type: 'Module' };
 

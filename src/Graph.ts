@@ -113,7 +113,7 @@ export default class Graph {
 
 		timeStart('sort and bind modules', 2);
 		this.phase = BuildPhase.ANALYSE;
-		this.sortModules();
+		this.sortAndBindModules();
 		timeEnd('sort and bind modules', 2);
 
 		timeStart('mark included statements', 2);
@@ -213,7 +213,7 @@ export default class Graph {
 		}
 	}
 
-	private sortModules(): void {
+	private sortAndBindModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
 			this.options.onLog(LOGLEVEL_WARN, logCircularDependency(cyclePath));

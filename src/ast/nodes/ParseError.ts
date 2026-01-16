@@ -8,7 +8,7 @@ export default class ParseError extends NodeBase {
 
 	initialise() {
 		const pos = this.start;
-		const id = this.scope.context.module.id;
+		const { id } = this.scope.context.module;
 		// This simulates the current nested error structure. We could also just
 		// replace it with a flat error.
 		const parseError = getRollupError(logParseError(this.message, pos));
