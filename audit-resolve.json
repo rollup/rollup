@@ -1,14 +1,9 @@
 {
   "decisions": {
-    "1108265|@mermaid-js/mermaid-cli>@mermaid-js/mermaid-zenuml>@zenuml/core>pino>fast-redact": {
+    "1112148|mocha>diff": {
       "decision": "ignore",
-      "madeAt": 1763187616543,
-      "expiresAt": 1765779605071
-    },
-    "1109754|nyc>@istanbuljs/load-nyc-config>js-yaml": {
-      "decision": "ignore",
-      "madeAt": 1763187626665,
-      "expiresAt": 1765779605071
+      "madeAt": 1768568636597,
+      "expiresAt": 1771160619404
     }
   },
   "rules": {},
