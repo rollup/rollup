@@ -1,6 +1,4 @@
-define((function () { 'use strict';
-
-	console.log('dep2');
+define(['./generated-chunk-c'], (function (chunkC) { 'use strict';
 
 	console.log('dep-b');
 

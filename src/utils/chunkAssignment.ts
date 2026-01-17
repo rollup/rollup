@@ -226,7 +226,10 @@ function getChunkDefinitionsFromManualChunks(
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
-	for (const [entry, alias] of manualChunkAliasByEntry) {
+	const sortedEntriesWithAlias = [...manualChunkAliasByEntry].sort(
+		([entryA], [entryB]) => entryA.execIndex - entryB.execIndex
+	);
+	for (const [entry, alias] of sortedEntriesWithAlias) {
 		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
 			(manualChunkModulesByAlias[alias] ||= []).push(entry);
 		} else {

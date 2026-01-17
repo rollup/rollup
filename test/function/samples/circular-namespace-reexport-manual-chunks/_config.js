@@ -18,9 +18,9 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'CIRCULAR_CHUNK',
-			ids: ['types.js', 'formatters.js', 'types.js'],
+			ids: ['formatters.js', 'types.js', 'formatters.js'],
 			message:
-				'Circular chunk: types.js -> formatters.js -> types.js. Please adjust the manual chunk logic for these chunks.'
+				'Circular chunk: formatters.js -> types.js -> formatters.js. Please adjust the manual chunk logic for these chunks.'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
