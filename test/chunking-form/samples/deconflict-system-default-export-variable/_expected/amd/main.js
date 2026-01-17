@@ -1,6 +1,6 @@
 define(['./other'], (function (other) { 'use strict';
 
-	var main = other + "extended";
+	var main = () => other;
 
 	return main;
 

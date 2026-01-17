@@ -10,7 +10,6 @@ import type {
 	NormalizedOutputOptions,
 	PreRenderedChunkWithFileName
 } from '../../rollup/types';
-import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
@@ -20,18 +19,22 @@ import type { PluginDriver } from '../../utils/PluginDriver';
 import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
+import {
+	isArrowFunctionExpressionNode,
+	isAwaitExpressionNode,
+	isCallExpressionNode,
+	isExpressionStatementNode,
+	isFunctionExpressionNode,
+	isIdentifierNode,
+	isMemberExpressionNode
+} from '../utils/identifyNode';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
-import ArrowFunctionExpression from './ArrowFunctionExpression';
-import AwaitExpression from './AwaitExpression';
-import CallExpression from './CallExpression';
-import ExpressionStatement from './ExpressionStatement';
-import FunctionExpression from './FunctionExpression';
-import Identifier from './Identifier';
-import MemberExpression from './MemberExpression';
+import { getDynamicNamespaceVariable } from '../variables/NamespaceVariable';
+import { EmptyPromiseHandler, ObjectPromiseHandler } from '../variables/PromiseHandler';
+import type CallExpression from './CallExpression';
 import type * as NodeType from './NodeType';
-import ObjectPattern from './ObjectPattern';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	doNotDeoptimize,
@@ -40,7 +43,6 @@ import {
 	type IncludeChildren,
 	NodeBase
 } from './shared/Node';
-import VariableDeclarator from './VariableDeclarator';
 
 interface DynamicImportMechanism {
 	left: string;
@@ -57,13 +59,15 @@ export default class ImportExpression extends NodeBase {
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;
+	resolution: Module | ExternalModule | string | null = null;
 
-	private hasUnknownAccessedKey = false;
-	private accessedPropKey = new Set<string>();
 	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
-	private resolution: Module | ExternalModule | string | null = null;
+	private localResolution:
+		| null
+		| { resolution: Module; tracked: false }
+		| { resolution: Module; tracked: true } = null;
 	private resolutionString: string | null = null;
 
 	get shouldIncludeDynamicAttributes() {
@@ -75,107 +79,71 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	bind(): void {
-		this.source.bind();
-		this.options?.bind();
-	}
-
-	/**
-	 * Get imported variables for deterministic usage, valid cases are:
-	 *
-	 * 1. `const { foo } = await import('bar')`.
-	 * 2. `(await import('bar')).foo`
-	 * 3. `import('bar').then(({ foo }) => {})`
-	 *
-	 * Returns empty array if it's side-effect only import.
-	 * Returns undefined if it's not fully deterministic.
-	 */
-	getDeterministicImportedNames(): readonly string[] | undefined {
-		const parent1 = this.parent;
-
-		// Side-effect only: import('bar')
-		if (parent1 instanceof ExpressionStatement) {
-			return EMPTY_ARRAY;
-		}
-
-		if (parent1 instanceof AwaitExpression) {
-			const parent2 = parent1.parent;
-
-			// Side effect only: await import('bar')
-			if (parent2 instanceof ExpressionStatement) {
-				return EMPTY_ARRAY;
-			}
-
-			// Case 1: const { foo } / module = await import('bar')
-			if (parent2 instanceof VariableDeclarator) {
-				const declaration = parent2.id;
-				if (declaration instanceof Identifier) {
-					return this.hasUnknownAccessedKey ? undefined : [...this.accessedPropKey];
-				}
-				if (declaration instanceof ObjectPattern) {
-					return getDeterministicObjectDestructure(declaration);
-				}
-			}
-
-			// Case 2: (await import('bar')).foo
-			if (parent2 instanceof MemberExpression) {
-				const id = parent2.property;
-				if (!parent2.computed && id instanceof Identifier) {
-					return [id.name];
-				}
-			}
-
+		const { options, parent, resolution, source } = this;
+		source.bind();
+		options?.bind();
+		// Check if we resolved to a Module without using instanceof
+		if (typeof resolution !== 'object' || !resolution || !('namespace' in resolution)) {
 			return;
 		}
-
-		if (parent1 instanceof MemberExpression) {
-			const callExpression = parent1.parent;
-			const property = parent1.property;
-
-			if (!(callExpression instanceof CallExpression) || !(property instanceof Identifier)) {
-				return;
-			}
-
-			const memberName = property.name;
-
-			// side-effect only, when only chaining .catch or .finally
-			if (
-				callExpression.parent instanceof ExpressionStatement &&
-				['catch', 'finally'].includes(memberName)
-			) {
-				return EMPTY_ARRAY;
-			}
-
-			if (memberName !== 'then') return;
-
-			// Side-effect only: import('bar').then()
-			if (callExpression.arguments.length === 0) {
-				return EMPTY_ARRAY;
-			}
-
-			const thenCallback = callExpression.arguments[0];
-
-			if (
-				callExpression.arguments.length !== 1 ||
-				!(
-					thenCallback instanceof ArrowFunctionExpression ||
-					thenCallback instanceof FunctionExpression
-				)
-			) {
-				return;
-			}
-
-			// Side-effect only: import('bar').then(() => {})
-			if (thenCallback.params.length === 0) {
-				return EMPTY_ARRAY;
-			}
-
-			const declaration = thenCallback.params[0];
-			if (thenCallback.params.length === 1 && declaration instanceof ObjectPattern) {
-				return getDeterministicObjectDestructure(declaration);
-			}
-
-			return this.hasUnknownAccessedKey ? undefined : [...this.accessedPropKey];
+		// In these cases, we can track exactly what is included or deoptimized:
+		// * import('foo'); // as statement
+		// * await import('foo') // use as awaited expression in any way
+		// * import('foo').then(n => {...}) // only if .then is called directly on the import()
+		if (isExpressionStatementNode(parent) || isAwaitExpressionNode(parent)) {
+			this.localResolution = { resolution, tracked: true };
+			return;
 		}
+		if (!isMemberExpressionNode(parent)) {
+			this.localResolution = { resolution, tracked: false };
+			return;
+		}
+		let currentParent = parent;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		let callExpression: ImportExpression | CallExpression = this;
+		while (true) {
+			if (
+				currentParent.computed ||
+				currentParent.object !== callExpression ||
+				!isIdentifierNode(currentParent.property) ||
+				!isCallExpressionNode(currentParent.parent)
+			) {
+				break;
+			}
+			const propertyName = currentParent.property.name;
+			callExpression = currentParent.parent;
+			if (propertyName === 'then') {
+				const firstArgument = callExpression.arguments[0];
+				if (
+					firstArgument === undefined ||
+					isFunctionExpressionNode(firstArgument) ||
+					isArrowFunctionExpressionNode(firstArgument)
+				) {
+					currentParent.promiseHandler = new ObjectPromiseHandler(
+						getDynamicNamespaceVariable(resolution.namespace)
+					);
+					this.localResolution = { resolution, tracked: true };
+					return;
+				}
+			} else if (propertyName === 'catch' || propertyName === 'finally') {
+				if (isMemberExpressionNode(callExpression.parent)) {
+					currentParent.promiseHandler = new EmptyPromiseHandler();
+					currentParent = callExpression.parent;
+					continue;
+				}
+				if (isExpressionStatementNode(callExpression.parent)) {
+					currentParent.promiseHandler = new EmptyPromiseHandler();
+					this.localResolution = { resolution, tracked: true };
+					return;
+				}
+			}
+			break;
+		}
+		this.localResolution = { resolution, tracked: false };
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.localResolution?.resolution?.namespace.deoptimizePath(path);
 	}
 
 	hasEffects(): boolean {
@@ -185,28 +153,31 @@ export default class ImportExpression extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) this.includeNode(context);
 		this.source.include(context, includeChildrenRecursively);
-		if (this.shouldIncludeDynamicAttributes)
+		if (this.shouldIncludeDynamicAttributes) {
 			this.options?.include(context, includeChildrenRecursively);
+		}
 	}
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
-		if (this.shouldIncludeDynamicAttributes) this.options?.includePath(UNKNOWN_PATH, context);
-		this.scope.context.includeDynamicImport(this);
-		this.scope.addAccessedDynamicImport(this);
+		const { localResolution, scope, shouldIncludeDynamicAttributes } = this;
+		if (shouldIncludeDynamicAttributes) {
+			this.options?.includePath(UNKNOWN_PATH, context);
+		}
+		scope.context.includeDynamicImport(this);
+		scope.addAccessedDynamicImport(this);
+		if (localResolution) {
+			if (localResolution.tracked) {
+				localResolution.resolution.includeModuleInExecution();
+			} else {
+				localResolution.resolution.includeAllExports();
+			}
+		}
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) this.includeNode(context);
-		// Technically, this is not correct as dynamic imports return a Promise.
-		if (this.hasUnknownAccessedKey) return;
-		if (path[0] === UnknownKey) {
-			this.hasUnknownAccessedKey = true;
-		} else if (typeof path[0] === 'string') {
-			this.accessedPropKey.add(path[0]);
-		}
-		// Update included paths
-		this.scope.context.includeDynamicImport(this);
+		this.localResolution?.resolution?.namespace.includeMemberPath(path, context);
 	}
 
 	initialise(): void {
@@ -275,27 +246,24 @@ export default class ImportExpression extends NodeBase {
 
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'external',
-		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
 		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
 		namespaceExportName: string | false | undefined,
-		attributes: string | null | true,
+		attributes: string | true | null,
 		ownChunk: Chunk,
 		targetChunk: Chunk | null
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
-		this.resolution = resolution;
 		this.resolutionString = resolutionString;
 		this.namespaceExportName = namespaceExportName;
 		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(
-			resolution,
 			exportMode,
 			options,
 			snippets,
@@ -316,7 +284,6 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	private getDynamicImportMechanismAndHelper(
-		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		{
 			compact,
@@ -330,10 +297,11 @@ export default class ImportExpression extends NodeBase {
 		ownChunk: Chunk,
 		targetChunk: Chunk | null
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
+		const { resolution, scope } = this;
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
 				chunk: getChunkInfoWithPath(ownChunk),
-				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
+				customResolution: typeof resolution === 'string' ? resolution : null,
 				format,
 				getTargetChunkImports(): DynamicImportTargetChunk[] | null {
 					if (targetChunk === null) return null;
@@ -358,16 +326,15 @@ export default class ImportExpression extends NodeBase {
 					}
 					return chunkInfos;
 				},
-				moduleId: this.scope.context.module.id,
+				moduleId: scope.context.module.id,
 				targetChunk: targetChunk ? getChunkInfoWithPath(targetChunk) : null,
-				targetModuleId:
-					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
+				targetModuleId: resolution && typeof resolution !== 'string' ? resolution.id : null
 			}
 		]);
 		if (mechanism) {
 			return { helper: null, mechanism };
 		}
-		const hasDynamicTarget = !this.resolution || typeof this.resolution === 'string';
+		const hasDynamicTarget = !resolution || typeof resolution === 'string';
 		switch (format) {
 			case 'cjs': {
 				if (
@@ -468,15 +435,3 @@ const accessedImportGlobals: Record<string, string[]> = {
 	cjs: ['require'],
 	system: ['module']
 };
-
-function getDeterministicObjectDestructure(objectPattern: ObjectPattern): string[] | undefined {
-	const variables: string[] = [];
-
-	for (const property of objectPattern.properties) {
-		if (property.type === 'RestElement' || property.computed || property.key.type !== 'Identifier')
-			return;
-		variables.push((property.key as Identifier).name);
-	}
-
-	return variables;
-}

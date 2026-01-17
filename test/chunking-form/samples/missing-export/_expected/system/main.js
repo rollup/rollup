@@ -3,7 +3,7 @@ System.register(['./dep.js'], (function () {
 	var _missingExportShim, x;
 	return {
 		setters: [function (module) {
-			_missingExportShim = module.missingFn;
+			_missingExportShim = module.default;
 			x = module.x;
 		}],
 		execute: (function () {

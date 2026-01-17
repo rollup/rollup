@@ -28,9 +28,9 @@ System.register('bundle', ['external'], (function (exports) {
 				missing: _missingExportShim
 			});
 
-			const synthetic = { bar: 'baz' };
+			const synthetic = { bar: 'baz'};
 
-			console.log(foo__default, foo$1, other, bar, _missingExportShim);
+			console.log(foo__default, foo$1, other, synthetic.bar, _missingExportShim);
 			const main = exports("default", 42);
 
 			exports("syntheticMissing", synthetic.syntheticMissing);

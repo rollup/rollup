@@ -17,3 +17,9 @@ Keep instructions concise, only add non-obvious information. Proactively update 
 ## Guidelines
 
 - Always test edge cases, especially in core logic or build/test infrastructure
+
+## Code Review Focus
+
+- **Ignore style/linting issues** in test sample files (`test/*/samples/`) except for `_config.js` files
+- Test samples intentionally violate best practices to test edge cases—do not flag style violations in these files
+- Focus reviews on production code quality

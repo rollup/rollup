@@ -6,7 +6,7 @@ System.register(['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const foo = 1; exports({ foo: foo, bar: foo, default: foo });
+			const foo = 1; exports({ bar: foo, default: foo, foo: foo });
 
 		})
 	};

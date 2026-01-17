@@ -1,7 +1,5 @@
 const d = {
-  fn: 42,
-  hello: 'hola'
-};
+  fn: 42};
 
 console.log(d.fn);
 console.log(d.foo);
