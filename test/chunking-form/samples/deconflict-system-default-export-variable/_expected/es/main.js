@@ -1,5 +1,5 @@
-import { main as main$1 } from './other.js';
+import * as other from './other.js';
 
-var main = main$1 + 'extended';
+var main = () => other;
 
 export { main as default };
