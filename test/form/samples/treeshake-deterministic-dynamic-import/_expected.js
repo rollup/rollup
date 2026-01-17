@@ -54,10 +54,10 @@ async function entry() {
 	await Promise.resolve().then(function () { return effect2; });
 	Promise.resolve().then(function () { return effect3; }).then();
 	Promise.resolve().then(function () { return effect4; }).then(function () {});
-	Promise.resolve().then(function () { return effect5; }).catch();
-	Promise.resolve().then(function () { return effect6; }).catch().then(() => {});
-	Promise.resolve().then(function () { return effect7; }).finally();
-	Promise.resolve().then(function () { return effect8; }).finally().then(() => {});
+	Promise.resolve().then(function () { return effect5; }).catch(() => {});
+	Promise.resolve().then(function () { return effect6; }).catch(() => {}).then(() => {});
+	Promise.resolve().then(function () { return effect7; }).finally(() => {});
+	Promise.resolve().then(function () { return effect8; }).finally(() => {}).then(() => {});
 
 	// bail out
 	const { named1 } = await Promise.resolve().then(function () { return bail1$1; });

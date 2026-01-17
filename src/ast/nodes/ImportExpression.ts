@@ -120,8 +120,7 @@ export default class ImportExpression extends NodeBase {
 					isArrowFunctionExpressionNode(firstArgument)
 				) {
 					currentParent.promiseHandler = new ObjectPromiseHandler(
-						getDynamicNamespaceVariable(resolution.namespace),
-						firstArgument
+						getDynamicNamespaceVariable(resolution.namespace)
 					);
 					this.localResolution = { resolution, tracked: true };
 					return;
