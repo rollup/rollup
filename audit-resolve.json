@@ -4,6 +4,11 @@
       "decision": "ignore",
       "madeAt": 1768568636597,
       "expiresAt": 1771160619404
+    },
+    "1112255|wasm-pack>binary-install>tar": {
+      "decision": "ignore",
+      "madeAt": 1768632226326,
+      "expiresAt": 1771224205911
     }
   },
   "rules": {},
