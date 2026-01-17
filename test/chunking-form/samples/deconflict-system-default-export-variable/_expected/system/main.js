@@ -1,13 +1,13 @@
 System.register(['./other.js'], (function (exports) {
 	'use strict';
-	var main$1;
+	var other;
 	return {
 		setters: [function (module) {
-			main$1 = module.main;
+			other = module;
 		}],
 		execute: (function () {
 
-			var main = exports("default", main$1 + 'extended');
+			var main = exports("default", () => other);
 
 		})
 	};

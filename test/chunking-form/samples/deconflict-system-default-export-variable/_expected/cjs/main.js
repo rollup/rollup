@@ -2,6 +2,6 @@
 
 var other = require('./other.js');
 
-var main = other.main + 'extended';
+var main = () => other;
 
 module.exports = main;
