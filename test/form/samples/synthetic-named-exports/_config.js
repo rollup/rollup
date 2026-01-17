@@ -16,7 +16,7 @@ module.exports = defineTest({
 							code: `
 const d = {
   fn: 42,
-  hello: 'hola'
+  unused: 'tree-shaken',
 };
 export default d;`,
 							syntheticNamedExports: true
