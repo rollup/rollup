@@ -107,7 +107,7 @@ export default class JSXElement extends JSXElementBase {
 			closingElement,
 			end,
 			factoryVariable,
-			openingElement: { end: openindEnd, selfClosing }
+			openingElement: { end: openingEnd, selfClosing }
 		} = this;
 		let { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd } =
 			this.renderAttributes(
@@ -120,7 +120,7 @@ export default class JSXElement extends JSXElementBase {
 		const { firstChild, hasMultipleChildren, childrenEnd } = this.renderChildren(
 			code,
 			options,
-			openindEnd
+			openingEnd
 		);
 
 		if (firstChild) {
@@ -135,6 +135,11 @@ export default class JSXElement extends JSXElementBase {
 			}
 		}
 
+		// This ensures that attributesEnd never corresponds to this.end. This is
+		// important because we must never use code.move with this.end as target.
+		// Otherwise, this would interfere with parent elements that try to append
+		// code to this.end, which would appear BEFORE the moved code.
+		const attributesEnd = firstChild ? childrenEnd : previousEnd;
 		this.wrapAttributes(
 			code,
 			inObject,
@@ -142,17 +147,17 @@ export default class JSXElement extends JSXElementBase {
 			hasSpread,
 			firstAttribute || firstChild,
 			'{}',
-			childrenEnd
+			attributesEnd
 		);
 
 		if (keyAttribute) {
 			const { value } = keyAttribute;
 			// This will appear to the left of the moved code...
-			code.appendLeft(childrenEnd, ', ');
+			code.appendLeft(attributesEnd, ', ');
 			if (value) {
-				code.move(value.start, value.end, childrenEnd);
+				code.move(value.start, value.end, attributesEnd);
 			} else {
-				code.appendLeft(childrenEnd, 'true');
+				code.appendLeft(attributesEnd, 'true');
 			}
 		}
 
@@ -221,9 +226,7 @@ export default class JSXElement extends JSXElementBase {
 				hasSpread = true;
 			}
 			previousEnd = attribute.end;
-			if (!firstAttribute) {
-				firstAttribute = attribute;
-			}
+			firstAttribute ??= attribute;
 		}
 		code.remove(attributes.at(-1)?.end || previousEnd, openingEnd);
 		return { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd };
