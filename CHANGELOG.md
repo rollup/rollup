@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.55.2
+
+_2026-01-19_
+
+### Bug Fixes
+
+- Sort manual chunks by execution order to reduce circular dependency issues (#6240)
+
+### Pull Requests
+
+- [#6234](https://github.com/rollup/rollup/pull/6234): chore(deps): pin cross-platform-actions/action action to 492b0c8 (@renovate[bot])
+- [#6235](https://github.com/rollup/rollup/pull/6235): chore(deps): update dependency globals to v17 (@renovate[bot], @lukastaegert)
+- [#6236](https://github.com/rollup/rollup/pull/6236): fix(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6237](https://github.com/rollup/rollup/pull/6237): chore(deps): lock file maintenance (@renovate[bot])
+- [#6239](https://github.com/rollup/rollup/pull/6239): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6240](https://github.com/rollup/rollup/pull/6240): Sort manual chunks by module execution order (@TrickyPi)
+
 ## 4.55.1
 
 _2026-01-05_
