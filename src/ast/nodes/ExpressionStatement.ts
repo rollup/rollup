@@ -38,7 +38,7 @@ export default class ExpressionStatement extends StatementBase {
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
 		if (code.original[this.end - 1] !== ';') {
-			code.appendRight(this.end, ';');
+			code.appendLeft(this.end, ';');
 		}
 	}
 
