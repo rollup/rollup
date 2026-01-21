@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.55.3
+
+_2026-01-21_
+
+### Bug Fixes
+
+- Fix JSX semicolon insert position in variable declarations (#6241)
+
+### Pull Requests
+
+- [#6241](https://github.com/rollup/rollup/pull/6241): Fix JSX semicolon insertion (@lukastaegert)
+
 ## 4.55.2
 
 _2026-01-19_
