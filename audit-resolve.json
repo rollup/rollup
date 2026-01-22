@@ -5,15 +5,40 @@
       "madeAt": 1768632226326,
       "expiresAt": 1771224205911
     },
-    "1112328|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1768971952686,
-      "expiresAt": 1771563932286
-    },
     "1112329|wasm-pack>binary-install>tar": {
       "decision": "ignore",
       "madeAt": 1768971958748,
       "expiresAt": 1771563932286
+    },
+    "1112453|@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es": {
+      "decision": "ignore",
+      "madeAt": 1769058929105,
+      "expiresAt": 1771650881209
+    },
+    "1112453|@chevrotain/gast>lodash-es": {
+      "decision": "ignore",
+      "madeAt": 1769058929105,
+      "expiresAt": 1771650881209
+    },
+    "1112453|@mermaid-js/mermaid-cli>mermaid>@mermaid-js/parser>langium>chevrotain>@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es": {
+      "decision": "ignore",
+      "madeAt": 1769058929105,
+      "expiresAt": 1771650881209
+    },
+    "1112453|chevrotain-allstar>chevrotain>@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es": {
+      "decision": "ignore",
+      "madeAt": 1769058929105,
+      "expiresAt": 1771650881209
+    },
+    "1112455|lodash": {
+      "decision": "ignore",
+      "madeAt": 1769058974064,
+      "expiresAt": 1771650881209
+    },
+    "1112432|mocha>diff": {
+      "decision": "ignore",
+      "madeAt": 1769058983758,
+      "expiresAt": 1771650881209
     }
   },
   "rules": {},
