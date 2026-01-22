@@ -9,7 +9,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -124,10 +124,9 @@ export default class CallExpression
 		}
 	}
 
-	includeNode(context: InclusionContext) {
+	includeNode(_context: InclusionContext) {
 		this.included = true;
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.callee.includePath(UNKNOWN_PATH, context);
 	}
 
 	initialise() {

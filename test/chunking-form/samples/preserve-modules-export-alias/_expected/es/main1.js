@@ -1,1 +1,1 @@
-export { foo as bar, foo } from './dep.js';
+export { bar, bar as foo } from './dep.js';

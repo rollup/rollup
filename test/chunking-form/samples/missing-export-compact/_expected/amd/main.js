@@ -1,2 +1,2 @@
-define(['./dep'],(function(dep){'use strict';dep.missingFn();
-dep.x(dep.missingFn);}));
+define(['./dep'],(function(dep){'use strict';dep.missingExport();
+dep.x(dep.missingExport);}));
