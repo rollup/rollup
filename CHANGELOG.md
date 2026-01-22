@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.56.0
+
+_2026-01-22_
+
+### Features
+
+- Track object property inclusions of dynamic namespace members (#6230)
+
+### Bug Fixes
+
+- Handle methods that access dynamically imported namespace members via `this` (#6230)
+
+### Pull Requests
+
+- [#6230](https://github.com/rollup/rollup/pull/6230): Refine namespace handling (@lukastaegert)
+
 ## 4.55.3
 
 _2026-01-21_
