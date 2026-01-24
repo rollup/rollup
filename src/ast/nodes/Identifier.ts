@@ -23,8 +23,8 @@ import type { VariableKind } from './shared/VariableKinds';
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
 export default class Identifier extends IdentifierBase implements DeclarationPatternNode {
-	name!: string;
-	type!: NodeType.tIdentifier;
+	declare name: string;
+	declare type: NodeType.tIdentifier;
 	variable: Variable | null = null;
 
 	private get isDestructuringDeoptimized(): boolean {

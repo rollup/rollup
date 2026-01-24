@@ -7,9 +7,9 @@ const RE_WHITESPACE_TRIM = /^[ \t]*\r?\n[ \t\r\n]*|[ \t]*\r?\n[ \t\r\n]*$/g;
 const RE_WHITESPACE_MERGE = /[ \t]*\r?\n[ \t\r\n]*/g;
 
 export default class JSXText extends NodeBase {
-	type!: NodeType.tJSXText;
-	value!: string;
-	raw!: string;
+	declare type: NodeType.tJSXText;
+	declare value: string;
+	declare raw: string;
 
 	private renderedText: string | undefined;
 

@@ -6,7 +6,7 @@ import {
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionAssigned } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -20,7 +20,6 @@ export default class UpdateExpression extends NodeBase {
 	declare operator: '++' | '--';
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
-	declare private interaction: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

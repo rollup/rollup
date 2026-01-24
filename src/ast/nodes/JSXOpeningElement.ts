@@ -10,10 +10,10 @@ import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class JSXOpeningElement extends NodeBase {
-	type!: NodeType.tJSXOpeningElement;
-	name!: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
-	attributes!: (JSXAttribute | JSXSpreadAttribute)[];
-	selfClosing!: boolean;
+	declare type: NodeType.tJSXOpeningElement;
+	declare name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
+	declare attributes: (JSXAttribute | JSXSpreadAttribute)[];
+	declare selfClosing: boolean;
 
 	render(
 		code: MagicString,

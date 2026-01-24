@@ -5,9 +5,9 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class JSXMemberExpression extends NodeBase {
-	type!: NodeType.tJSXMemberExpression;
-	object!: JSXMemberExpression | JSXIdentifier;
-	property!: JSXIdentifier;
+	declare type: NodeType.tJSXMemberExpression;
+	declare object: JSXMemberExpression | JSXIdentifier;
+	declare property: JSXIdentifier;
 
 	includeNode(context: InclusionContext) {
 		this.included = true;

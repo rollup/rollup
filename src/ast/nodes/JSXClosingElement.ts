@@ -5,6 +5,6 @@ import type * as NodeType from './NodeType';
 import JSXClosingBase from './shared/JSXClosingBase';
 
 export default class JSXClosingElement extends JSXClosingBase {
-	type!: NodeType.tJSXClosingElement;
-	name!: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
+	declare type: NodeType.tJSXClosingElement;
+	declare name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
 }
