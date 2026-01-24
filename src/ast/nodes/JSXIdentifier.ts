@@ -15,8 +15,8 @@ const enum IdentifierType {
 }
 
 export default class JSXIdentifier extends IdentifierBase {
-	type!: NodeType.tJSXIdentifier;
-	name!: string;
+	declare type: NodeType.tJSXIdentifier;
+	declare name: string;
 
 	private isNativeElement = false;
 

@@ -12,10 +12,10 @@ import type { JSXChild, JsxMode } from './shared/jsxHelpers';
 import type { IncludeChildren } from './shared/Node';
 
 export default class JSXElement extends JSXElementBase {
-	type!: NodeType.tJSXElement;
-	openingElement!: JSXOpeningElement;
-	closingElement!: JSXClosingElement | null;
-	children!: JSXChild[];
+	declare type: NodeType.tJSXElement;
+	declare openingElement: JSXOpeningElement;
+	declare closingElement: JSXClosingElement | null;
+	declare children: JSXChild[];
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		super.include(context, includeChildrenRecursively);

@@ -6,8 +6,8 @@ import type { ExpressionNode } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
 export default class JSXSpreadChild extends NodeBase {
-	type!: NodeType.tJSXSpreadChild;
-	expression!: ExpressionNode;
+	declare type: NodeType.tJSXSpreadChild;
+	declare expression: ExpressionNode;
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
