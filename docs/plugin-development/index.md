@@ -472,8 +472,8 @@ type ResolveDynamicImportHook = (
 	specifier: string | AstNode,
 	importer: string,
 	options: {
-		importerAttributes: Record<string, string>;
 		attributes: Record<string, string>;
+		importerAttributes: Record<string, string>;
 	}
 ) => ResolveIdResult;
 ```
@@ -1136,7 +1136,7 @@ See the [`chunkFileNames`](../configuration-options/index.md#output-chunkfilenam
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
-`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id and `targetModuleAttributes` will be set to the import attributes of this resolved module, otherwise `targetModuleId` will be `null` and `targetModuleAttributes` will be an empty object. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
+`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id and `targetModuleAttributes` will be set to the import attributes that were applied to this resolved module, otherwise `targetModuleId` will be `null` and `targetModuleAttributes` will be an empty object. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
 
 The `PreRenderedChunkWithFileName` type is identical to the `PreRenderedChunk` type except for the addition of the `fileName` field, which contains the path and file name of the chunk. `fileName` may contain a placeholder if the chunk file name format contains a hash.
 
@@ -2240,6 +2240,87 @@ console.log(__synthetic);
 ```
 
 When used as an entry point, only explicit exports will be exposed. The synthetic fallback export, i.e. `__synthetic` in the example, will not be exposed for string values of `syntheticNamedExports`. However, if the value is `true`, the default export will be exposed. This is the only notable difference between `syntheticNamedExports: true` and `syntheticNamedExports: 'default'`.
+
+## Import attributes
+
+The ECMAScript standard allows [import attributes](https://github.com/tc39/proposal-import-attributes) to be specified on imports to customize how a module is loaded. For example:
+
+```js
+import data from './data.json' with { type: 'json' };
+import('./utils.js').then(utils => utils.process(data));
+```
+
+Rollup provides access to these attributes in plugin hooks, allowing plugins to handle modules differently based on their import attributes.
+
+### Accessing import attributes in plugins
+
+When a module is imported with attributes, these attributes are made available to plugins in several hooks:
+
+- In the [`resolveId`](#resolveid) hook, `options.attributes` contains the import attributes, and `options.importerAttributes` contains the attributes of the importing module.
+- In the [`load`](#load) hook, `options.attributes` contains the import attributes that were used when the module was first imported.
+- In the [`transform`](#transform) hook, `options.attributes` contains the import attributes.
+- In the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook, the `attributes` field contains the import attributes.
+- In the [`resolveDynamicImport`](#resolvedynamicimport) hook, `options.attributes` contains the import attributes from the dynamic import, and `options.importerAttributes` contains the attributes of the importing module.
+- In the [`renderDynamicImport`](#renderdynamicimport) hook, `targetModuleAttributes` contains the import attributes of the resolved dynamic import target.
+- In the [`moduleParsed`](#moduleparsed) hook, `moduleInfo.attributes` contains the import attributes.
+
+### Using import attributes to customize module handling
+
+A common use case is to handle assets like JSON or stylesheets differently based on their import attributes:
+
+```js twoslash
+import { resolve, dirname } from 'node:path';
+import { readFile } from 'node:fs/promises';
+
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+function customAssetsPlugin() {
+	return {
+		name: 'custom-assets',
+		resolveId(source, importer, options) {
+			if (options.attributes.type === 'json') {
+				return resolve(dirname(importer), source);
+			}
+		},
+		async load(id, options) {
+			if (options.attributes.type === 'json') {
+				const content = await readFile(id, 'utf-8');
+				return `export default ${content}`;
+			}
+			return null;
+		}
+	};
+}
+```
+
+### Passing attributes when resolving modules
+
+You can pass `attributes` when manually resolving a module via [`this.resolve`](#this-resolve) to simulate resolving an import with specific attributes:
+
+```js twoslash
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+function proxyPlugin() {
+	return {
+		name: 'proxy',
+		async resolveId(source, importer, options) {
+			// Check what this would resolve to with specific attributes
+			const jsonResolution = await this.resolve(source, importer, {
+				...options,
+				attributes: { type: 'json' }
+			});
+
+			if (jsonResolution && !jsonResolution.external) {
+				// Handle JSON imports specially
+				return source + '?treated-as-json';
+			}
+			return null;
+		}
+	};
+}
+```
 
 ## Inter-plugin communication
 
