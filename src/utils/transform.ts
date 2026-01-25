@@ -14,8 +14,6 @@ import type {
 	TransformPluginContext,
 	TransformResult
 } from '../rollup/types';
-import { getTrackedPluginCache } from './PluginCache';
-import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { LOGLEVEL_WARN } from './logging';
@@ -25,16 +23,18 @@ import {
 	logInvalidSetAssetSourceCall,
 	logNoTransformMapOrAstWithoutCode,
 	logPluginError,
-	warnDeprecationWithOptions
+	warnDeprecation
 } from './logs';
 import { normalizeLog } from './options/options';
+import { getTrackedPluginCache } from './PluginCache';
+import type { PluginDriver } from './PluginDriver';
 import { URL_TRANSFORM } from './urls';
 
 export default async function transform(
 	source: SourceDescription,
 	module: Module,
 	pluginDriver: PluginDriver,
-	{ onLog: log, strictDeprecations }: NormalizedInputOptions
+	options: NormalizedInputOptions
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -63,17 +63,16 @@ export default async function transform(
 			module.updateOptions(result);
 			if (result.code == null) {
 				if (result.map || result.ast) {
-					log(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
+					options.onLog(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
 				}
 				return previousCode;
 			}
 			if (result.attributes) {
-				warnDeprecationWithOptions(
+				warnDeprecation(
 					'Returning attributes from the "transform" hook is forbidden.',
 					URL_TRANSFORM,
-					strictDeprecations,
-					log,
-					false
+					false,
+					options
 				);
 			}
 			({ code, map, ast } = result);
@@ -152,7 +151,7 @@ export default async function transform(
 							originalCode,
 							originalSourcemap,
 							sourcemapChain,
-							log
+							options.onLog
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);

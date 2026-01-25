@@ -31,7 +31,7 @@ import {
 	logUnresolvedImplicitDependant,
 	logUnresolvedImport,
 	logUnresolvedImportTreatedAsExternal,
-	warnDeprecationWithOptions
+	warnDeprecation
 } from './utils/logs';
 import {
 	doAttributesDiffer,
@@ -302,12 +302,11 @@ export class ModuleLoader {
 				]);
 				if (content !== null) {
 					if (typeof content === 'object' && content.attributes) {
-						warnDeprecationWithOptions(
+						warnDeprecation(
 							'Returning attributes from the "load" hook is forbidden.',
 							URL_LOAD,
-							this.options.strictDeprecations,
-							this.options.onLog,
-							false
+							false,
+							this.options
 						);
 					}
 					return content;
