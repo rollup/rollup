@@ -404,12 +404,18 @@ export type ResolveDynamicImportHook = (
 export type ResolveImportMetaHook = (
 	this: PluginContext,
 	property: string | null,
-	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
+	options: {
+		attributes: Record<string, string>;
+		chunkId: string;
+		format: InternalModuleFormat;
+		moduleId: string;
+	}
 ) => string | NullValue;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
+		attributes: Record<string, string>;
 		chunkId: string;
 		fileName: string;
 		format: InternalModuleFormat;

@@ -1270,6 +1270,7 @@ Called initially each time `bundle.generate()` or `bundle.write()` is called. To
 
 ```typescript
 type ResolveFileUrlHook = (options: {
+	attributes: Record<string, string>;
 	chunkId: string;
 	fileName: string;
 	format: InternalModuleFormat;
@@ -1283,6 +1284,7 @@ Allows to customize how Rollup resolves URLs of files that were emitted by plugi
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
+- `attributes`: The import attributes of the module that references this file.
 - `chunkId`: The id of the chunk this file is referenced from. If the chunk file name would contain a hash, this id will contain a placeholder instead. Rollup will replace this placeholder with the actual file name if it ends up in the generated code.
 - `fileName`: The path and file name of the emitted file, relative to `output.dir` without a leading `./`. Again if this is a chunk that would have a hash in its name, it will contain a placeholder instead.
 - `format`: The rendered output format.
@@ -1310,7 +1312,7 @@ function resolveToDocumentPlugin() {
 
 |  |  |
 | --: | :-- |
-| Type: | `(property: string \| null, {chunkId: string, moduleId: string, format: string}) => string \| null` |
+| Type: | `(property: string \| null, {attributes: Record<string, string>, chunkId: string, moduleId: string, format: string}) => string \| null` |
 | Kind: | sync, first |
 | Previous: | [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the current chunk |
 | Next: | [`banner`](#banner), [`footer`](#footer), [`intro`](#intro), [`outro`](#outro) in parallel for the current chunk |
@@ -1319,7 +1321,7 @@ Allows to customize how Rollup handles `import.meta` and `import.meta.someProper
 
 By default, for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
 
-This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. The `attributes` parameter contains the import attributes of the module. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
 
 ```js twoslash
 // ---cut-start---
@@ -2262,6 +2264,8 @@ When a module is imported with attributes, these attributes are made available t
 - In the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook, the `attributes` field contains the import attributes.
 - In the [`resolveDynamicImport`](#resolvedynamicimport) hook, `options.attributes` contains the import attributes from the dynamic import, and `options.importerAttributes` contains the attributes of the importing module.
 - In the [`renderDynamicImport`](#renderdynamicimport) hook, `targetModuleAttributes` contains the import attributes of the resolved dynamic import target.
+- In the [`resolveFileUrl`](#resolvefileurl) hook, `options.attributes` contains the import attributes of the module that references the file.
+- In the [`resolveImportMeta`](#resolveimportmeta) hook, `options.attributes` contains the import attributes of the module.
 - In the [`moduleParsed`](#moduleparsed) hook, `moduleInfo.attributes` contains the import attributes.
 
 ### Using import attributes to customize module handling
