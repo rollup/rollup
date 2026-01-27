@@ -1,3 +1,5 @@
+const assert = require('node:assert/strict');
+
 module.exports = defineTest({
 	description: 'allows to configure file urls',
 	options: {
@@ -25,7 +27,16 @@ module.exports = defineTest({
 						);
 					}
 				},
-				resolveFileUrl({ chunkId, fileName, format, moduleId, referenceId, relativePath }) {
+				resolveFileUrl({
+					attributes,
+					chunkId,
+					fileName,
+					format,
+					moduleId,
+					referenceId,
+					relativePath
+				}) {
+					assert.deepEqual(attributes, {});
 					if (!moduleId.endsWith('resolved')) {
 						return `'chunkId=${chunkId}:moduleId=${moduleId
 							.replace(/\\/g, '/')
@@ -39,7 +50,8 @@ module.exports = defineTest({
 				}
 			},
 			{
-				resolveFileUrl({ moduleId }) {
+				resolveFileUrl({ attributes, moduleId }) {
+					assert.deepEqual(attributes, {});
 					if (moduleId === 'resolved') {
 						return `'resolved'`;
 					}

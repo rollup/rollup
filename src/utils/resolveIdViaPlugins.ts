@@ -11,7 +11,8 @@ export function resolveIdViaPlugins(
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	attributes: Record<string, string>
+	attributes: Record<string, string>,
+	importerAttributes: Record<string, string> | undefined
 ): Promise<[NonNullable<ResolveIdResult>, Plugin] | null> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
@@ -24,7 +25,11 @@ export function resolveIdViaPlugins(
 		}
 		replaceContext = (pluginContext, plugin): PluginContext => ({
 			...pluginContext,
-			resolve: (source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) => {
+			resolve: (
+				source,
+				importer,
+				{ attributes, custom, isEntry, skipSelf, importerAttributes } = BLANK
+			) => {
 				skipSelf ??= true;
 				if (
 					skipSelf &&
@@ -46,6 +51,7 @@ export function resolveIdViaPlugins(
 					custom,
 					isEntry,
 					attributes || EMPTY_OBJECT,
+					importerAttributes,
 					skipSelf ? [...skip, { importer, plugin, source }] : skip
 				);
 			}
@@ -53,7 +59,7 @@ export function resolveIdViaPlugins(
 	}
 	return pluginDriver.hookFirstAndGetPlugin(
 		'resolveId',
-		[source, importer, { attributes, custom: customOptions, isEntry }],
+		[source, importer, { attributes, custom: customOptions, importerAttributes, isEntry }],
 		replaceContext,
 		skipped
 	);

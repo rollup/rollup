@@ -30,7 +30,8 @@ import {
 	logUnresolvedEntry,
 	logUnresolvedImplicitDependant,
 	logUnresolvedImport,
-	logUnresolvedImportTreatedAsExternal
+	logUnresolvedImportTreatedAsExternal,
+	warnDeprecation
 } from './utils/logs';
 import {
 	doAttributesDiffer,
@@ -42,6 +43,7 @@ import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import stripBom from './utils/stripBom';
 import transform from './utils/transform';
+import { URL_LOAD } from './utils/urls';
 
 export interface UnresolvedModule {
 	fileName: string | null;
@@ -56,6 +58,7 @@ export type ModuleLoaderResolveId = (
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean | undefined,
 	attributes: Record<string, string>,
+	importerAttributes: Record<string, string> | undefined,
 	skip?: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 ) => Promise<ResolvedId | null>;
 
@@ -107,7 +110,7 @@ export class ModuleLoader {
 		const result = this.extendLoadModulesPromise(
 			Promise.all(
 				unresolvedModules.map(id =>
-					this.loadEntryModule(id, false, undefined, null, isAddForManualChunks)
+					this.loadEntryModule(id, false, undefined, null, isAddForManualChunks, undefined)
 				)
 			)
 		);
@@ -130,7 +133,7 @@ export class ModuleLoader {
 		const newEntryModules = await this.extendLoadModulesPromise(
 			Promise.all(
 				unresolvedEntryModules.map(({ id, importer }) =>
-					this.loadEntryModule(id, true, importer, null)
+					this.loadEntryModule(id, true, importer, null, undefined, undefined)
 				)
 			).then(entryModules => {
 				for (const [index, entryModule] of entryModules.entries()) {
@@ -212,6 +215,7 @@ export class ModuleLoader {
 		customOptions,
 		isEntry,
 		attributes,
+		importerAttributes,
 		skip = null
 	) =>
 		this.getResolvedIdWithDefaults(
@@ -228,6 +232,7 @@ export class ModuleLoader {
 							customOptions,
 							typeof isEntry === 'boolean' ? isEntry : !importer,
 							attributes,
+							importerAttributes,
 							this.options.fs
 						),
 				importer,
@@ -242,32 +247,44 @@ export class ModuleLoader {
 	): Promise<Module> {
 		const chunkNamePriority = this.nextChunkNamePriority++;
 		return this.extendLoadModulesPromise(
-			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
-				async entryModule => {
-					addChunkNamesToModule(entryModule, unresolvedModule, false, chunkNamePriority);
-					if (!entryModule.info.isEntry) {
-						const implicitlyLoadedAfterModules = await Promise.all(
-							implicitlyLoadedAfter.map(id =>
-								this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
+			this.loadEntryModule(
+				unresolvedModule.id,
+				false,
+				unresolvedModule.importer,
+				null,
+				undefined,
+				undefined
+			).then(async entryModule => {
+				addChunkNamesToModule(entryModule, unresolvedModule, false, chunkNamePriority);
+				if (!entryModule.info.isEntry) {
+					const implicitlyLoadedAfterModules = await Promise.all(
+						implicitlyLoadedAfter.map(id =>
+							this.loadEntryModule(
+								id,
+								false,
+								unresolvedModule.importer,
+								entryModule.id,
+								undefined,
+								undefined
 							)
-						);
-						// We need to check again if this is still an entry module as these
-						// changes need to be performed atomically to avoid race conditions
-						// if the same module is re-emitted as an entry module.
-						// The inverse changes happen in "handleExistingModule"
-						if (!entryModule.info.isEntry) {
-							this.implicitEntryModules.add(entryModule);
-							for (const module of implicitlyLoadedAfterModules) {
-								entryModule.implicitlyLoadedAfter.add(module);
-							}
-							for (const dependant of entryModule.implicitlyLoadedAfter) {
-								dependant.implicitlyLoadedBefore.add(entryModule);
-							}
+						)
+					);
+					// We need to check again if this is still an entry module as these
+					// changes need to be performed atomically to avoid race conditions
+					// if the same module is re-emitted as an entry module.
+					// The inverse changes happen in "handleExistingModule"
+					if (!entryModule.info.isEntry) {
+						this.implicitEntryModules.add(entryModule);
+						for (const module of implicitlyLoadedAfterModules) {
+							entryModule.implicitlyLoadedAfter.add(module);
+						}
+						for (const dependant of entryModule.implicitlyLoadedAfter) {
+							dependant.implicitlyLoadedBefore.add(entryModule);
 						}
 					}
-					return entryModule;
 				}
-			)
+				return entryModule;
+			})
 		);
 	}
 
@@ -279,8 +296,21 @@ export class ModuleLoader {
 		let source: LoadResult;
 		try {
 			source = await this.graph.fileOperationQueue.run(async () => {
-				const content = await this.pluginDriver.hookFirst('load', [id]);
-				if (content !== null) return content;
+				const content = await this.pluginDriver.hookFirst('load', [
+					id,
+					{ attributes: module.info.attributes }
+				]);
+				if (content !== null) {
+					if (typeof content === 'object' && content.attributes) {
+						warnDeprecation(
+							'Returning attributes from the "load" hook is forbidden.',
+							URL_LOAD,
+							false,
+							this.options
+						);
+					}
+					return content;
+				}
 				this.graph.watchFiles[id] = true;
 				return (await this.options.fs.readFile(id, { encoding: 'utf8' })) as string;
 			});
@@ -306,6 +336,7 @@ export class ModuleLoader {
 			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 				{
 					ast: cachedModule.ast,
+					attributes: cachedModule.attributes,
 					code: cachedModule.code,
 					id: cachedModule.id,
 					meta: cachedModule.meta,
@@ -323,7 +354,7 @@ export class ModuleLoader {
 		} else {
 			module.updateOptions(sourceDescription);
 			await module.setSource(
-				await transform(sourceDescription, module, this.pluginDriver, this.options.onLog)
+				await transform(sourceDescription, module, this.pluginDriver, this.options)
 			);
 		}
 	}
@@ -586,7 +617,14 @@ export class ModuleLoader {
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
 						this.handleInvalidResolvedId(
-							await this.resolveId(source, module.id, EMPTY_OBJECT, false, attributes),
+							await this.resolveId(
+								source,
+								module.id,
+								EMPTY_OBJECT,
+								false,
+								attributes,
+								module.info.attributes
+							),
 							source,
 							module.id,
 							attributes
@@ -666,7 +704,8 @@ export class ModuleLoader {
 		isEntry: boolean,
 		importer: string | undefined,
 		implicitlyLoadedBefore: string | null,
-		isLoadForManualChunks = false
+		isLoadForManualChunks = false,
+		importerAttributes: Record<string, string> | undefined
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
@@ -678,6 +717,7 @@ export class ModuleLoader {
 			EMPTY_OBJECT,
 			true,
 			EMPTY_OBJECT,
+			importerAttributes,
 			this.options.fs
 		);
 		if (resolveIdResult == null) {
@@ -719,7 +759,7 @@ export class ModuleLoader {
 		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
 			specifier,
 			importer,
-			{ attributes }
+			{ attributes, importerAttributes: module.info.attributes }
 		]);
 		if (typeof specifier !== 'string') {
 			if (typeof resolution === 'string') {
@@ -750,7 +790,14 @@ export class ModuleLoader {
 				return existingResolution;
 			}
 			return (module.resolvedIds[specifier] = this.handleInvalidResolvedId(
-				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false, attributes),
+				await this.resolveId(
+					specifier,
+					module.id,
+					EMPTY_OBJECT,
+					false,
+					attributes,
+					module.info.attributes
+				),
 				specifier,
 				module.id,
 				attributes

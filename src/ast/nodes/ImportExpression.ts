@@ -328,6 +328,8 @@ export default class ImportExpression extends NodeBase {
 				},
 				moduleId: scope.context.module.id,
 				targetChunk: targetChunk ? getChunkInfoWithPath(targetChunk) : null,
+				targetModuleAttributes:
+					resolution && typeof resolution !== 'string' ? resolution.info.attributes : {},
 				targetModuleId: resolution && typeof resolution !== 'string' ? resolution.id : null
 			}
 		]);
