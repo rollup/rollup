@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.57.0
+
+_2026-01-27_
+
+### Features
+
+- Add import attributes to all plugin hooks that did not provide them yet (#5700)
+- Deprecate returning import attributes from `load` or `transform` hooks as that will no longer be supported with rollup 5 (#5700)
+
+### Pull Requests
+
+- [#5700](https://github.com/rollup/rollup/pull/5700): extend more hooks to include import attributes and add warnings (@TrickyPi, @lukastaegert)
+- [#6243](https://github.com/rollup/rollup/pull/6243): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6244](https://github.com/rollup/rollup/pull/6244): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6245](https://github.com/rollup/rollup/pull/6245): chore(deps): lock file maintenance (@renovate[bot])
+- [#6246](https://github.com/rollup/rollup/pull/6246): Refactor to reduce Rollup 5 upgrade diff (@lukastaegert)
+
 ## 4.56.0
 
 _2026-01-22_
