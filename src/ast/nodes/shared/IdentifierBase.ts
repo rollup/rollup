@@ -1,3 +1,4 @@
+import type { AstNode } from '../../../rollup/ast-types';
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import { logIllegalImportReassignment } from '../../../utils/logs';
 import { PureFunctionKey } from '../../../utils/pureFunctions';
@@ -16,6 +17,7 @@ import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import GlobalVariable from '../../variables/GlobalVariable';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
+import type * as nodes from '../node-unions';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
@@ -23,7 +25,8 @@ import { type IncludeChildren, NodeBase } from './Node';
 
 const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'await using']);
 
-export default class IdentifierBase extends NodeBase {
+export default class IdentifierBase<T extends AstNode> extends NodeBase<T> {
+	declare parent: nodes.IdentifierParent | nodes.JSXIdentifierParent;
 	declare name: string;
 	variable: Variable | null = null;
 

@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
@@ -7,18 +8,20 @@ import { UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import Identifier from './Identifier';
 import type Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
-import MethodBase from './shared/MethodBase';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize } from './shared/Node';
-import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
+import PropertyBase from './shared/PropertyBase';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class Property extends MethodBase implements DeclarationPatternNode {
-	declare key: ExpressionNode;
-	declare kind: 'init' | 'get' | 'set';
+export default class Property extends PropertyBase<ast.Property> implements DeclarationPatternNode {
+	declare parent: nodes.PropertyParent;
+	declare key: nodes.Expression;
+	declare kind: ast.Property['kind'];
 	declare type: NodeType.tProperty;
 
 	//declare method: boolean;
@@ -50,7 +53,7 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	}
 
 	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
-		(this.value as PatternNode).deoptimizeAssignment?.(
+		(this.value as nodes.DestructuringPattern).deoptimizeAssignment?.(
 			this.getPathInProperty(destructuredInitPath),
 			init
 		);
@@ -65,7 +68,7 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): boolean {
-		return (this.value as PatternNode).hasEffectsWhenDestructuring?.(
+		return (this.value as nodes.DestructuringPattern).hasEffectsWhenDestructuring?.(
 			context,
 			this.getPathInProperty(destructuredInitPath),
 			init
@@ -79,15 +82,22 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	): boolean {
 		const path = this.getPathInProperty(destructuredInitPath);
 		let included =
-			(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init) ||
-			this.included;
+			(this.value as nodes.DestructuringPattern).includeDestructuredIfNecessary(
+				context,
+				path,
+				init
+			) || this.included;
 		if ((included ||= this.key.hasEffects(createHasEffectsContext()))) {
 			this.key.include(context, false);
 			if (!this.value.included) {
 				this.value.includeNode(context);
 				// Unfortunately, we need to include the value again now, so that any
 				// declared variables are properly included.
-				(this.value as PatternNode).includeDestructuredIfNecessary(context, path, init);
+				(this.value as nodes.DestructuringPattern).includeDestructuredIfNecessary(
+					context,
+					path,
+					init
+				);
 			}
 		}
 		if (!this.included && included) {
