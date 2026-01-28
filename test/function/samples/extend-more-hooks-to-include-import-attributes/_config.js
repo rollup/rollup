@@ -10,10 +10,13 @@ module.exports = defineTest({
 			modules: [
 				{
 					id: './lib2.js',
-					ast: acorn.parse(code, {
-						ecmaVersion: 6,
-						sourceType: 'module'
-					}),
+					// This removes the prototype types added by Acorn
+					ast: structuredClone(
+						acorn.parse(code, {
+							ecmaVersion: 6,
+							sourceType: 'module'
+						})
+					),
 					attributes: { type: 'javascript' },
 					code,
 					dependencies: [],
