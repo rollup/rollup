@@ -24,9 +24,9 @@ jobs:
       matrix:
         settings:
           - name: current
-            ref: refs/pull/${{ github.event.number }}/merge
+            ref: ${{ github.event.pull_request.head.sha }}
           - name: previous
-            ref: ${{github.event.pull_request.base.ref}}
+            ref: ${{ github.event.pull_request.base.sha }}
     name: Build ${{matrix.settings.name}} artefact
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +75,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: refs/pull/${{ github.event.number }}/merge
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
