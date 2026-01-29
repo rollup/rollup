@@ -121,7 +121,7 @@ jobs:
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
       - name: Find Vercel preview URL
-        uses: patrickedqvist/wait-for-vercel-preview@06c79330064b0e6ef7a2574603b62d3c98789125 # v1.3.2
+        uses: patrickedqvist/wait-for-vercel-preview@d7982701e6fcd3ae073bff929e408e004404d38d # v1.3.3
         id: waitForVercel
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
