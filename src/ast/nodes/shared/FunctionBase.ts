@@ -190,11 +190,11 @@ export default abstract class FunctionBase<
 	 */
 	protected onlyFunctionCallUsed(): boolean {
 		let variable: Variable | null = null;
-		if (this.parent.type === NodeType.VariableDeclarator) {
-			variable = (this.parent.id as Identifier).variable ?? null;
-		}
-		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
-			variable = this.parent.variable;
+		const { parent } = this;
+		if (parent.type === NodeType.VariableDeclarator) {
+			variable = (parent.id as Identifier).variable ?? null;
+		} else if (parent.type === NodeType.ExportDefaultDeclaration) {
+			variable = parent.variable;
 		}
 		return variable?.getOnlyFunctionCallUsed() ?? false;
 	}
