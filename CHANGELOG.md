@@ -2,9 +2,14 @@
 
 ## 5.0.0
 
-_2025-06-28_
+_2026-01-30_
 
 ### BREAKING CHANGES
+
+#### Config Changes
+
+- The `output.importAttributesKey` option now defaults to `"with"` instead of `"assert"`: the import attributes of external imports, re-exports and dynamic imports are rendered with the `with` keyword in the generated output regardless of the keyword used in the source; set `output.importAttributesKey: "assert"` to restore the old behavior (#6248)
+- When Rollup transpiles or bundles the config file itself, e.g. when using `--configPlugin` or `--bundleConfigAsCjs`, the generated config uses the `with` keyword as well; use `--configImportAttributesKey assert` to restore the old behavior (#6248)
 
 #### Watch Mode Changes
 
@@ -35,6 +40,7 @@ _2025-06-28_
 
 - [#5778](https://github.com/rollup/rollup/pull/5778): [v5.0] Update to chokidar v4 (@re-taro)
 - [#5730](https://github.com/rollup/rollup/pull/5730): [v5.0] Make Rollup generate its own AST types (@lukastaegert)
+- [#6248](https://github.com/rollup/rollup/pull/6248): [v5.0] Use "with" as the keyword of import attributes by default (@TrickyPi)
 
 For previous changelogs, see
 
