@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.57.1
+
+_2026-01-30_
+
+### Bug Fixes
+
+- Fix heap corruption issue in Windows (#6251)
+- Ensure exports of a dynamic import are fully included when called from a try...catch (#6254)
+
+### Pull Requests
+
+- [#6251](https://github.com/rollup/rollup/pull/6251): fix: Isolate and cache `process.report.getReport()` calls in a child process for robust environment detection (@alan-agius4, @lukastaegert)
+- [#6252](https://github.com/rollup/rollup/pull/6252): chore(deps): update dependency lru-cache to v11 (@renovate[bot])
+- [#6253](https://github.com/rollup/rollup/pull/6253): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6254](https://github.com/rollup/rollup/pull/6254): Fully include dynamic imports in a try-catch (@lukastaegert)
+- [#6255](https://github.com/rollup/rollup/pull/6255): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.57.0
 
 _2026-01-27_
