@@ -26,6 +26,7 @@ module.exports = defineTest({
 					return null;
 				}
 			}
-		]
+		],
+		strictDeprecations: false
 	}
 });
