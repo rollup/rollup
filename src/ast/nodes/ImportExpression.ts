@@ -156,6 +156,9 @@ export default class ImportExpression extends NodeBase {
 		if (this.shouldIncludeDynamicAttributes) {
 			this.options?.include(context, includeChildrenRecursively);
 		}
+		if (includeChildrenRecursively) {
+			this.localResolution?.resolution.includeAllExports();
+		}
 	}
 
 	includeNode(context: InclusionContext) {
