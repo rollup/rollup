@@ -1149,7 +1149,7 @@ By default, when creating multiple chunks, transitive imports of entry chunks wi
 | -------: | :----------------------------- |
 |    Type: | `"with" \| "assert"`           |
 |     CLI: | `--importAttributesKey <name>` |
-| Default: | `"assert"`                     |
+| Default: | `"with"`                       |
 
 This determines the keyword set that Rollup will use for import attributes.
 
