@@ -4,6 +4,7 @@ module.exports = defineTest({
 		external: () => true,
 		output: {
 			importAttributesKey: 'with'
-		}
+		},
+		strictDeprecations: false
 	}
 });
