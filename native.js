@@ -1,21 +1,50 @@
 const { existsSync } = require('node:fs');
 const path = require('node:path');
 const { platform, arch, report } = require('node:process');
+const { spawnSync } = require('node:child_process');
 
-const isMusl = () => {
+const getReportHeader = () => {
 	try {
-		return !report.getReport().header.glibcVersionRuntime;
+		if (platform !== 'win32') {
+			return report.getReport().header;
+		}
+
+		// This is needed because report.getReport() crashes the process on Windows sometimes.
+		const script =
+			"console.log(JSON.stringify(require('node:process').report.getReport().header));";
+		const child = spawnSync(process.execPath, ['-p', script], {
+			encoding: 'utf8',
+			timeout: 3000,
+			windowsHide: true
+		});
+
+		if (child.status !== 0) {
+			return null;
+		}
+
+		// The output from node -p might include a trailing 'undefined' and newline
+		const stdout = child.stdout?.replace(/undefined\r?\n?$/, '').trim();
+		if (!stdout) {
+			return null;
+		}
+
+		return JSON.parse(stdout);
 	} catch {
-		return false;
+		return null;
 	}
 };
 
+let reportHeader;
 const isMingw32 = () => {
-	try {
-		return report.getReport().header.osName.startsWith('MINGW32_NT');
-	} catch {
-		return false;
-	}
+	reportHeader ??= getReportHeader();
+
+	return reportHeader?.osName?.startsWith('MINGW32_NT') ?? false;
+};
+
+const isMusl = () => {
+	reportHeader ??= getReportHeader();
+
+	return reportHeader ? !reportHeader.glibcVersionRuntime : false;
 };
 
 const bindingsByPlatformAndArch = {
