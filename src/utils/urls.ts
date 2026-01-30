@@ -22,6 +22,7 @@ export const URL_OUTPUT_GENERATEDCODE = 'configuration-options/#output-generated
 export const URL_OUTPUT_GENERATEDCODE_SYMBOLS =
 	'configuration-options/#output-generatedcode-symbols';
 export const URL_OUTPUT_GLOBALS = 'configuration-options/#output-globals';
+export const URL_OUTPUT_IMPORTATTRIBUTESKEY = 'configuration-options/#output-importattributeskey';
 export const URL_OUTPUT_INLINEDYNAMICIMPORTS = 'configuration-options/#output-inlinedynamicimports';
 export const URL_OUTPUT_INTEROP = 'configuration-options/#output-interop';
 export const URL_OUTPUT_MANUALCHUNKS = 'configuration-options/#output-manualchunks';
