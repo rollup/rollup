@@ -95,25 +95,6 @@ If you _do_ want to include the module in your bundle, you need to tell Rollup h
 
 Some modules, like `events` or `util`, are built in to Node.js. If you want to include those (for example, so that your bundle runs in the browser), you may need to include [rollup-plugin-polyfill-node](https://github.com/FredKSchott/rollup-plugin-polyfill-node).
 
-## Error: "EMFILE: too many open files"
-
-For large projects, you may run into an EMFILE error when running Rollup in watch mode on macOS. If you experience this, disabling FSEvents may eliminate the problem:
-
-```js twoslash
-// rollup.config.js
-// ---cut-start---
-/** @type {import('rollup').RollupOptions} */
-// ---cut-end---
-export default {
-	/* ..., */
-	watch: {
-		chokidar: {
-			useFsEvents: false
-		}
-	}
-};
-```
-
 ## Error: JavaScript heap out of memory
 
 As Rollup needs to keep all module information in memory simultaneously to be able to analyze relevant side effects for tree-shaking, it is possible that bundling large projects reaches Node's memory limit. If this happens, it can help to increase this limit by running Rollup via

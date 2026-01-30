@@ -31,71 +31,64 @@ const astMacros = astNodeNamesWithFieldOrder
     store_${toSnakeCase(name)}_flags!($self, end_position${flagsInput});`;
 		}
 		let fieldConverters = '';
-		for (const [fieldName, fieldType] of fields) {
+		for (const field of fields) {
 			fieldConverters += `
-    // ${fieldName}`;
-			switch (fieldType) {
+    // ${field.name}`;
+			switch (field.type) {
 				case 'FixedString': {
-					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
+					valuesInput += `, ${field.name} => $${field.name}_value:expr`;
 					fieldConverters += `
-    let ${fieldName}_position = end_position + ${reservedBytes};
-    $self.buffer[${fieldName}_position..${fieldName}_position + ${BYTES_PER_U32}].copy_from_slice($${fieldName}_value);`;
+    let ${field.name}_position = end_position + ${reservedBytes};
+    $self.buffer[${field.name}_position..${field.name}_position + ${BYTES_PER_U32}].copy_from_slice($${field.name}_value);`;
 					break;
 				}
 				case 'Float': {
-					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
+					valuesInput += `, ${field.name} => $${field.name}_value:expr`;
 					fieldConverters += `
-    let ${fieldName}_position = end_position + ${reservedBytes};
-    $self.buffer[${fieldName}_position..${fieldName}_position + ${2 * BYTES_PER_U32}].copy_from_slice(&$${fieldName}_value.to_le_bytes());`;
+    let ${field.name}_position = end_position + ${reservedBytes};
+    $self.buffer[${field.name}_position..${field.name}_position + ${2 * BYTES_PER_U32}].copy_from_slice(&$${field.name}_value.to_le_bytes());`;
 					reservedBytes += BYTES_PER_U32;
 					break;
 				}
 				case 'Node': {
-					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
-					fieldConverters += `
+					valuesInput += `, ${field.name} => [$${field.name}_value:expr, $${field.name}_converter:ident]`;
+					fieldConverters += field.allowNull
+						? `
+    if let Some(value) = $${field.name}_value.as_ref() {
+      $self.update_reference_position(end_position + ${reservedBytes});
+      $self.$${field.name}_converter(value);
+    }`
+						: `
     $self.update_reference_position(end_position + ${reservedBytes});
-    $self.$${fieldName}_converter(&$${fieldName}_value);`;
+    $self.$${field.name}_converter(&$${field.name}_value);`;
 					break;
 				}
 				case 'NodeList': {
-					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
+					valuesInput += `, ${field.name} => [$${field.name}_value:expr, $${field.name}_converter:ident]`;
 					fieldConverters += `
     $self.convert_item_list(
-      &$${fieldName}_value,
+      &$${field.name}_value,
 			end_position + ${reservedBytes},
 			|ast_converter, node| {
-			  ast_converter.$${fieldName}_converter(node);
+			  ast_converter.$${field.name}_converter(node);
 			  true
 			}
 		);`;
 					break;
 				}
-				case 'OptionalNode': {
-					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
-					fieldConverters += `
-    if let Some(value) = $${fieldName}_value.as_ref() {
-      $self.update_reference_position(end_position + ${reservedBytes});
-      $self.$${fieldName}_converter(value);
-    }`;
-					break;
-				}
-				case 'OptionalString':
-				case 'NullableString': {
-					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
-					fieldConverters += `
-    if let Some(value) = $${fieldName}_value.as_ref() {
-      $self.convert_string(value, end_position + ${reservedBytes});
-    }`;
-					break;
-				}
 				case 'String': {
-					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
-					fieldConverters += `
-    $self.convert_string($${fieldName}_value, end_position + ${reservedBytes});`;
+					valuesInput += `, ${field.name} => $${field.name}_value:expr`;
+					fieldConverters += field.optional
+						? `
+    if let Some(value) = $${field.name}_value.as_ref() {
+      $self.convert_string(value, end_position + ${reservedBytes});
+    }`
+						: `
+    $self.convert_string($${field.name}_value, end_position + ${reservedBytes});`;
 					break;
 				}
 				default: {
-					throw new Error(`Unhandled field type ${fieldType}`);
+					throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 				}
 			}
 			reservedBytes += BYTES_PER_U32;

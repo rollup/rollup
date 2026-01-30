@@ -1,22 +1,28 @@
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { type ExpressionEntity } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
-import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
+import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class RestElement extends NodeBase implements DeclarationPatternNode {
-	declare argument: PatternNode;
+export default class RestElement
+	extends NodeBase<ast.RestElement>
+	implements DeclarationPatternNode
+{
+	declare parent: nodes.RestElementParent;
+	declare argument: nodes.DestructuringPattern;
 	declare type: NodeType.tRestElement;
 	private declarationInit: ExpressionEntity | null = null;
 
 	addExportedVariables(
-		variables: readonly Variable[],
+		variables: Variable[],
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		this.argument.addExportedVariables(variables, exportNamesByVariable);
@@ -28,7 +34,7 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 		init: ExpressionEntity
 	): LocalVariable[] {
 		this.declarationInit = init;
-		return (this.argument as DeclarationPatternNode).declare(
+		return (this.argument as nodes.BindingPattern).declare(
 			kind,
 			getIncludedPatternPath(destructuredInitPath),
 			init
@@ -47,7 +53,7 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		interaction: NodeInteractionAssigned,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		return (
@@ -92,7 +98,7 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 	}
 
 	markDeclarationReached(): void {
-		(this.argument as DeclarationPatternNode).markDeclarationReached();
+		(this.argument as nodes.BindingPattern).markDeclarationReached();
 	}
 
 	applyDeoptimizations() {
