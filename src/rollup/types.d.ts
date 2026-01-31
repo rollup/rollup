@@ -109,7 +109,7 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 }
 
 export interface ModuleSource {
-	ast?: ast.Program | undefined;
+	astBuffer: Uint8Array;
 	code: string;
 	// note if plugins use this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -179,6 +179,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 export interface ModuleInfo extends ModuleOptions {
+	// TODO Lukas replace with lazy variant
 	ast: ast.Program | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
