@@ -72,7 +72,8 @@ function getNodeSerializerBody({
 		const fieldName = serializeHiddenFields?.[field.name] ?? field.name;
 		switch (field.type) {
 			case 'Node': {
-				let fieldSerializer = `buffer = serializeNode(node.${fieldName}, buffer, nodePosition + ${nextPosition});`;
+				const nodeTypeCast = field.allowNull ? ` as AstNode & { ${fieldName}: AstNode }` : '';
+				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition});`;
 				if (field.allowNull) {
 					if (optionalFallback?.[fieldName]) {
 						fieldSerializer = `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
@@ -85,7 +86,7 @@ function getNodeSerializerBody({
 			}
 			case 'NodeList': {
 				fieldSerializers.push(
-					`buffer = serializeNodeList(node.${fieldName}, buffer, nodePosition + ${nextPosition});`
+					`buffer = serializeNodeList(${JSON.stringify(fieldName)}, node, buffer, nodePosition + ${nextPosition});`
 				);
 				break;
 			}
@@ -132,11 +133,14 @@ function getNodeSerializerBody({
 		}`;
 }
 
+// TODO Lukas verify that undefined is fine for an optional field
+// TODO Lukas write tests for error cases
 const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
+import { error, logExpectedNodeList, logUnknownNodeType } from './logs';
 import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
 type NodeSerializer<T extends ast.AstNode> = (
@@ -150,7 +154,7 @@ export function serializeAst(node: ast.AstNode): Uint8Array | Buffer {
   const initialBuffer = (
     typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
   )(INITIAL_BUFFER_SIZE);
-  const buffer = nodeSerializers[node.type](node as any, initialBuffer);
+  const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, initialBuffer);
   return buffer.toOutput();
 }
 
@@ -191,18 +195,26 @@ const nodeSerializers: NodeSerializers = {
 
 ${nonCanonicalSerializers}
 
-function serializeNode(node: AstNode, buffer: AstBufferForWriting, referencePosition: number
+function serializeNode<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, AstNode>, buffer: AstBufferForWriting, referencePosition: number
 ): AstBufferForWriting {
 	buffer[referencePosition] = buffer.position;
-	return nodeSerializers[node.type](node as any, buffer);
+	const node = parent[field];
+	return (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer);
 }
 
-function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBufferForWriting, referencePosition: number
+function serializeNodeList<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, readonly (AstNode | null)[]>, buffer: AstBufferForWriting, referencePosition: number
 ): AstBufferForWriting {
-	const { length } = nodes;
-	if (length === 0) {
+  const nodes = parent[field];
+  if (nodes == null) {
 		return buffer;
 	}
+  const { length } = nodes;
+  if (length === 0) {
+    return buffer;
+  }
+  if (length == null) {
+    return error(logExpectedNodeList(parent.type, field, parent[field]));
+  }
 	let insertPosition = buffer.position;
 	buffer = buffer.reserve(length + 1);
 	buffer[referencePosition] = insertPosition;
@@ -212,7 +224,7 @@ function serializeNodeList(nodes: readonly (AstNode | null)[], buffer: AstBuffer
 		const node = nodes[index];
 		if (node != null) {
 			buffer[insertPosition + index] = buffer.position;
-			buffer = nodeSerializers[node.type](node as any, buffer);
+			buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer);
 		}
 	}
 	return buffer;
