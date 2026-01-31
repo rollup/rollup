@@ -2,6 +2,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const acorn = require('acorn');
+const { convertAstToBuffer } = require('../../../../dist/parseAst');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const code = fs.readFileSync(ID_MAIN, 'utf8');
@@ -82,10 +83,12 @@ module.exports = defineTest({
 			modules: [
 				{
 					id: ID_MAIN,
-					ast: acorn.parse(code, {
-						ecmaVersion: 2020,
-						sourceType: 'module'
-					}),
+					astBuffer: convertAstToBuffer(
+						acorn.parse(code, {
+							ecmaVersion: 2020,
+							sourceType: 'module'
+						})
+					),
 					code,
 					dependencies: [],
 					dynamicDependencies: [],
