@@ -1,7 +1,6 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { parseAsync } from '../native';
 import { convertProgram } from './ast/bufferParsers';
 import type { InclusionContext } from './ast/ExecutionContext';
 import { createInclusionContext } from './ast/ExecutionContext';
@@ -791,8 +790,8 @@ export default class Module {
 		return { source, usesTopLevelAwait };
 	}
 
-	async setSource({
-		ast,
+	setSource({
+		astBuffer,
 		code,
 		customTransformCache,
 		originalCode,
@@ -803,7 +802,7 @@ export default class Module {
 		transformFiles,
 		safeVariableNames,
 		...moduleOptions
-	}: ModuleSource): Promise<void> {
+	}: ModuleSource): void {
 		timeStart('generate ast', 3);
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
@@ -876,39 +875,31 @@ export default class Module {
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
 
-		// TODO Lukas no longer support this? Reconstruct?
-		if (ast) {
-			this.ast = new nodeConstructors[ast.type](null, this.scope).parseNode(ast);
-			this.info.ast = ast;
-		} else {
-			// Measuring asynchronous code does not provide reasonable results
-			timeEnd('generate ast', 3);
-			this.astBuffer = await parseAsync(code, false, this.options.jsx !== false);
-			timeStart('generate ast', 3);
-			this.ast = convertProgram(this.astBuffer, null, this.scope);
-			// Make lazy and apply LRU cache to not hog the memory
-			Object.defineProperty(this.info, 'ast', {
-				get: () => {
-					if (this.graph.astLru.has(fileName)) {
-						return this.graph.astLru.get(fileName)!;
-					} else {
-						const parsedAst = this.tryParse();
-						// If the cache is not disabled, we need to keep the AST in memory
-						// until the end when the cache is generated
-						if (this.options.cache !== false) {
-							Object.defineProperty(this.info, 'ast', {
-								value: parsedAst
-							});
-							return parsedAst;
-						}
-						// Otherwise, we keep it in a small LRU cache to not hog too much
-						// memory but allow the same AST to be requested several times.
-						this.graph.astLru.set(fileName, parsedAst);
+		// TODO Lukas check in how far nodeConstructors are still used/needed
+		this.astBuffer = astBuffer;
+		this.ast = convertProgram(this.astBuffer, null, this.scope);
+		// Make lazy and apply LRU cache to not hog the memory
+		Object.defineProperty(this.info, 'ast', {
+			get: () => {
+				if (this.graph.astLru.has(fileName)) {
+					return this.graph.astLru.get(fileName)!;
+				} else {
+					const parsedAst = this.tryParse();
+					// If the cache is not disabled, we need to keep the AST in memory
+					// until the end when the cache is generated
+					if (this.options.cache !== false) {
+						Object.defineProperty(this.info, 'ast', {
+							value: parsedAst
+						});
 						return parsedAst;
 					}
+					// Otherwise, we keep it in a small LRU cache to not hog too much
+					// memory but allow the same AST to be requested several times.
+					this.graph.astLru.set(fileName, parsedAst);
+					return parsedAst;
 				}
-			});
-		}
+			}
+		});
 
 		timeEnd('generate ast', 3);
 	}
@@ -916,6 +907,7 @@ export default class Module {
 	toJSON(): CachedModule {
 		return {
 			ast: this.info.ast!,
+			astBuffer: this.astBuffer,
 			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,

@@ -335,7 +335,7 @@ export class ModuleLoader {
 			cachedModule.originalCode === sourceDescription.code &&
 			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 				{
-					// TODO We need a lazy AST here
+					// TODO We need a lazy AST generated from the astBuffer here
 					ast: cachedModule.ast,
 					attributes: cachedModule.attributes,
 					code: cachedModule.code,
@@ -351,12 +351,10 @@ export class ModuleLoader {
 				for (const emittedFile of cachedModule.transformFiles)
 					this.pluginDriver.emitFile(emittedFile);
 			}
-			await module.setSource(cachedModule);
+			module.setSource(cachedModule);
 		} else {
 			module.updateOptions(sourceDescription);
-			await module.setSource(
-				await transform(sourceDescription, module, this.pluginDriver, this.options)
-			);
+			module.setSource(await transform(sourceDescription, module, this.pluginDriver, this.options));
 		}
 	}
 
