@@ -5,12 +5,12 @@ import type {
 	EmittedFile,
 	ExistingRawSourceMap,
 	LoggingFunctionWithPosition,
+	ModuleSource,
 	NormalizedInputOptions,
 	Plugin,
 	PluginContext,
 	RollupError,
 	SourceDescription,
-	TransformModuleJSON,
 	TransformPluginContext,
 	TransformResult
 } from '../rollup/types';
@@ -35,7 +35,7 @@ export default async function transform(
 	module: Module,
 	pluginDriver: PluginDriver,
 	options: NormalizedInputOptions
-): Promise<TransformModuleJSON> {
+): Promise<ModuleSource> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 

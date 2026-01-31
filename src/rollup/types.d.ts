@@ -108,26 +108,25 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	map?: SourceMapInput | undefined;
 }
 
-export interface TransformModuleJSON {
+export interface ModuleSource {
 	ast?: ast.Program | undefined;
 	code: string;
-	safeVariableNames: Record<string, string> | null;
-	// note if plugins use new this.cache to opt-out auto transform cache
+	// note if plugins use this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
+	resolvedIds?: ResolvedIdMap;
+	safeVariableNames: Record<string, string> | null;
 	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[];
+	transformFiles?: EmittedFile[] | undefined;
 }
 
-// TODO Lukas remove ast here? The ast should
-export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	safeVariableNames: Record<string, string> | null;
+export interface CachedModule extends ModuleSource, ModuleOptions {
 	ast: ast.Program;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
-	transformFiles: EmittedFile[] | undefined;
 }
 
 export interface PluginCache {
@@ -990,7 +989,7 @@ export interface OutputChunk extends RenderedChunk {
 export type SerializablePluginCache = Record<string, [number, any]>;
 
 export interface RollupCache {
-	modules: ModuleJSON[];
+	modules: CachedModule[];
 	plugins?: Record<string, SerializablePluginCache>;
 }
 
