@@ -33,22 +33,22 @@ import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import type {
 	ast,
+	CachedModule,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	LogLevel,
 	ModuleInfo,
-	ModuleJSON,
 	ModuleOptions,
+	ModuleSource,
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
 	ResolvedId,
 	ResolvedIdMap,
 	RollupError,
-	RollupLog,
-	TransformModuleJSON
+	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
@@ -258,7 +258,7 @@ export default class Module {
 
 	private allExportsIncluded = false;
 	private ast: Program | null = null;
-	private astBuffer!: Uint8Array;
+	declare private astBuffer: Uint8Array;
 	declare private astContext: AstContext;
 	private readonly context: string;
 	declare private customTransformCache: boolean;
@@ -803,10 +803,7 @@ export default class Module {
 		transformFiles,
 		safeVariableNames,
 		...moduleOptions
-	}: TransformModuleJSON & {
-		resolvedIds?: ResolvedIdMap;
-		transformFiles?: EmittedFile[] | undefined;
-	}): Promise<void> {
+	}: ModuleSource): Promise<void> {
 		timeStart('generate ast', 3);
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
@@ -916,7 +913,7 @@ export default class Module {
 		timeEnd('generate ast', 3);
 	}
 
-	toJSON(): ModuleJSON {
+	toJSON(): CachedModule {
 		return {
 			ast: this.info.ast!,
 			attributes: this.info.attributes,

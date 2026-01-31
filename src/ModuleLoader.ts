@@ -335,6 +335,7 @@ export class ModuleLoader {
 			cachedModule.originalCode === sourceDescription.code &&
 			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 				{
+					// TODO We need a lazy AST here
 					ast: cachedModule.ast,
 					attributes: cachedModule.attributes,
 					code: cachedModule.code,
