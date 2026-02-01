@@ -133,8 +133,6 @@ function getNodeSerializerBody({
 		}`;
 }
 
-// TODO Lukas verify that undefined is fine for an optional field
-// TODO Lukas write tests for error cases
 const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
 import type { ast } from '../rollup/types';

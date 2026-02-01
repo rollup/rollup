@@ -6,7 +6,6 @@ import './generate-ast-types.js';
 import './generate-buffer-parsers.js';
 import './generate-buffer-to-ast.js';
 import './generate-child-node-keys.js';
-import './generate-node-index.js';
 import './generate-node-types.js';
 import './generate-node-unions.js';
 import './generate-rust-constants.js';

@@ -4,7 +4,6 @@ import MagicString from 'magic-string';
 import { convertProgram } from './ast/bufferParsers';
 import type { InclusionContext } from './ast/ExecutionContext';
 import { createInclusionContext } from './ast/ExecutionContext';
-import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import type ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
@@ -122,9 +121,6 @@ export interface AstContext {
 	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
-	getNodeConstructor: <T extends keyof typeof nodeConstructors>(
-		name: T
-	) => (typeof nodeConstructors)[T];
 	importDescriptions: Map<string, ImportDescription>;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariableInModule: (
@@ -855,7 +851,6 @@ export default class Module {
 			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
-			getNodeConstructor: name => nodeConstructors[name] || nodeConstructors.UnknownNode,
 			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariableInModule: this.includeVariableInModule.bind(this),
@@ -874,8 +869,6 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
-
-		// TODO Lukas check in how far nodeConstructors are still used/needed
 		this.astBuffer = astBuffer;
 		this.ast = convertProgram(this.astBuffer, null, this.scope);
 		// Make lazy and apply LRU cache to not hog the memory
