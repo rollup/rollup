@@ -39,7 +39,7 @@ function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 	return { fileName: chunk.getFileName(), ...chunk.getPreRenderedChunkInfo() };
 }
 
-export default class ImportExpression extends NodeBase<ast.ImportExpression> {
+export default class ImportExpression extends NodeBase {
 	declare parent: nodes.ImportExpressionParent;
 	declare options: nodes.Expression | null;
 	inlineNamespace: NamespaceVariable | null = null;
@@ -173,11 +173,6 @@ export default class ImportExpression extends NodeBase<ast.ImportExpression> {
 	initialise(): void {
 		super.initialise();
 		this.scope.context.addDynamicImport(this);
-	}
-
-	parseNode(esTreeNode: ast.ImportExpression): this {
-		this.sourceAstNode = esTreeNode.source;
-		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

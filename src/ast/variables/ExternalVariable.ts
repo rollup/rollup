@@ -17,7 +17,7 @@ export default class ExternalVariable extends Variable {
 		this.isNamespace = name === '*';
 	}
 
-	addReference(identifier: IdentifierBase<any>): void {
+	addReference(identifier: IdentifierBase): void {
 		this.referenced = true;
 		if (this.name === 'default' || this.name === '*') {
 			this.module.suggestName(identifier.name);
