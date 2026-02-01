@@ -1,5 +1,6 @@
 const path = require('node:path');
 const acorn = require('acorn');
+const { convertAstToBuffer } = require('../../../../dist/parseAst');
 
 function relative(id) {
 	if (id[0] !== '/') return id;
@@ -15,10 +16,12 @@ module.exports = {
 		modules: [
 			{
 				id: './e.js',
-				ast: acorn.parse(moduleECode, {
-					ecmaVersion: 6,
-					sourceType: 'module'
-				}),
+				astBuffer: convertAstToBuffer(
+					acorn.parse(moduleECode, {
+						ecmaVersion: 6,
+						sourceType: 'module'
+					})
+				),
 				code: moduleECode,
 				dependencies: [],
 				customTransformCache: false,

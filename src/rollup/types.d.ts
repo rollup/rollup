@@ -123,8 +123,6 @@ export interface ModuleSource {
 }
 
 export interface CachedModule extends ModuleSource, ModuleOptions {
-	// TODO Lukas remove
-	ast: ast.Program;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;

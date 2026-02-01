@@ -33,6 +33,7 @@ import {
 	logUnresolvedImportTreatedAsExternal,
 	warnDeprecation
 } from './utils/logs';
+import { convertBufferToAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExpression
@@ -335,8 +336,7 @@ export class ModuleLoader {
 			cachedModule.originalCode === sourceDescription.code &&
 			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 				{
-					// TODO We need a lazy AST generated from the astBuffer here
-					ast: cachedModule.ast,
+					ast: convertBufferToAst(cachedModule.astBuffer) as ast.Program,
 					attributes: cachedModule.attributes,
 					code: cachedModule.code,
 					id: cachedModule.id,
