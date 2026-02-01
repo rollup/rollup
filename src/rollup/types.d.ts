@@ -180,7 +180,6 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 export interface ModuleInfo extends ModuleOptions {
-	// TODO Lukas replace with lazy variant
 	ast: ast.Program | null;
 	code: string | null;
 	dynamicImporters: readonly string[];

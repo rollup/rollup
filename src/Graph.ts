@@ -1,4 +1,3 @@
-import flru from 'flru';
 import { createInclusionContext } from './ast/ExecutionContext';
 import type { ExpressionEntity } from './ast/nodes/shared/Expression';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -7,7 +6,6 @@ import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import type {
-	ast,
 	CachedModule,
 	ModuleInfo,
 	NormalizedInputOptions,
@@ -54,7 +52,6 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	readonly astLru = flru<ast.Program>(5);
 	readonly cachedModules = new Map<string, CachedModule>();
 	readonly deoptimizationTracker = new EntityPathTracker();
 	entryModules: Module[] = [];

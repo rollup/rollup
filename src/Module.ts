@@ -49,8 +49,10 @@ import type {
 	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import { deserializeLazyAst } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
+import { getAstBuffer } from './utils/getAstBuffer';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -75,7 +77,6 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
-import { parseAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -870,30 +871,8 @@ export default class Module {
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
 		this.astBuffer = astBuffer;
+		this.info.ast = this.tryParseLazy(astBuffer);
 		this.ast = convertProgram(this.astBuffer, null, this.scope);
-		// Make lazy and apply LRU cache to not hog the memory
-		Object.defineProperty(this.info, 'ast', {
-			get: () => {
-				if (this.graph.astLru.has(fileName)) {
-					return this.graph.astLru.get(fileName)!;
-				} else {
-					const parsedAst = this.tryParse();
-					// If the cache is not disabled, we need to keep the AST in memory
-					// until the end when the cache is generated
-					if (this.options.cache !== false) {
-						Object.defineProperty(this.info, 'ast', {
-							value: parsedAst
-						});
-						return parsedAst;
-					}
-					// Otherwise, we keep it in a small LRU cache to not hog too much
-					// memory but allow the same AST to be requested several times.
-					this.graph.astLru.set(fileName, parsedAst);
-					return parsedAst;
-				}
-			}
-		});
-
 		timeEnd('generate ast', 3);
 	}
 
@@ -1363,9 +1342,9 @@ export default class Module {
 		this.exportDescriptions.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse() {
+	private tryParseLazy(astBuffer: Uint8Array) {
 		try {
-			return parseAst(this.info.code!, { jsx: this.options.jsx !== false });
+			return deserializeLazyAst(0, getAstBuffer(astBuffer)) as ast.Program;
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
