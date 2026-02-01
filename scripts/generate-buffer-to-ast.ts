@@ -150,7 +150,7 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-export function convertAst(position: number, buffer: AstBuffer): ast.AstNode {
+export function deserializeAst(position: number, buffer: AstBuffer): ast.AstNode {
   const node = convertNode(position, buffer);
   switch (node.type) {
     case PanicError: {
