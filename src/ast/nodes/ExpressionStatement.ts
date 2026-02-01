@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logModuleLevelDirective } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
@@ -8,7 +7,7 @@ import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ExpressionStatement extends NodeBase<ast.ExpressionStatement> {
+export default class ExpressionStatement extends NodeBase {
 	declare parent: nodes.ExpressionStatementParent;
 	directive?: string;
 	declare expression: nodes.Expression;

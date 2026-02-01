@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { NODE_INTERACTION_UNKNOWN_CALL } from '../NodeInteractions';
 import { EMPTY_PATH } from '../utils/PathTracker';
@@ -6,7 +5,7 @@ import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class Decorator extends NodeBase<ast.Decorator> {
+export default class Decorator extends NodeBase {
 	declare parent: nodes.DecoratorParent;
 	declare type: NodeType.tDecorator;
 	declare expression: nodes.Expression;

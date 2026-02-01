@@ -1,8 +1,6 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
-import type { AstNode } from '../../../rollup/ast-types';
 import type { ast } from '../../../rollup/types';
-import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { childNodeKeys } from '../../childNodeKeys';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
@@ -148,7 +146,7 @@ export interface ChainElement {
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain;
 }
 
-export class NodeBase<T extends AstNode> extends ExpressionEntity implements ExpressionNode {
+export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	annotations?: readonly ast.Annotation[];
 	declare end: number;
 	parent: Node | null;
@@ -284,46 +282,6 @@ export class NodeBase<T extends AstNode> extends ExpressionEntity implements Exp
 		this.scope.context.magicString.addSourcemapLocation(this.end);
 	}
 
-	// TODO Lukas These can be removed
-	parseNode(esTreeNode: T): this {
-		for (const [key, value] of Object.entries(esTreeNode)) {
-			// Skip properties defined on the class already.
-			// This way, we can override this function to add custom initialisation and then call super.parseNode
-			// Note: this doesn't skip properties with defined getters/setters which we use to pack wrap booleans
-			// in bitfields. Those are still assigned from the value in the esTreeNode.
-			if (this.hasOwnProperty(key)) continue;
-
-			if (typeof value !== 'object' || value === null) {
-				(this as GenericEsTreeNode)[key] = value;
-			} else if (Array.isArray(value)) {
-				if (key === ANNOTATION_KEY || key === INVALID_ANNOTATION_KEY) {
-					(this as GenericEsTreeNode)[key] = value;
-				} else {
-					(this as GenericEsTreeNode)[key] = new Array(value.length);
-					let index = 0;
-					for (const child of value) {
-						(this as GenericEsTreeNode)[key][index++] =
-							child === null
-								? null
-								: new (this.scope.context.getNodeConstructor(child.type))(
-										this,
-										this.scope
-									).parseNode(child);
-					}
-				}
-			} else {
-				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(
-					this,
-					this.scope
-				).parseNode(value);
-			}
-		}
-		// extend child keys for unknown node types
-		childNodeKeys[esTreeNode.type] ||= createChildNodeKeysForNode(esTreeNode);
-		this.initialise();
-		return this;
-	}
-
 	removeAnnotations(code: MagicString): void {
 		if (this.annotations) {
 			for (const annotation of this.annotations) {
@@ -376,12 +334,6 @@ export class NodeBase<T extends AstNode> extends ExpressionEntity implements Exp
 	}
 }
 
-function createChildNodeKeysForNode(esTreeNode: GenericEsTreeNode): string[] {
-	return Object.keys(esTreeNode).filter(
-		key => typeof esTreeNode[key] === 'object' && key.charCodeAt(0) !== 95 /* _ */
-	);
-}
-
 export function locateNode(node: Node): Location & { file: string } {
 	const {
 		start,
@@ -405,15 +357,15 @@ export function logNode(node: Node | ExpressionEntity): string {
 	return node.constructor.name;
 }
 
-export function onlyIncludeSelf(this: NodeBase<AstNode>) {
+export function onlyIncludeSelf(this: NodeBase) {
 	this.included = true;
 	if (!this.deoptimized) this.applyDeoptimizations();
 }
 
-export function onlyIncludeSelfNoDeoptimize(this: NodeBase<AstNode>) {
+export function onlyIncludeSelfNoDeoptimize(this: NodeBase) {
 	this.included = true;
 }
 
-export function doNotDeoptimize(this: NodeBase<AstNode>) {
+export function doNotDeoptimize(this: NodeBase) {
 	this.deoptimized = true;
 }

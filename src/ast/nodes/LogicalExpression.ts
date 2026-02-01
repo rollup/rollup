@@ -39,10 +39,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class LogicalExpression
-	extends NodeBase<ast.LogicalExpression>
-	implements DeoptimizableEntity
-{
+export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
 	declare parent: nodes.LogicalExpressionParent;
 	declare left: nodes.Expression;
 	declare operator: ast.LogicalExpression['operator'];

@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import ClassDeclaration from './ClassDeclaration';
@@ -12,7 +11,7 @@ import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ExportNamedDeclaration extends NodeBase<ast.ExportNamedDeclaration> {
+export default class ExportNamedDeclaration extends NodeBase {
 	declare parent: nodes.ExportNamedDeclarationParent;
 	declare attributes: ImportAttribute[];
 	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;

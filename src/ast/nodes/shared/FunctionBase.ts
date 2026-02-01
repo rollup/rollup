@@ -1,4 +1,4 @@
-import type { ast, NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -11,16 +11,14 @@ import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../../values';
-import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type Identifier from '../Identifier';
 import type * as nodes from '../node-unions';
 import * as NodeType from '../NodeType';
-import RestElement from '../RestElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import { UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -29,9 +27,7 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 
-export default abstract class FunctionBase<
-	T extends ast.ArrowFunctionExpression | ast.FunctionExpression | ast.FunctionDeclaration
-> extends NodeBase<T> {
+export default abstract class FunctionBase extends NodeBase {
 	declare parent:
 		| nodes.FunctionExpressionParent
 		| nodes.FunctionDeclarationParent
@@ -230,29 +226,6 @@ export default abstract class FunctionBase<
 				comment => comment.type === 'noSideEffects'
 			);
 		}
-	}
-
-	parseNode(esTreeNode: T): this {
-		const { body, params, type } = esTreeNode;
-		// We need to do this first as the body-parsing logic depends on the type
-		this.type = type;
-		const { scope } = this;
-		const { bodyScope, context } = scope;
-		// We need to ensure that parameters are declared before the body is parsed
-		// so that the scope already knows all parameters and can detect conflicts
-		// when parsing the body.
-		const parameters: typeof this.params = (this.params = params.map(parameter =>
-			new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(parameter as any)
-		));
-		scope.addParameterVariables(
-			parameters.map(
-				parameter =>
-					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
-			),
-			parameters[parameters.length - 1] instanceof RestElement
-		);
-		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body as any);
-		return super.parseNode(esTreeNode);
 	}
 
 	protected abstract getObjectEntity(): ObjectEntity;

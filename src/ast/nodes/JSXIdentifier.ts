@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedJsxOptions } from '../../rollup/types';
+import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
@@ -14,7 +14,7 @@ const enum IdentifierType {
 	Other
 }
 
-export default class JSXIdentifier extends IdentifierBase<ast.JSXIdentifier> {
+export default class JSXIdentifier extends IdentifierBase {
 	declare parent: nodes.JSXIdentifierParent;
 	declare type: NodeType.tJSXIdentifier;
 	declare name: string;
