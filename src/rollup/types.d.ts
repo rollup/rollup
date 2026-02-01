@@ -111,7 +111,7 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 export interface ModuleSource {
 	astBuffer: Uint8Array;
 	code: string;
-	// note if plugins use this.cache to opt-out auto transform cache
+	// note if plugins use this.cache to opt-out of transform caching
 	customTransformCache: boolean;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
@@ -123,6 +123,7 @@ export interface ModuleSource {
 }
 
 export interface CachedModule extends ModuleSource, ModuleOptions {
+	// TODO Lukas remove
 	ast: ast.Program;
 	dependencies: string[];
 	id: string;
