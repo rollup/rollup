@@ -38,12 +38,13 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 		...Object.entries(node.additionalFields || []).map(([key, { value }]) => `${key}: ${value}`)
 	];
 	return `function ${node.converterFunction || firstLettersLowercase(name)} (position, buffer): ast.${name} {
-    ${definitions.join('')}return {
+    ${definitions.join('')}const node: ast.${name} =  {
       type: '${node.astType || name}',
       start: buffer[position],
       end: buffer[position + 1],
       ${properties.join(',\n')}
     };
+    return node;
   }`;
 });
 
@@ -95,7 +96,11 @@ function getFieldProperty(
 			return `...(${field.name}.length > 0 ? { ${field.name} } : {})`;
 		}
 		default: {
-			return `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`;
+			return `get ${field.name}() {
+			  const result = ${getFieldPropertyBase(field, nodeName, node, offset)};
+			  Object.defineProperty(node, '${field.name}', { value: result });
+			  return result;
+			}`;
 		}
 	}
 }
