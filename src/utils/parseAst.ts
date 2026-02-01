@@ -13,8 +13,7 @@ import { getAstBuffer } from './getAstBuffer';
 export const parseAst: ParseAst = (
 	input,
 	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) =>
-	deserializeLazyAst(0, getAstBuffer(parse(input, allowReturnOutsideFunction, jsx))) as ast.Program;
+) => convertBufferToAst(parse(input, allowReturnOutsideFunction, jsx)) as ast.Program;
 
 export const parseAstAsync: ParseAstAsync = async (
 	input,

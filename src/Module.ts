@@ -49,10 +49,8 @@ import type {
 	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
-import { deserializeLazyAst } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
-import { getAstBuffer } from './utils/getAstBuffer';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -77,6 +75,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
+import { convertBufferToAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -878,7 +877,6 @@ export default class Module {
 
 	toJSON(): CachedModule {
 		return {
-			ast: this.info.ast!,
 			astBuffer: this.astBuffer,
 			attributes: this.info.attributes,
 			code: this.info.code!,
@@ -1344,7 +1342,7 @@ export default class Module {
 
 	private tryParseLazy(astBuffer: Uint8Array) {
 		try {
-			return deserializeLazyAst(0, getAstBuffer(astBuffer)) as ast.Program;
+			return convertBufferToAst(astBuffer) as ast.Program;
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
