@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const acorn = require('acorn');
-const { convertAstToBuffer } = require('../../../../dist/parseAst');
+const { serializeAst } = require('../../../../dist/parseAst');
 
 const code = 'export default 42;\n';
 
@@ -11,7 +11,7 @@ module.exports = defineTest({
 			modules: [
 				{
 					id: './lib2.js',
-					astBuffer: convertAstToBuffer(
+					astBuffer: serializeAst(
 						acorn.parse(code, {
 							ecmaVersion: 6,
 							sourceType: 'module'
