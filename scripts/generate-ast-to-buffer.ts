@@ -135,7 +135,7 @@ function getNodeSerializerBody({
 
 const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
-import type { ast } from '../rollup/types';
+import type { ast, SerializeAst } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
 import { error, logExpectedNodeList, logUnknownNodeType } from './logs';
@@ -148,13 +148,13 @@ type NodeSerializer<T extends ast.AstNode> = (
 
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
-export function serializeAst(node: ast.AstNode): Uint8Array | Buffer {
+export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = node => {
   const initialBuffer = (
     typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
   )(INITIAL_BUFFER_SIZE);
   const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, initialBuffer);
   return buffer.toOutput();
-}
+};
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
 > = (node, buffer) => {
