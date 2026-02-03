@@ -14,6 +14,8 @@ export function qux2() {
   return 'qux2'; // this should be tree-shaken
 }
 
+export const a = 1;
+
 export { bar3 as reexported } from './sub3.js'
 
 export * from './sub3.js';

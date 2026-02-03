@@ -48,7 +48,7 @@ export default class SyntheticNamedExportVariable extends Variable {
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		super.includePath(path, context);
-		this.context.includeVariableInModule(this.syntheticNamespace, path, context);
+		this.context.includeVariableInModule(this.syntheticNamespace, [this.name, ...path], context);
 	}
 
 	setRenderNames(baseName: string | null, name: string | null): void {

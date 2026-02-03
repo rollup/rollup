@@ -261,6 +261,7 @@ export interface PluginContext extends MinimalPluginContext {
 		source: string,
 		importer?: string,
 		options?: {
+			importerAttributes?: Record<string, string>;
 			attributes?: Record<string, string>;
 			custom?: CustomPluginOptions;
 			isEntry?: boolean;
@@ -312,13 +313,19 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { attributes: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
+	options: {
+		attributes: Record<string, string>;
+		custom?: CustomPluginOptions;
+		importerAttributes?: Record<string, string> | undefined;
+		isEntry: boolean;
+	}
 ) => ResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
 		ast: ProgramNode;
+		attributes: Record<string, string>;
 		code: string;
 		id: string;
 		meta: CustomPluginOptions;
@@ -338,7 +345,19 @@ export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
 export type LoadResult = SourceDescription | string | NullValue;
 
-export type LoadHook = (this: PluginContext, id: string) => LoadResult;
+export type LoadHook = (
+	this: PluginContext,
+	id: string,
+	// temporarily marked as optional for better Vite type-compatibility
+	options?:
+		| {
+				// unused, temporarily added for better Vite type-compatibility
+				ssr?: boolean | undefined;
+				// temporarily marked as optional for better Vite type-compatibility
+				attributes?: Record<string, string>;
+		  }
+		| undefined
+) => LoadResult;
 
 export interface TransformPluginContext extends PluginContext {
 	debug: LoggingFunctionWithPosition;
@@ -353,7 +372,16 @@ export type TransformResult = string | NullValue | Partial<SourceDescription>;
 export type TransformHook = (
 	this: TransformPluginContext,
 	code: string,
-	id: string
+	id: string,
+	// temporarily marked as optional for better Vite type-compatibility
+	options?:
+		| {
+				// unused, temporarily added for better Vite type-compatibility
+				ssr?: boolean | undefined;
+				// temporarily marked as optional for better Vite type-compatibility
+				attributes?: Record<string, string>;
+		  }
+		| undefined
 ) => TransformResult;
 
 export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => void;
@@ -370,18 +398,24 @@ export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | AstNode,
 	importer: string,
-	options: { attributes: Record<string, string> }
+	options: { attributes: Record<string, string>; importerAttributes: Record<string, string> }
 ) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,
 	property: string | null,
-	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
+	options: {
+		attributes: Record<string, string>;
+		chunkId: string;
+		format: InternalModuleFormat;
+		moduleId: string;
+	}
 ) => string | NullValue;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
+		attributes: Record<string, string>;
 		chunkId: string;
 		fileName: string;
 		format: InternalModuleFormat;
@@ -463,6 +497,7 @@ export interface FunctionPluginHooks {
 			chunk: PreRenderedChunkWithFileName;
 			targetChunk: PreRenderedChunkWithFileName | null;
 			getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
+			targetModuleAttributes: Record<string, string>;
 		}
 	) => { left: string; right: string } | NullValue;
 	renderError: (this: PluginContext, error?: Error) => void;

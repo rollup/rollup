@@ -12,9 +12,9 @@ import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class JSXAttribute extends NodeBase {
-	type!: NodeType.tJSXAttribute;
-	name!: JSXIdentifier | JSXNamespacedName;
-	value!: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
+	declare type: NodeType.tJSXAttribute;
+	declare name: JSXIdentifier | JSXNamespacedName;
+	declare value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
 
 	render(code: MagicString, options: RenderOptions, { jsxMode }: NodeRenderOptions = BLANK): void {
 		super.render(code, options);

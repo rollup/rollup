@@ -34,9 +34,9 @@ var other = /*#__PURE__*/Object.freeze({
 	missing: _missingExportShim
 });
 
-var synthetic = { bar: 'baz' };
+var synthetic = { bar: 'baz'};
 
-console.log(foo__namespace.default, foo__namespace, other, bar, _missingExportShim);
+console.log(foo__namespace.default, foo__namespace, other, synthetic.bar, _missingExportShim);
 var main = 42;
 
 exports.default = main;

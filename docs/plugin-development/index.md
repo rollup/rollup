@@ -337,30 +337,31 @@ Notifies a plugin when the watcher process will close so that all open resources
 
 |  |  |
 | --: | :-- |
-| Type: | `(id: string) => LoadResult` |
+| Type: | `(id: string, options: Options) => LoadResult` |
 | Kind: | async, first |
 | Previous: | [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](#this-load) to preload the module corresponding to an id |
 | Next: | [`transform`](#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](#shouldtransformcachedmodule) |
 
 ```typescript
+type Options = {
+	attributes: Record<string, string>;
+};
+
 type LoadResult = string | null | SourceDescription;
 
 interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
 	ast?: ESTree.Program;
-	attributes?: { [key: string]: string } | null;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
 }
 ```
 
-Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See the section on [source code transformations](#source-code-transformations).
+Defines a custom loader. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See the section on [source code transformations](#source-code-transformations).
 
 If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `true`. The `transform` hook can override this.
-
-`attributes` contain the import attributes that were used when this module was imported. At the moment, they do not influence rendering for bundled modules but rather serve documentation purposes. If `null` is returned or the flag is omitted, then `attributes` will be determined by the first `resolveId` hook that resolved this module, or the attributes present in the first import of this module. The `transform` hook can override this.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the first `resolveId` hook that resolved this module or eventually default to `false`. The `transform` hook can override this.
 
@@ -470,7 +471,10 @@ Like the [`onLog`](#onlog) hook, this hook does not have access to most [plugin 
 type ResolveDynamicImportHook = (
 	specifier: string | AstNode,
 	importer: string,
-	options: { attributes: Record<string, string> }
+	options: {
+		attributes: Record<string, string>;
+		importerAttributes: Record<string, string>;
+	}
 ) => ResolveIdResult;
 ```
 
@@ -483,6 +487,8 @@ The return type **ResolveIdResult** is the same as that of the [`resolveId`](#re
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
 `attributes` tells you which import attributes were present in the import. I.e. `import("foo", {assert: {type: "json"}})` will pass along `attributes: {type: "json"}`.
+
+`importerAttributes` are the import attributes of the importing module.
 
 In case a dynamic import is passed a string as argument, a string returned from this hook will be interpreted as an existing module id while returning `null` will defer to other resolvers and eventually to `resolveId` .
 
@@ -508,6 +514,7 @@ type ResolveIdHook = (
 	source: string,
 	importer: string | undefined,
 	options: {
+		importerAttributes: Record<string, string> | undefined;
 		attributes: Record<string, string>;
 		custom?: { [plugin: string]: any };
 		isEntry: boolean;
@@ -536,6 +543,8 @@ import { foo } from '../bar.js';
 the source will be `"../bar.js"`.
 
 The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
+
+The `importerAttributes` are the import attributes of the importing module. When resolving entry points, importerAttributes will usually be `undefined`.
 
 For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](#this-resolve) context function.
 
@@ -667,6 +676,7 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 ```typescript
 type ShouldTransformCachedModuleHook = (options: {
 	ast: AstNode;
+	attributes: Record<string, string>;
 	code: string;
 	id: string;
 	meta: { [plugin: string]: any };
@@ -685,26 +695,29 @@ If a plugin does not return a boolean, Rollup will trigger this hook for other p
 
 |  |  |
 | --: | :-- |
-| Type: | `(code: string, id: string) => TransformResult` |
+| Type: | `(code: string, id: string, options: Options) => TransformResult` |
 | Kind: | async, sequential |
 | Previous: | [`load`](#load) where the currently handled file was loaded. If caching is used and there was a cached copy of that module, [`shouldTransformCachedModule`](#shouldtransformcachedmodule) if a plugin returned `true` for that hook |
 | Next: | [`moduleParsed`](#moduleparsed) once the file has been processed and parsed |
 
 ```typescript
+type Options = {
+	attributes: Record<string, string>;
+};
+
 type TransformResult = string | null | Partial<SourceDescription>;
 
 interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
 	ast?: ESTree.Program;
-	attributes?: { [key: string]: string } | null;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
 }
 ```
 
-Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
+Can be used to transform individual modules. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import. To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
 Note that in watch mode or when using the cache explicitly, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` or `this.emitFile` the last time the hook was triggered for this module.
 
@@ -719,8 +732,6 @@ If `true` is returned, Rollup will use its default algorithm to include all stat
 If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty.
 
 If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `true`.
-
-`attributes` contain the import attributes that were used when this module was imported. At the moment, they do not influence rendering for bundled modules but rather serve documentation purposes. If `null` is returned or the flag is omitted, then `attributes` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, or the attributes present in the first import of this module.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `false`.
 
@@ -1098,6 +1109,7 @@ type renderDynamicImportHook = (options: {
 	chunk: PreRenderedChunkWithFileName;
 	targetChunk: PreRenderedChunkWithFileName;
 	getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
+	targetModuleAttributes: Record<string, string>;
 }) => { left: string; right: string } | null;
 
 type PreRenderedChunkWithFileName = PreRenderedChunk & { fileName: string };
@@ -1124,7 +1136,7 @@ See the [`chunkFileNames`](../configuration-options/index.md#output-chunkfilenam
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
-`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id, otherwise it will be `null`. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
+`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id and `targetModuleAttributes` will be set to the import attributes that were applied to this resolved module, otherwise `targetModuleId` will be `null` and `targetModuleAttributes` will be an empty object. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
 
 The `PreRenderedChunkWithFileName` type is identical to the `PreRenderedChunk` type except for the addition of the `fileName` field, which contains the path and file name of the chunk. `fileName` may contain a placeholder if the chunk file name format contains a hash.
 
@@ -1258,6 +1270,7 @@ Called initially each time `bundle.generate()` or `bundle.write()` is called. To
 
 ```typescript
 type ResolveFileUrlHook = (options: {
+	attributes: Record<string, string>;
 	chunkId: string;
 	fileName: string;
 	format: InternalModuleFormat;
@@ -1271,6 +1284,7 @@ Allows to customize how Rollup resolves URLs of files that were emitted by plugi
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
+- `attributes`: The import attributes of the module that references this file.
 - `chunkId`: The id of the chunk this file is referenced from. If the chunk file name would contain a hash, this id will contain a placeholder instead. Rollup will replace this placeholder with the actual file name if it ends up in the generated code.
 - `fileName`: The path and file name of the emitted file, relative to `output.dir` without a leading `./`. Again if this is a chunk that would have a hash in its name, it will contain a placeholder instead.
 - `format`: The rendered output format.
@@ -1298,7 +1312,7 @@ function resolveToDocumentPlugin() {
 
 |  |  |
 | --: | :-- |
-| Type: | `(property: string \| null, {chunkId: string, moduleId: string, format: string}) => string \| null` |
+| Type: | `(property: string \| null, {attributes: Record<string, string>, chunkId: string, moduleId: string, format: string}) => string \| null` |
 | Kind: | sync, first |
 | Previous: | [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the current chunk |
 | Next: | [`banner`](#banner), [`footer`](#footer), [`intro`](#intro), [`outro`](#outro) in parallel for the current chunk |
@@ -1307,7 +1321,7 @@ Allows to customize how Rollup handles `import.meta` and `import.meta.someProper
 
 By default, for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
 
-This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. The `attributes` parameter contains the import attributes of the module. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
 
 ```js twoslash
 // ---cut-start---
@@ -1906,7 +1920,8 @@ type Resolve = (
 	options?: {
 		skipSelf?: boolean;
 		isEntry?: boolean;
-		attributes?: { [key: string]: string };
+		importerAttributes?: Record<string, string>;
+		attributes?: Record<string, string>;
 		custom?: { [plugin: string]: any };
 	}
 ) => Promise<ResolvedId | null>;
@@ -1925,6 +1940,8 @@ The default of `skipSelf` is `true`, So the `resolveId` hook of the plugin from 
 You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](#custom-resolver-options) for details.
 
 The value for `isEntry` you pass here will be passed along to the [`resolveId`](#resolveid) hooks handling this call, otherwise `false` will be passed if there is an importer and `true` if there is not.
+
+If you pass an object for `importerAttributes`, it will assume that the import attributes of the importer are those in that object.
 
 If you pass an object for `attributes`, it will simulate resolving an import with an assertion, e.g. `attributes: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
@@ -2225,6 +2242,89 @@ console.log(__synthetic);
 ```
 
 When used as an entry point, only explicit exports will be exposed. The synthetic fallback export, i.e. `__synthetic` in the example, will not be exposed for string values of `syntheticNamedExports`. However, if the value is `true`, the default export will be exposed. This is the only notable difference between `syntheticNamedExports: true` and `syntheticNamedExports: 'default'`.
+
+## Import attributes
+
+The ECMAScript standard allows [import attributes](https://github.com/tc39/proposal-import-attributes) to be specified on imports to customize how a module is loaded. For example:
+
+```js
+import data from './data.json' with { type: 'json' };
+import('./utils.js').then(utils => utils.process(data));
+```
+
+Rollup provides access to these attributes in plugin hooks, allowing plugins to handle modules differently based on their import attributes.
+
+### Accessing import attributes in plugins
+
+When a module is imported with attributes, these attributes are made available to plugins in several hooks:
+
+- In the [`resolveId`](#resolveid) hook, `options.attributes` contains the import attributes, and `options.importerAttributes` contains the attributes of the importing module.
+- In the [`load`](#load) hook, `options.attributes` contains the import attributes that were used when the module was first imported.
+- In the [`transform`](#transform) hook, `options.attributes` contains the import attributes.
+- In the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook, the `attributes` field contains the import attributes.
+- In the [`resolveDynamicImport`](#resolvedynamicimport) hook, `options.attributes` contains the import attributes from the dynamic import, and `options.importerAttributes` contains the attributes of the importing module.
+- In the [`renderDynamicImport`](#renderdynamicimport) hook, `targetModuleAttributes` contains the import attributes of the resolved dynamic import target.
+- In the [`resolveFileUrl`](#resolvefileurl) hook, `options.attributes` contains the import attributes of the module that references the file.
+- In the [`resolveImportMeta`](#resolveimportmeta) hook, `options.attributes` contains the import attributes of the module.
+- In the [`moduleParsed`](#moduleparsed) hook, `moduleInfo.attributes` contains the import attributes.
+
+### Using import attributes to customize module handling
+
+A common use case is to handle assets like JSON or stylesheets differently based on their import attributes:
+
+```js twoslash
+import { resolve, dirname } from 'node:path';
+import { readFile } from 'node:fs/promises';
+
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+function customAssetsPlugin() {
+	return {
+		name: 'custom-assets',
+		resolveId(source, importer, options) {
+			if (options.attributes.type === 'json') {
+				return resolve(dirname(importer), source);
+			}
+		},
+		async load(id, options) {
+			if (options.attributes.type === 'json') {
+				const content = await readFile(id, 'utf-8');
+				return `export default ${content}`;
+			}
+			return null;
+		}
+	};
+}
+```
+
+### Passing attributes when resolving modules
+
+You can pass `attributes` when manually resolving a module via [`this.resolve`](#this-resolve) to simulate resolving an import with specific attributes:
+
+```js twoslash
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+function proxyPlugin() {
+	return {
+		name: 'proxy',
+		async resolveId(source, importer, options) {
+			// Check what this would resolve to with specific attributes
+			const jsonResolution = await this.resolve(source, importer, {
+				...options,
+				attributes: { type: 'json' }
+			});
+
+			if (jsonResolution && !jsonResolution.external) {
+				// Handle JSON imports specially
+				return source + '?treated-as-json';
+			}
+			return null;
+		}
+	};
+}
+```
 
 ## Inter-plugin communication
 

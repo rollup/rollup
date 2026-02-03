@@ -1,4 +1,4 @@
-define(['exports', './generated-dep', 'external2', 'starexternal2'], (function (exports, dep, external2, starexternal2) { 'use strict';
+define(['exports', './generated-dep', 'starexternal2', 'external2'], (function (exports, dep, starexternal2, external2) { 'use strict';
 
 	var main = '2';
 

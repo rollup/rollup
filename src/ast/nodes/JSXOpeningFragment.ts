@@ -8,9 +8,9 @@ import { getAndIncludeFactoryVariable } from './shared/jsxHelpers';
 import { NodeBase } from './shared/Node';
 
 export default class JSXOpeningFragment extends NodeBase {
-	type!: NodeType.tJSXOpeningElement;
-	attributes!: never[];
-	selfClosing!: false;
+	declare type: NodeType.tJSXOpeningElement;
+	declare attributes: never[];
+	declare selfClosing: false;
 
 	private fragment: string | null = null;
 	private fragmentVariable: Variable | null = null;

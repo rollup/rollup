@@ -31,9 +31,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Setup Node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 24.10.0
       - name: Install and Cache Node Dependencies
@@ -209,9 +209,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Setup Node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         if: ${{ matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
           node-version: 24.10.0
@@ -238,7 +238,7 @@ jobs:
         if: ${{ contains(matrix.settings.target, 'ohos') }}
         uses: openharmony-rs/setup-ohos-sdk@3c181b3244cec76aaec289ab84fb00f55f2fce3f # v0.2.4
       - name: Restore Cargo cache
-        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/restore@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         if: matrix.settings.cache-cargo != false
         with:
           path: |
@@ -254,7 +254,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@03ef6f57d573ca4522fb02950f326083373b85bf # v2.66.2
+        uses: taiki-e/install-action@710817a1645ef40daad5bcde7431ceccf6cc3528 # v2.67.13
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -286,7 +286,7 @@ jobs:
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
-        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/save@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -322,10 +322,10 @@ jobs:
 
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Restore Cargo cache
-        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/restore@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -352,7 +352,7 @@ jobs:
 
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
-        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/save@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           path: |
             ~/.cargo/registry/index/
@@ -408,7 +408,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Build JS
@@ -507,9 +507,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Setup Node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
@@ -560,12 +560,12 @@ jobs:
     if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 24.10.0
           registry-url: 'https://registry.npmjs.org'

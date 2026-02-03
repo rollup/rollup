@@ -24,7 +24,7 @@ import { type IncludeChildren, NodeBase } from './Node';
 const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'await using']);
 
 export default class IdentifierBase extends NodeBase {
-	name!: string;
+	declare name: string;
 	variable: Variable | null = null;
 
 	protected isVariableReference = false;

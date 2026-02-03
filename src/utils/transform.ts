@@ -5,7 +5,7 @@ import type {
 	EmittedFile,
 	ExistingRawSourceMap,
 	LoggingFunctionWithPosition,
-	LogHandler,
+	NormalizedInputOptions,
 	Plugin,
 	PluginContext,
 	RollupError,
@@ -14,8 +14,6 @@ import type {
 	TransformPluginContext,
 	TransformResult
 } from '../rollup/types';
-import { getTrackedPluginCache } from './PluginCache';
-import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { LOGLEVEL_WARN } from './logging';
@@ -24,15 +22,19 @@ import {
 	error,
 	logInvalidSetAssetSourceCall,
 	logNoTransformMapOrAstWithoutCode,
-	logPluginError
+	logPluginError,
+	warnDeprecation
 } from './logs';
 import { normalizeLog } from './options/options';
+import { getTrackedPluginCache } from './PluginCache';
+import type { PluginDriver } from './PluginDriver';
+import { URL_TRANSFORM } from './urls';
 
 export default async function transform(
 	source: SourceDescription,
 	module: Module,
 	pluginDriver: PluginDriver,
-	log: LogHandler
+	options: NormalizedInputOptions
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -61,9 +63,17 @@ export default async function transform(
 			module.updateOptions(result);
 			if (result.code == null) {
 				if (result.map || result.ast) {
-					log(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
+					options.onLog(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
 				}
 				return previousCode;
+			}
+			if (result.attributes) {
+				warnDeprecation(
+					'Returning attributes from the "transform" hook is forbidden.',
+					URL_TRANSFORM,
+					false,
+					options
+				);
 			}
 			({ code, map, ast } = result);
 		} else {
@@ -101,7 +111,13 @@ export default async function transform(
 	try {
 		code = await pluginDriver.hookReduceArg0(
 			'transform',
-			[currentSource, id],
+			[
+				currentSource,
+				id,
+				{
+					attributes: module.info.attributes
+				}
+			],
 			transformReducer,
 			(pluginContext, plugin): TransformPluginContext => {
 				pluginName = plugin.name;
@@ -135,7 +151,7 @@ export default async function transform(
 							originalCode,
 							originalSourcemap,
 							sourcemapChain,
-							log
+							options.onLog
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);

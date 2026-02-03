@@ -19,7 +19,6 @@ import {
 	INTERACTION_ASSIGNED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../NodeInteractions';
-import { isAwaitExpressionNode, isImportExpressionNode } from '../utils/identifyNode';
 import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import {
 	EMPTY_PATH,
@@ -34,8 +33,8 @@ import {
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
-import LocalVariable from '../variables/LocalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
+import type { PromiseHandler } from '../variables/PromiseHandler';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
@@ -47,7 +46,6 @@ import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
 	includeInteraction,
-	includeInteractionWithoutThis,
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -108,6 +106,7 @@ export default class MemberExpression
 	declare property: ExpressionNode | PrivateIdentifier;
 	declare propertyKey: ObjectPathKey;
 	declare type: NodeType.tMemberExpression;
+	promiseHandler: PromiseHandler | null = null;
 	variable: Variable | null = null;
 	declare protected assignmentInteraction: NodeInteractionAssigned;
 	declare private accessInteraction: NodeInteractionAccessed;
@@ -177,7 +176,13 @@ export default class MemberExpression
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		if (this.variable) {
+		if (this.promiseHandler) {
+			this.promiseHandler.deoptimizeArgumentsOnInteractionAtPath(
+				interaction,
+				path,
+				recursionTracker
+			);
+		} else if (this.variable) {
 			this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		} else if (!this.isUndefined) {
 			if (path.length < MAX_PATH_DEPTH) {
@@ -421,25 +426,12 @@ export default class MemberExpression
 	}
 
 	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
-		if (this.variable) {
+		if (this.promiseHandler) {
+			this.promiseHandler.includeCallArguments(interaction, context);
+		} else if (this.variable) {
 			this.variable.includeCallArguments(interaction, context);
 		} else {
-			if (
-				isImportExpressionNode(this.object) ||
-				/**
-				 * const c = await import('foo')
-				 * c.foo();
-				 */
-				(this.object.variable &&
-					!this.object.variable.isReassigned &&
-					this.object.variable instanceof LocalVariable &&
-					isAwaitExpressionNode(this.object.variable.init) &&
-					isImportExpressionNode(this.object.variable.init.argument))
-			) {
-				includeInteractionWithoutThis(interaction, context);
-			} else {
-				includeInteraction(interaction, context);
-			}
+			includeInteraction(interaction, context);
 		}
 	}
 
@@ -503,7 +495,7 @@ export default class MemberExpression
 			// Namespaces are not bound and should not be deoptimized
 			this.bound &&
 			propertyReadSideEffects &&
-			!(this.variable || this.isUndefined)
+			!(this.variable || this.isUndefined || this.promiseHandler)
 		) {
 			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.accessInteraction,

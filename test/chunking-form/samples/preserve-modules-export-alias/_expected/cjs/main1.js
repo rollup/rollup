@@ -4,5 +4,5 @@ var dep = require('./dep.js');
 
 
 
-exports.bar = dep.foo;
-exports.foo = dep.foo;
+exports.bar = dep.bar;
+exports.foo = dep.bar;

@@ -13,7 +13,7 @@ import type { IncludeChildren } from './Node';
 import { doNotDeoptimize, NodeBase } from './Node';
 
 export default class JSXElementBase extends NodeBase {
-	children!: JSXChild[];
+	declare children: JSXChild[];
 
 	protected factoryVariable: Variable | null = null;
 	protected factory: string | null = null;

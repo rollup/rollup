@@ -1,5 +1,55 @@
 # rollup changelog
 
+## 4.57.1
+
+_2026-01-30_
+
+### Bug Fixes
+
+- Fix heap corruption issue in Windows (#6251)
+- Ensure exports of a dynamic import are fully included when called from a try...catch (#6254)
+
+### Pull Requests
+
+- [#6251](https://github.com/rollup/rollup/pull/6251): fix: Isolate and cache `process.report.getReport()` calls in a child process for robust environment detection (@alan-agius4, @lukastaegert)
+- [#6252](https://github.com/rollup/rollup/pull/6252): chore(deps): update dependency lru-cache to v11 (@renovate[bot])
+- [#6253](https://github.com/rollup/rollup/pull/6253): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6254](https://github.com/rollup/rollup/pull/6254): Fully include dynamic imports in a try-catch (@lukastaegert)
+- [#6255](https://github.com/rollup/rollup/pull/6255): chore(deps): lock file maintenance (@renovate[bot])
+
+## 4.57.0
+
+_2026-01-27_
+
+### Features
+
+- Add import attributes to all plugin hooks that did not provide them yet (#5700)
+- Deprecate returning import attributes from `load` or `transform` hooks as that will no longer be supported with rollup 5 (#5700)
+
+### Pull Requests
+
+- [#5700](https://github.com/rollup/rollup/pull/5700): extend more hooks to include import attributes and add warnings (@TrickyPi, @lukastaegert)
+- [#6243](https://github.com/rollup/rollup/pull/6243): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6244](https://github.com/rollup/rollup/pull/6244): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6245](https://github.com/rollup/rollup/pull/6245): chore(deps): lock file maintenance (@renovate[bot])
+- [#6246](https://github.com/rollup/rollup/pull/6246): Refactor to reduce Rollup 5 upgrade diff (@lukastaegert)
+
+## 4.56.0
+
+_2026-01-22_
+
+### Features
+
+- Track object property inclusions of dynamic namespace members (#6230)
+
+### Bug Fixes
+
+- Handle methods that access dynamically imported namespace members via `this` (#6230)
+
+### Pull Requests
+
+- [#6230](https://github.com/rollup/rollup/pull/6230): Refine namespace handling (@lukastaegert)
+
 ## 4.55.3
 
 _2026-01-21_

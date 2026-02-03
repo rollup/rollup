@@ -9,10 +9,10 @@ import type { JSXChild } from './shared/jsxHelpers';
 import type { IncludeChildren } from './shared/Node';
 
 export default class JSXFragment extends JSXElementBase {
-	type!: NodeType.tJSXElement;
-	openingFragment!: JSXOpeningFragment;
-	children!: JSXChild[];
-	closingFragment!: JSXClosingFragment;
+	declare type: NodeType.tJSXElement;
+	declare openingFragment: JSXOpeningFragment;
+	declare children: JSXChild[];
+	declare closingFragment: JSXClosingFragment;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		super.include(context, includeChildrenRecursively);

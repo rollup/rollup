@@ -1,4 +1,4 @@
-import type { AstContext } from '../../Module';
+import type { AstContext, ImportDescription } from '../../Module';
 import type { InternalModuleFormat } from '../../rollup/types';
 import { logRedeclarationError } from '../../utils/logs';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
@@ -18,7 +18,11 @@ import type GlobalScope from './GlobalScope';
 export default class ModuleScope extends ChildScope {
 	declare parent: GlobalScope;
 
-	constructor(parent: GlobalScope, context: AstContext) {
+	constructor(
+		parent: GlobalScope,
+		context: AstContext,
+		private readonly importDescriptions: Map<string, ImportDescription>
+	) {
 		super(parent, context);
 		this.variables.set(
 			'this',
@@ -33,7 +37,7 @@ export default class ModuleScope extends ChildScope {
 		destructuredInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
-		if (this.context.module.importDescriptions.has(identifier.name)) {
+		if (this.importDescriptions.has(identifier.name)) {
 			context.error(logRedeclarationError(identifier.name), identifier.start);
 		}
 		return super.addDeclaration(identifier, context, init, destructuredInitPath, kind);

@@ -251,6 +251,8 @@ export default class Chunk {
 						includedNamespaces.add(module);
 						this.exports.add(module.namespace);
 					}
+					// This only needs to run once
+					break;
 				}
 			}
 			if (module.implicitlyLoadedAfter.size > 0) {
@@ -1096,10 +1098,11 @@ export default class Chunk {
 		}
 		const includedDynamicImports: ResolvedDynamicImport[] = [];
 		for (const module of this.orderedModules) {
-			for (const { node, resolution } of module.dynamicImports) {
+			for (const { node } of module.dynamicImports) {
 				if (!node.included) {
 					continue;
 				}
+				const { resolution } = node;
 				includedDynamicImports.push(
 					resolution instanceof Module
 						? {
@@ -1394,7 +1397,6 @@ export default class Chunk {
 				} else {
 					node.setExternalResolution(
 						(facadeChunk || chunk).exportMode,
-						resolution,
 						outputOptions,
 						snippets,
 						pluginDriver,
@@ -1415,7 +1417,6 @@ export default class Chunk {
 				);
 				node.setExternalResolution(
 					'external',
-					resolution,
 					outputOptions,
 					snippets,
 					pluginDriver,
@@ -1512,8 +1513,7 @@ export default class Chunk {
 		// when we are not preserving modules, we need to make all namespace variables available for
 		// rendering the namespace object
 		if (!this.outputOptions.preserveModules && this.includedNamespaces.has(module)) {
-			const memberVariables = module.namespace.getMemberVariables();
-			for (const variable of Object.values(memberVariables)) {
+			for (const variable of module.getExportedVariablesByName().values()) {
 				if (variable.included) {
 					moduleImports.add(variable);
 				}
@@ -1546,9 +1546,11 @@ export default class Chunk {
 		) {
 			this.ensureReexportsAreAvailableForModule(module);
 		}
-		for (const { node, resolution } of module.dynamicImports) {
+		for (const {
+			node: { included, resolution }
+		} of module.dynamicImports) {
 			if (
-				node.included &&
+				included &&
 				resolution instanceof Module &&
 				this.chunkByModule.get(resolution) === this &&
 				!this.includedNamespaces.has(resolution)
