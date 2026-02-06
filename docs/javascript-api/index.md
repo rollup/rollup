@@ -454,3 +454,35 @@ assert.deepEqual(
 	}
 );
 ```
+
+Both `parseAst` and `parseAstAsync` return lazy ASTs where non-primitive properties of AST nodes are getters that replace themselves on first access. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation.
+
+## AST serialization
+
+For edge case scenarios where you need to serialize ESTree ASTs to buffers or deserialize them back, Rollup exposes `serializeAst` and `deserializeLazyAst` helpers. These functions can handle complete AST trees as well as AST fragments that start with any top-level node.
+
+The `serializeAst` function converts an ESTree AST node into Rollup's internal binary format while `deserializeLazyAst` converts it back:
+
+```js twoslash
+import { serializeAst, deserializeLazyAst } from 'rollup/parseAst';
+
+const ast = {
+	type: 'Literal',
+	value: 42,
+	raw: '42'
+};
+
+const buffer = serializeAst(ast);
+// buffer is a Buffer/Uint8Array containing the serialized AST
+
+const deserializedAst = deserializeLazyAst(buffer);
+// deserializedAst is a lazy AST with the same structure as the original
+console.log(deserializedAst.type); // 'Literal'
+console.log(deserializedAst.value); // 42
+```
+
+These helpers are useful when you need to:
+
+- Cache parsed ASTs in a binary format for performance
+- Transmit AST data between processes or over the network
+- Work with Rollup's internal AST representation directly
