@@ -870,7 +870,14 @@ export default class Module {
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
 		this.astBuffer = astBuffer;
-		this.info.ast = this.tryParseLazy(astBuffer);
+		// When the AST is walked, this data structure will grow as getters are
+		// replaced with fixed properties. By making this a getter, we avoid keeping
+		// a reference to the full AST to conserve memory at the potential cost of
+		// creating AST nodes repeatedly.
+		Object.defineProperty(this.info, 'ast', {
+			enumerable: true,
+			get: () => this.tryParseLazy(this.astBuffer)
+		});
 		this.ast = convertProgram(this.astBuffer, null, this.scope);
 		timeEnd('generate ast', 3);
 	}
