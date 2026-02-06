@@ -822,6 +822,17 @@ interface PreRenderedChunk {
 }
 ```
 
+The `PreRenderedChunk` type provides information about the chunk being generated:
+
+- `exports`: The list of exported bindings from the chunk.
+- `facadeModuleId`: The module id of the entry point this chunk is a facade for, or `null` if this is not a facade.
+- `isDynamicEntry`: `true` if this chunk is the target of dynamic `import()` expressions.
+- `isEntry`: `true` if this chunk is an entry point (either from the `input` option or emitted via `this.emitFile`).
+- `isImplicitEntry`: `true` if this chunk was emitted with [`implicitlyLoadedAfterOneOf`](../plugin-development/index.md#this-emitfile) set, indicating it will only be loaded as an entry point if at least one of the specified modules have already been loaded.
+- `moduleIds`: The list of module ids included in this chunk.
+- `name`: The name of this chunk used for the `[name]` placeholder.
+- `type`: Always `'chunk'`.
+
 The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
