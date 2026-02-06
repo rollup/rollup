@@ -127,7 +127,7 @@
     "@codemirror/language": "^6.12.1",
     "@codemirror/search": "^6.6.0",
     "@codemirror/state": "^6.5.4",
-    "@codemirror/view": "^6.39.11",
+    "@codemirror/view": "^6.39.12",
     "@eslint/js": "^9.39.2",
     "@inquirer/prompts": "^7.10.1",
     "@jridgewell/sourcemap-codec": "^1.5.5",
@@ -142,7 +142,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/pluginutils": "^5.3.0",
-    "@shikijs/vitepress-twoslash": "^3.21.0",
+    "@shikijs/vitepress-twoslash": "^3.22.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.30",
     "@types/picomatch": "^4.0.2",
@@ -170,14 +170,14 @@
     "flru": "^1.0.2",
     "fs-extra": "^11.3.3",
     "github-api": "^3.4.0",
-    "globals": "^17.1.0",
+    "globals": "^17.3.0",
     "husky": "^9.1.7",
     "is-reference": "^3.0.3",
     "lint-staged": "^16.2.7",
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.21",
     "memfs": "^4.56.10",
-    "mocha": "^11.7.5",
+    "mocha": "11.3.0",
     "nodemon": "^3.1.11",
     "npm-audit-resolver": "^3.0.0-RC.0",
     "nyc": "^17.1.0",
@@ -190,7 +190,7 @@
     "pretty-bytes": "^7.1.0",
     "pretty-ms": "^9.3.0",
     "requirejs": "^2.3.8",
-    "rollup": "^4.56.0",
+    "rollup": "^4.57.1",
     "rollup-plugin-license": "^3.6.0",
     "semver": "^7.7.3",
     "shx": "^0.4.0",
@@ -211,14 +211,16 @@
     "yargs-parser": "^21.1.1"
   },
   "overrides": {
-    "axios": "^1.13.3",
+    "axios": "^1.13.4",
     "esbuild": ">0.24.2",
-    "readable-stream": "npm:@built-in/readable-stream@1",
-    "semver": "^7.7.3",
-    "vite": "$vite",
+    "lodash-es": ">4.17.22",
     "path-scurry": {
       "lru-cache": "^11.2.5"
-    }
+    },
+    "readable-stream": "npm:@built-in/readable-stream@1",
+    "semver": "^7.7.3",
+    "tar": ">7.5.6",
+    "vite": "$vite"
   },
   "comments": {
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
