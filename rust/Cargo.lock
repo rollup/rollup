@@ -906,7 +906,6 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "parking_lot",
- "swc_atoms",
  "swc_common",
  "swc_compiler_base",
  "swc_config",
