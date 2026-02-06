@@ -1,14 +1,19 @@
 import { parse, parseAsync } from '../../native';
-import type { ParseAst, ParseAstAsync } from '../rollup/types';
-import { convertProgram } from './bufferToAst';
-import { getAstBuffer } from './getAstBuffer';
+import type { ast, ParseAst, ParseAstAsync } from '../rollup/types';
+import { deserializeLazyAst } from './bufferToAst';
+
+export { serializeAst } from './astToBuffer';
+export { deserializeLazyAst } from './bufferToAst';
 
 export const parseAst: ParseAst = (
 	input,
 	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) => convertProgram(getAstBuffer(parse(input, allowReturnOutsideFunction, jsx)));
+) => deserializeLazyAst(parse(input, allowReturnOutsideFunction, jsx)) as ast.Program;
 
 export const parseAstAsync: ParseAstAsync = async (
 	input,
 	{ allowReturnOutsideFunction = false, jsx = false, signal } = {}
-) => convertProgram(getAstBuffer(await parseAsync(input, allowReturnOutsideFunction, jsx, signal)));
+) =>
+	deserializeLazyAst(
+		await parseAsync(input, allowReturnOutsideFunction, jsx, signal)
+	) as ast.Program;

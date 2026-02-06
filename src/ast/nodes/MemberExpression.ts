@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../Module';
-import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs';
@@ -102,7 +102,7 @@ function getStringFromPath(path: PathWithPositions): string {
 }
 
 export default class MemberExpression
-	extends NodeBase<ast.MemberExpression>
+	extends NodeBase
 	implements DeoptimizableEntity, ChainElement, PatternNode
 {
 	declare parent: nodes.MemberExpressionParent;

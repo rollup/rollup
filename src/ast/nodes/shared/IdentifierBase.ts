@@ -1,4 +1,3 @@
-import type { AstNode } from '../../../rollup/ast-types';
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import { logIllegalImportReassignment } from '../../../utils/logs';
 import { PureFunctionKey } from '../../../utils/pureFunctions';
@@ -25,7 +24,7 @@ import { type IncludeChildren, NodeBase } from './Node';
 
 const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'await using']);
 
-export default class IdentifierBase<T extends AstNode> extends NodeBase<T> {
+export default class IdentifierBase extends NodeBase {
 	declare parent: nodes.IdentifierParent | nodes.JSXIdentifierParent;
 	declare name: string;
 	variable: Variable | null = null;
