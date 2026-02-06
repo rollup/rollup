@@ -828,7 +828,7 @@ The `PreRenderedChunk` type provides information about the chunk being generated
 - `facadeModuleId`: The module id of the entry point this chunk is a facade for, or `null` if this is not a facade.
 - `isDynamicEntry`: `true` if this chunk is the target of dynamic `import()` expressions.
 - `isEntry`: `true` if this chunk is an entry point (either from the `input` option or emitted via `this.emitFile`).
-- `isImplicitEntry`: `true` if this chunk was emitted with [`implicitlyLoadedAfterOneOf`](../plugin-development/index.md#this-emitfile) set, indicating it will only be loaded after at least one of the specified modules has been loaded.
+- `isImplicitEntry`: `true` if this chunk was emitted with [`implicitlyLoadedAfterOneOf`](../plugin-development/index.md#this-emitfile) set, indicating it will only be loaded as an entry point if at least one of the specified modules have already been loaded.
 - `moduleIds`: The list of module ids included in this chunk.
 - `name`: The name of this chunk used for the `[name]` placeholder.
 - `type`: Always `'chunk'`.
