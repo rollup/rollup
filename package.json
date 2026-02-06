@@ -177,7 +177,7 @@
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.21",
     "memfs": "^4.56.10",
-    "mocha": "^11.7.5",
+    "mocha": "11.3.0",
     "nodemon": "^3.1.11",
     "npm-audit-resolver": "^3.0.0-RC.0",
     "nyc": "^17.1.0",
@@ -213,12 +213,14 @@
   "overrides": {
     "axios": "^1.13.4",
     "esbuild": ">0.24.2",
-    "readable-stream": "npm:@built-in/readable-stream@1",
-    "semver": "^7.7.3",
-    "vite": "$vite",
+    "lodash-es": ">4.17.22",
     "path-scurry": {
       "lru-cache": "^11.2.5"
-    }
+    },
+    "readable-stream": "npm:@built-in/readable-stream@1",
+    "semver": "^7.7.3",
+    "tar": ">7.5.6",
+    "vite": "$vite"
   },
   "comments": {
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges"
