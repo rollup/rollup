@@ -37,6 +37,30 @@ impl<'task> ScopedTask<'task> for ParseTask {
   }
 }
 
+pub struct ParseAndWalkTask {
+  pub code: String,
+  pub allow_return_outside_function: bool,
+  pub jsx: bool,
+}
+
+#[napi]
+impl<'task> ScopedTask<'task> for ParseAndWalkTask {
+  type Output = Vec<u8>;
+  type JsValue = BufferSlice<'task>;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    Ok(parse_ast(
+      mem::take(&mut self.code),
+      self.allow_return_outside_function,
+      self.jsx,
+    ))
+  }
+
+  fn resolve(&mut self, env: &'task Env, output: Self::Output) -> Result<Self::JsValue> {
+    BufferSlice::from_data(env, output)
+  }
+}
+
 #[napi]
 pub fn parse<'env>(
   env: &'env Env,
@@ -56,6 +80,23 @@ pub fn parse_async(
 ) -> AsyncTask<ParseTask> {
   AsyncTask::with_optional_signal(
     ParseTask {
+      code,
+      allow_return_outside_function,
+      jsx,
+    },
+    signal,
+  )
+}
+
+#[napi]
+pub fn parse_and_walk(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  signal: Option<AbortSignal>,
+) -> AsyncTask<ParseAndWalkTask> {
+  AsyncTask::with_optional_signal(
+    ParseAndWalkTask {
       code,
       allow_return_outside_function,
       jsx,
