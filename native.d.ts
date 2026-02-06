@@ -4,6 +4,8 @@ export declare function parse(code: string, allowReturnOutsideFunction: boolean,
 
 export declare function parseAsync(code: string, allowReturnOutsideFunction: boolean, jsx: boolean, signal?: AbortSignal | undefined | null): Promise<Buffer>
 
+export declare function parseAndWalk(code: string, allowReturnOutsideFunction: boolean, jsx: boolean, signal?: AbortSignal | undefined | null): Promise<Buffer>
+
 export declare function xxhashBase16(input: Uint8Array): string
 
 export declare function xxhashBase36(input: Uint8Array): string
