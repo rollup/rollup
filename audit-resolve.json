@@ -1,41 +1,5 @@
 {
-  "decisions": {
-    "1112453|@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es": {
-      "decision": "ignore",
-      "madeAt": 1769750174830,
-      "expiresAt": 1772342161715
-    },
-    "1112453|@chevrotain/gast>lodash-es": {
-      "decision": "ignore",
-      "madeAt": 1769750174830,
-      "expiresAt": 1772342161715
-    },
-    "1112453|@mermaid-js/mermaid-cli>mermaid>@mermaid-js/parser>langium>chevrotain>@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es": {
-      "decision": "ignore",
-      "madeAt": 1769750174830,
-      "expiresAt": 1772342161715
-    },
-    "1112491|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1769750179445,
-      "expiresAt": 1772342161715
-    },
-    "1112255|wasm-pack>binary-install>tar": {
-      "decision": "ignore",
-      "madeAt": 1769750182528,
-      "expiresAt": 1772342161715
-    },
-    "1112329|wasm-pack>binary-install>tar": {
-      "decision": "ignore",
-      "madeAt": 1769750185212,
-      "expiresAt": 1772342161715
-    },
-    "1112659|wasm-pack>binary-install>tar": {
-      "decision": "ignore",
-      "madeAt": 1769750187962,
-      "expiresAt": 1772342161715
-    }
-  },
+  "decisions": {},
   "rules": {},
   "version": 1
 }
