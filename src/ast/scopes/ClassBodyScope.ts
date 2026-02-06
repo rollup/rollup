@@ -8,7 +8,7 @@ export default class ClassBodyScope extends ChildScope {
 	readonly instanceScope: ChildScope;
 	readonly thisVariable: LocalVariable;
 
-	constructor(parent: ChildScope, classNode: ClassNode) {
+	constructor(parent: ChildScope, classNode: ClassNode<any>) {
 		const { context } = parent;
 		super(parent, context);
 		this.variables.set(
