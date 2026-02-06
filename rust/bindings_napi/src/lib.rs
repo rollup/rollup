@@ -1,6 +1,7 @@
 use napi::{bindgen_prelude::*, ScopedTask};
 use napi_derive::napi;
 use parse_ast::parse_ast;
+use std::mem;
 
 #[cfg(all(
   not(all(target_os = "linux", target_arch = "loongarch64")),
@@ -25,7 +26,7 @@ impl<'task> ScopedTask<'task> for ParseTask {
 
   fn compute(&mut self) -> Result<Self::Output> {
     Ok(parse_ast(
-      self.code.clone(),
+      mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
     ))
