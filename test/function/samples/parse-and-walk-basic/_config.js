@@ -1,7 +1,6 @@
 const assert = require('node:assert/strict');
 
 module.exports = defineTest({
-	solo: true,
 	description: 'counts statements using parseAndWalk in transform hook',
 	options: {
 		plugins: [
