@@ -75,6 +75,9 @@ export function getPluginContext(
 			watchMode: graph.watchMode
 		},
 		parse: parseAst,
+		async parseAndWalk(_input, _visitors, _options) {
+			// TODO: Implement parseAndWalk
+		},
 		resolve(
 			source,
 			importer,
