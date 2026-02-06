@@ -11,7 +11,7 @@ module.exports = defineTest({
 				},
 				load() {
 					return {
-						code: 'export const x = [];',
+						code: 'export const x = 42;',
 						ast: {
 							type: 'Program',
 							start: 0,
@@ -49,6 +49,6 @@ module.exports = defineTest({
 		]
 	},
 	exports(exports) {
-		assert.deepEqual(exports.x, []);
+		assert.deepEqual(exports.x, 42);
 	}
 });
