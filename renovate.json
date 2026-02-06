@@ -26,7 +26,8 @@
         "npm",
         "fsevents",
         "core-js",
-        "@napi-rs/cli"
+        "@napi-rs/cli",
+        "mocha"
       ],
       "enabled": false
     },
