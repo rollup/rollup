@@ -8,8 +8,13 @@ pub fn parse(code: String, allow_return_outside_function: bool, jsx: bool) -> Ve
   parse_ast(code, allow_return_outside_function, jsx)
 }
 
-#[wasm_bindgen(js_name=parseAndWalk)]
-pub fn parse_and_walk(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
+#[wasm_bindgen(js_name=parseAndWalkSync)]
+pub fn parse_and_walk_sync(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  _node_bitset: js_sys::Uint8Array,
+) -> Vec<u8> {
   console_error_panic_hook::set_once();
   parse_ast(code, allow_return_outside_function, jsx)
 }

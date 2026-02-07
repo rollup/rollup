@@ -2,10 +2,10 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const parse: (a: number, b: number, c: number, d: number, e: number) => void;
+export const parseAndWalkSync: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const xxhashBase64Url: (a: number, b: number) => void;
 export const xxhashBase36: (a: number, b: number) => void;
 export const xxhashBase16: (a: number, b: number) => void;
-export const parseAndWalk: (a: number, b: number, c: number, d: number, e: number) => void;
 export const __wbindgen_export: (a: number, b: number, c: number) => void;
 export const __wbindgen_export2: (a: number, b: number) => number;
 export const __wbindgen_export3: (a: number, b: number, c: number, d: number) => number;

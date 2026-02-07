@@ -41,6 +41,7 @@ pub struct ParseAndWalkTask {
   pub code: String,
   pub allow_return_outside_function: bool,
   pub jsx: bool,
+  pub node_bitset: [u64; 2],
 }
 
 #[napi]
@@ -93,13 +94,30 @@ pub fn parse_and_walk(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
+  node_bitset_buffer: Uint8Array,
   signal: Option<AbortSignal>,
 ) -> AsyncTask<ParseAndWalkTask> {
+  // Convert Uint8Array (16 bytes) to [u64; 2]
+  let bytes = node_bitset_buffer.as_ref();
+  let mut bitset_array = [0u64; 2];
+
+  if bytes.len() >= 8 {
+    bitset_array[0] = u64::from_le_bytes([
+      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+    ]);
+  }
+  if bytes.len() >= 16 {
+    bitset_array[1] = u64::from_le_bytes([
+      bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15],
+    ]);
+  }
+
   AsyncTask::with_optional_signal(
     ParseAndWalkTask {
       code,
       allow_return_outside_function,
       jsx,
+      node_bitset: bitset_array,
     },
     signal,
   )
