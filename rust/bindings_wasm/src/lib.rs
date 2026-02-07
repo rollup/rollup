@@ -16,14 +16,14 @@ pub fn parse_and_walk_sync(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  node_bitset: Uint8Array,
+  walked_nodes_bitset: Uint8Array,
 ) -> Vec<u8> {
   console_error_panic_hook::set_once();
   parse_ast(
     code,
     allow_return_outside_function,
     jsx,
-    &node_bitset.to_vec(),
+    &walked_nodes_bitset.to_vec(),
   )
 }
 

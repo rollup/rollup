@@ -44,7 +44,7 @@ pub struct ParseAndWalkTask {
   pub code: String,
   pub allow_return_outside_function: bool,
   pub jsx: bool,
-  pub node_bitset: Uint8Array,
+  pub walked_nodes_bitset: Uint8Array,
 }
 
 #[napi]
@@ -57,7 +57,7 @@ impl<'task> ScopedTask<'task> for ParseAndWalkTask {
       mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
-      self.node_bitset.as_ref(),
+      self.walked_nodes_bitset.as_ref(),
     ))
   }
 
@@ -101,7 +101,7 @@ pub fn parse_and_walk(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  node_bitset_buffer: Uint8Array,
+  walked_nodes_bitset: Uint8Array,
   signal: Option<AbortSignal>,
 ) -> AsyncTask<ParseAndWalkTask> {
   AsyncTask::with_optional_signal(
@@ -109,7 +109,7 @@ pub fn parse_and_walk(
       code,
       allow_return_outside_function,
       jsx,
-      node_bitset: node_bitset_buffer,
+      walked_nodes_bitset,
     },
     signal,
   )
