@@ -17,7 +17,18 @@ mod ast_nodes;
 mod convert_ast;
 mod error_emit;
 
-pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
+pub fn parse_ast(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  node_bitset_bytes: &[u8],
+) -> Vec<u8> {
+  let _node_bitset = [
+    u64::from_le_bytes(node_bitset_bytes[0..8].try_into().unwrap()),
+    u64::from_le_bytes(node_bitset_bytes[8..16].try_into().unwrap()),
+  ];
+
+  // TODO: Use node_bitset for walking logic
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
   let syntax = Syntax::Es(EsSyntax {
@@ -67,20 +78,4 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
       get_panic_error_buffer(msg)
     })
   })
-}
-
-pub fn parse_and_walk_ast(
-  code: String,
-  allow_return_outside_function: bool,
-  jsx: bool,
-  node_bitset_bytes: &[u8],
-) -> Vec<u8> {
-  let _node_bitset = [
-    u64::from_le_bytes(node_bitset_bytes[0..8].try_into().unwrap()),
-    u64::from_le_bytes(node_bitset_bytes[8..16].try_into().unwrap()),
-  ];
-
-  // TODO: Use node_bitset for walking logic
-  // For now, just call parse_ast
-  parse_ast(code, allow_return_outside_function, jsx)
 }
