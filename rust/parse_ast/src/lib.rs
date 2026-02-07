@@ -21,14 +21,14 @@ pub fn parse_ast(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  node_bitset_bytes: &[u8],
+  walked_nodes_bitset: &[u8],
 ) -> Vec<u8> {
-  let _node_bitset = [
-    u64::from_le_bytes(node_bitset_bytes[0..8].try_into().unwrap()),
-    u64::from_le_bytes(node_bitset_bytes[8..16].try_into().unwrap()),
+  let _walked_nodes_bitset = [
+    u64::from_le_bytes(walked_nodes_bitset[0..8].try_into().unwrap()),
+    u64::from_le_bytes(walked_nodes_bitset[8..16].try_into().unwrap()),
   ];
 
-  // TODO: Use node_bitset for walking logic
+  // TODO: Use walked_nodes_bitset for walking logic
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
   let syntax = Syntax::Es(EsSyntax {
