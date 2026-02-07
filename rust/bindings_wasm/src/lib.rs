@@ -1,5 +1,5 @@
 use js_sys::Uint8Array;
-use parse_ast::parse_ast;
+use parse_ast::{parse_and_walk_ast, parse_ast};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -13,10 +13,15 @@ pub fn parse_and_walk_sync(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  _node_bitset: js_sys::Uint8Array,
+  node_bitset: Uint8Array,
 ) -> Vec<u8> {
   console_error_panic_hook::set_once();
-  parse_ast(code, allow_return_outside_function, jsx)
+  parse_and_walk_ast(
+    code,
+    allow_return_outside_function,
+    jsx,
+    &node_bitset.to_vec(),
+  )
 }
 
 #[wasm_bindgen(js_name=xxhashBase64Url)]
