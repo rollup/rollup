@@ -3,7 +3,7 @@
 
 export function parse(code: string, allow_return_outside_function: boolean, jsx: boolean): Uint8Array;
 
-export function parseAndWalkSync(code: string, allow_return_outside_function: boolean, jsx: boolean, _node_bitset: Uint8Array): Uint8Array;
+export function parseAndWalkSync(code: string, allow_return_outside_function: boolean, jsx: boolean, node_bitset: Uint8Array): Uint8Array;
 
 export function xxhashBase16(input: Uint8Array): string;
 
