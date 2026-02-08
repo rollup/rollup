@@ -8,6 +8,7 @@ import './generate-buffer-to-ast.js';
 import './generate-buffer-to-lazy-ast.js';
 import './generate-child-node-keys.js';
 import './generate-node-ids.js';
+import './generate-node-type-strings.js';
 import './generate-node-types.js';
 import './generate-node-unions.js';
 import './generate-rust-constants.js';
