@@ -12,11 +12,13 @@ const astConstantsFile = new URL(
 );
 
 const nodeTypes = astNodeNamesWithFieldOrder
-	.map(({ name, node: { useMacro } }, index) =>
-		useMacro === false
-			? `pub const TYPE_${toScreamingSnakeCase(name)}: [u8; 4] = ${index}u32.to_ne_bytes();\n`
-			: ''
-	)
+	.map(({ name, node: { useMacro } }, index) => {
+		if (useMacro === false) {
+			// For bespoke nodes, generate both the u32 ID (for const generics) and byte array (for buffer)
+			return `pub const NODE_TYPE_ID_${toScreamingSnakeCase(name)}: u32 = ${index};\npub const TYPE_${toScreamingSnakeCase(name)}: [u8; 4] = NODE_TYPE_ID_${toScreamingSnakeCase(name)}.to_ne_bytes();\n`;
+		}
+		return '';
+	})
 	.join('');
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder

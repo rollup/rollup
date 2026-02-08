@@ -21,14 +21,15 @@ pub fn parse_ast(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  walked_nodes_bitset: &[u8],
+  walked_nodes_bitset_bytes: &[u8],
 ) -> Vec<u8> {
-  let _walked_nodes_bitset = [
-    u64::from_le_bytes(walked_nodes_bitset[0..8].try_into().unwrap()),
-    u64::from_le_bytes(walked_nodes_bitset[8..16].try_into().unwrap()),
+  // Convert bitset bytes to u64 array using native endianness
+  // This matches the rest of the buffer format which uses native endian throughout
+  let walked_nodes_bitset = [
+    u64::from_ne_bytes(walked_nodes_bitset_bytes[0..8].try_into().unwrap()),
+    u64::from_ne_bytes(walked_nodes_bitset_bytes[8..16].try_into().unwrap()),
   ];
 
-  // TODO: Use walked_nodes_bitset for walking logic
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
   let syntax = Syntax::Es(EsSyntax {
@@ -62,7 +63,7 @@ pub fn parse_ast(
         Err(buffer) => buffer,
         Ok(program) => {
           let annotations = comments.take_annotations();
-          let converter = AstConverter::new(&code_reference, &annotations);
+          let converter = AstConverter::new(&code_reference, &annotations, walked_nodes_bitset);
           converter.convert_ast_to_buffer(&program)
         }
       }
