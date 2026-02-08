@@ -97,6 +97,7 @@ const astMacros = astNodeNamesWithFieldOrder
 macro_rules! store_${toSnakeCase(name)} {
   ($self:expr, span => $span:expr${valuesInput}) => {
     let _: &mut AstConverter = $self;
+    let walk_entry = $self.on_node_enter::<${nodeIndex}>();
     let end_position = $self.add_type_and_start(
       &${nodeIndex}u32.to_ne_bytes(),
       &$span,
@@ -105,6 +106,7 @@ macro_rules! store_${toSnakeCase(name)} {
     );${flagConverter}${fieldConverters}
     // end
     $self.add_end(end_position, &$span);
+    $self.on_node_exit(walk_entry);
   };
 }
 

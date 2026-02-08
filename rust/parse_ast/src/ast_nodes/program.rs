@@ -1,12 +1,14 @@
 use swc_ecma_ast::{Expr, Lit, ModuleItem, Program, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-  PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET, PROGRAM_RESERVED_BYTES, TYPE_PROGRAM,
+    NODE_TYPE_ID_PROGRAM, PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET,
+    PROGRAM_RESERVED_BYTES, TYPE_PROGRAM,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
 impl AstConverter<'_> {
   pub(crate) fn store_program(&mut self, body: ModuleItemsOrStatements) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROGRAM>();
     let end_position =
       self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);
     // body
@@ -71,6 +73,7 @@ impl AstConverter<'_> {
         },
       );
     }
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_program(&mut self, node: &Program) {
