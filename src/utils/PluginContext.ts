@@ -94,7 +94,8 @@ export function getPluginContext(
 			// Convert BigUint64Array to Uint8Array for passing to native
 			const buffer = new Uint8Array(bitset.buffer);
 
-			// Call native parseAndWalk with bitset buffer, ignoring return value for now
+			// Call native parseAndWalk with bitset buffer
+			// TODO: Parse the returned buffer and call visitor callbacks
 			await parseAndWalkNative(input, allowReturnOutsideFunction, jsx, buffer);
 		},
 		resolve(
