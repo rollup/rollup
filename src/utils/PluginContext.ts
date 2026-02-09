@@ -1,6 +1,7 @@
 import { version as rollupVersion } from 'package.json';
 import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
+import { nodeTypeStrings } from '../ast/nodeTypeStrings';
 import type Graph from '../Graph';
 import type {
 	NormalizedInputOptions,
@@ -10,7 +11,9 @@ import type {
 	SerializablePluginCache
 } from '../rollup/types';
 import { BLANK, EMPTY_OBJECT } from './blank';
+import { deserializeLazyAstBuffer } from './bufferToAst';
 import type { FileEmitter } from './FileEmitter';
+import { getAstBuffer } from './getAstBuffer';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
@@ -84,19 +87,36 @@ export function getPluginContext(
 				const ids = nodeIds[nodeType];
 				if (ids) {
 					for (const id of ids) {
-						const wordIndex = Math.floor(id / 64); // 0 or 1
+						const wordIndex = id >> 6; // 0 or 1
 						const bitIndex = id % 64;
 						bitset[wordIndex] |= 1n << BigInt(bitIndex);
 					}
 				}
 			}
 
-			// Convert BigUint64Array to Uint8Array for passing to native
-			const buffer = new Uint8Array(bitset.buffer);
+			const astBuffer = getAstBuffer(
+				await parseAndWalkNative(
+					input,
+					allowReturnOutsideFunction,
+					jsx,
+					// TODO Lukas can we directly pass Uint64?
+					new Uint8Array(bitset.buffer)
+				)
+			);
 
-			// Call native parseAndWalk with bitset buffer
-			// TODO: Parse the returned buffer and call visitor callbacks
-			await parseAndWalkNative(input, allowReturnOutsideFunction, jsx, buffer);
+			// TODO Lukas verify walkingInfo offset is native endian
+			for (
+				let walkingPosition = astBuffer[0];
+				walkingPosition < astBuffer.length;
+				walkingPosition += 2
+			) {
+				const elementIndex = astBuffer[walkingPosition];
+				const nodeTypeString = nodeTypeStrings[astBuffer[elementIndex]];
+				visitors[nodeTypeString]!(deserializeLazyAstBuffer(astBuffer, elementIndex) as any, {
+					parseChildren() {},
+					skipChildren() {}
+				});
+			}
 		},
 		resolve(
 			source,
