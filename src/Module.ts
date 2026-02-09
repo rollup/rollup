@@ -49,7 +49,6 @@ import type {
 	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
-import { deserializeLazyAst } from './utils/bufferToLazyAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
@@ -76,6 +75,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
+import { deserializeLazyAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
