@@ -68,7 +68,7 @@ impl<'a> AstConverter<'a> {
 
     // Append walking information if any nodes were walked
     if has_walking_info && !self.walking_entries.is_empty() {
-      let walking_info_offset = self.buffer.len() as u32;
+      let walking_info_offset = (self.buffer.len() as u32) >> 2;
 
       // Write the offset at the beginning of the buffer (native endian)
       self.buffer[0..4].copy_from_slice(&walking_info_offset.to_ne_bytes());
@@ -76,10 +76,11 @@ impl<'a> AstConverter<'a> {
       // Append walking entries: [node_position(4), skip_to_index(4)] for each entry
       // All values use native endianness for fast Uint32Array access in JavaScript
       // Note: node positions need to be adjusted by +1 word because we prepended 4 bytes
+      // TODO Lukas can we directly create this as a buffer?
       for entry in &self.walking_entries {
         self
           .buffer
-          .extend_from_slice(&(entry.node_buffer_position + 1).to_ne_bytes());
+          .extend_from_slice(&(entry.node_buffer_position).to_ne_bytes());
         self
           .buffer
           .extend_from_slice(&entry.skip_to_index.to_ne_bytes());
