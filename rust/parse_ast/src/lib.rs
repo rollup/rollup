@@ -21,14 +21,12 @@ pub fn parse_ast(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  walked_nodes_bitset_bytes: &[u8],
+  walked_nodes_bitset_buffer: &[u64],
 ) -> Vec<u8> {
-  // Convert bitset bytes to u64 array using native endianness
-  // This matches the rest of the buffer format which uses native endian throughout
-  let walked_nodes_bitset = [
-    u64::from_ne_bytes(walked_nodes_bitset_bytes[0..8].try_into().unwrap()),
-    u64::from_ne_bytes(walked_nodes_bitset_bytes[8..16].try_into().unwrap()),
-  ];
+  // TODO Lukas make the bitset an Option throughout
+  let walked_nodes_bitset: [u64; 2] = walked_nodes_bitset_buffer
+    .try_into()
+    .expect("bitset must have 2 elements");
 
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
