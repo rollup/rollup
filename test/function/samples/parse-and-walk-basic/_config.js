@@ -7,13 +7,18 @@ module.exports = defineTest({
 			{
 				name: 'test-plugin',
 				async transform(code) {
-					let statementCount = 0;
+					let bodyStatementCount = 0;
+					const variableDeclarators = [];
 					await this.parseAndWalk(code, {
 						Program(node) {
-							statementCount = node.body.length;
+							bodyStatementCount = node.body.length;
+						},
+						VariableDeclarator(node) {
+							variableDeclarators.push(node.id.name);
 						}
 					});
-					assert.equal(statementCount, 1);
+					assert.equal(bodyStatementCount, 2, 'bodyStatementCount');
+					assert.deepEqual(variableDeclarators, ['value', 'nested'], 'variableDeclarators');
 					return null;
 				}
 			}

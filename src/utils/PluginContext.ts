@@ -1,7 +1,5 @@
 import { version as rollupVersion } from 'package.json';
 import { parseAndWalk as parseAndWalkNative } from '../../native';
-import { nodeIds } from '../ast/nodeIds';
-import { nodeTypeStrings } from '../ast/nodeTypeStrings';
 import type Graph from '../Graph';
 import type {
 	NormalizedInputOptions,
@@ -11,13 +9,13 @@ import type {
 	SerializablePluginCache
 } from '../rollup/types';
 import { BLANK, EMPTY_OBJECT } from './blank';
-import { deserializeLazyAstBuffer } from './bufferToAst';
 import type { FileEmitter } from './FileEmitter';
 import { getAstBuffer } from './getAstBuffer';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
 import { normalizeLog } from './options/options';
+import { getSelectedNodesBitsetBuffer, walkAstBuffer } from './parseAndWalk';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginNames';
@@ -81,42 +79,13 @@ export function getPluginContext(
 		},
 		parse: parseAst,
 		async parseAndWalk(input, visitors, { allowReturnOutsideFunction = false, jsx = false } = {}) {
-			const bitset = new BigUint64Array(2); // 2 × 64 bits = 128 bits
-
-			for (const nodeType of Object.keys(visitors)) {
-				const ids = nodeIds[nodeType];
-				if (ids) {
-					for (const id of ids) {
-						const wordIndex = id >> 6; // 0 or 1
-						const bitIndex = id % 64;
-						bitset[wordIndex] |= 1n << BigInt(bitIndex);
-					}
-				}
-			}
+			const selectedNodesBuffer = getSelectedNodesBitsetBuffer(visitors, plugin.name);
 
 			const astBuffer = getAstBuffer(
-				await parseAndWalkNative(
-					input,
-					allowReturnOutsideFunction,
-					jsx,
-					// TODO Lukas can we directly pass Uint64?
-					new Uint8Array(bitset.buffer)
-				)
+				await parseAndWalkNative(input, allowReturnOutsideFunction, jsx, selectedNodesBuffer)
 			);
 
-			// TODO Lukas verify walkingInfo offset is native endian
-			for (
-				let walkingPosition = astBuffer[0];
-				walkingPosition < astBuffer.length;
-				walkingPosition += 2
-			) {
-				const elementIndex = astBuffer[walkingPosition];
-				const nodeTypeString = nodeTypeStrings[astBuffer[elementIndex]];
-				visitors[nodeTypeString]!(deserializeLazyAstBuffer(astBuffer, elementIndex) as any, {
-					parseChildren() {},
-					skipChildren() {}
-				});
-			}
+			walkAstBuffer(astBuffer, visitors);
 		},
 		resolve(
 			source,

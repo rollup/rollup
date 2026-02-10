@@ -4,7 +4,7 @@ use parse_ast::parse_ast;
 use std::mem;
 
 /// Empty bitset (all zeros) means no nodes are selected for walking
-const EMPTY_BITSET: [u8; 16] = [0u8; 16];
+const EMPTY_BITSET: [u64; 2] = [0u64; 2];
 #[cfg(all(
   not(all(target_os = "linux", target_arch = "loongarch64")),
   not(all(target_os = "linux", target_arch = "riscv64", target_env = "musl")),
@@ -44,7 +44,7 @@ pub struct ParseAndWalkTask {
   pub code: String,
   pub allow_return_outside_function: bool,
   pub jsx: bool,
-  pub walked_nodes_bitset: Uint8Array,
+  pub walked_nodes_bitset: BigUint64Array,
 }
 
 #[napi]
@@ -101,7 +101,7 @@ pub fn parse_and_walk(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  walked_nodes_bitset: Uint8Array,
+  walked_nodes_bitset: BigUint64Array,
   signal: Option<AbortSignal>,
 ) -> AsyncTask<ParseAndWalkTask> {
   AsyncTask::with_optional_signal(

@@ -9,8 +9,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-# Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "3.8.3", default-features = false, features = ["napi4"] }
+# Default enable napi6 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
+napi = { version = "3.8.3", default-features = false, features = ["napi6"] }
 napi-derive = "3.5.2"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
