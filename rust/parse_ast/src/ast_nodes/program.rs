@@ -1,8 +1,8 @@
 use swc_ecma_ast::{Expr, Lit, ModuleItem, Program, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-    NODE_TYPE_ID_PROGRAM, PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET,
-    PROGRAM_RESERVED_BYTES, TYPE_PROGRAM,
+  NODE_TYPE_ID_PROGRAM, PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET,
+  PROGRAM_RESERVED_BYTES, TYPE_PROGRAM,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 

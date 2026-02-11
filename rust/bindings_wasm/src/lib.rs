@@ -2,13 +2,10 @@ use js_sys::{BigUint64Array, Uint8Array};
 use parse_ast::parse_ast;
 use wasm_bindgen::prelude::*;
 
-/// Empty bitset (all zeros) means no nodes are selected for walking
-const EMPTY_BITSET: [u64; 2] = [0u64; 2];
-
 #[wasm_bindgen]
 pub fn parse(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
   console_error_panic_hook::set_once();
-  parse_ast(code, allow_return_outside_function, jsx, &EMPTY_BITSET)
+  parse_ast(code, allow_return_outside_function, jsx, None)
 }
 
 #[wasm_bindgen(js_name=parseAndWalkSync)]
@@ -23,7 +20,7 @@ pub fn parse_and_walk_sync(
     code,
     allow_return_outside_function,
     jsx,
-    &walked_nodes_bitset.to_vec(),
+    Some(&walked_nodes_bitset.to_vec()),
   )
 }
 

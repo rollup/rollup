@@ -30,7 +30,7 @@ export function getSelectedNodesBitsetBuffer(
 	return selectedNodesBuffer;
 }
 
-// TODO Lukas verify offsets in the walking info are is native endian
+// TODO Lukas verify offsets in the walking info are native endian
 // TODO Lukas handle parse errors
 export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
 	for (

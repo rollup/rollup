@@ -3,8 +3,6 @@ use napi_derive::napi;
 use parse_ast::parse_ast;
 use std::mem;
 
-/// Empty bitset (all zeros) means no nodes are selected for walking
-const EMPTY_BITSET: [u64; 2] = [0u64; 2];
 #[cfg(all(
   not(all(target_os = "linux", target_arch = "loongarch64")),
   not(all(target_os = "linux", target_arch = "riscv64", target_env = "musl")),
@@ -31,7 +29,7 @@ impl<'task> ScopedTask<'task> for ParseTask {
       mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
-      &EMPTY_BITSET,
+      None,
     ))
   }
 
@@ -57,7 +55,7 @@ impl<'task> ScopedTask<'task> for ParseAndWalkTask {
       mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
-      self.walked_nodes_bitset.as_ref(),
+      Some(self.walked_nodes_bitset.as_ref()),
     ))
   }
 
@@ -75,7 +73,7 @@ pub fn parse<'env>(
 ) -> Result<BufferSlice<'env>> {
   BufferSlice::from_data(
     env,
-    parse_ast(code, allow_return_outside_function, jsx, &EMPTY_BITSET),
+    parse_ast(code, allow_return_outside_function, jsx, None),
   )
 }
 
