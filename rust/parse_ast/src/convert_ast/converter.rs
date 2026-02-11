@@ -36,7 +36,7 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) buffer: Vec<u8>,
   pub(crate) code: &'a [u8],
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
-  pub(crate) walked_nodes_bitset: [u64; 2],
+  pub(crate) walked_nodes_bitset: Option<[u64; 2]>,
   pub(crate) walking_entries: Vec<WalkEntry>,
 }
 
@@ -44,7 +44,7 @@ impl<'a> AstConverter<'a> {
   pub(crate) fn new(
     code: &'a str,
     annotations: &'a [AnnotationWithType],
-    walked_nodes_bitset: [u64; 2],
+    walked_nodes_bitset: Option<[u64; 2]>,
   ) -> Self {
     Self {
       // This is just a wild guess and should be revisited from time to time
@@ -58,7 +58,7 @@ impl<'a> AstConverter<'a> {
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     // Reserve space for walking info offset at the beginning
-    let has_walking_info = self.walked_nodes_bitset[0] != 0 || self.walked_nodes_bitset[1] != 0;
+    let has_walking_info = self.walked_nodes_bitset.is_some();
     if has_walking_info {
       // Insert 4 bytes at the start for the walking info offset
       self.buffer.extend_from_slice(&[0u8; 4]);
@@ -76,7 +76,6 @@ impl<'a> AstConverter<'a> {
       // Append walking entries: [node_position(4), skip_to_index(4)] for each entry
       // All values use native endianness for fast Uint32Array access in JavaScript
       // Note: node positions need to be adjusted by +1 word because we prepended 4 bytes
-      // TODO Lukas can we directly create this as a buffer?
       for entry in &self.walking_entries {
         self
           .buffer
@@ -110,18 +109,18 @@ impl<'a> AstConverter<'a> {
     // - NODE_TYPE % 64             -> computed at compile time
     // - 1u64 << (compile-time value) -> computed at compile time
     // This results in direct array indexing with a constant index and bit mask
-    let is_walked =
-      (self.walked_nodes_bitset[(NODE_TYPE / 64) as usize] & (1u64 << (NODE_TYPE % 64))) != 0;
-
-    if is_walked {
-      let entry_index = self.walking_entries.len();
-      self.walking_entries.push(WalkEntry {
-        node_buffer_position: (self.buffer.len() as u32) >> 2,
-        skip_to_index: 0, // Will be updated in on_node_exit
-      });
-      return Some(entry_index);
-    }
-    None
+    self.walked_nodes_bitset.and_then(|bitset| {
+      if (bitset[(NODE_TYPE / 64) as usize] & (1u64 << (NODE_TYPE % 64))) != 0 {
+        let entry_index = self.walking_entries.len();
+        self.walking_entries.push(WalkEntry {
+          node_buffer_position: (self.buffer.len() as u32) >> 2,
+          skip_to_index: 0, // Will be updated in on_node_exit
+        });
+        Some(entry_index)
+      } else {
+        None
+      }
+    })
   }
 
   /// Called when exiting a node. Updates the skip_to_index for the entry.

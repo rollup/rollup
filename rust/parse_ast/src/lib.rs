@@ -21,12 +21,10 @@ pub fn parse_ast(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  walked_nodes_bitset_buffer: &[u64],
+  walked_nodes_bitset_buffer: Option<&[u64]>,
 ) -> Vec<u8> {
-  // TODO Lukas make the bitset an Option throughout
-  let walked_nodes_bitset: [u64; 2] = walked_nodes_bitset_buffer
-    .try_into()
-    .expect("bitset must have 2 elements");
+  let walked_nodes_bitset: Option<[u64; 2]> = walked_nodes_bitset_buffer
+    .map(|buffer| buffer.try_into().expect("bitset must have 2 elements"));
 
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
