@@ -5,6 +5,7 @@ use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_c
 use crate::convert_ast::converter::ast_constants::{
   CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
   CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SUPER_CLASS_OFFSET,
+  NODE_TYPE_ID_CLASS_DECLARATION, NODE_TYPE_ID_CLASS_EXPRESSION, TYPE_CLASS_DECLARATION,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -16,6 +17,12 @@ impl AstConverter<'_> {
     class: &Class,
     outside_class_span_decorators_insert_position: Option<u32>,
   ) {
+    let is_declaration = node_type == &TYPE_CLASS_DECLARATION;
+    let walk_entry = if is_declaration {
+      self.on_node_enter::<NODE_TYPE_ID_CLASS_DECLARATION>()
+    } else {
+      self.on_node_enter::<NODE_TYPE_ID_CLASS_EXPRESSION>()
+    };
     let end_position = self.add_type_and_start(
       node_type,
       &class.span,
@@ -63,5 +70,6 @@ impl AstConverter<'_> {
     self.store_class_body(&class.body, class_body_start, class.span.hi.0 - 1);
     // end
     self.add_end(end_position, &class.span);
+    self.on_node_exit(walk_entry);
   }
 }

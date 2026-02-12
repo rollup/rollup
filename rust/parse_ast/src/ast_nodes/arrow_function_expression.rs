@@ -4,13 +4,14 @@ use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET, ARROW_FUNCTION_EXPRESSION_BODY_OFFSET,
   ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET, ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
-  TYPE_ARROW_FUNCTION_EXPRESSION,
+  NODE_TYPE_ID_ARROW_FUNCTION_EXPRESSION, TYPE_ARROW_FUNCTION_EXPRESSION,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_arrow_function_expression_flags;
 
 impl AstConverter<'_> {
   pub(crate) fn store_arrow_function_expression(&mut self, arrow_expression: &ArrowExpr) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_ARROW_FUNCTION_EXPRESSION>();
     let end_position = self.add_type_and_start(
       &TYPE_ARROW_FUNCTION_EXPRESSION,
       &arrow_expression.span,
@@ -60,5 +61,6 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, &arrow_expression.span);
+    self.on_node_exit(walk_entry);
   }
 }
