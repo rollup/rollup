@@ -1,13 +1,14 @@
 use swc_ecma_ast::Tpl;
 
 use crate::convert_ast::converter::ast_constants::{
-  TEMPLATE_LITERAL_EXPRESSIONS_OFFSET, TEMPLATE_LITERAL_QUASIS_OFFSET,
-  TEMPLATE_LITERAL_RESERVED_BYTES, TYPE_TEMPLATE_LITERAL,
+  NODE_TYPE_ID_TEMPLATE_LITERAL, TEMPLATE_LITERAL_EXPRESSIONS_OFFSET,
+  TEMPLATE_LITERAL_QUASIS_OFFSET, TEMPLATE_LITERAL_RESERVED_BYTES, TYPE_TEMPLATE_LITERAL,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_template_literal(&mut self, template_literal: &Tpl) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_TEMPLATE_LITERAL>();
     let end_position = self.add_type_and_start(
       &TYPE_TEMPLATE_LITERAL,
       &template_literal.span,
@@ -61,5 +62,6 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, &template_literal.span);
+    self.on_node_exit(walk_entry);
   }
 }

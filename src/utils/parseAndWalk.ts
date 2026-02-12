@@ -33,6 +33,9 @@ export function getSelectedNodesBitsetBuffer(
 // TODO Lukas verify offsets in the walking info are native endian
 // TODO Lukas handle parse errors
 export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
+	if (astBuffer[0] === 0) {
+		return;
+	}
 	for (
 		let walkingPosition = astBuffer[0];
 		walkingPosition < astBuffer.length;
