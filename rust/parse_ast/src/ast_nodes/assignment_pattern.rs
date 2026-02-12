@@ -3,7 +3,7 @@ use swc_ecma_ast::{AssignPat, Expr, Ident, Pat};
 
 use crate::convert_ast::converter::ast_constants::{
   ASSIGNMENT_PATTERN_LEFT_OFFSET, ASSIGNMENT_PATTERN_RESERVED_BYTES,
-  ASSIGNMENT_PATTERN_RIGHT_OFFSET, TYPE_ASSIGNMENT_PATTERN,
+  ASSIGNMENT_PATTERN_RIGHT_OFFSET, NODE_TYPE_ID_ASSIGNMENT_PATTERN, TYPE_ASSIGNMENT_PATTERN,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -14,6 +14,7 @@ impl AstConverter<'_> {
     left: PatternOrIdentifier,
     right: &Expr,
   ) -> u32 {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_ASSIGNMENT_PATTERN>();
     let end_position = self.add_type_and_start(
       &TYPE_ASSIGNMENT_PATTERN,
       span,
@@ -34,6 +35,7 @@ impl AstConverter<'_> {
     self.convert_expression(right);
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
     left_position
   }
 

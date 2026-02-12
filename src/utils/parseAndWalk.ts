@@ -1,7 +1,7 @@
 import { nodeIds } from '../ast/nodeIds';
 import { nodeTypeStrings } from '../ast/nodeTypeStrings';
 import type { ParseAndWalkVisitors } from '../rollup/types';
-import { deserializeLazyAstBuffer } from './bufferToAst';
+import { deserializeLazyAstBuffer } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 
 export function getSelectedNodesBitsetBuffer(
@@ -33,6 +33,9 @@ export function getSelectedNodesBitsetBuffer(
 // TODO Lukas verify offsets in the walking info are native endian
 // TODO Lukas handle parse errors
 export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
+	if (astBuffer[0] === 0) {
+		return;
+	}
 	for (
 		let walkingPosition = astBuffer[0];
 		walkingPosition < astBuffer.length;

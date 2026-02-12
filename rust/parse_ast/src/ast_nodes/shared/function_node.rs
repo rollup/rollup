@@ -4,7 +4,8 @@ use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   FUNCTION_DECLARATION_ANNOTATIONS_OFFSET, FUNCTION_DECLARATION_BODY_OFFSET,
   FUNCTION_DECLARATION_ID_OFFSET, FUNCTION_DECLARATION_PARAMS_OFFSET,
-  FUNCTION_DECLARATION_RESERVED_BYTES,
+  FUNCTION_DECLARATION_RESERVED_BYTES, NODE_TYPE_ID_FUNCTION_DECLARATION,
+  NODE_TYPE_ID_FUNCTION_EXPRESSION, TYPE_FUNCTION_DECLARATION,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_function_declaration_flags;
@@ -43,6 +44,12 @@ impl AstConverter<'_> {
     body: &BlockStmt,
     observe_annotations: bool,
   ) {
+    let is_declaration = node_type == &TYPE_FUNCTION_DECLARATION;
+    let walk_entry = if is_declaration {
+      self.on_node_enter::<NODE_TYPE_ID_FUNCTION_DECLARATION>()
+    } else {
+      self.on_node_enter::<NODE_TYPE_ID_FUNCTION_EXPRESSION>()
+    };
     let end_position =
       self.add_type_and_explicit_start(node_type, start, FUNCTION_DECLARATION_RESERVED_BYTES);
     // flags
@@ -87,5 +94,6 @@ impl AstConverter<'_> {
     self.store_block_statement(body, true);
     // end
     self.add_explicit_end(end_position, end);
+    self.on_node_exit(walk_entry);
   }
 }

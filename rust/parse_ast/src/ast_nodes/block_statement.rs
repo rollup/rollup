@@ -1,7 +1,8 @@
 use swc_ecma_ast::{BlockStmt, Expr, Lit, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, TYPE_BLOCK_STATEMENT,
+  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, NODE_TYPE_ID_BLOCK_STATEMENT,
+  TYPE_BLOCK_STATEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -11,6 +12,7 @@ impl AstConverter<'_> {
     block_statement: &BlockStmt,
     check_directive: bool,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_BLOCK_STATEMENT>();
     let end_position = self.add_type_and_start(
       &TYPE_BLOCK_STATEMENT,
       &block_statement.span,
@@ -39,5 +41,6 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, &block_statement.span);
+    self.on_node_exit(walk_entry);
   }
 }

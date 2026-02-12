@@ -7,8 +7,8 @@ use swc_ecma_ast::{
 use crate::ast_nodes::assignment_pattern::PatternOrIdentifier;
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-  PROPERTY_KEY_OFFSET, PROPERTY_KIND_OFFSET, PROPERTY_RESERVED_BYTES, PROPERTY_VALUE_OFFSET,
-  TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
+  NODE_TYPE_ID_PROPERTY, PROPERTY_KEY_OFFSET, PROPERTY_KIND_OFFSET, PROPERTY_RESERVED_BYTES,
+  PROPERTY_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
 };
 use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
 use crate::convert_ast::converter::AstConverter;
@@ -58,6 +58,7 @@ impl AstConverter<'_> {
   }
 
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROPERTY>();
     let end_position = self.add_type_and_start(
       &TYPE_PROPERTY,
       &property_name.span(),
@@ -85,6 +86,7 @@ impl AstConverter<'_> {
     };
     // end
     self.add_end(end_position, &value.span());
+    self.on_node_exit(walk_entry);
   }
 
   fn store_getter_setter_property(
@@ -95,6 +97,7 @@ impl AstConverter<'_> {
     body: &Option<BlockStmt>,
     param: Option<&Pat>,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROPERTY>();
     let end_position =
       self.add_type_and_start(&TYPE_PROPERTY, span, PROPERTY_RESERVED_BYTES, false);
     // key
@@ -132,9 +135,11 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   fn convert_method_property(&mut self, method_property: &MethodProp) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROPERTY>();
     let end_position = self.add_type_and_start(
       &TYPE_PROPERTY,
       &method_property.function.span,
@@ -173,6 +178,7 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, &method_property.function.span);
+    self.on_node_exit(walk_entry);
   }
 
   fn store_shorthand_property(
@@ -181,6 +187,7 @@ impl AstConverter<'_> {
     key: &Ident,
     assignment_value: &Option<Box<Expr>>,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROPERTY>();
     let end_position =
       self.add_type_and_start(&TYPE_PROPERTY, span, PROPERTY_RESERVED_BYTES, false);
     match assignment_value {
@@ -214,6 +221,7 @@ impl AstConverter<'_> {
     self.write_buffer_kind(end_position);
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   fn convert_getter_property(&mut self, getter_property: &GetterProp) {
