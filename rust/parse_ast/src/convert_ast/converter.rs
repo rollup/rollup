@@ -1,23 +1,23 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
-  ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
-  JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
-  ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
-  PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+    AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
+    ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
+    JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
+    ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
+    PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+    TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
 };
 use crate::convert_ast::converter::string_constants::{
-  STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
+    STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
 use crate::convert_ast::converter::utf16_positions::{
-  ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
+    ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
 
 pub(crate) mod analyze_code;
@@ -42,13 +42,13 @@ pub(crate) struct AstConverter<'a> {
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn new(
+    buffer: Vec<u8>,
     code: &'a str,
     annotations: &'a [AnnotationWithType],
     walked_nodes_bitset: Option<[u64; 2]>,
   ) -> Self {
     Self {
-      // This is just a wild guess and should be revisited from time to time
-      buffer: Vec::with_capacity(20 * code.len()),
+      buffer,
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
       walked_nodes_bitset,
@@ -57,25 +57,15 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
-    // Reserve space for walking info offset at the beginning
-    let has_walking_info = self.walked_nodes_bitset.is_some();
-    if has_walking_info {
-      // Insert 4 bytes at the start for the walking info offset
-      self.buffer.extend_from_slice(&[0u8; 4]);
-    }
-
     self.convert_program(node);
 
-    // Append walking information if any nodes were walked
-    if has_walking_info && !self.walking_entries.is_empty() {
+    if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
       let walking_info_offset = (self.buffer.len() as u32) >> 2;
 
       // Write the offset at the beginning of the buffer (native endian)
       self.buffer[0..4].copy_from_slice(&walking_info_offset.to_ne_bytes());
 
       // Append walking entries: [node_position(4), skip_to_index(4)] for each entry
-      // All values use native endianness for fast Uint32Array access in JavaScript
-      // Note: node positions need to be adjusted by +1 word because we prepended 4 bytes
       for entry in &self.walking_entries {
         self
           .buffer
@@ -91,11 +81,9 @@ impl<'a> AstConverter<'a> {
   }
 
   // === walking hooks
-
   /// Called when entering a node. Returns Some(entry_index) if this node type is walked.
-  /// NODE_TYPE must be < 128 (compile-time checked via const generic bounds)
   pub(crate) fn on_node_enter<const NODE_TYPE: u32>(&mut self) -> Option<usize> {
-    // Compile-time assertion that NODE_TYPE < 128
+    // Compile-time assertion
     const {
       assert!(
         NODE_TYPE < 128,
@@ -108,7 +96,6 @@ impl<'a> AstConverter<'a> {
     // - (NODE_TYPE / 64) as usize  -> computed at compile time
     // - NODE_TYPE % 64             -> computed at compile time
     // - 1u64 << (compile-time value) -> computed at compile time
-    // This results in direct array indexing with a constant index and bit mask
     self.walked_nodes_bitset.and_then(|bitset| {
       if (bitset[(NODE_TYPE / 64) as usize] & (1u64 << (NODE_TYPE % 64))) != 0 {
         let entry_index = self.walking_entries.len();

@@ -20,8 +20,6 @@ module.exports = defineTest({
 		]
 	},
 	exports() {
-		// TODO Lukas helpful for copying, remove once all is properly working
-		console.log(JSON.stringify(arrayExpressions));
 		assert.deepEqual(arrayExpressions, [
 			{
 				type: 'ArrayExpression',

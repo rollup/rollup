@@ -10,7 +10,8 @@ use swc_ecma_parser::{EsSyntax, Syntax};
 use convert_ast::converter::AstConverter;
 use error_emit::try_with_handler;
 
-use crate::ast_nodes::panic_error::get_panic_error_buffer;
+use crate::ast_nodes::panic_error::write_panic_error;
+use crate::ast_nodes::parse_error::write_parse_error;
 use crate::convert_ast::annotations::SequentialComments;
 
 mod ast_nodes;
@@ -25,6 +26,8 @@ pub fn parse_ast(
 ) -> Vec<u8> {
   let walked_nodes_bitset: Option<[u64; 2]> = walked_nodes_bitset_buffer
     .map(|buffer| buffer.try_into().expect("bitset must have 2 elements"));
+
+  let has_walking_info = walked_nodes_bitset.is_some();
 
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
@@ -44,6 +47,14 @@ pub fn parse_ast(
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let result = catch_unwind(AssertUnwindSafe(|| {
+      // Create buffer upfront with size estimation and walking header if needed
+      // This is just a wild guess and should be revisited from time to time
+      let mut buffer = Vec::with_capacity(20 * code_reference.len());
+      if has_walking_info {
+        // Reserve 4 bytes at the start for the walking info offset
+        buffer.extend_from_slice(&[0u8; 4]);
+      }
+
       let result = try_with_handler(&code_reference, |handler| {
         parse_js(
           cm,
@@ -56,15 +67,26 @@ pub fn parse_ast(
         )
       });
       match result {
-        Err(buffer) => buffer,
+        Err((utf_16_pos, message)) => {
+          // Parse error case: write error to buffer
+          write_parse_error(&mut buffer, utf_16_pos, &message);
+          buffer
+        }
         Ok(program) => {
+          // Success case: use AstConverter to fill buffer
           let annotations = comments.take_annotations();
-          let converter = AstConverter::new(&code_reference, &annotations, walked_nodes_bitset);
+          let converter =
+            AstConverter::new(buffer, &code_reference, &annotations, walked_nodes_bitset);
           converter.convert_ast_to_buffer(&program)
         }
       }
     }));
     result.unwrap_or_else(|err| {
+      // Panic error case: create fresh buffer and write panic error
+      let mut buffer = Vec::new();
+      if has_walking_info {
+        buffer.extend_from_slice(&[0u8; 4]);
+      }
       let msg = if let Some(msg) = err.downcast_ref::<&str>() {
         msg
       } else if let Some(msg) = err.downcast_ref::<String>() {
@@ -72,7 +94,8 @@ pub fn parse_ast(
       } else {
         "Unknown rust panic message"
       };
-      get_panic_error_buffer(msg)
+      write_panic_error(&mut buffer, msg);
+      buffer
     })
   })
 }
