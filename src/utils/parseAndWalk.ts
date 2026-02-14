@@ -31,13 +31,18 @@ export function getSelectedNodesBitsetBuffer(
 }
 
 // TODO Lukas verify offsets in the walking info are native endian
-// TODO Lukas handle parse errors
 export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
-	if (astBuffer[0] === 0) {
+	const walkingInfoOffset = astBuffer[0];
+
+	// If it is 0, there are no walking buffer and no walked nodes
+	if (walkingInfoOffset === 0) {
+		// This will throw the correct error if there was a parse error
+		deserializeLazyAstBuffer(astBuffer, 1);
 		return;
 	}
+
 	for (
-		let walkingPosition = astBuffer[0];
+		let walkingPosition = walkingInfoOffset;
 		walkingPosition < astBuffer.length;
 		walkingPosition += 2
 	) {
