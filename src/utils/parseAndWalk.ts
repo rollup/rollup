@@ -1,6 +1,6 @@
 import { nodeIds } from '../ast/nodeIds';
 import { nodeTypeStrings } from '../ast/nodeTypeStrings';
-import type { ParseAndWalkVisitors } from '../rollup/types';
+import type { ParseAndWalkApi, ParseAndWalkVisitors } from '../rollup/types';
 import { deserializeLazyAstBuffer } from './bufferToAst';
 import type { AstBuffer } from './getAstBuffer';
 
@@ -41,16 +41,29 @@ export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisito
 		return;
 	}
 
-	for (
-		let walkingPosition = walkingInfoOffset;
-		walkingPosition < astBuffer.length;
-		walkingPosition += 2
-	) {
-		const elementIndex = astBuffer[walkingPosition];
-		const nodeTypeString = nodeTypeStrings[astBuffer[elementIndex]];
-		visitors[nodeTypeString]!(deserializeLazyAstBuffer(astBuffer, elementIndex) as any, {
-			parseChildren() {},
-			skipChildren() {}
-		});
+	let walkingPosition = walkingInfoOffset;
+	const api: ParseAndWalkApi = {
+		parseChildren() {
+			const endPosition = walkingInfoOffset + (astBuffer[walkingPosition + 1] << 1);
+			walkingPosition += 2;
+			walkUntilPosition(endPosition);
+		},
+		skipChildren() {}
+	};
+
+	function walkUntilPosition(endPosition: number) {
+		for (; walkingPosition < endPosition; walkingPosition += 2) {
+			const elementIndex = astBuffer[walkingPosition];
+			const nodeTypeString = nodeTypeStrings[astBuffer[elementIndex]];
+			visitors[nodeTypeString]!(deserializeLazyAstBuffer(astBuffer, elementIndex) as any, api);
+			// We need to avoid increasing the walkingPosition by 2 after the last
+			// element, otherwise if this is the result of a parseChildren call, we
+			// would skip the next element after the parseChildren call.
+			if (walkingPosition >= endPosition - 2) {
+				break;
+			}
+		}
 	}
+
+	walkUntilPosition(astBuffer.length);
 }
