@@ -30,11 +30,12 @@ export function getSelectedNodesBitsetBuffer(
 	return selectedNodesBuffer;
 }
 
-// TODO Lukas verify offsets in the walking info are native endian
+// TODO Lukas Can we expose parseAndWalk as a separate method? Can we also make
+// sure to include its tests in the smoke tests to test on a big endian system?
 export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
 	const walkingInfoOffset = astBuffer[0];
 
-	// If it is 0, there are no walking buffer and no walked nodes
+	// If it is 0, there are no walking buffer or walked nodes
 	if (walkingInfoOffset === 0) {
 		// This will throw the correct error if there was a parse error
 		deserializeLazyAstBuffer(astBuffer, 1);
@@ -47,8 +48,15 @@ export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisito
 			const endPosition = walkingInfoOffset + (astBuffer[walkingPosition + 1] << 1);
 			walkingPosition += 2;
 			walkUntilPosition(endPosition);
+			// After parseChildren, the walkingPosition must point to the last child,
+			// not beyond. Otherwise, we would skip the next element.
+			walkingPosition -= 2;
 		},
-		skipChildren() {}
+		skipChildren() {
+			// Like parseChildren, the pointer must point to the last child after
+			// skipping, not beyond.
+			walkingPosition = walkingInfoOffset + (astBuffer[walkingPosition + 1] << 1) - 2;
+		}
 	};
 
 	function walkUntilPosition(endPosition: number) {
@@ -56,12 +64,6 @@ export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisito
 			const elementIndex = astBuffer[walkingPosition];
 			const nodeTypeString = nodeTypeStrings[astBuffer[elementIndex]];
 			visitors[nodeTypeString]!(deserializeLazyAstBuffer(astBuffer, elementIndex) as any, api);
-			// We need to avoid increasing the walkingPosition by 2 after the last
-			// element, otherwise if this is the result of a parseChildren call, we
-			// would skip the next element after the parseChildren call.
-			if (walkingPosition >= endPosition - 2) {
-				break;
-			}
 		}
 	}
 
