@@ -1,10 +1,26 @@
+import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
 import { nodeTypeStrings } from '../ast/nodeTypeStrings';
 import type { ParseAndWalkApi, ParseAndWalkVisitors } from '../rollup/types';
 import { deserializeLazyAstBuffer } from './bufferToAst';
 import type { AstBuffer } from './getAstBuffer';
+import { getAstBuffer } from './getAstBuffer';
 
-export function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>): BigUint64Array {
+export async function parseAndWalk(
+	input: string,
+	visitors: ParseAndWalkVisitors,
+	{ allowReturnOutsideFunction = false, jsx = false } = {}
+) {
+	const selectedNodesBuffer = getSelectedNodesBitsetBuffer(visitors);
+
+	const astBuffer = getAstBuffer(
+		await parseAndWalkNative(input, allowReturnOutsideFunction, jsx, selectedNodesBuffer)
+	);
+
+	walkAstBuffer(astBuffer, visitors);
+}
+
+function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>): BigUint64Array {
 	let selectedNodesBitset = 0n;
 
 	for (const nodeType of Object.keys(visitors)) {
@@ -26,8 +42,8 @@ export function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>):
 }
 
 // TODO Lukas Can we expose parseAndWalk as a separate method? Can we also make
-// sure to include its tests in the smoke tests to test on a big endian system?
-export function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
+//  sure to include its tests in the smoke tests to test on a big endian system?
+function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
 	const walkingInfoOffset = astBuffer[0];
 
 	// If it is 0, there are no walking buffer or walked nodes

@@ -1,5 +1,4 @@
 import { version as rollupVersion } from 'package.json';
-import { parseAndWalk as parseAndWalkNative } from '../../native';
 import type Graph from '../Graph';
 import type {
 	NormalizedInputOptions,
@@ -10,12 +9,11 @@ import type {
 } from '../rollup/types';
 import { BLANK, EMPTY_OBJECT } from './blank';
 import type { FileEmitter } from './FileEmitter';
-import { getAstBuffer } from './getAstBuffer';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
 import { normalizeLog } from './options/options';
-import { getSelectedNodesBitsetBuffer, walkAstBuffer } from './parseAndWalk';
+import { parseAndWalk } from './parseAndWalk';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginNames';
@@ -78,15 +76,7 @@ export function getPluginContext(
 			watchMode: graph.watchMode
 		},
 		parse: parseAst,
-		async parseAndWalk(input, visitors, { allowReturnOutsideFunction = false, jsx = false } = {}) {
-			const selectedNodesBuffer = getSelectedNodesBitsetBuffer(visitors);
-
-			const astBuffer = getAstBuffer(
-				await parseAndWalkNative(input, allowReturnOutsideFunction, jsx, selectedNodesBuffer)
-			);
-
-			walkAstBuffer(astBuffer, visitors);
-		},
+		parseAndWalk,
 		resolve(
 			source,
 			importer,
