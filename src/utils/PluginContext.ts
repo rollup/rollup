@@ -79,7 +79,7 @@ export function getPluginContext(
 		},
 		parse: parseAst,
 		async parseAndWalk(input, visitors, { allowReturnOutsideFunction = false, jsx = false } = {}) {
-			const selectedNodesBuffer = getSelectedNodesBitsetBuffer(visitors, plugin.name);
+			const selectedNodesBuffer = getSelectedNodesBitsetBuffer(visitors);
 
 			const astBuffer = getAstBuffer(
 				await parseAndWalkNative(input, allowReturnOutsideFunction, jsx, selectedNodesBuffer)

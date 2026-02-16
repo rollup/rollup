@@ -4,10 +4,7 @@ import type { ParseAndWalkApi, ParseAndWalkVisitors } from '../rollup/types';
 import { deserializeLazyAstBuffer } from './bufferToAst';
 import type { AstBuffer } from './getAstBuffer';
 
-export function getSelectedNodesBitsetBuffer(
-	visitors: Record<string, unknown>,
-	pluginName: string
-): BigUint64Array {
+export function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>): BigUint64Array {
 	let selectedNodesBitset = 0n;
 
 	for (const nodeType of Object.keys(visitors)) {
@@ -17,9 +14,7 @@ export function getSelectedNodesBitsetBuffer(
 				selectedNodesBitset |= 1n << BigInt(id);
 			}
 		} else {
-			throw new Error(
-				`Unknown node type "${nodeType}" when calling "parseAndWalk" in plugin "${pluginName}".`
-			);
+			throw new Error(`Unknown node type "${nodeType}" when calling "parseAndWalk".`);
 		}
 	}
 
