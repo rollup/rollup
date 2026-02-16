@@ -5,6 +5,7 @@ import { deserializeLazyAstBuffer } from './bufferToLazyAst';
 import { getAstBuffer } from './getAstBuffer';
 
 export { serializeAst } from './astToBuffer';
+export { parseAndWalk } from './parseAndWalk';
 
 export const deserializeAst: DeserializeAst = (buffer, position = 0) =>
 	deserializeAstBuffer(getAstBuffer(buffer), position);
