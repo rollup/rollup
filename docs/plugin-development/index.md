@@ -1921,6 +1921,78 @@ Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](h
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
 - `jsx`: When `true`, JSX syntax is supported in the parsed code.
 
+### this.parseAndWalk
+
+|  |  |
+| --: | :-- |
+| Type: | `(code: string, visitors: Visitors, options?: ParseOptions) => Promise<void>` |
+
+```typescript
+interface ParseOptions {
+	allowReturnOutsideFunction?: boolean;
+	jsx?: boolean;
+}
+
+// NodeType is any ESTree-compatible node type name known to Rollup,
+// e.g. "Identifier", "CallExpression", etc.
+// `node` will be typed accordingly based on the visitor key
+type Visitors = {
+	[NodeType: string]: (
+		node: AstNode,
+		api: { parseChildren: () => void; skipChildren: () => void }
+	) => void | Promise<void>;
+};
+```
+
+Efficiently walk specific types of AST nodes without traversing the entire tree. This method parses the code and only visits the node types specified in the `visitors` object, providing significant performance benefits when you don't need the full AST.
+
+Each visitor function receives:
+
+- `node`: The AST node with full type information based on the visitor key
+- `api.parseChildren()`: Parse and visit all children of the current node
+- `api.skipChildren()`: Skip parsing children of the current node
+
+```js
+this.parseAndWalk(code, {
+	async Identifier(node, { parseChildren, skipChildren }) {
+		// node is typed as Identifier
+		console.log('Found identifier:', node.name);
+	},
+	async CallExpression(node, { parseChildren, skipChildren }) {
+		// node is typed as CallExpression
+		if (
+			node.callee.type === 'Identifier' &&
+			node.callee.name === 'require'
+		) {
+			// Process require() calls
+			parseChildren(); // Visit arguments
+			// Now perform any logic that relies on the arguments being visited
+			// ...
+		} else {
+			skipChildren(); // Do not visit arguments for other calls
+		}
+	}
+});
+```
+
+**Performance characteristics:**
+
+- Only parses nodes matching the specified types (filtering happens in Rust)
+- Significantly faster than `this.parse()` followed by manual traversal for selective operations
+- Nodes are visited in source order (depth-first traversal)
+
+**Type safety:** When using TypeScript, each visitor function is automatically typed based on its key, so `node` has the correct type for that AST node type (e.g., `Identifier`, `CallExpression`, etc.).
+
+**Error handling:** If you specify an invalid node type name, the method throws an error:
+
+```
+Unknown node type "InvalidType" when calling "parseAndWalk" in plugin "plugin-name".
+```
+
+Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. A full list of supported type names can be found at [src/ast/nodeTypeStrings.ts](https://github.com/rollup/rollup/blob/main/src/ast/nodeTypeStrings.ts). See also [Working with ASTs](#working-with-asts) for details about the AST structure.
+
+To use this functionality outside a plugin context, import the standalone [`parseAndWalk`](../javascript-api/index.md#walking-the-ast-efficiently) helper from `rollup/parseAst`.
+
 ### this.resolve
 
 |       |           |
@@ -2263,6 +2335,10 @@ function examplePlugin() {
 	};
 }
 ```
+
+### Known AST nodes and TypeScript support
+
+When using TypeScript, all Rollup ASTs will be fully typed. Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. See [src/rollup/ast-types.d.ts](https://github.com/rollup/rollup/blob/main/src/rollup/ast-types.d.ts) for a full list of all nodes types and interfaces currently supported by Rollup.
 
 ### Returning ASTs from Hooks
 
