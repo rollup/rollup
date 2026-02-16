@@ -424,7 +424,7 @@ assert.deepEqual(
 );
 ```
 
-There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup:
+There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup. This is recommended:
 
 ```js twoslash
 import { parseAstAsync } from 'rollup/parseAst';
@@ -456,6 +456,31 @@ assert.deepEqual(
 ```
 
 Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you want a lazy AST instead—where non-primitive properties are getters that replace themselves on first access—use `parseLazyAst` and `parseLazyAstAsync`, which have the same signatures. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation.
+
+## Walking the AST efficiently
+
+When you only need to visit specific types of AST nodes, `parseAndWalk` provides a far more efficient alternative to parsing the entire tree. It accepts visitor functions for selected node types and only walks those nodes:
+
+```js twoslash
+import { parseAndWalk } from 'rollup/parseAst';
+
+await parseAndWalk('const x = 1; function foo() { return x + 1; }', {
+	Identifier(node) {
+		console.log('Found identifier:', node.name);
+	},
+	FunctionDeclaration(node) {
+		console.log('Found function:', node.id.name);
+	}
+});
+// Logs:
+// Found identifier: x
+// Found function: foo
+// Found identifier: x
+```
+
+The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `jsx`). When using TypeScript, you get full type support for each AST node type based on the visitor key.
+
+For detailed information about visitor handlers, controlling child node traversal, and usage within plugins, see [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) in the plugin development documentation.
 
 ## AST serialization
 
