@@ -92,6 +92,7 @@
     "test:only": "mocha test/test.js",
     "test:typescript": "scripts/check-typescript.sh",
     "test:browser": "mocha test/browser/index.js",
+    "test:ast": "mocha test/parse-and-walk/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
   "repository": {

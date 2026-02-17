@@ -2,7 +2,7 @@ import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
 import { nodeTypeStrings } from '../ast/nodeTypeStrings';
 import type { ParseAndWalkApi, ParseAndWalkVisitors } from '../rollup/types';
-import { deserializeLazyAstBuffer } from './bufferToAst';
+import { deserializeLazyAstBuffer } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 
