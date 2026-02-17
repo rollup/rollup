@@ -90,7 +90,7 @@
     "test:leak": "npm install --no-save weak-napi && node --expose-gc test/leak/index.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
-    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
+    "test:typescript": "scripts/check-typescript.sh",
     "test:browser": "mocha test/browser/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
