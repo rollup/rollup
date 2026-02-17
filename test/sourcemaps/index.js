@@ -4,7 +4,6 @@ const path = require('node:path');
  */
 // @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
-// @ts-expect-error not included in types
 const { compareLogs, runTestSuiteWithSamples } = require('../testHelpers.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
