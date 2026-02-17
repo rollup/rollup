@@ -13,4 +13,5 @@ describe('rollup', function () {
 	require('./load-config-file/index.js');
 	require('./cli/index.js');
 	require('./watch/index.js');
+	require('./parse-and-walk/index.js');
 });

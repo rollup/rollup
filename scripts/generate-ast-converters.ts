@@ -18,7 +18,7 @@ import './generate-string-constants.js';
 import { readdirSync } from 'node:fs';
 import { astNodeNamesWithFieldOrder } from './ast-types.js';
 
-const testDirFromRoot = 'test/function/samples/parse-and-walk/';
+const testDirFromRoot = 'test/parse-and-walk/samples/';
 const parseAndWalkTestDir = new URL(`../${testDirFromRoot}`, import.meta.url);
 const tests = new Set(readdirSync(parseAndWalkTestDir));
 
@@ -42,8 +42,6 @@ if (missingTests.length > 0) {
 	for (const astType of missingTests) {
 		console.error(`   - ${astType}`);
 	}
-	console.error(
-		`\nPlease add test cases in test/function/samples/parse-and-walk/parse-<NodeType>/\n`
-	);
+	console.error(`\nPlease add test cases in test/parse-and-walk/samples/parse-<NodeType>/\n`);
 	process.exit(1);
 }
