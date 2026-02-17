@@ -1,3 +1,4 @@
+// @ts-check
 const path = require('node:path');
 const { parseAndWalk } = require('../../dist/parseAst');
 const { compareError, runTestSuiteWithSamples } = require('../testHelpers.js');
