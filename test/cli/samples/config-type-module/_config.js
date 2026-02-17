@@ -1,4 +1,3 @@
-// @ts-expect-error not included in types
 const { assertIncludes } = require('../../../testHelpers.js');
 
 module.exports = defineTest({
