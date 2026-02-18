@@ -64,7 +64,6 @@ import {
 	logAmbiguousExternalNamespaces,
 	logCircularReexport,
 	logDuplicateExportError,
-	logInconsistentImportAttributes,
 	logInvalidFormatForTopLevelAwait,
 	logInvalidSourcemapForError,
 	logMissingEntryExport,
@@ -76,6 +75,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
+import { generateIdByRawIdAndAttributes } from './utils/moduleId';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -91,6 +91,7 @@ export interface ImportDescription {
 	module: Module | ExternalModule;
 	name: string;
 	source: string;
+	attributes: Record<string, string>;
 	start: number;
 }
 
@@ -104,6 +105,7 @@ interface ReexportDescription {
 	module: Module | ExternalModule;
 	source: string;
 	start: number;
+	attributes: Record<string, string>;
 }
 
 export interface AstContext {
@@ -248,7 +250,7 @@ export default class Module {
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
-	readonly sourcesWithAttributes = new Map<string, Record<string, string>>();
+	readonly sourcesWithAttributesList = new Map<string, Record<string, string>[]>();
 	declare transformFiles?: EmittedFile[];
 
 	private allExportsIncluded = false;
@@ -258,7 +260,7 @@ export default class Module {
 	private readonly context: string;
 	declare private customTransformCache: boolean;
 	private readonly exportAllModules: (Module | ExternalModule)[] = [];
-	private readonly exportAllSources = new Set<string>();
+	private readonly exportAllSourcesWithAttributesList = new Map<string, Record<string, string>[]>();
 	private readonly exportDescriptions = new Map<string, ExportDescription>();
 	private exportedVariablesByName: Map<string, Variable> | null = null;
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
@@ -276,12 +278,13 @@ export default class Module {
 	constructor(
 		private readonly graph: Graph,
 		public readonly id: string,
+		public readonly rawId: string,
 		private readonly options: NormalizedInputOptions,
 		isEntry: boolean,
 		moduleSideEffects: boolean | 'no-treeshake',
 		syntheticNamedExports: boolean | string,
 		meta: CustomPluginOptions,
-		attributes: Record<string, string>
+		public readonly attributes: Record<string, string>
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
@@ -292,13 +295,13 @@ export default class Module {
 		const {
 			dynamicImports,
 			dynamicImporters,
-			exportAllSources,
+			exportAllSourcesWithAttributesList,
 			exportDescriptions,
 			implicitlyLoadedAfter,
 			implicitlyLoadedBefore,
 			importers,
 			reexportDescriptions,
-			sourcesWithAttributes
+			sourcesWithAttributesList
 		} = this;
 
 		this.info = {
@@ -321,12 +324,14 @@ export default class Module {
 			get exportedBindings() {
 				const exportBindings: Record<string, string[]> = { '.': [...exportDescriptions.keys()] };
 
-				for (const [name, { source }] of reexportDescriptions) {
-					(exportBindings[source] ??= []).push(name);
+				for (const [name, { source, attributes }] of reexportDescriptions) {
+					(exportBindings[generateIdByRawIdAndAttributes(source, attributes)] ??= []).push(name);
 				}
 
-				for (const source of exportAllSources) {
-					(exportBindings[source] ??= []).push('*');
+				for (const [source, attributesList] of exportAllSourcesWithAttributesList) {
+					for (const attributes of attributesList) {
+						(exportBindings[generateIdByRawIdAndAttributes(source, attributes)] ??= []).push('*');
+					}
 				}
 
 				return exportBindings;
@@ -335,7 +340,7 @@ export default class Module {
 				return [
 					...exportDescriptions.keys(),
 					...reexportDescriptions.keys(),
-					...[...exportAllSources].map(() => '*')
+					...[...exportAllSourcesWithAttributesList].map(() => '*')
 				];
 			},
 			get hasDefaultExport() {
@@ -353,19 +358,25 @@ export default class Module {
 				return Array.from(implicitlyLoadedBefore, getId).sort();
 			},
 			get importedIdResolutions() {
-				return Array.from(
-					sourcesWithAttributes.keys(),
-					source => module.resolvedIds[source]
-				).filter(Boolean);
+				return Array.from(sourcesWithAttributesList.entries(), ([source, attributesList]) =>
+					attributesList.map(
+						attributes => module.resolvedIds[generateIdByRawIdAndAttributes(source, attributes)]
+					)
+				)
+					.flat()
+					.filter(Boolean);
 			},
 			get importedIds() {
 				// We cannot use this.dependencies because this is needed before
 				// dependencies are populated
 
-				return Array.from(
-					sourcesWithAttributes.keys(),
-					source => module.resolvedIds[source]?.id
-				).filter(Boolean);
+				return Array.from(sourcesWithAttributesList.entries(), ([source, attributesList]) =>
+					attributesList.map(
+						attributes => module.resolvedIds[generateIdByRawIdAndAttributes(source, attributes)]?.id
+					)
+				)
+					.flat()
+					.filter(Boolean);
 			},
 			get importers() {
 				return importers.sort();
@@ -380,6 +391,7 @@ export default class Module {
 			},
 			meta: { ...meta },
 			moduleSideEffects,
+			rawId,
 			safeVariableNames: null,
 			syntheticNamedExports
 		};
@@ -759,13 +771,17 @@ export default class Module {
 		this.addModulesToImportDescriptions(this.importDescriptions);
 		this.addModulesToImportDescriptions(this.reexportDescriptions);
 		const externalExportAllModules: ExternalModule[] = [];
-		for (const source of this.exportAllSources) {
-			const module = this.graph.modulesById.get(this.resolvedIds[source].id)!;
-			if (module instanceof ExternalModule) {
-				externalExportAllModules.push(module);
-				continue;
+		for (const [source, attributesList] of this.exportAllSourcesWithAttributesList) {
+			for (const attributes of attributesList) {
+				const module = this.graph.modulesById.get(
+					this.resolvedIds[generateIdByRawIdAndAttributes(source, attributes)].id
+				)!;
+				if (module instanceof ExternalModule) {
+					externalExportAllModules.push(module);
+					continue;
+				}
+				this.exportAllModules.push(module);
 			}
-			this.exportAllModules.push(module);
 		}
 		this.exportAllModules.push(...externalExportAllModules);
 	}
@@ -894,6 +910,7 @@ export default class Module {
 			moduleSideEffects: this.info.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
+			rawId: this.rawId,
 			resolvedIds: this.resolvedIds,
 			safeVariableNames: this.info.safeVariableNames,
 			sourcemapChain: this.sourcemapChain,
@@ -1009,6 +1026,7 @@ export default class Module {
 				const name = node.exported instanceof Literal ? node.exported.value : node.exported.name;
 				this.assertUniqueExportName(name, node.exported.start);
 				this.reexportDescriptions.set(name, {
+					attributes: getAttributesFromImportExportDeclaration(node.attributes),
 					localName: '*',
 					module: null as never, // filled in later,
 					source,
@@ -1016,8 +1034,19 @@ export default class Module {
 				});
 			} else {
 				// export * from './other'
-
-				this.exportAllSources.add(source);
+				const existingAttributesList = this.exportAllSourcesWithAttributesList.get(source);
+				const parsedAttributes = getAttributesFromImportExportDeclaration(node.attributes);
+				if (existingAttributesList) {
+					if (
+						!existingAttributesList.some(attributes =>
+							doAttributesDiffer(attributes, parsedAttributes)
+						)
+					) {
+						existingAttributesList.push(parsedAttributes);
+					}
+				} else {
+					this.exportAllSourcesWithAttributesList.set(source, [parsedAttributes]);
+				}
 			}
 		} else if (node.source instanceof Literal) {
 			// export { name } from './other'
@@ -1028,6 +1057,7 @@ export default class Module {
 				const name = exported instanceof Literal ? exported.value : exported.name;
 				this.assertUniqueExportName(name, start);
 				this.reexportDescriptions.set(name, {
+					attributes: getAttributesFromImportExportDeclaration(node.attributes),
 					localName: local instanceof Literal ? local.value : local.name,
 					module: null as never, // filled in later,
 					source,
@@ -1085,6 +1115,7 @@ export default class Module {
 							? specifier.imported.name
 							: specifier.imported.value;
 			this.importDescriptions.set(localName, {
+				attributes: getAttributesFromImportExportDeclaration(node.attributes),
 				module: null as never, // filled in later
 				name,
 				source,
@@ -1094,8 +1125,8 @@ export default class Module {
 	}
 
 	private addImportSource(importSource: string): void {
-		if (importSource && !this.sourcesWithAttributes.has(importSource)) {
-			this.sourcesWithAttributes.set(importSource, EMPTY_OBJECT);
+		if (importSource && !this.sourcesWithAttributesList.has(importSource)) {
+			this.sourcesWithAttributesList.set(importSource, [EMPTY_OBJECT]);
 		}
 	}
 
@@ -1127,7 +1158,8 @@ export default class Module {
 		importDescription: ReadonlyMap<string, ImportDescription | ReexportDescription>
 	): void {
 		for (const specifier of importDescription.values()) {
-			const { id } = this.resolvedIds[specifier.source];
+			const { id } =
+				this.resolvedIds[generateIdByRawIdAndAttributes(specifier.source, specifier.attributes)];
 			specifier.module = this.graph.modulesById.get(id)!;
 		}
 	}
@@ -1171,17 +1203,17 @@ export default class Module {
 		declaration: ImportDeclaration | ExportNamedDeclaration | ExportAllDeclaration
 	) {
 		const parsedAttributes = getAttributesFromImportExportDeclaration(declaration.attributes);
-		const existingAttributes = this.sourcesWithAttributes.get(source);
-		if (existingAttributes) {
-			if (doAttributesDiffer(existingAttributes, parsedAttributes)) {
-				this.log(
-					LOGLEVEL_WARN,
-					logInconsistentImportAttributes(existingAttributes, parsedAttributes, source, this.id),
-					declaration.start
-				);
+		const existingAttributesList = this.sourcesWithAttributesList.get(source);
+		if (existingAttributesList) {
+			if (
+				!existingAttributesList.some(
+					attributes => !doAttributesDiffer(attributes, parsedAttributes)
+				)
+			) {
+				existingAttributesList.push(parsedAttributes);
 			}
 		} else {
-			this.sourcesWithAttributes.set(source, parsedAttributes);
+			this.sourcesWithAttributesList.set(source, [parsedAttributes]);
 		}
 	}
 

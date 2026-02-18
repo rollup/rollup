@@ -25,6 +25,7 @@ export default class ExternalModule {
 	constructor(
 		private readonly options: NormalizedInputOptions,
 		public readonly id: string,
+		public readonly rawId: string,
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
 		public readonly renormalizeRenderPath: boolean,
@@ -58,6 +59,7 @@ export default class ExternalModule {
 			isIncluded: null,
 			meta,
 			moduleSideEffects,
+			rawId,
 			safeVariableNames: null,
 			syntheticNamedExports: false
 		};
