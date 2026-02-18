@@ -316,11 +316,15 @@ export default class ImportExpression extends NodeBase<ast.ImportExpression> {
 					}
 					return chunkInfos;
 				},
+				moduleAttributes: scope.context.module.info.attributes,
 				moduleId: scope.context.module.id,
+				moduleRawId: scope.context.module.rawId,
 				targetChunk: targetChunk ? getChunkInfoWithPath(targetChunk) : null,
 				targetModuleAttributes:
 					resolution && typeof resolution !== 'string' ? resolution.info.attributes : {},
-				targetModuleId: resolution && typeof resolution !== 'string' ? resolution.id : null
+				targetModuleId: resolution && typeof resolution !== 'string' ? resolution.id : null,
+				targetModuleRawId:
+					resolution && typeof resolution !== 'string' ? resolution.info.rawId : null
 			}
 		]);
 		if (mechanism) {

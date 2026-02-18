@@ -161,7 +161,13 @@ function getGlobalName(
 	hasExports: boolean,
 	log: LogHandler
 ): string | undefined {
-	const globalName = typeof globals === 'function' ? globals(chunk.id) : globals[chunk.id];
+	const globalName =
+		typeof globals === 'function'
+			? globals(chunk.id, {
+					attributes: chunk.moduleInfo.attributes,
+					rawId: chunk.moduleInfo.rawId
+				})
+			: globals[chunk.id];
 	if (globalName) {
 		return globalName;
 	}
@@ -1134,7 +1140,9 @@ export default class Chunk {
 		const { dynamicEntryModules, facadeModule, implicitEntryModules, orderedModules } = this;
 		return (this.preRenderedChunkInfo = {
 			exports: this.getExportNames(),
+			facadeModuleAttributes: facadeModule ? facadeModule.info.attributes : {},
 			facadeModuleId: facadeModule && facadeModule.id,
+			facadeModuleRawId: facadeModule ? facadeModule.info.rawId : null,
 			isDynamicEntry: dynamicEntryModules.length > 0,
 			isEntry: !!facadeModule?.info.isEntry,
 			isImplicitEntry: implicitEntryModules.length > 0,
@@ -1364,10 +1372,12 @@ export default class Chunk {
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			renderedModules[module.id] = {
+				attributes: module.info.attributes,
 				get code() {
 					return source?.toString() ?? null;
 				},
 				originalLength: module.originalCode.length,
+				rawId: module.info.rawId,
 				removedExports,
 				renderedExports,
 				renderedLength

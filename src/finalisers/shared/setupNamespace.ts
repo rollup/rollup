@@ -20,7 +20,7 @@ export default function setupNamespace(
 	}
 	parts[0] =
 		(typeof globals === 'function'
-			? globals(parts[0])
+			? globals(parts[0], { attributes: {}, rawId: null })
 			: isReserved
 				? parts[0]
 				: globals[parts[0]]) || parts[0];
@@ -54,7 +54,7 @@ export function assignToDeepVariable(
 	}
 	parts[0] =
 		(typeof globals === 'function'
-			? globals(parts[0])
+			? globals(parts[0], { attributes: {}, rawId: null })
 			: isReserved
 				? parts[0]
 				: globals[parts[0]]) || parts[0];
