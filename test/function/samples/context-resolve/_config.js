@@ -9,6 +9,7 @@ const tests = [
 			attributes: {},
 			external: false,
 			meta: {},
+			rawId: path.join(__dirname, 'existing.js'),
 			resolvedBy: 'rollup',
 			moduleSideEffects: true,
 			syntheticNamedExports: false
@@ -30,6 +31,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: path.join(__dirname, 'marked-directly-external-relative'),
 			resolvedBy: 'rollup',
 			syntheticNamedExports: false
 		}
@@ -42,6 +44,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: path.join(__dirname, 'marked-external-relative'),
 			resolvedBy: 'rollup',
 			syntheticNamedExports: false
 		}
@@ -54,6 +57,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: 'marked-external-absolute',
 			resolvedBy: 'rollup',
 			syntheticNamedExports: false
 		}
@@ -66,6 +70,7 @@ const tests = [
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: 'resolved:resolved-name',
 			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
@@ -77,6 +82,7 @@ const tests = [
 			attributes: {},
 			external: true,
 			meta: {},
+			rawId: 'resolved-false',
 			resolvedBy: 'rollup',
 			moduleSideEffects: true,
 			syntheticNamedExports: false
@@ -90,6 +96,7 @@ const tests = [
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: 'resolved:resolved-object',
 			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
@@ -102,6 +109,7 @@ const tests = [
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: 'resolved:resolved-object-non-external',
 			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
@@ -114,6 +122,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			rawId: 'resolved:resolved-object-external',
 			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}

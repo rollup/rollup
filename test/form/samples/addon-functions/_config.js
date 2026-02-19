@@ -6,7 +6,9 @@ const assertChunkData = chunk =>
 		replaceDirectoryInStringifiedObject({ ...chunk, fileName: undefined }, __dirname),
 		'{\n' +
 			'  "exports": [],\n' +
+			'  "facadeModuleAttributes": {},\n' +
 			'  "facadeModuleId": "**/main.js",\n' +
+			'  "facadeModuleRawId": "**/main.js",\n' +
 			'  "isDynamicEntry": false,\n' +
 			'  "isEntry": true,\n' +
 			'  "isImplicitEntry": false,\n' +
@@ -21,8 +23,10 @@ const assertChunkData = chunk =>
 			'  "imports": [],\n' +
 			'  "modules": {\n' +
 			'    "**/main.js": {\n' +
+			'      "attributes": {},\n' +
 			'      "code": "console.log(\'main\');",\n' +
 			'      "originalLength": 21,\n' +
+			'      "rawId": "**/main.js",\n' +
 			'      "removedExports": [],\n' +
 			'      "renderedExports": [],\n' +
 			'      "renderedLength": 20\n' +
