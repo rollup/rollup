@@ -1,4 +1,4 @@
-System.register(['./chunk-dep2-C9ddpexS.js'], (function (exports, module) {
+System.register(['./chunk-dep2-B9YfStri.js'], (function (exports, module) {
 	'use strict';
 	var num$1;
 	return {
@@ -7,10 +7,10 @@ System.register(['./chunk-dep2-C9ddpexS.js'], (function (exports, module) {
 		}],
 		execute: (function () {
 
-			var num = 3;
+			var num = 1;
 			console.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);
 
-			console.log(num$1 + num);
+			console.log(num + num$1);
 			console.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);
 
 		})
@@ -18,40 +18,46 @@ System.register(['./chunk-dep2-C9ddpexS.js'], (function (exports, module) {
 }));
 console.log({
   "exports": [],
-  "facadeModuleId": "**/main2.js",
+  "facadeModuleAttributes": {},
+  "facadeModuleId": "**/main1.js",
+  "facadeModuleRawId": "**/main1.js",
   "isDynamicEntry": false,
   "isEntry": true,
   "isImplicitEntry": false,
   "moduleIds": [
-    "**/dep3.js",
-    "**/main2.js"
+    "**/dep1.js",
+    "**/main1.js"
   ],
-  "name": "main2",
+  "name": "main1",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main2-ByL47NtH.js",
+  "fileName": "entry-main1-DY1Bhs3H.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-C9ddpexS.js": [
+    "chunk-dep2-B9YfStri.js": [
       "n"
     ]
   },
   "imports": [
-    "chunk-dep2-C9ddpexS.js"
+    "chunk-dep2-B9YfStri.js"
   ],
   "modules": {
-    "**/dep3.js": {
-      "code": "\t\t\tvar num = 3;\n\t\t\tconsole.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);",
+    "**/dep1.js": {
+      "attributes": {},
+      "code": "\t\t\tvar num = 1;\n\t\t\tconsole.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);",
       "originalLength": 19,
+      "rawId": "**/dep1.js",
       "removedExports": [],
       "renderedExports": [
         "num"
       ],
       "renderedLength": 99
     },
-    "**/main2.js": {
-      "code": "\t\t\tconsole.log(num$1 + num);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);",
+    "**/main1.js": {
+      "attributes": {},
+      "code": "\t\t\tconsole.log(num + num$1);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);",
       "originalLength": 102,
+      "rawId": "**/main1.js",
       "removedExports": [],
       "renderedExports": [],
       "renderedLength": 112
@@ -61,5 +67,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-Jmzu7nOJ.js","entry-main2-ByL47NtH.js","chunk-dep2-C9ddpexS.js"])
+console.log('all chunks', ["entry-main1-DY1Bhs3H.js","entry-main2-D7FDn8XG.js","chunk-dep2-B9YfStri.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');

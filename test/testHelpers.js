@@ -549,3 +549,14 @@ const reviveStringifyValues = (_, value) =>
 				? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
 				: value
 		: value;
+
+exports.generateIdByRawIdAndAttributes = function generateIdByRawIdAndAttributes(
+	rawId,
+	attributes
+) {
+	const attributesString = new URLSearchParams(attributes).toString();
+	if (!attributesString) {
+		return rawId;
+	}
+	return `${rawId}?${attributesString}`;
+};

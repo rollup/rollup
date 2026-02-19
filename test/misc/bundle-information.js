@@ -89,8 +89,10 @@ describe('The bundle object', () => {
 					[
 						{
 							input1: {
+								attributes: {},
 								code: 'console.log("input1", used, shared);const out = true;',
 								originalLength: 96,
+								rawId: 'input1',
 								removedExports: [],
 								renderedExports: ['out'],
 								renderedLength: 53
@@ -98,8 +100,10 @@ describe('The bundle object', () => {
 						},
 						{
 							input2: {
+								attributes: {},
 								code: 'console.log("input2");var input2 = 42;',
 								originalLength: 55,
+								rawId: 'input2',
 								removedExports: [],
 								renderedExports: ['default'],
 								renderedLength: 38
@@ -107,8 +111,10 @@ describe('The bundle object', () => {
 						},
 						{
 							shared: {
+								attributes: {},
 								code: 'console.log("shared");const used = "used"; var shared = "stuff";',
 								originalLength: 100,
+								rawId: 'shared',
 								removedExports: ['unused'],
 								renderedExports: ['used', 'default'],
 								renderedLength: 64
@@ -196,8 +202,10 @@ describe('The bundle object', () => {
 					[
 						{
 							input: {
+								attributes: {},
 								code: 'console.log(external2);',
 								originalLength: 137,
+								rawId: 'input',
 								removedExports: [],
 								renderedExports: [],
 								renderedLength: 23
@@ -436,7 +444,9 @@ describe('The bundle object', () => {
 					[
 						{
 							input: {
+								attributes: {},
 								code: 'var input = null;',
+								rawId: 'input',
 								originalLength: 47,
 								removedExports: [],
 								renderedExports: ['default'],
@@ -528,8 +538,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					[
 						{
 							input: {
+								attributes: {},
 								code: "console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));",
 								originalLength: 169,
+								rawId: 'input',
 								removedExports: [],
 								renderedExports: [],
 								renderedLength: 151
@@ -537,8 +549,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 						},
 						{
 							dynamic1: {
+								attributes: {},
 								code: 'const dynamic1 = "dynamic1";',
 								originalLength: 34,
+								rawId: 'dynamic1',
 								removedExports: [],
 								renderedExports: ['dynamic1'],
 								renderedLength: 28
@@ -546,8 +560,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 						},
 						{
 							dynamic2: {
+								attributes: {},
 								code: 'const dynamic2 = "dynamic2";',
 								originalLength: 34,
+								rawId: 'dynamic2',
 								removedExports: [],
 								renderedExports: ['dynamic2'],
 								renderedLength: 28
@@ -555,8 +571,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 						},
 						{
 							other: {
+								attributes: {},
 								code: 'const other = "other";',
 								originalLength: 28,
+								rawId: 'other',
 								removedExports: [],
 								renderedExports: ['other'],
 								renderedLength: 22
@@ -612,14 +630,18 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					output.modules,
 					{
 						code: {
+							attributes: {},
 							code: 'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;',
 							originalLength: 184,
+							rawId: 'code',
 							removedExports: ['removedFn', 'removedClass', 'removedConst'],
 							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
 							renderedLength: 72
 						},
 						input: {
+							attributes: {},
 							code: null,
+							rawId: 'input',
 							originalLength: 84,
 							removedExports: [],
 							renderedExports: [],
@@ -665,15 +687,19 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					output.modules,
 					{
 						code: {
+							attributes: {},
 							code: 'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;',
 							originalLength: 233,
+							rawId: 'code',
 							removedExports: ['removedFn', 'removedClass', 'removedConst'],
 							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
 							renderedLength: 72
 						},
 						input: {
+							attributes: {},
 							code: null,
 							originalLength: 63,
+							rawId: 'input',
 							removedExports: [],
 							renderedExports: [],
 							renderedLength: 0

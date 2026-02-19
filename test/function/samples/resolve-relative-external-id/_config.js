@@ -14,6 +14,7 @@ module.exports = defineTest({
 						id: path.join(__dirname, 'external.js'),
 						meta: {},
 						moduleSideEffects: true,
+						rawId: path.join(__dirname, 'external.js'),
 						resolvedBy: 'rollup',
 						syntheticNamedExports: false
 					});
@@ -25,6 +26,7 @@ module.exports = defineTest({
 							id: path.join(__dirname, 'nested', 'external.js'),
 							meta: {},
 							moduleSideEffects: true,
+							rawId: path.join(__dirname, 'nested', 'external.js'),
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}
