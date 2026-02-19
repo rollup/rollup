@@ -14,10 +14,11 @@ module.exports = defineTest({
 						{
 							attributes: { a: 'changed', b: 'changed' },
 							external: true,
-							id: 'external',
+							id: 'external?a=changed&b=changed',
 							meta: {},
 							moduleSideEffects: true,
 							resolvedBy: 'third',
+							rawId: 'external',
 							syntheticNamedExports: false
 						}
 					);
@@ -36,7 +37,7 @@ module.exports = defineTest({
 				async resolveId(source, importer, { attributes }) {
 					if (source === 'external') {
 						return {
-							id: source,
+							rawId: source,
 							external: true,
 							attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed']))
 						};
