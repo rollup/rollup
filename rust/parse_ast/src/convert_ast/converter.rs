@@ -27,26 +27,95 @@ mod utf16_positions;
 pub(crate) mod ast_constants;
 mod ast_macros;
 
+pub(crate) struct WalkEntry {
+  pub(crate) node_buffer_position: u32,
+  pub(crate) skip_to_index: u32,
+}
+
 pub(crate) struct AstConverter<'a> {
   pub(crate) buffer: Vec<u8>,
   pub(crate) code: &'a [u8],
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
+  pub(crate) walked_nodes_bitset: Option<[u64; 2]>,
+  pub(crate) walking_entries: Vec<WalkEntry>,
 }
 
 impl<'a> AstConverter<'a> {
-  pub(crate) fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
+  pub(crate) fn new(
+    buffer: Vec<u8>,
+    code: &'a str,
+    annotations: &'a [AnnotationWithType],
+    walked_nodes_bitset: Option<[u64; 2]>,
+  ) -> Self {
     Self {
-      // This is just a wild guess and should be revisited from time to time
-      buffer: Vec::with_capacity(20 * code.len()),
+      buffer,
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
+      walked_nodes_bitset,
+      walking_entries: Vec::new(),
     }
   }
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
+
+    if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
+      let walking_info_offset = (self.buffer.len() as u32) >> 2;
+
+      // Write the offset at the beginning of the buffer (native endian)
+      self.buffer[0..4].copy_from_slice(&walking_info_offset.to_ne_bytes());
+
+      // Append walking entries: [node_position(4), skip_to_index(4)] for each entry
+      for entry in &self.walking_entries {
+        self
+          .buffer
+          .extend_from_slice(&(entry.node_buffer_position).to_ne_bytes());
+        self
+          .buffer
+          .extend_from_slice(&entry.skip_to_index.to_ne_bytes());
+      }
+    }
+
     self.buffer.shrink_to_fit();
     self.buffer
+  }
+
+  // === walking hooks
+  /// Called when entering a node. Returns Some(entry_index) if this node type is walked.
+  pub(crate) fn on_node_enter<const NODE_TYPE: u32>(&mut self) -> Option<usize> {
+    // Compile-time assertion
+    const {
+      assert!(
+        NODE_TYPE < 128,
+        "Node type must be less than 128 for bitset"
+      )
+    };
+
+    // Check if this node type is in the bitset
+    // Since NODE_TYPE is a const generic, the compiler will constant-fold these operations:
+    // - (NODE_TYPE / 64) as usize  -> computed at compile time
+    // - NODE_TYPE % 64             -> computed at compile time
+    // - 1u64 << (compile-time value) -> computed at compile time
+    self.walked_nodes_bitset.and_then(|bitset| {
+      if (bitset[(NODE_TYPE / 64) as usize] & (1u64 << (NODE_TYPE % 64))) != 0 {
+        let entry_index = self.walking_entries.len();
+        self.walking_entries.push(WalkEntry {
+          node_buffer_position: (self.buffer.len() as u32) >> 2,
+          skip_to_index: 0, // Will be updated in on_node_exit
+        });
+        Some(entry_index)
+      } else {
+        None
+      }
+    })
+  }
+
+  /// Called when exiting a node. Updates the skip_to_index for the entry.
+  pub(crate) fn on_node_exit(&mut self, entry_index: Option<usize>) {
+    if let Some(index) = entry_index {
+      let skip_to = self.walking_entries.len() as u32;
+      self.walking_entries[index].skip_to_index = skip_to;
+    }
   }
 
   // === helpers
@@ -524,8 +593,8 @@ impl<'a> AstConverter<'a> {
       JSXElementName::JSXMemberExpr(jsx_member_expression) => {
         self.store_jsx_member_expression(jsx_member_expression);
       }
-      JSXElementName::JSXNamespacedName(_jsx_namespaced_name) => {
-        unimplemented!("JSXElementName::JSXNamespacedName")
+      JSXElementName::JSXNamespacedName(jsx_namespaced_name) => {
+        self.store_jsx_namespaced_name(jsx_namespaced_name);
       }
     }
   }

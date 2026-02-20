@@ -2,6 +2,7 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const parse: (a: number, b: number, c: number, d: number, e: number) => void;
+export const parseAndWalkSync: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const xxhashBase64Url: (a: number, b: number) => void;
 export const xxhashBase36: (a: number, b: number) => void;
 export const xxhashBase16: (a: number, b: number) => void;

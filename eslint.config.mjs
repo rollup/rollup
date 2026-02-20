@@ -21,6 +21,7 @@ export default tseslint.config(
 			'**/cache',
 			'**/native.d.ts',
 			'rust',
+			'test/testHelpers.d.ts',
 			'test/*/samples/**/*.*',
 			'!test/*/samples/**/_config.js',
 			'!test/*/samples/**/rollup.config.js',

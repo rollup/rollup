@@ -13,6 +13,7 @@ import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
 import { normalizeLog } from './options/options';
+import { parseAndWalk } from './parseAndWalk';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginNames';
@@ -75,6 +76,7 @@ export function getPluginContext(
 			watchMode: graph.watchMode
 		},
 		parse: parseAst,
+		parseAndWalk,
 		resolve(
 			source,
 			importer,

@@ -62,13 +62,14 @@ When adding/modifying functions that cross the JS-Rust boundary:
 
 - **Rust changes only**: `npm run update:napi` then `npm run test:only`
 - **JavaScript changes only**: `npm run update:js` then `npm run test:only`
-- **AST schema changes**: `npm run build:ast-converters` to regenerate TypeScript and Rust files
+- **AST schema changes**: Modify `scripts/ast-types.ts`, then run `npm run build:ast-converters` to regenerate TypeScript and Rust files
 - **Testing changes**: `npm run build:quick` then `npm run test:only`
 
 ## Testing
 
 - Always test edge cases, especially in core logic or build/test infrastructure
 - Test names and descriptions use clear, descriptive language of the expected behavior, e.g. "description: 'does X when Y happens"
+- After modifying any JavaScript files outside of test samples, run `npm run lint:js` to auto-fix formatting issues
 
 ## Code Review Focus
 

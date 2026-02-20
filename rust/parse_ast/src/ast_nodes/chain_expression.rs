@@ -1,7 +1,8 @@
 use swc_ecma_ast::OptChainExpr;
 
 use crate::convert_ast::converter::ast_constants::{
-  CHAIN_EXPRESSION_EXPRESSION_OFFSET, CHAIN_EXPRESSION_RESERVED_BYTES, TYPE_CHAIN_EXPRESSION,
+  CHAIN_EXPRESSION_EXPRESSION_OFFSET, CHAIN_EXPRESSION_RESERVED_BYTES,
+  NODE_TYPE_ID_CHAIN_EXPRESSION, TYPE_CHAIN_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -17,6 +18,7 @@ impl AstConverter<'_> {
         optional_chain_expression.optional,
       );
     } else {
+      let walk_entry = self.on_node_enter::<NODE_TYPE_ID_CHAIN_EXPRESSION>();
       let end_position = self.add_type_and_start(
         &TYPE_CHAIN_EXPRESSION,
         &optional_chain_expression.span,
@@ -31,6 +33,7 @@ impl AstConverter<'_> {
       );
       // end
       self.add_end(end_position, &optional_chain_expression.span);
+      self.on_node_exit(walk_entry);
     }
   }
 }

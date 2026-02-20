@@ -230,6 +230,34 @@ export type DeserializeAst = (buffer: Buffer | Uint8Array, position?: number) =>
 
 export type SerializeAst = (node: ast.AstNode) => Buffer;
 
+export interface ParseAndWalkApi {
+	/**
+	 * Call this function to parse all child nodes of the current node.
+	 * This function returns once all children are parsed and their callbacks
+	 * have been executed.
+	 */
+	parseChildren: () => void;
+	/**
+	 * Call this function to skip parsing the children of the current node.
+	 */
+	skipChildren: () => void;
+}
+
+export type ParseAndWalkHandler<T extends ast.AstNode = ast.AstNode> = (
+	node: T,
+	api: ParseAndWalkApi
+) => void | Promise<void>;
+
+export type ParseAndWalkVisitors = {
+	[K in keyof ast.AstNodeTypeMap]?: ParseAndWalkHandler<ast.AstNodeTypeMap[K]>;
+};
+
+export type ParseAndWalk = (
+	input: string,
+	visitors: ParseAndWalkVisitors,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+) => Promise<void>;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
@@ -246,6 +274,7 @@ export interface PluginContext extends MinimalPluginContext {
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
 	parse: ParseAst;
+	parseAndWalk: ParseAndWalk;
 	resolve: (
 		source: string,
 		importer?: string,
@@ -778,11 +807,11 @@ export type AmdOptions = (
 	| {
 			autoId: true;
 			basePath?: string | undefined;
-			id?: undefined | undefined;
+			id?: undefined;
 	  }
 	| {
 			autoId?: false | undefined;
-			id?: undefined | undefined;
+			id?: undefined;
 	  }
 ) & {
 	define?: string | undefined;

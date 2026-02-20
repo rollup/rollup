@@ -451,6 +451,7 @@ jobs:
             mv dist dist-build
             node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit
             cp dist-build/rollup.*.node dist/
+            npm run test:ast
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
 
   test:
@@ -546,7 +547,7 @@ jobs:
       pull-requests: write # for writing comments
       issues: write # for writing comments
       contents: write # for creating a release
-      id-token: write  # Required for OIDC
+      id-token: write # Required for OIDC
     name: Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15

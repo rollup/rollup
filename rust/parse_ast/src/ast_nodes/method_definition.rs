@@ -7,8 +7,8 @@ use swc_ecma_ast::{
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
   METHOD_DEFINITION_DECORATORS_OFFSET, METHOD_DEFINITION_KEY_OFFSET, METHOD_DEFINITION_KIND_OFFSET,
-  METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION,
-  TYPE_METHOD_DEFINITION,
+  METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_VALUE_OFFSET, NODE_TYPE_ID_METHOD_DEFINITION,
+  TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
@@ -26,6 +26,7 @@ impl AstConverter<'_> {
     is_computed: bool,
     function: &Function,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_METHOD_DEFINITION>();
     let end_position = self.add_type_and_start(
       &TYPE_METHOD_DEFINITION,
       span,
@@ -79,9 +80,11 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_constructor(&mut self, constructor: &Constructor) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_METHOD_DEFINITION>();
     let end_position = self.add_type_and_start(
       &TYPE_METHOD_DEFINITION,
       &constructor.span,
@@ -128,6 +131,7 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, &constructor.span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_method(&mut self, method: &ClassMethod) {
