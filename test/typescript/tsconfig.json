@@ -4,7 +4,7 @@
 		"strict": true,
 		"pretty": true,
 		"lib": ["ESNext"],
-		"types": []
+		"types": ["node"]
 	},
 	"include": ["./dist", "./typings"],
 	"files": ["./index.ts"]
