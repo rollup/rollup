@@ -94,10 +94,7 @@ import type YieldExpression from './YieldExpression';
 export type BindingPattern = Identifier | ArrayPattern | ObjectPattern;
 
 export type DestructuringPattern =
-	| AssignmentPattern
-	| BindingPattern
-	| MemberExpression
-	| RestElement;
+	AssignmentPattern | BindingPattern | MemberExpression | RestElement;
 
 export type Expression =
 	| ArrayExpression
@@ -131,10 +128,7 @@ export type JSXChild = JSXElement | JSXExpressionContainer | JSXSpreadChild | JS
 export type JSXTagNameExpression = JSXMemberExpression | JSXIdentifier | JSXNamespacedName;
 
 export type ModuleDeclaration =
-	| ExportAllDeclaration
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ImportDeclaration;
+	ExportAllDeclaration | ExportDefaultDeclaration | ExportNamedDeclaration | ImportDeclaration;
 
 export type Parameter = BindingPattern | AssignmentPattern | RestElement;
 
@@ -260,12 +254,7 @@ export type BindingPatternParent =
 	| VariableDeclarator;
 
 export type DestructuringPatternParent =
-	| ArrayPattern
-	| AssignmentExpression
-	| ForInStatement
-	| ForOfStatement
-	| Property
-	| RestElement;
+	ArrayPattern | AssignmentExpression | ForInStatement | ForOfStatement | Property | RestElement;
 
 export type ExpressionParent =
 	| ArrayExpression
@@ -313,9 +302,7 @@ export type ExpressionParent =
 export type JSXChildParent = JSXElement | JSXFragment;
 
 export type JSXTagNameExpressionParent =
-	| JSXClosingElement
-	| JSXMemberExpression
-	| JSXOpeningElement;
+	JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
 
 export type ModuleDeclarationParent = Program;
 
@@ -367,9 +354,7 @@ export type ChainExpressionParent = ExpressionParent;
 export type ClassBodyParent = ClassDeclaration | ClassExpression;
 
 export type ClassDeclarationParent =
-	| StatementParent
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration;
+	StatementParent | ExportDefaultDeclaration | ExportNamedDeclaration;
 
 export type ClassExpressionParent = ExpressionParent;
 
@@ -380,10 +365,7 @@ export type ContinueStatementParent = StatementParent;
 export type DebuggerStatementParent = StatementParent;
 
 export type DecoratorParent =
-	| ClassDeclaration
-	| ClassExpression
-	| MethodDefinition
-	| PropertyDefinition;
+	ClassDeclaration | ClassExpression | MethodDefinition | PropertyDefinition;
 
 export type DoWhileStatementParent = StatementParent;
 
@@ -406,9 +388,7 @@ export type ForOfStatementParent = StatementParent;
 export type ForStatementParent = StatementParent;
 
 export type FunctionDeclarationParent =
-	| StatementParent
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration;
+	StatementParent | ExportDefaultDeclaration | ExportNamedDeclaration;
 
 export type FunctionExpressionParent = ExpressionParent;
 
@@ -429,9 +409,7 @@ export type IdentifierParent =
 export type IfStatementParent = StatementParent;
 
 export type ImportAttributeParent =
-	| ExportAllDeclaration
-	| ExportNamedDeclaration
-	| ImportDeclaration;
+	ExportAllDeclaration | ExportNamedDeclaration | ImportDeclaration;
 
 export type ImportDeclarationParent = ModuleDeclarationParent;
 
@@ -476,18 +454,12 @@ export type JSXTextParent = JSXChildParent;
 export type LabeledStatementParent = StatementParent;
 
 export type LiteralParent =
-	| ExpressionParent
-	| ExportNamedDeclaration
-	| ImportAttribute
-	| ImportSpecifier
-	| JSXAttribute;
+	ExpressionParent | ExportNamedDeclaration | ImportAttribute | ImportSpecifier | JSXAttribute;
 
 export type LogicalExpressionParent = ExpressionParent;
 
 export type MemberExpressionParent =
-	| DestructuringPatternParent
-	| ExpressionParent
-	| ChainExpression;
+	DestructuringPatternParent | ExpressionParent | ChainExpression;
 
 export type MetaPropertyParent = ExpressionParent;
 
@@ -504,11 +476,7 @@ export type PanicErrorParent = null;
 export type ParseErrorParent = null;
 
 export type PrivateIdentifierParent =
-	| BinaryExpression
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| PropertyDefinition;
+	BinaryExpression | LogicalExpression | MemberExpression | MethodDefinition | PropertyDefinition;
 
 export type ProgramParent = null;
 
@@ -523,10 +491,7 @@ export type ReturnStatementParent = StatementParent;
 export type SequenceExpressionParent = ExpressionParent;
 
 export type SpreadElementParent =
-	| ArrayExpression
-	| CallExpression
-	| NewExpression
-	| ObjectExpression;
+	ArrayExpression | CallExpression | NewExpression | ObjectExpression;
 
 export type StaticBlockParent = StatementParent | ClassBody;
 

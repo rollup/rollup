@@ -1,5 +1,6 @@
 const path = require('node:path');
 const acorn = require('acorn');
+const { serializeAst } = require('../../../../dist/parseAst');
 
 const code = 'export default 42;\n';
 const ID_MAIN = path.join(__dirname, 'main.js');
@@ -11,10 +12,12 @@ module.exports = defineTest({
 			modules: [
 				{
 					id: ID_MAIN,
-					ast: acorn.parse(code, {
-						ecmaVersion: 6,
-						sourceType: 'module'
-					}),
+					astBuffer: serializeAst(
+						acorn.parse(code, {
+							ecmaVersion: 6,
+							sourceType: 'module'
+						})
+					),
 					code,
 					dependencies: [],
 					dynamicDependencies: [],

@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
@@ -17,7 +16,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class BlockStatement extends NodeBase<ast.BlockStatement> {
+export default class BlockStatement extends NodeBase {
 	declare parent: nodes.BlockStatementParent;
 	declare body: readonly nodes.Statement[];
 	declare type: NodeType.tBlockStatement;
