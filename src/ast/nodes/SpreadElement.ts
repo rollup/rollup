@@ -1,4 +1,4 @@
-import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
@@ -12,7 +12,7 @@ import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class SpreadElement extends NodeBase<ast.SpreadElement> {
+export default class SpreadElement extends NodeBase {
 	declare parent: nodes.SpreadElementParent;
 	declare argument: nodes.Expression;
 	declare type: NodeType.tSpreadElement;

@@ -1,10 +1,9 @@
 import type MagicString from 'magic-string';
-import type { AstNode } from '../../../rollup/ast-types';
 import type { NormalizedJsxOptions } from '../../../rollup/types';
 import type { RenderOptions } from '../../../utils/renderHelpers';
 import { NodeBase, onlyIncludeSelf } from './Node';
 
-export default class JSXClosingBase<T extends AstNode> extends NodeBase<T> {
+export default class JSXClosingBase extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
 		if (mode !== 'preserve') {
