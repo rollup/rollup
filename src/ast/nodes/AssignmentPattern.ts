@@ -2,23 +2,25 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
-import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
+import { NodeBase } from './shared/Node';
+import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class AssignmentPattern extends NodeBase implements DeclarationPatternNode {
-	declare left: PatternNode;
-	declare right: ExpressionNode;
+	declare parent: nodes.AssignmentPatternParent;
+	declare left: nodes.BindingPattern;
+	declare right: nodes.Expression;
 	declare type: NodeType.tAssignmentPattern;
 
 	addExportedVariables(
-		variables: readonly Variable[],
+		variables: Variable[],
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
@@ -29,7 +31,7 @@ export default class AssignmentPattern extends NodeBase implements DeclarationPa
 		destructuredInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
-		return (this.left as DeclarationPatternNode).declare(kind, destructuredInitPath, init);
+		return this.left.declare(kind, destructuredInitPath, init);
 	}
 
 	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity): void {
@@ -44,7 +46,7 @@ export default class AssignmentPattern extends NodeBase implements DeclarationPa
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		interaction: NodeInteractionAssigned,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		return (
@@ -90,7 +92,7 @@ export default class AssignmentPattern extends NodeBase implements DeclarationPa
 	}
 
 	markDeclarationReached(): void {
-		(this.left as DeclarationPatternNode).markDeclarationReached();
+		this.left.markDeclarationReached();
 	}
 
 	render(

@@ -2,7 +2,7 @@ import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';
 import type {
-	AstNode,
+	ast,
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
@@ -33,6 +33,7 @@ import {
 	logUnresolvedImportTreatedAsExternal,
 	warnDeprecation
 } from './utils/logs';
+import { deserializeLazyAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExpression
@@ -335,7 +336,7 @@ export class ModuleLoader {
 			cachedModule.originalCode === sourceDescription.code &&
 			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 				{
-					ast: cachedModule.ast,
+					ast: deserializeLazyAst(cachedModule.astBuffer) as ast.Program,
 					attributes: cachedModule.attributes,
 					code: cachedModule.code,
 					id: cachedModule.id,
@@ -350,12 +351,10 @@ export class ModuleLoader {
 				for (const emittedFile of cachedModule.transformFiles)
 					this.pluginDriver.emitFile(emittedFile);
 			}
-			await module.setSource(cachedModule);
+			module.setSource(cachedModule);
 		} else {
 			module.updateOptions(sourceDescription);
-			await module.setSource(
-				await transform(sourceDescription, module, this.pluginDriver, this.options)
-			);
+			module.setSource(await transform(sourceDescription, module, this.pluginDriver, this.options));
 		}
 	}
 
@@ -752,7 +751,7 @@ export class ModuleLoader {
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | AstNode,
+		specifier: string | ast.Expression,
 		importer: string,
 		attributes: Record<string, string>
 	): Promise<ResolvedId | string | null> {

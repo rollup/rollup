@@ -1,15 +1,17 @@
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type Decorator from './Decorator';
 import type FunctionExpression from './FunctionExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
-import MethodBase from './shared/MethodBase';
-import type { ExpressionNode } from './shared/Node';
+import PropertyBase from './shared/PropertyBase';
 
-export default class MethodDefinition extends MethodBase {
-	declare key: ExpressionNode | PrivateIdentifier;
-	declare kind: 'constructor' | 'method' | 'get' | 'set';
+export default class MethodDefinition extends PropertyBase {
+	declare parent: nodes.MethodDefinitionParent;
+	declare key: nodes.Expression | PrivateIdentifier;
+	declare kind: ast.MethodDefinition['kind'];
 	declare static: boolean;
 	declare type: NodeType.tMethodDefinition;
 	declare value: FunctionExpression;

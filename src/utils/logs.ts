@@ -1,12 +1,12 @@
 import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
+	ast,
 	InternalModuleFormat,
 	LogHandler,
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
-import type { AnnotationType } from './astConverterHelpers';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -112,6 +112,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	BAD_LOADER = 'BAD_LOADER',
 	CANNOT_CALL_NAMESPACE = 'CANNOT_CALL_NAMESPACE',
 	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
+	CANNOT_SERIALIZE_AST = 'CANNOT_SERIALIZE_AST',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	CHUNK_INVALID = 'CHUNK_INVALID',
 	CIRCULAR_CHUNK = 'CIRCULAR_CHUNK',
@@ -273,6 +274,29 @@ export function logCannotEmitFromOptionsHook(): RollupLog {
 	return {
 		code: CANNOT_EMIT_FROM_OPTIONS_HOOK,
 		message: `Cannot emit files or set asset sources in the "outputOptions" hook, use the "renderStart" hook instead.`
+	};
+}
+
+export function logUnknownNodeType(
+	type: string,
+	parentType: string | null,
+	field: string
+): RollupLog {
+	const location = parentType ? `in ${parentType}.${field}` : 'at the root';
+	return {
+		code: CANNOT_SERIALIZE_AST,
+		message: `Could not serialize AST: Found unknown node type "${type}" ${location}.`
+	};
+}
+
+export function logExpectedNodeList(
+	parentType: string | null,
+	field: string,
+	value: unknown
+): RollupLog {
+	return {
+		code: CANNOT_SERIALIZE_AST,
+		message: `Could not serialize AST: Expected ${parentType}.${field} to be an array, but it was ${JSON.stringify(value)}.`
 	};
 }
 
@@ -498,7 +522,11 @@ const formatAttributes = (attributes: Record<string, string>): string => {
 	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
 };
 
-export function logInvalidAnnotation(comment: string, id: string, type: AnnotationType): RollupLog {
+export function logInvalidAnnotation(
+	comment: string,
+	id: string,
+	type: ast.AnnotationType
+): RollupLog {
 	return {
 		code: INVALID_ANNOTATION,
 		id,

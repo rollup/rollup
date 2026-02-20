@@ -8,6 +8,7 @@ const targetRustFile = new URL(
 	import.meta.url
 );
 const targetTsFile = new URL('../src/utils/convert-ast-strings.ts', import.meta.url);
+const targetSerializeTsFile = new URL('../src/utils/serialize-ast-strings.ts', import.meta.url);
 
 const stringConstantsTemplate = [
 	['STRING_VAR', 'var'],
@@ -38,11 +39,9 @@ const stringConstantsTemplate = [
 	['STRING_LSHIFT', '<<'],
 	['STRING_RSHIFT', '>>'],
 	['STRING_ZEROFILLRSHIFT', '>>>'],
-	['STRING_ADD', '+'],
-	['STRING_SUB', '-'],
-	['STRING_MUL', '*'],
-	['STRING_DIV', '/'],
-	['STRING_MOD', '%'],
+	['STRING_MULTIPLY', '*'],
+	['STRING_DIVIDE', '/'],
+	['STRING_MODULO', '%'],
 	['STRING_BITOR', '|'],
 	['STRING_BITXOR', '^'],
 	['STRING_BITAND', '&'],
@@ -53,18 +52,18 @@ const stringConstantsTemplate = [
 	['STRING_EXP', '**'],
 	['STRING_NULLISHCOALESCING', '??'],
 	['STRING_ASSIGN', '='],
-	['STRING_ADDASSIGN', '+='],
-	['STRING_SUBASSIGN', '-='],
-	['STRING_MULASSIGN', '*='],
-	['STRING_DIVASSIGN', '/='],
-	['STRING_MODASSIGN', '%='],
+	['STRING_PLUSASSIGN', '+='],
+	['STRING_MINUSASSIGN', '-='],
+	['STRING_MULTIPLYASSIGN', '*='],
+	['STRING_DIVIDEASSIGN', '/='],
+	['STRING_MODULOASSIGN', '%='],
 	['STRING_LSHIFTASSIGN', '<<='],
 	['STRING_RSHIFTASSIGN', '>>='],
 	['STRING_ZEROFILLRSHIFTASSIGN', '>>>='],
 	['STRING_BITORASSIGN', '|='],
 	['STRING_BITXORASSIGN', '^='],
 	['STRING_BITANDASSIGN', '&='],
-	['STRING_EXPASSIGN', '**='],
+	['STRING_EXPONENTASSIGN', '**='],
 	['STRING_ANDASSIGN', '&&='],
 	['STRING_ORASSIGN', '||='],
 	['STRING_NULLISHASSIGN', '??='],
@@ -94,7 +93,17 @@ const tsCode =
 	) +
 	`;\n`;
 
+const serializeTsCode =
+	notEditFilesComment +
+	`export default {` +
+	stringConstantsTemplate
+		.map(([_, value], index) => `${JSON.stringify(value)}: ${index},`)
+		.sort()
+		.join('\n') +
+	`};\n`;
+
 await Promise.all([
 	writeFile(targetTsFile, tsCode).then(() => lintTsFile(targetTsFile)),
-	writeFile(targetRustFile, rustCode).then(() => lintRustFile(targetRustFile))
+	writeFile(targetRustFile, rustCode).then(() => lintRustFile(targetRustFile)),
+	writeFile(targetSerializeTsFile, serializeTsCode).then(() => lintTsFile(targetSerializeTsFile))
 ]);

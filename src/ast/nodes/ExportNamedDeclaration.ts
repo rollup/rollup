@@ -6,11 +6,13 @@ import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import { doNotDeoptimize, type Node, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase {
+	declare parent: nodes.ExportNamedDeclarationParent;
 	declare attributes: ImportAttribute[];
 	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	declare needsBoundaries: true;
@@ -53,7 +55,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 				}
 			}
 			code.remove(this.start, endBoundary);
-			(this.declaration as Node).render(code, options, { end, start });
+			this.declaration.render(code, options, { end, start });
 		}
 	}
 }
