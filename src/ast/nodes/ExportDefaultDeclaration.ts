@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -41,7 +40,7 @@ function getFunctionIdInsertPosition(code: string, start: number): number {
 	return declarationEnd + generatorStarPos + 1;
 }
 
-export default class ExportDefaultDeclaration extends NodeBase<ast.ExportDefaultDeclaration> {
+export default class ExportDefaultDeclaration extends NodeBase {
 	declare parent: nodes.ExportDefaultDeclarationParent;
 	declare declaration: FunctionDeclaration | ClassDeclaration | nodes.Expression;
 	declare needsBoundaries: true;

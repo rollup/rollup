@@ -17,7 +17,7 @@ import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class UpdateExpression extends NodeBase<ast.UpdateExpression> {
+export default class UpdateExpression extends NodeBase {
 	declare parent: nodes.UpdateExpressionParent;
 	declare argument: nodes.Expression;
 	declare operator: ast.UpdateExpression['operator'];

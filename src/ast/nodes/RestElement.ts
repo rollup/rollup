@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
@@ -12,10 +11,7 @@ import { NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class RestElement
-	extends NodeBase<ast.RestElement>
-	implements DeclarationPatternNode
-{
+export default class RestElement extends NodeBase implements DeclarationPatternNode {
 	declare parent: nodes.RestElementParent;
 	declare argument: nodes.DestructuringPattern;
 	declare type: NodeType.tRestElement;
