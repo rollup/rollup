@@ -5,7 +5,7 @@ import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from '
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
-const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url);
+const bufferToJsAstFile = new URL('../src/utils/bufferToLazyAst.ts', import.meta.url);
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];

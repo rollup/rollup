@@ -1,9 +1,9 @@
 import { parse, parseAsync } from '../../native';
 import type { ast, ParseAst, ParseAstAsync } from '../rollup/types';
-import { deserializeLazyAst } from './bufferToAst';
+import { deserializeLazyAst } from './bufferToLazyAst';
 
 export { serializeAst } from './astToBuffer';
-export { deserializeLazyAst } from './bufferToAst';
+export { deserializeLazyAst } from './bufferToLazyAst';
 
 export const parseAst: ParseAst = (
 	input,

@@ -3,7 +3,7 @@
  * From this file, "npm run build:ast-converters" will generate
  * - /rust/parse_ast/src/convert_ast/converter/ast_constants.rs:
  *   Constants that describe how the AST nodes are encoded in Rust.
- * - /src/utils/bufferToAst.ts:
+ * - /src/utils/bufferToLazyAst.ts:
  *   Helper functions that are used by this.parse in plugins to convert a buffer
  *   to a JSON AST.
  * - /src/ast/bufferParsers.ts
