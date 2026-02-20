@@ -74,7 +74,7 @@ export function renderMermaidGraphsPlugin(): Plugin {
 			if (id.endsWith('.md')) {
 				const renderedGraphs: string[] = [];
 				const mermaidCodeBlocks: string[] = [];
-				let match: RegExpExecArray | null = null;
+				let match: RegExpExecArray | null;
 				while ((match = mermaidRegExp.exec(code)) !== null) {
 					mermaidCodeBlocks.push(match[1]);
 				}

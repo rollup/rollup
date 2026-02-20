@@ -81,7 +81,7 @@ async function loadAndRegisterPlugin(
 				}
 				plugin = await requireOrImport(pluginText);
 			} catch (error: any) {
-				throw new Error(`Cannot load plugin "${pluginText}": ${error.message}.`);
+				throw new Error(`Cannot load plugin "${pluginText}": ${error.message}.`, { cause: error });
 			}
 		}
 	}

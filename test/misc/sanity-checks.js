@@ -271,7 +271,6 @@ describe('sanity checks', () => {
 			code: 'ALREADY_CLOSED',
 			message: 'Bundle is already closed, no more calls to "generate" or "write" are allowed.'
 		});
-		error = null;
 	});
 
 	it('triggers a warning when using output.amd.id together with the "dir" option', async () => {

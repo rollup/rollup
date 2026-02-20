@@ -39,7 +39,6 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 		needsScope ||= fieldDefinition.needsScope;
 		definitions.push(`${fieldDefinition.definition}\n`);
 	}
-	offset += fields.length;
 	for (const [fieldName, fieldValue] of Object.entries(node.additionalFields || {})) {
 		definitions.push(`node.${fieldName} = ${fieldValue};\n`);
 	}

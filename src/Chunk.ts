@@ -619,31 +619,31 @@ export default class Chunk {
 		if (this.preliminarySourcemapFileName) {
 			return this.preliminarySourcemapFileName;
 		}
-		let sourcemapFileName: string | null = null;
-		let hashPlaceholder: string | null = null;
 		const { sourcemapFileNames, format } = this.outputOptions;
-		if (sourcemapFileNames) {
-			const [pattern, patternName] = [sourcemapFileNames, 'output.sourcemapFileNames'];
-			sourcemapFileName = renderNamePattern(
-				typeof pattern === 'function' ? pattern(this.getPreRenderedChunkInfo()) : pattern,
-				patternName,
-				{
-					chunkhash: () => this.getPreliminaryFileName().hashPlaceholder || '',
-					format: () => format,
-					hash: size =>
-						hashPlaceholder ||
-						(hashPlaceholder = this.getPlaceholder(patternName, size || DEFAULT_HASH_SIZE)),
-					name: () => this.getChunkName()
-				}
-			);
-			if (!hashPlaceholder) {
-				sourcemapFileName = makeUnique(sourcemapFileName, this.bundle);
-			}
-		} else {
+		if (!sourcemapFileNames) {
 			return null;
 		}
-
-		return (this.preliminarySourcemapFileName = { fileName: sourcemapFileName, hashPlaceholder });
+		let hashPlaceholder: string | null = null;
+		const [pattern, patternName] = [sourcemapFileNames, 'output.sourcemapFileNames'];
+		let sourcemapFileName = renderNamePattern(
+			typeof pattern === 'function' ? pattern(this.getPreRenderedChunkInfo()) : pattern,
+			patternName,
+			{
+				chunkhash: () => this.getPreliminaryFileName().hashPlaceholder || '',
+				format: () => format,
+				hash: size =>
+					hashPlaceholder ||
+					(hashPlaceholder = this.getPlaceholder(patternName, size || DEFAULT_HASH_SIZE)),
+				name: () => this.getChunkName()
+			}
+		);
+		if (!hashPlaceholder) {
+			sourcemapFileName = makeUnique(sourcemapFileName, this.bundle);
+		}
+		return (this.preliminarySourcemapFileName = {
+			fileName: sourcemapFileName,
+			hashPlaceholder
+		});
 	}
 
 	public getRenderedChunkInfo(): RenderedChunk {
@@ -1176,7 +1176,7 @@ export default class Chunk {
 		for (let exportName of this.getExportNames()) {
 			let dependency: Chunk | ExternalChunk;
 			let imported: string;
-			let needsLiveBinding = false;
+			let needsLiveBinding: boolean;
 			if (exportName[0] === '*') {
 				const id = exportName.slice(1);
 				if (interop(id) === 'defaultOnly') {
