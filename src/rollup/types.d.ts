@@ -108,25 +108,24 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	map?: SourceMapInput | undefined;
 }
 
-export interface TransformModuleJSON {
-	ast?: ast.Program | undefined;
+export interface ModuleSource {
+	astBuffer: Uint8Array;
 	code: string;
-	safeVariableNames: Record<string, string> | null;
-	// note if plugins use new this.cache to opt-out auto transform cache
+	// note if plugins use this.cache to opt-out of transform caching
 	customTransformCache: boolean;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
+	resolvedIds?: ResolvedIdMap;
+	safeVariableNames: Record<string, string> | null;
 	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[];
+	transformFiles?: EmittedFile[] | undefined;
 }
 
-export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	safeVariableNames: Record<string, string> | null;
-	ast: ast.Program;
+export interface CachedModule extends ModuleSource, ModuleOptions {
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
-	transformFiles: EmittedFile[] | undefined;
 }
 
 export interface PluginCache {
@@ -211,21 +210,25 @@ export type LoggingFunctionWithPosition = (
 	pos?: number | { column: number; line: number }
 ) => void;
 
-export type ParseAst = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => ast.Program;
-
 // declare AbortSignal here for environments without DOM lib or @types/node
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 	interface AbortSignal {}
 }
 
+export type ParseAst = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+) => ast.Program;
+
 export type ParseAstAsync = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
 ) => Promise<ast.Program>;
+
+export type DeserializeAst = (buffer: Buffer | Uint8Array, position?: number) => ast.AstNode;
+
+export type SerializeAst = (node: ast.AstNode) => Buffer;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
@@ -985,7 +988,7 @@ export interface OutputChunk extends RenderedChunk {
 export type SerializablePluginCache = Record<string, [number, any]>;
 
 export interface RollupCache {
-	modules: ModuleJSON[];
+	modules: CachedModule[];
 	plugins?: Record<string, SerializablePluginCache>;
 }
 

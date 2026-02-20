@@ -19,7 +19,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class Program extends NodeBase<ast.Program> {
+export default class Program extends NodeBase {
 	declare parent: nodes.ProgramParent;
 	declare body: readonly (nodes.Statement | nodes.ModuleDeclaration)[];
 	declare sourceType: 'module';

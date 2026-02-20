@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
@@ -23,10 +22,7 @@ import { MultiExpression } from './shared/MultiExpression';
 import type { IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ConditionalExpression
-	extends NodeBase<ast.ConditionalExpression>
-	implements DeoptimizableEntity
-{
+export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	declare parent: nodes.ConditionalExpressionParent;
 	declare alternate: nodes.Expression;
 	declare consequent: nodes.Expression;

@@ -162,7 +162,6 @@
     "eslint-plugin-unicorn": "^68.0.0",
     "eslint-plugin-vue": "^10.9.2",
     "fixturify": "^3.0.0",
-    "flru": "^1.0.2",
     "fs-extra": "^11.3.5",
     "github-api": "^3.4.0",
     "globals": "^17.7.0",
