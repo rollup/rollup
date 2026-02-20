@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -18,7 +17,7 @@ import {
 } from './shared/Expression';
 import { doNotDeoptimize, NodeBase } from './shared/Node';
 
-export default class PropertyDefinition extends NodeBase<ast.PropertyDefinition> {
+export default class PropertyDefinition extends NodeBase {
 	declare parent: nodes.PropertyDefinitionParent;
 	declare key: nodes.Expression | PrivateIdentifier;
 	declare static: boolean;

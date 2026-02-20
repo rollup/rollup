@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -14,10 +13,7 @@ import { NodeBase } from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class AssignmentPattern
-	extends NodeBase<ast.AssignmentPattern>
-	implements DeclarationPatternNode
-{
+export default class AssignmentPattern extends NodeBase implements DeclarationPatternNode {
 	declare parent: nodes.AssignmentPatternParent;
 	declare left: nodes.BindingPattern;
 	declare right: nodes.Expression;
