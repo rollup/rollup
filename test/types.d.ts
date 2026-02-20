@@ -1,5 +1,6 @@
 import type { SourceMap } from 'magic-string';
 import type {
+	ast,
 	ParseAndWalk,
 	ParseAndWalkVisitors,
 	RollupBuild,
@@ -296,6 +297,7 @@ export interface TestConfigParseAndWalk extends TestConfigBase {
 	 * Expected error when parsing or walking the AST. If specified, the test
 	 * expects an error to be thrown.
 	 */
+	expectedAst?: ast.AstNode;
 	error?: RollupError;
 	/**
 	 * Parse options to pass to parseAndWalk.
