@@ -35,6 +35,31 @@ export function extname(path: string): string {
 	return match ? match[0] : '';
 }
 
+export function join(...segments: string[]): string {
+	const joined = segments.join('/');
+	const absolute = ANY_SLASH_REGEX.test(joined[0]);
+	return (
+		(absolute ? '/' : '') +
+		(normalizePathSegments(joined.split(ANY_SLASH_REGEX), absolute) || (absolute ? '' : '.'))
+	);
+}
+
+function normalizePathSegments(parts: string[], absolute = false): string {
+	const normalized: string[] = [];
+	for (const part of parts) {
+		if (part === '..') {
+			if (normalized.length > 0 && normalized[normalized.length - 1] !== '..') {
+				normalized.pop();
+			} else if (!absolute) {
+				normalized.push('..');
+			}
+		} else if (part !== '.' && part !== '') {
+			normalized.push(part);
+		}
+	}
+	return normalized.join('/');
+}
+
 export function relative(from: string, to: string): string {
 	const fromParts = from.split(ANY_SLASH_REGEX).filter(Boolean);
 	const toParts = to.split(ANY_SLASH_REGEX).filter(Boolean);
@@ -60,28 +85,19 @@ export function relative(from: string, to: string): string {
 }
 
 export function resolve(...paths: string[]): string {
-	const firstPathSegment = paths.shift();
-	if (!firstPathSegment) {
-		return '/';
-	}
-	let resolvedParts = firstPathSegment.split(ANY_SLASH_REGEX);
-
+	let parts: string[] = [];
+	let isAbsoluteResult = false;
 	for (const path of paths) {
 		if (isAbsolute(path)) {
-			resolvedParts = path.split(ANY_SLASH_REGEX);
+			parts = path.split(ANY_SLASH_REGEX);
+			isAbsoluteResult = true;
 		} else {
-			const parts = path.split(ANY_SLASH_REGEX);
-
-			while (parts[0] === '.' || parts[0] === '..') {
-				const part = parts.shift();
-				if (part === '..') {
-					resolvedParts.pop();
-				}
-			}
-
-			resolvedParts.push(...parts);
+			parts.push(...path.split(ANY_SLASH_REGEX));
 		}
 	}
-
-	return resolvedParts.join('/');
+	const normalized = normalizePathSegments(parts, isAbsoluteResult);
+	if (!isAbsoluteResult) return normalized || '/';
+	// Windows absolute paths (e.g. "C:/path") must not get a leading "/" prepended.
+	// Unix absolute paths must start with "/".
+	return /^[A-Za-z]:/.test(normalized) ? normalized : '/' + normalized;
 }
