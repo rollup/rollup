@@ -455,16 +455,20 @@ assert.deepEqual(
 );
 ```
 
-Both `parseAst` and `parseAstAsync` return lazy ASTs where non-primitive properties of AST nodes are getters that replace themselves on first access. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation.
+Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you want a lazy AST instead—where non-primitive properties are getters that replace themselves on first access—use `parseLazyAst` and `parseLazyAstAsync`, which have the same signatures. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation.
 
 ## AST serialization
 
-For edge case scenarios where you need to serialize ESTree ASTs to buffers or deserialize them back, Rollup exposes `serializeAst` and `deserializeLazyAst` helpers. These functions can handle complete AST trees as well as AST fragments that start with any top-level node.
+For edge case scenarios where you need to serialize ESTree ASTs to buffers or deserialize them back, Rollup exposes `serializeAst`, `deserializeLazyAst`, and `deserializeAst` helpers. These functions can handle complete AST trees as well as AST fragments that start with any top-level node.
 
-The `serializeAst` function converts an ESTree AST node into Rollup's internal binary format while `deserializeLazyAst` converts it back:
+The `serializeAst` function converts an ESTree AST node into Rollup's internal binary format. `deserializeLazyAst` converts it back to a lazy AST, while `deserializeAst` produces a fully materialized plain JavaScript object:
 
 ```js twoslash
-import { serializeAst, deserializeLazyAst } from 'rollup/parseAst';
+import {
+	serializeAst,
+	deserializeLazyAst,
+	deserializeAst
+} from 'rollup/parseAst';
 
 const ast = {
 	type: 'Literal',
@@ -475,10 +479,15 @@ const ast = {
 const buffer = serializeAst(ast);
 // buffer is a Buffer/Uint8Array containing the serialized AST
 
-const deserializedAst = deserializeLazyAst(buffer);
-// deserializedAst is a lazy AST with the same structure as the original
-console.log(deserializedAst.type); // 'Literal'
-console.log(deserializedAst.value); // 42
+const lazyAst = deserializeLazyAst(buffer);
+// lazyAst is a lazy AST with the same structure as the original
+console.log(lazyAst.type); // 'Literal'
+console.log(lazyAst.value); // 42
+
+const eagerAst = deserializeAst(buffer);
+// eagerAst is a fully materialized plain JavaScript object
+console.log(eagerAst.type); // 'Literal'
+console.log(eagerAst.value); // 42
 ```
 
 These helpers are useful when you need to:

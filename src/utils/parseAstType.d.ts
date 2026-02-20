@@ -2,5 +2,8 @@ import type { DeserializeAst, ParseAst, ParseAstAsync, SerializeAst } from '../r
 
 export const parseAst: ParseAst;
 export const parseAstAsync: ParseAstAsync;
+export const parseLazyAst: ParseAst;
+export const parseLazyAstAsync: ParseAstAsync;
 export const deserializeLazyAst: DeserializeAst;
+export const deserializeAst: DeserializeAst;
 export const serializeAst: SerializeAst;

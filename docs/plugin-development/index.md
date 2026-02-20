@@ -1912,12 +1912,14 @@ An object containing potentially useful Rollup metadata:
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	jsx?: boolean;
 }
 ```
 
-Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST.
+Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST. The returned AST is a fully materialized plain JavaScript object.
 
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
+- `jsx`: When `true`, JSX syntax is supported in the parsed code.
 
 ### this.resolve
 
@@ -2227,9 +2229,11 @@ Rollup uses Abstract Syntax Trees (ASTs) to parse and analyze JavaScript code.
 
 ### Lazy AST Generation
 
-For performance reasons, ASTs returned by Rollup are generated lazily. This means that all non-primitive properties of AST nodes are getters that replace themselves with the actual node values on first access. When you access a node property for the first time, the getter computes the value and replaces itself with a regular property containing the actual node.
+For performance reasons, some ASTs returned by Rollup are generated lazily. This means that all non-primitive properties of AST nodes are getters that replace themselves with the actual node values on first access. When you access a node property for the first time, the getter computes the value and replaces itself with a regular property containing the actual node.
 
 This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. The lazy getter implementation is transparent to most use cases—you can access AST properties normally without worrying about the underlying mechanism.
+
+[`this.parse`](#this-parse) and the standalone [`parseAst`](../javascript-api/index.md#accessing-the-parser) / [`parseAstAsync`](../javascript-api/index.md#accessing-the-parser) helpers return fully materialized plain JavaScript objects (eager ASTs). If you need a lazy AST from code, use [`parseLazyAst` or `parseLazyAstAsync`](../javascript-api/index.md#accessing-the-parser) instead.
 
 ### Accessing ASTs from Module Info
 
