@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, InternalModuleFormat } from '../../rollup/types';
+import type { InternalModuleFormat } from '../../rollup/types';
 import { escapeId } from '../../utils/escapeId';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { DOCUMENT_CURRENT_SCRIPT } from '../../utils/interopHelpers';
@@ -20,7 +20,7 @@ const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 const FILE_OBJ_PREFIX = 'ROLLUP_FILE_URL_OBJ_';
 const IMPORT = 'import';
 
-export default class MetaProperty extends NodeBase<ast.MetaProperty> {
+export default class MetaProperty extends NodeBase {
 	declare parent: nodes.MetaPropertyParent;
 	declare meta: Identifier;
 	declare property: Identifier;

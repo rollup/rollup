@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionCalled } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
@@ -15,9 +14,7 @@ export default class FunctionScope extends ReturnValueScope {
 
 	constructor(
 		parent: ChildScope,
-		readonly functionNode: FunctionNode<
-			ast.ArrowFunctionExpression | ast.FunctionExpression | ast.FunctionDeclaration
-		>
+		readonly functionNode: FunctionNode
 	) {
 		super(parent, false);
 		const { context } = parent;

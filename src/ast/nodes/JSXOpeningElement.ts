@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedJsxOptions } from '../../rollup/types';
+import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type JSXAttribute from './JSXAttribute';
 import type JSXSpreadAttribute from './JSXSpreadAttribute';
@@ -7,7 +7,7 @@ import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class JSXOpeningElement extends NodeBase<ast.JSXOpeningElement> {
+export default class JSXOpeningElement extends NodeBase {
 	declare parent: nodes.JSXOpeningElementParent;
 	declare type: NodeType.tJSXOpeningElement;
 	declare name: nodes.JSXTagNameExpression;

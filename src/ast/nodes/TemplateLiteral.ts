@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -18,7 +17,7 @@ import { UNKNOWN_RETURN_EXPRESSION, UnknownValue } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type TemplateElement from './TemplateElement';
 
-export default class TemplateLiteral extends NodeBase<ast.TemplateLiteral> {
+export default class TemplateLiteral extends NodeBase {
 	declare parent: nodes.TemplateLiteralParent;
 	declare expressions: nodes.Expression[];
 	declare quasis: TemplateElement[];

@@ -1,5 +1,11 @@
 const assert = require('node:assert');
-const { parseAst, parseAstAsync } = require('../../dist/parseAst');
+const {
+	parseAst,
+	parseAstAsync,
+	serializeAst,
+	deserializeAst,
+	deserializeLazyAst
+} = require('../../dist/parseAst');
 const { hasEsBuild } = require('../testHelpers');
 
 describe('parseAst', () => {
@@ -109,6 +115,28 @@ describe('parseAst', () => {
 		const { key, value } = parseAst('({ foo });').body[0].expression.properties[0];
 		assert.deepStrictEqual(key, value);
 		assert.ok(key !== value);
+	});
+
+	it('can deserialize AST buffers that are views at a non-zero byte offset', async () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		const paddedBuffer = new Uint8Array(buffer.byteLength + 4);
+		paddedBuffer.set(buffer, 4);
+		const view = paddedBuffer.subarray(4);
+		assert.strictEqual(view.byteOffset, 4);
+		assert.deepStrictEqual(deserializeAst(view), ast);
+		assert.deepStrictEqual(deserializeLazyAst(view), ast);
+	});
+
+	it('can deserialize AST buffers that are views at a byte offset that is not a multiple of 4', async () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		const paddedBuffer = new Uint8Array(buffer.byteLength + 1);
+		paddedBuffer.set(buffer, 1);
+		const view = paddedBuffer.subarray(1);
+		assert.strictEqual(view.byteOffset, 1);
+		assert.deepStrictEqual(deserializeAst(view), ast);
+		assert.deepStrictEqual(deserializeLazyAst(view), ast);
 	});
 });
 

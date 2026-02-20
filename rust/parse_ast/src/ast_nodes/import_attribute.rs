@@ -30,24 +30,21 @@ impl AstConverter<'_> {
     with: &Option<Box<ObjectLit>>,
     reference_position: usize,
   ) {
-    match with {
-      Some(ref with) => {
-        self.convert_item_list(
-          &with.props,
-          reference_position,
-          |ast_converter, prop| match prop {
-            PropOrSpread::Prop(prop) => match &**prop {
-              Prop::KeyValue(key_value_property) => {
-                ast_converter.store_import_attribute(key_value_property);
-                true
-              }
-              _ => panic!("Non key-value property in import declaration attributes"),
-            },
-            PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
+    if let Some(ref with) = with {
+      self.convert_item_list(
+        &with.props,
+        reference_position,
+        |ast_converter, prop| match prop {
+          PropOrSpread::Prop(prop) => match &**prop {
+            Prop::KeyValue(key_value_property) => {
+              ast_converter.store_import_attribute(key_value_property);
+              true
+            }
+            _ => panic!("Non key-value property in import declaration attributes"),
           },
-        );
-      }
-      None => self.buffer.resize(self.buffer.len() + 4, 0),
+          PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
+        },
+      );
     }
   }
 }
