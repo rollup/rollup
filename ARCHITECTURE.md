@@ -118,7 +118,7 @@ There are two ways Rollup parses code into an abstract syntax tree
 
 - When a plugin calls [`this.parse`](https://rollupjs.org/plugin-development/#this-parse). This is a synchronous operation that returns a JSON-AST of the provided code.
   - This will likely be deprecated eventually in favor of an asynchronous method that also does not directly return the JSON representation but rather a Proxy-based representation with efficient methods for traversal and manipulation.
-  - For this, the buffer is decoded within the auto-generated file [`bufferToAst.ts`](src/utils/bufferToAst.ts).
+  - For this, the buffer is decoded within the auto-generated file [`bufferToLazyAst.ts`](src/utils/bufferToLazyAst.ts).
 - When a module has been loaded. In this case, it is triggered in the `setSource` method of the [`Module`](src/Module.ts) class.
   - Here, the buffer is directly used to generate the class-based Rollup-internal AST.
   - The actual conversion happens in the auto-generated file [`bufferParsers.ts`](src/ast/bufferParsers.ts).

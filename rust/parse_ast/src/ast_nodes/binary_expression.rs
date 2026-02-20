@@ -6,10 +6,11 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_LOGICAL_EXPRESSION,
 };
 use crate::convert_ast::converter::string_constants::{
-  STRING_ADD, STRING_BITAND, STRING_BITOR, STRING_BITXOR, STRING_DIV, STRING_EQEQ, STRING_EQEQEQ,
+  STRING_BITAND, STRING_BITOR, STRING_BITXOR, STRING_DIVIDE, STRING_EQEQ, STRING_EQEQEQ,
   STRING_EXP, STRING_GT, STRING_GTEQ, STRING_IN, STRING_INSTANCEOF, STRING_LOGICALAND,
-  STRING_LOGICALOR, STRING_LSHIFT, STRING_LT, STRING_LTEQ, STRING_MOD, STRING_MUL, STRING_NOTEQ,
-  STRING_NOTEQEQ, STRING_NULLISHCOALESCING, STRING_RSHIFT, STRING_SUB, STRING_ZEROFILLRSHIFT,
+  STRING_LOGICALOR, STRING_LSHIFT, STRING_LT, STRING_LTEQ, STRING_MINUS, STRING_MODULO,
+  STRING_MULTIPLY, STRING_NOTEQ, STRING_NOTEQEQ, STRING_NULLISHCOALESCING, STRING_PLUS,
+  STRING_RSHIFT, STRING_ZEROFILLRSHIFT,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -44,11 +45,11 @@ impl AstConverter<'_> {
         BinaryOp::LShift => &STRING_LSHIFT,
         BinaryOp::RShift => &STRING_RSHIFT,
         BinaryOp::ZeroFillRShift => &STRING_ZEROFILLRSHIFT,
-        BinaryOp::Add => &STRING_ADD,
-        BinaryOp::Sub => &STRING_SUB,
-        BinaryOp::Mul => &STRING_MUL,
-        BinaryOp::Div => &STRING_DIV,
-        BinaryOp::Mod => &STRING_MOD,
+        BinaryOp::Add => &STRING_PLUS,
+        BinaryOp::Sub => &STRING_MINUS,
+        BinaryOp::Mul => &STRING_MULTIPLY,
+        BinaryOp::Div => &STRING_DIVIDE,
+        BinaryOp::Mod => &STRING_MODULO,
         BinaryOp::BitOr => &STRING_BITOR,
         BinaryOp::BitXor => &STRING_BITXOR,
         BinaryOp::BitAnd => &STRING_BITAND,

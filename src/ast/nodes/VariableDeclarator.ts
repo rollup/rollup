@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
@@ -40,7 +40,7 @@ import {
 } from './shared/Node';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class VariableDeclarator extends NodeBase<ast.VariableDeclarator> {
+export default class VariableDeclarator extends NodeBase {
 	declare parent: nodes.VariableDeclaratorParent;
 	declare id: nodes.BindingPattern;
 	declare init: nodes.Expression | null;
