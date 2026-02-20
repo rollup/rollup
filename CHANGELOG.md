@@ -1,5 +1,28 @@
 # rollup changelog
 
+## 4.58.0
+
+_2026-02-20_
+
+### Features
+
+- Also support `__NO_SIDE_EFFECTS__` annotation before variable declarations declaring function expressions (#6272)
+
+### Pull Requests
+
+- [#6256](https://github.com/rollup/rollup/pull/6256): docs: document PreRenderedChunk properties including isDynamicEntry and isImplicitEntry (@njg7194, @lukastaegert)
+- [#6259](https://github.com/rollup/rollup/pull/6259): docs: Correct typo and improve sentence structure in docs for `output.experimentalMinChunkSize` (@millerick, @lukastaegert)
+- [#6260](https://github.com/rollup/rollup/pull/6260): fix(deps): update rust crate swc_compiler_base to v47 (@renovate[bot], @lukastaegert)
+- [#6261](https://github.com/rollup/rollup/pull/6261): fix(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6262](https://github.com/rollup/rollup/pull/6262): Avoid unnecessary cloning of the code string (@lukastaegert)
+- [#6263](https://github.com/rollup/rollup/pull/6263): fix(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6265](https://github.com/rollup/rollup/pull/6265): chore(deps): lock file maintenance (@renovate[bot])
+- [#6267](https://github.com/rollup/rollup/pull/6267): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6268](https://github.com/rollup/rollup/pull/6268): chore(deps): update dependency eslint-plugin-unicorn to v63 (@renovate[bot], @lukastaegert)
+- [#6269](https://github.com/rollup/rollup/pull/6269): chore(deps): update dependency lru-cache to v11 (@renovate[bot])
+- [#6270](https://github.com/rollup/rollup/pull/6270): chore(deps): lock file maintenance (@renovate[bot])
+- [#6272](https://github.com/rollup/rollup/pull/6272): forward NO_SIDE_EFFECTS annotations to function expressions in variable declarations (@lukastaegert)
+
 ## 4.57.1
 
 _2026-01-30_
