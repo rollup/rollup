@@ -1,8 +1,17 @@
 // @ts-check
 const path = require('node:path');
-const { parseAndWalk } = require('../../dist/parseAst');
+const {
+	parseAst,
+	parseAstAsync,
+	parseLazyAst,
+	parseLazyAstAsync,
+	parseAndWalk,
+	serializeAst,
+	deserializeAst
+} = require('../../dist/parseAst');
 const { compareError, runTestSuiteWithSamples } = require('../testHelpers.js');
 const { readFileSync } = require('node:fs');
+const assert = require('node:assert/strict');
 
 runTestSuiteWithSamples(
 	'parse-and-walk',
@@ -35,6 +44,14 @@ runTestSuiteWithSamples(
 					if (config.assertions) {
 						await config.assertions();
 					}
+				}
+				if (config.expectedAst) {
+					console.log(JSON.stringify(parseAst(code, config.parseOptions)));
+					assert.deepEqual(parseAst(code, config.parseOptions), config.expectedAst);
+					assert.deepEqual(parseLazyAst(code, config.parseOptions), config.expectedAst);
+					assert.deepEqual(await parseAstAsync(code, config.parseOptions), config.expectedAst);
+					assert.deepEqual(await parseLazyAstAsync(code, config.parseOptions), config.expectedAst);
+					assert.deepEqual(deserializeAst(serializeAst(config.expectedAst)), config.expectedAst);
 				}
 			}
 		);
