@@ -49,8 +49,7 @@ function walkAstBuffer(astBuffer: AstBuffer, visitors: ParseAndWalkVisitors) {
 	// If it is 0, there are no walking buffer or walked nodes
 	if (walkingInfoOffset === 0) {
 		// This will throw the correct error if there was a parse error
-		deserializeLazyAstBuffer(astBuffer, 1);
-		return;
+		return deserializeLazyAstBuffer(astBuffer, 1) as never;
 	}
 
 	let walkingPosition = walkingInfoOffset;
