@@ -1210,13 +1210,10 @@ function serializeAnnotations(
 	buffer: AstBufferForWriting,
 	referencePosition: number
 ): AstBufferForWriting {
-	if (annotations == null) {
+	if (!annotations?.length) {
 		return buffer;
 	}
 	const { length } = annotations;
-	if (length === 0) {
-		return buffer;
-	}
 	let insertPosition = buffer.position;
 	buffer = buffer.reserve(length + 1);
 	buffer[referencePosition] = insertPosition;
