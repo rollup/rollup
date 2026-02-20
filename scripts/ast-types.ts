@@ -3,7 +3,7 @@
  * From this file, "npm run build:ast-converters" will generate
  * - /rust/parse_ast/src/convert_ast/converter/ast_constants.rs:
  *   Constants that describe how the AST nodes are encoded in Rust.
- * - /src/utils/bufferToAst.ts:
+ * - /src/utils/bufferToLazyAst.ts:
  *   Helper functions that are used by this.parse in plugins to convert a buffer
  *   to a JSON AST.
  * - /src/ast/bufferParsers.ts
@@ -764,7 +764,10 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ name: 'flags', type: 'String' },
 			{ name: 'pattern', type: 'String' }
 		],
-		hiddenFields: ['flags', 'pattern']
+		serializeHiddenFields: {
+			flags: 'regex.flags',
+			pattern: 'regex.pattern'
+		}
 	},
 	LiteralString: {
 		astType: 'Literal',
@@ -923,7 +926,10 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ name: 'raw', type: 'String' }
 		],
 		flags: ['tail'],
-		hiddenFields: ['cooked', 'raw']
+		serializeHiddenFields: {
+			cooked: 'value.cooked',
+			raw: 'value.raw'
+		}
 	},
 	TemplateLiteral: {
 		fields: [
@@ -1049,7 +1055,7 @@ export interface NodeDescription {
 	fixed?: Record<string, string>; // Any fields with fixed values
 	additionalFields?: Record<string, { value: string; type: string }>; // Derived fields can be specified as arbitrary strings here
 	baseForAdditionalFields?: string[]; // Fields needed to define additional fields
-	hiddenFields?: string[]; // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
+	serializeHiddenFields?: Record<string, string>; // How to serialize fields that are part of the buffer but are not part of the JS AST, usually together with additionalFields
 	optionalFallback?: Record<string, string>; // If an optional variable should not have "null" as fallback, but the value of another field,
 	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
 	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope

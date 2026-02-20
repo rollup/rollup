@@ -84,7 +84,7 @@ function getFieldProperty(
 	node: NodeDescription,
 	offset: number
 ): string {
-	if (node.hiddenFields?.includes(field.name)) {
+	if (node.serializeHiddenFields?.[field.name]) {
 		return '';
 	}
 	if (isHoistedField(field.name, node)) {
@@ -142,16 +142,17 @@ function getFixedProperties(node: NodeDescription): string[] {
 
 const bufferToJsAst = `${notEditFilesComment}
 import { PanicError, ParseError } from '../ast/nodes/NodeType';import type { RollupAstNode } from '../rollup/types';
-import type { ast } from '../rollup/types';
+import type { ast, DeserializeAst } from '../rollup/types';
 import type { RollupAnnotation } from './astConverterHelpers';
 import { convertAnnotations } from './astConverterHelpers';
 import { EMPTY_ARRAY } from './blank';
 import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
+import { getAstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-export function convertProgram(buffer: AstBuffer): ast.Program {
-  const node = convertNode(0, buffer);
+export const deserializeAst: DeserializeAst = (buffer, position = 0) => {
+  const node = convertNode(position, getAstBuffer(buffer));
   switch (node.type) {
     case PanicError: {
       return error(getRollupError(logParseError(node.message)));
@@ -163,7 +164,7 @@ export function convertProgram(buffer: AstBuffer): ast.Program {
       return node;
     }
   }
-}
+};
 
 /* eslint-disable sort-keys */
 const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
@@ -181,8 +182,8 @@ export function convertNode(position: number, buffer: AstBuffer): any {
   return converter(position + 1, buffer);
 }
 
-function convertNodeList(position: number, buffer: AstBuffer): any[] {
-  if (position === 0) return EMPTY_ARRAY as never[];
+function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
+  if (position === 0) return EMPTY_ARRAY;
   const length = buffer[position++];
   const list: any[] = new Array(length);
   for (let index = 0; index < length; index++) {

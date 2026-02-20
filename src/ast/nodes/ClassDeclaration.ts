@@ -1,15 +1,13 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import type ChildScope from '../scopes/ChildScope';
 import type Variable from '../variables/Variable';
-import Identifier, { type IdentifierWithVariable } from './Identifier';
+import { type IdentifierWithVariable } from './Identifier';
 import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 
-export default class ClassDeclaration extends ClassNode<ast.ClassDeclaration> {
+export default class ClassDeclaration extends ClassNode {
 	declare parent: nodes.ClassDeclarationParent;
 	declare id: IdentifierWithVariable | null;
 	declare type: NodeType.tClassDeclaration;
@@ -19,15 +17,6 @@ export default class ClassDeclaration extends ClassNode<ast.ClassDeclaration> {
 		if (this.id !== null) {
 			this.id.variable.isId = true;
 		}
-	}
-
-	parseNode(esTreeNode: ast.ClassDeclaration): this {
-		if (esTreeNode.id !== null) {
-			this.id = new Identifier(this, this.scope.parent as ChildScope).parseNode(
-				esTreeNode.id
-			) as IdentifierWithVariable;
-		}
-		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

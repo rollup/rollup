@@ -26,7 +26,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 				let assignmentLeftHand = node.baseForAdditionalFields?.includes(flagName)
 					? `const ${flagName} = `
 					: '';
-				if (!node.hiddenFields?.includes(flagName)) {
+				if (!node.serializeHiddenFields?.[flagName]) {
 					assignmentLeftHand += `node.${flagName} = `;
 				}
 				return `${assignmentLeftHand}(flags & ${1 << index}) === ${1 << index};`;
@@ -86,7 +86,7 @@ function getFieldDefinition(
 	let assignmentLeftHand = node.baseForAdditionalFields?.includes(field.name)
 		? `const ${field.name} = `
 		: '';
-	if (!node.hiddenFields?.includes(field.name)) {
+	if (!node.serializeHiddenFields?.[field.name]) {
 		assignmentLeftHand += `node.${field.name} = `;
 	}
 	const scope = originalNode?.scopes?.[field.name] || node?.scopes?.[field.name] || 'scope';
@@ -167,7 +167,7 @@ const bufferParsers = `${notEditFilesComment}
 import type { ast } from '../rollup/types';
 import { convertAnnotations } from '../utils/astConverterHelpers';
 import { EMPTY_ARRAY } from '../utils/blank';
-import { convertNode as convertJsonNode } from '../utils/bufferToAst';
+import { convertNode as convertJsonNode } from '../utils/bufferToLazyAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { AstBuffer } from '../utils/getAstBuffer';
 import { getAstBuffer } from '../utils/getAstBuffer';

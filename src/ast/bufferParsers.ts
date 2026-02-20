@@ -4,7 +4,7 @@
 import type { ast } from '../rollup/types';
 import { convertAnnotations } from '../utils/astConverterHelpers';
 import { EMPTY_ARRAY } from '../utils/blank';
-import { convertNode as convertJsonNode } from '../utils/bufferToAst';
+import { convertNode as convertJsonNode } from '../utils/bufferToLazyAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { AstBuffer } from '../utils/getAstBuffer';
 import { getAstBuffer } from '../utils/getAstBuffer';

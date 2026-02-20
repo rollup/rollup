@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { AstNode } from '../../../rollup/ast-types';
 import type { NormalizedJsxOptions } from '../../../rollup/types';
 import { getRenderedJsxChildren } from '../../../utils/jsx';
 import type { RenderOptions } from '../../../utils/renderHelpers';
@@ -14,7 +13,7 @@ import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
 import { doNotDeoptimize, NodeBase } from './Node';
 
-export default class JSXElementBase<T extends AstNode> extends NodeBase<T> {
+export default class JSXElementBase extends NodeBase {
 	declare parent: nodes.JSXElementParent | nodes.JSXFragmentParent;
 	declare children: nodes.JSXChild[];
 

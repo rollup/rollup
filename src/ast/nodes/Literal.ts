@@ -1,6 +1,4 @@
 import type MagicString from 'magic-string';
-import type { LiteralRegExp } from '../../rollup/ast-types';
-import type { ast } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import {
@@ -30,7 +28,7 @@ export type LiteralValueOrBigInt = LiteralValue | bigint;
 
 export default class Literal<
 	T extends LiteralValueOrBigInt = LiteralValueOrBigInt
-> extends NodeBase<ast.Literal> {
+> extends NodeBase {
 	declare parent: nodes.LiteralParent;
 	bigint?: string;
 	raw?: string;
@@ -97,12 +95,6 @@ export default class Literal<
 	initialise(): void {
 		super.initialise();
 		this.members = getLiteralMembersForValue(this.value);
-	}
-
-	parseNode(esTreeNode: ast.Literal): this {
-		this.value = esTreeNode.value as T;
-		this.regex = (esTreeNode as LiteralRegExp).regex;
-		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString): void {

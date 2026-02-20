@@ -1,11 +1,9 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { parseAsync } from '../native';
 import { convertProgram } from './ast/bufferParsers';
 import type { InclusionContext } from './ast/ExecutionContext';
 import { createInclusionContext } from './ast/ExecutionContext';
-import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import type ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
@@ -33,24 +31,25 @@ import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import type {
 	ast,
+	CachedModule,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	LogLevel,
 	ModuleInfo,
-	ModuleJSON,
 	ModuleOptions,
+	ModuleSource,
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
 	ResolvedId,
 	ResolvedIdMap,
 	RollupError,
-	RollupLog,
-	TransformModuleJSON
+	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import { deserializeLazyAst } from './utils/bufferToLazyAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
@@ -77,7 +76,6 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
-import { parseAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -123,9 +121,6 @@ export interface AstContext {
 	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
-	getNodeConstructor: <T extends keyof typeof nodeConstructors>(
-		name: T
-	) => (typeof nodeConstructors)[T];
 	importDescriptions: Map<string, ImportDescription>;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariableInModule: (
@@ -258,6 +253,7 @@ export default class Module {
 
 	private allExportsIncluded = false;
 	private ast: Program | null = null;
+	declare private astBuffer: Uint8Array;
 	declare private astContext: AstContext;
 	private readonly context: string;
 	declare private customTransformCache: boolean;
@@ -790,8 +786,8 @@ export default class Module {
 		return { source, usesTopLevelAwait };
 	}
 
-	async setSource({
-		ast,
+	setSource({
+		astBuffer,
 		code,
 		customTransformCache,
 		originalCode,
@@ -802,10 +798,7 @@ export default class Module {
 		transformFiles,
 		safeVariableNames,
 		...moduleOptions
-	}: TransformModuleJSON & {
-		resolvedIds?: ResolvedIdMap;
-		transformFiles?: EmittedFile[] | undefined;
-	}): Promise<void> {
+	}: ModuleSource): void {
 		timeStart('generate ast', 3);
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
@@ -858,7 +851,6 @@ export default class Module {
 			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
-			getNodeConstructor: name => nodeConstructors[name] || nodeConstructors.UnknownNode,
 			importDescriptions: this.importDescriptions,
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariableInModule: this.includeVariableInModule.bind(this),
@@ -877,46 +869,22 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
-
-		if (ast) {
-			this.ast = new nodeConstructors[ast.type](null, this.scope).parseNode(ast) as Program;
-			this.info.ast = ast;
-		} else {
-			// Measuring asynchronous code does not provide reasonable results
-			timeEnd('generate ast', 3);
-			const astBuffer = await parseAsync(code, false, this.options.jsx !== false);
-			timeStart('generate ast', 3);
-			this.ast = convertProgram(astBuffer, null, this.scope);
-			// Make lazy and apply LRU cache to not hog the memory
-			Object.defineProperty(this.info, 'ast', {
-				get: () => {
-					if (this.graph.astLru.has(fileName)) {
-						return this.graph.astLru.get(fileName)!;
-					} else {
-						const parsedAst = this.tryParse();
-						// If the cache is not disabled, we need to keep the AST in memory
-						// until the end when the cache is generated
-						if (this.options.cache !== false) {
-							Object.defineProperty(this.info, 'ast', {
-								value: parsedAst
-							});
-							return parsedAst;
-						}
-						// Otherwise, we keep it in a small LRU cache to not hog too much
-						// memory but allow the same AST to be requested several times.
-						this.graph.astLru.set(fileName, parsedAst);
-						return parsedAst;
-					}
-				}
-			});
-		}
-
+		this.astBuffer = astBuffer;
+		// When the AST is walked, this data structure will grow as getters are
+		// replaced with fixed properties. By making this a getter, we avoid keeping
+		// a reference to the full AST to conserve memory at the potential cost of
+		// creating AST nodes repeatedly.
+		Object.defineProperty(this.info, 'ast', {
+			enumerable: true,
+			get: () => this.tryParseLazy(this.astBuffer)
+		});
+		this.ast = convertProgram(this.astBuffer, null, this.scope);
 		timeEnd('generate ast', 3);
 	}
 
-	toJSON(): ModuleJSON {
+	toJSON(): CachedModule {
 		return {
-			ast: this.info.ast!,
+			astBuffer: this.astBuffer,
 			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
@@ -1379,9 +1347,9 @@ export default class Module {
 		this.exportDescriptions.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse() {
+	private tryParseLazy(astBuffer: Uint8Array) {
 		try {
-			return parseAst(this.info.code!, { jsx: this.options.jsx !== false });
+			return deserializeLazyAst(astBuffer) as ast.Program;
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
