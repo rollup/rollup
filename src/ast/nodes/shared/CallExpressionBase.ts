@@ -1,4 +1,3 @@
-import type { AstNode } from '../../../rollup/ast-types';
 import { EMPTY_ARRAY, EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
@@ -14,10 +13,7 @@ import {
 } from './Expression';
 import { NodeBase } from './Node';
 
-export default abstract class CallExpressionBase<T extends AstNode>
-	extends NodeBase<T>
-	implements DeoptimizableEntity
-{
+export default abstract class CallExpressionBase extends NodeBase implements DeoptimizableEntity {
 	declare protected interaction: NodeInteractionCalled;
 	protected returnExpression: [expression: ExpressionEntity, isPure: boolean] | null = null;
 	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];

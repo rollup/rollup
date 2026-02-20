@@ -42,7 +42,7 @@ export default class Variable extends ExpressionEntity {
 	 * Binds identifiers that reference this variable to this variable.
 	 * Necessary to be able to change variable names.
 	 */
-	addReference(_identifier: IdentifierBase<any>): void {}
+	addReference(_identifier: IdentifierBase): void {}
 
 	private onlyFunctionCallUsed = true;
 	/**
@@ -59,9 +59,9 @@ export default class Variable extends ExpressionEntity {
 	 */
 	addUsedPlace(
 		usedPlace:
-			| IdentifierBase<any>
+			| IdentifierBase
 			| MemberExpression
-			| JSXElementBase<any>
+			| JSXElementBase
 			| JSXOpeningElement
 			| JSXOpeningFragment
 	): void {
