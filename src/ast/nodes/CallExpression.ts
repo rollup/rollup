@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logCannotCallNamespace, logEval } from '../../utils/logs';
@@ -25,7 +25,7 @@ import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 
 export default class CallExpression
-	extends CallExpressionBase<ast.CallExpression>
+	extends CallExpressionBase
 	implements DeoptimizableEntity, ChainElement
 {
 	declare parent: nodes.CallExpressionParent;

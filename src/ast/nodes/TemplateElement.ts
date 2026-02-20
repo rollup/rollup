@@ -1,10 +1,9 @@
-import type { ast } from '../../rollup/types';
 import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class TemplateElement extends NodeBase<ast.TemplateElement> {
+export default class TemplateElement extends NodeBase {
 	declare parent: nodes.TemplateElementParent;
 	declare type: NodeType.tTemplateElement;
 	declare value: {
@@ -24,11 +23,6 @@ export default class TemplateElement extends NodeBase<ast.TemplateElement> {
 
 	hasEffects(): boolean {
 		return false;
-	}
-
-	parseNode(esTreeNode: ast.TemplateElement): this {
-		this.value = esTreeNode.value;
-		return super.parseNode(esTreeNode);
 	}
 
 	render(): void {}

@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as nodes from './node-unions';
@@ -10,7 +9,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class BreakStatement extends NodeBase<ast.BreakStatement> {
+export default class BreakStatement extends NodeBase {
 	declare parent: nodes.BreakStatementParent;
 	declare label: Identifier | null;
 	declare type: NodeType.tBreakStatement;
