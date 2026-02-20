@@ -1,0 +1,26 @@
+diff --git a/node_modules/fixturify/index.d.ts b/node_modules/fixturify/index.d.ts
+index 883c089..309fcbc 100644
+--- a/node_modules/fixturify/index.d.ts
++++ b/node_modules/fixturify/index.d.ts
+@@ -1,4 +1,4 @@
+-import { IMinimatch } from 'minimatch';
++import { Minimatch } from 'minimatch';
+ declare namespace fixturify {
+     /**
+      A recursive JSON representation of a directory. This representation includes
+@@ -21,11 +21,11 @@ declare namespace fixturify {
+         [filename: string]: DirJSON | string | null;
+     }
+     interface Options {
+-        include?: (IMinimatch | string)[];
+-        exclude?: (IMinimatch | string)[];
++        include?: (Minimatch | string)[];
++        exclude?: (Minimatch | string)[];
+         ignoreEmptyDirs?: boolean;
+-        globs?: (string | IMinimatch)[];
+-        ignore?: (string | IMinimatch)[];
++        globs?: (string | Minimatch)[];
++        ignore?: (string | Minimatch)[];
+         directories?: boolean;
+     }
+     function readSync(dir: string, options?: Options, _relativeRoot?: string): DirJSON;

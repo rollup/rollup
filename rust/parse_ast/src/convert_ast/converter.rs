@@ -1,23 +1,23 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-    AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
-    ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
-    JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
-    ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
-    PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+  AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
+  ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
+  JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
+  ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
+  PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-    TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
 };
 use crate::convert_ast::converter::string_constants::{
-    STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
+  STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
 use crate::convert_ast::converter::utf16_positions::{
-    ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
+  ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
 
 pub(crate) mod analyze_code;
