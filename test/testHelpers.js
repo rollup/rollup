@@ -26,6 +26,7 @@ const { importAssertions } = require('acorn-import-assertions');
 const importPhases = require('acorn-import-phases');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
+const { serializeAst, deserializeLazyAst } = require('../dist/parseAst');
 
 if (!globalThis.defineTest) {
 	globalThis.defineTest = config => config;
@@ -476,6 +477,7 @@ exports.verifyAstPlugin = {
 			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
 		);
+		assert.deepStrictEqual(deserializeLazyAst(serializeAst(ast)), ast);
 	}
 };
 

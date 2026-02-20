@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
@@ -28,10 +27,7 @@ import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import SpreadElement from './SpreadElement';
 
-export default class ObjectExpression
-	extends NodeBase<ast.ObjectExpression>
-	implements DeoptimizableEntity
-{
+export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	declare parent: nodes.ObjectExpressionParent;
 	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;
