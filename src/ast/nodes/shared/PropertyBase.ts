@@ -1,4 +1,3 @@
-import type { AstNode } from '../../../rollup/ast-types';
 import type { ast } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
@@ -25,10 +24,7 @@ import {
 } from './Expression';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './Node';
 
-export default class PropertyBase<T extends AstNode>
-	extends NodeBase<T>
-	implements DeoptimizableEntity
-{
+export default class PropertyBase extends NodeBase implements DeoptimizableEntity {
 	declare key: nodes.Expression | PrivateIdentifier;
 	declare kind: ast.MethodDefinition['kind'] | ast.Property['kind'];
 	declare value: nodes.Expression | nodes.DestructuringPattern;

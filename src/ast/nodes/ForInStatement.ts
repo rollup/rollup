@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
@@ -12,7 +11,7 @@ import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForInStatement extends NodeBase<ast.ForInStatement> {
+export default class ForInStatement extends NodeBase {
 	declare parent: nodes.ForInStatementParent;
 	declare body: nodes.Statement;
 	declare left: VariableDeclaration | nodes.DestructuringPattern;
