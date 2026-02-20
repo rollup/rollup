@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedJsxOptions } from '../../rollup/types';
+import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import JSXAttribute from './JSXAttribute';
@@ -12,7 +12,7 @@ import JSXElementBase from './shared/JSXElementBase';
 import type { JsxMode } from './shared/jsxHelpers';
 import type { IncludeChildren } from './shared/Node';
 
-export default class JSXElement extends JSXElementBase<ast.JSXElement> {
+export default class JSXElement extends JSXElementBase {
 	declare parent: nodes.JSXElementParent;
 	declare type: NodeType.tJSXElement;
 	declare openingElement: JSXOpeningElement;

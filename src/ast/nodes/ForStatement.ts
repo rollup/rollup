@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
@@ -15,7 +14,7 @@ import {
 } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForStatement extends NodeBase<ast.ForStatement> {
+export default class ForStatement extends NodeBase {
 	declare parent: nodes.ForStatementParent;
 	declare body: nodes.Statement;
 	declare init: VariableDeclaration | nodes.Expression | null;

@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import ClassBodyScope from '../scopes/ClassBodyScope';
@@ -15,7 +14,7 @@ import {
 } from './shared/Node';
 import type StaticBlock from './StaticBlock';
 
-export default class ClassBody extends NodeBase<ast.ClassBody> {
+export default class ClassBody extends NodeBase {
 	declare parent: nodes.ClassBodyParent;
 	declare body: (MethodDefinition | PropertyDefinition | StaticBlock)[];
 	declare scope: ClassBodyScope;
@@ -31,22 +30,6 @@ export default class ClassBody extends NodeBase<ast.ClassBody> {
 		for (const definition of this.body) {
 			definition.include(context, includeChildrenRecursively);
 		}
-	}
-
-	parseNode(esTreeNode: ast.ClassBody): this {
-		const body: (MethodDefinition | PropertyDefinition | StaticBlock)[] = (this.body = new Array(
-			esTreeNode.body.length
-		));
-		let index = 0;
-		for (const definition of esTreeNode.body) {
-			body[index++] = new (this.scope.context.getNodeConstructor(definition.type))(
-				this,
-				(definition as MethodDefinition | PropertyDefinition).static
-					? this.scope
-					: this.scope.instanceScope
-			).parseNode(definition as any);
-		}
-		return super.parseNode(esTreeNode);
 	}
 }
 

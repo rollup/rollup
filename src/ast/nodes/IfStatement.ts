@@ -1,9 +1,8 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
-import TrackingScope from '../scopes/TrackingScope';
+import type TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import type Identifier from './Identifier';
@@ -19,7 +18,7 @@ import {
 
 const unset = Symbol('unset');
 
-export default class IfStatement extends NodeBase<ast.IfStatement> implements DeoptimizableEntity {
+export default class IfStatement extends NodeBase implements DeoptimizableEntity {
 	declare parent: nodes.IfStatementParent;
 	declare alternate: nodes.Statement | null;
 	declare consequent: nodes.Statement;
@@ -64,20 +63,6 @@ export default class IfStatement extends NodeBase<ast.IfStatement> implements De
 				this.includeKnownTest(context, testValue);
 			}
 		}
-	}
-
-	parseNode(esTreeNode: ast.IfStatement): this {
-		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
-			this,
-			(this.consequentScope = new TrackingScope(this.scope))
-		).parseNode(esTreeNode.consequent as any);
-		if (esTreeNode.alternate) {
-			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
-				this,
-				(this.alternateScope = new TrackingScope(this.scope))
-			).parseNode(esTreeNode.alternate as any);
-		}
-		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
