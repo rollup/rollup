@@ -11,5 +11,25 @@ module.exports = defineTest({
 	},
 	assertions() {
 		assert.deepEqual(literals, [{ type: 'Literal', start: 15, end: 19, raw: 'null', value: null }]);
+	},
+	expectedAst: {
+		type: 'Program',
+		start: 0,
+		end: 21,
+		body: [
+			{
+				type: 'ExportDefaultDeclaration',
+				start: 0,
+				end: 20,
+				declaration: {
+					type: 'Literal',
+					start: 15,
+					end: 19,
+					raw: 'null',
+					value: null
+				}
+			}
+		],
+		sourceType: 'module'
 	}
 });

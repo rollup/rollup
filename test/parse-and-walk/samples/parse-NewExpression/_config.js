@@ -24,5 +24,30 @@ module.exports = defineTest({
 				arguments: []
 			}
 		]);
+	},
+	expectedAst: {
+		type: 'Program',
+		start: 0,
+		end: 27,
+		body: [
+			{
+				type: 'ExportDefaultDeclaration',
+				start: 0,
+				end: 26,
+				declaration: {
+					type: 'NewExpression',
+					start: 15,
+					end: 25,
+					callee: {
+						type: 'Identifier',
+						start: 19,
+						end: 23,
+						name: 'Date'
+					},
+					arguments: []
+				}
+			}
+		],
+		sourceType: 'module'
 	}
 });

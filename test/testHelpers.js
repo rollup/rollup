@@ -99,6 +99,23 @@ exports.compareError = function compareError(actual, expected) {
 };
 
 /**
+ * @param {{ (): unknown; }} testFunction
+ * @param {RollupError} expectedError
+ */
+exports.expectError = async function (testFunction, expectedError) {
+	let caughtError = null;
+	try {
+		await testFunction();
+	} catch (error) {
+		caughtError = error;
+	}
+	if (!caughtError) {
+		throw new Error('Expected an error but none was thrown');
+	}
+	exports.compareError(caughtError, expectedError);
+};
+
+/**
  * @param {(RollupLog & {level: LogLevel})[]} actual
  * @param {(RollupLog & {level: LogLevel})[]} expected
  */

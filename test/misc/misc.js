@@ -1,6 +1,7 @@
 const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
-const { loader } = require('../testHelpers.js');
+const { loader, expectError } = require('../testHelpers.js');
+const { serializeAst, deserializeAst, deserializeLazyAst } = require('../../dist/parseAst');
 
 describe('misc', () => {
 	it('avoids modification of options or their properties', () => {
@@ -319,7 +320,7 @@ console.log(x);
 		await bundle.generate({ format: 'es', exports: 'auto' });
 	});
 
-	it('should support `Symbol.asyncDispose` of the rollup bundle and set closed state to true', async () => {
+	it('supports `Symbol.asyncDispose` of the rollup bundle and set closed state to true', async () => {
 		const bundle = await rollup.rollup({
 			input: 'main.js',
 			plugins: [
@@ -331,5 +332,35 @@ console.log(x);
 
 		await bundle[Symbol.asyncDispose]();
 		assert.strictEqual(bundle.closed, true);
+	});
+
+	it('serializes and deserializes parse error ASTs', async () => {
+		const serializedPanicAst = serializeAst({
+			type: 'ParseError',
+			message: 'This is a parse error',
+			start: 42,
+			end: 84
+		});
+		const expectedError = {
+			code: 'PARSE_ERROR',
+			message: 'This is a parse error',
+			pos: 42
+		};
+		await expectError(() => deserializeAst(serializedPanicAst), expectedError);
+		await expectError(() => deserializeLazyAst(serializedPanicAst), expectedError);
+	});
+
+	it('serializes and deserializes panic error ASTs', async () => {
+		const serializedPanicAst = serializeAst({
+			type: 'PanicError',
+			message: 'This is a panic error'
+		});
+		const expectedError = {
+			code: 'PARSE_ERROR',
+			message: 'This is a panic error',
+			pos: undefined
+		};
+		await expectError(() => deserializeAst(serializedPanicAst), expectedError);
+		await expectError(() => deserializeLazyAst(serializedPanicAst), expectedError);
 	});
 });

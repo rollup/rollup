@@ -1,4 +1,7 @@
 // @ts-check
+/**
+ * @typedef {import('../../src/rollup/types').RollupError} RollupError
+ */
 const path = require('node:path');
 const {
 	parseAst,
@@ -9,7 +12,7 @@ const {
 	serializeAst,
 	deserializeAst
 } = require('../../dist/parseAst');
-const { compareError, runTestSuiteWithSamples } = require('../testHelpers.js');
+const { expectError, runTestSuiteWithSamples } = require('../testHelpers.js');
 const { readFileSync } = require('node:fs');
 const assert = require('node:assert/strict');
 
@@ -25,33 +28,34 @@ runTestSuiteWithSamples(
 			async () => {
 				const code = readFileSync(path.join(directory, 'main.js'), 'utf-8');
 
-				if (config.error) {
-					let caughtError = null;
-					try {
-						await parseAndWalk(code, config.walk, config.parseOptions);
-					} catch (error) {
-						caughtError = error;
+				const expectedError = config.error || config.internalError;
+				if (expectedError) {
+					await expectError(
+						() => parseAndWalk(code, config.walk, config.parseOptions),
+						expectedError
+					);
+					if (config.error) {
+						await expectError(() => parseAst(code, config.parseOptions), config.error);
+						await expectError(() => parseLazyAst(code, config.parseOptions), config.error);
+						await expectError(() => parseAstAsync(code, config.parseOptions), config.error);
+						await expectError(() => parseLazyAstAsync(code, config.parseOptions), config.error);
 					}
-
-					if (!caughtError) {
-						throw new Error('Expected an error but none was thrown');
-					}
-
-					compareError(caughtError, config.error);
 				} else {
 					await parseAndWalk(code, config.walk, config.parseOptions);
 
 					if (config.assertions) {
 						await config.assertions();
 					}
-				}
-				if (config.expectedAst) {
-					console.log(JSON.stringify(parseAst(code, config.parseOptions)));
-					assert.deepEqual(parseAst(code, config.parseOptions), config.expectedAst);
-					assert.deepEqual(parseLazyAst(code, config.parseOptions), config.expectedAst);
-					assert.deepEqual(await parseAstAsync(code, config.parseOptions), config.expectedAst);
-					assert.deepEqual(await parseLazyAstAsync(code, config.parseOptions), config.expectedAst);
-					assert.deepEqual(deserializeAst(serializeAst(config.expectedAst)), config.expectedAst);
+					if (config.expectedAst) {
+						assert.deepEqual(parseAst(code, config.parseOptions), config.expectedAst);
+						assert.deepEqual(parseLazyAst(code, config.parseOptions), config.expectedAst);
+						assert.deepEqual(await parseAstAsync(code, config.parseOptions), config.expectedAst);
+						assert.deepEqual(
+							await parseLazyAstAsync(code, config.parseOptions),
+							config.expectedAst
+						);
+						assert.deepEqual(deserializeAst(serializeAst(config.expectedAst)), config.expectedAst);
+					}
 				}
 			}
 		);

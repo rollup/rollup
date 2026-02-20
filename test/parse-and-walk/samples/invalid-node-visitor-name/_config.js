@@ -5,7 +5,7 @@ module.exports = defineTest({
 			// Should not reach here
 		}
 	},
-	error: {
+	internalError: {
 		message: 'Unknown node type "InvalidNodeType" when calling "parseAndWalk".'
 	}
 });

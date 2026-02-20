@@ -34,5 +34,47 @@ module.exports = defineTest({
 				kind: 'init'
 			}
 		]);
+	},
+	expectedAst: {
+		type: 'Program',
+		start: 0,
+		end: 25,
+		body: [
+			{
+				type: 'ExportDefaultDeclaration',
+				start: 0,
+				end: 24,
+				declaration: {
+					type: 'ObjectExpression',
+					start: 15,
+					end: 23,
+					properties: [
+						{
+							type: 'Property',
+							start: 17,
+							end: 21,
+							method: false,
+							shorthand: false,
+							computed: false,
+							key: {
+								type: 'Identifier',
+								start: 17,
+								end: 18,
+								name: 'x'
+							},
+							value: {
+								type: 'Literal',
+								start: 20,
+								end: 21,
+								raw: '1',
+								value: 1
+							},
+							kind: 'init'
+						}
+					]
+				}
+			}
+		],
+		sourceType: 'module'
 	}
 });

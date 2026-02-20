@@ -26,5 +26,27 @@ module.exports = defineTest({
 				attributes: []
 			}
 		]);
+	},
+	expectedAst: {
+		type: 'Program',
+		start: 0,
+		end: 26,
+		body: [
+			{
+				type: 'ExportAllDeclaration',
+				start: 0,
+				end: 25,
+				exported: null,
+				source: {
+					type: 'Literal',
+					start: 14,
+					end: 24,
+					value: './dep.js',
+					raw: "'./dep.js'"
+				},
+				attributes: []
+			}
+		],
+		sourceType: 'module'
 	}
 });
