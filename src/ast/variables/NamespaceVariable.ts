@@ -19,7 +19,7 @@ import type ChildScope from '../scopes/ChildScope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
 import ExportDefaultVariable from './ExportDefaultVariable';
-import Variable from './Variable';
+import Variable, { type UsedPlace } from './Variable';
 
 export default class NamespaceVariable extends Variable {
 	readonly context: AstContext;
@@ -30,7 +30,7 @@ export default class NamespaceVariable extends Variable {
 	private mergedNamespaces: readonly Variable[] = [];
 	private nonExplicitNamespacesIncluded = false;
 	private referencedEarly = false;
-	private readonly references: IdentifierBase<any>[] = [];
+	private readonly references: IdentifierBase[] = [];
 
 	constructor(context: AstContext) {
 		super(context.getModuleName());
@@ -38,13 +38,13 @@ export default class NamespaceVariable extends Variable {
 		this.module = context.module;
 	}
 
-	addReference(identifier: IdentifierBase<any>): void {
+	addReference(identifier: IdentifierBase): void {
 		this.references.push(identifier);
 		this.name = identifier.name;
 		this.markReferencedFrom(identifier);
 	}
 
-	addUsedPlace(usedPlace: NodeBase): void {
+	addUsedPlace(usedPlace: UsedPlace): void {
 		super.addUsedPlace(usedPlace);
 		// This also covers accesses like `otherNamespace.namespace` that are
 		// resolved to this variable without an identifier reference

@@ -66,16 +66,6 @@ License text: see MIT (1) below
 
 ---------------------------------------
 
-## flru
-License: MIT
-By: Luke Edwards
-Repository: lukeed/flru
-License text: see MIT (1) below
-
-> Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
-
----------------------------------------
-
 ## is-reference
 License: MIT
 By: Rich Harris

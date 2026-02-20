@@ -14,6 +14,9 @@ import type JSXElementBase from '../nodes/shared/JSXElementBase';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
+export type UsedPlace =
+	IdentifierBase | MemberExpression | JSXElementBase | JSXOpeningElement | JSXOpeningFragment;
+
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;
 	forbiddenNames: Set<string> | null = null;
@@ -49,7 +52,7 @@ export default class Variable extends ExpressionEntity {
 	 * Binds identifiers that reference this variable to this variable.
 	 * Necessary to be able to change variable names.
 	 */
-	addReference(_identifier: IdentifierBase<any>): void {}
+	addReference(_identifier: IdentifierBase): void {}
 
 	private onlyFunctionCallUsed = true;
 	/**
@@ -64,14 +67,7 @@ export default class Variable extends ExpressionEntity {
 	 * Collect the places where the identifier variable is used
 	 * @param usedPlace Where the variable is used
 	 */
-	addUsedPlace(
-		usedPlace:
-			| IdentifierBase<any>
-			| MemberExpression
-			| JSXElementBase<any>
-			| JSXOpeningElement
-			| JSXOpeningFragment
-	): void {
+	addUsedPlace(usedPlace: UsedPlace): void {
 		const isFunctionCall =
 			usedPlace.parent.type === NodeType.CallExpression && usedPlace.parent.callee === usedPlace;
 		if (!isFunctionCall && usedPlace.parent.type !== NodeType.ExportDefaultDeclaration) {
