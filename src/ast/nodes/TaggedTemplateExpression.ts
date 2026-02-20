@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
@@ -18,7 +17,7 @@ import type { IncludeChildren } from './shared/Node';
 import { onlyIncludeSelf } from './shared/Node';
 import type TemplateLiteral from './TemplateLiteral';
 
-export default class TaggedTemplateExpression extends CallExpressionBase<ast.TaggedTemplateExpression> {
+export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare parent: nodes.TaggedTemplateExpressionParent;
 	declare quasi: TemplateLiteral;
 	declare tag: nodes.Expression;

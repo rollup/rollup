@@ -34,6 +34,7 @@ import {
 	logUnresolvedImportTreatedAsExternal,
 	warnDeprecation
 } from './utils/logs';
+import { deserializeLazyAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExpression
@@ -325,7 +326,7 @@ export class ModuleLoader {
 			if (
 				await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 					{
-						ast: cachedModule.ast,
+						ast: deserializeLazyAst(cachedModule.astBuffer) as ast.Program,
 						attributes: cachedModule.attributes,
 						code: cachedModule.code,
 						id: cachedModule.id,

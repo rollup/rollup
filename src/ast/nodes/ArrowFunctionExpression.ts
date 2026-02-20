@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
@@ -15,7 +14,7 @@ import type { IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 
-export default class ArrowFunctionExpression extends FunctionBase<ast.ArrowFunctionExpression> {
+export default class ArrowFunctionExpression extends FunctionBase {
 	declare parent: nodes.ArrowFunctionExpressionParent;
 	declare body: BlockStatement | nodes.Expression;
 	declare params: nodes.Parameter[];

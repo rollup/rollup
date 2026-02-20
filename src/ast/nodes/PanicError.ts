@@ -1,10 +1,9 @@
-import type { ast } from '../../rollup/types';
 import { error, getRollupError, logModuleParseError, logParseError } from '../../utils/logs';
 import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class PanicError extends NodeBase<ast.PanicError> {
+export default class PanicError extends NodeBase {
 	declare parent: nodes.PanicErrorParent;
 	declare type: NodeType.tPanicError;
 	declare message: string;

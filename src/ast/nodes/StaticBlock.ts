@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	type RenderOptions,
@@ -17,7 +16,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class StaticBlock extends NodeBase<ast.StaticBlock> {
+export default class StaticBlock extends NodeBase {
 	declare parent: nodes.StaticBlockParent;
 	declare body: readonly nodes.Statement[];
 	declare type: NodeType.tStaticBlock;

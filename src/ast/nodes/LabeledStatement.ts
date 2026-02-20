@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -12,7 +11,7 @@ import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class LabeledStatement extends NodeBase<ast.LabeledStatement> {
+export default class LabeledStatement extends NodeBase {
 	declare parent: nodes.LabeledStatementParent;
 	declare body: nodes.Statement;
 	declare label: Identifier;

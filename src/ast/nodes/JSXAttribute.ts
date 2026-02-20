@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { stringifyObjectKeyIfNeeded } from '../../utils/identifierHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
@@ -13,7 +12,7 @@ import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class JSXAttribute extends NodeBase<ast.JSXAttribute> {
+export default class JSXAttribute extends NodeBase {
 	declare parent: nodes.JSXAttributeParent;
 	declare type: NodeType.tJSXAttribute;
 	declare name: JSXIdentifier | JSXNamespacedName;
