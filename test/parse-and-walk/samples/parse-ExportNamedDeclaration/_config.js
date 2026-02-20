@@ -46,5 +46,47 @@ module.exports = defineTest({
 				}
 			}
 		]);
+	},
+	expectedAst: {
+		type: 'Program',
+		start: 0,
+		end: 20,
+		body: [
+			{
+				type: 'ExportNamedDeclaration',
+				start: 0,
+				end: 19,
+				specifiers: [],
+				source: null,
+				attributes: [],
+				declaration: {
+					type: 'VariableDeclaration',
+					start: 7,
+					end: 19,
+					kind: 'const',
+					declarations: [
+						{
+							type: 'VariableDeclarator',
+							start: 13,
+							end: 18,
+							id: {
+								type: 'Identifier',
+								start: 13,
+								end: 14,
+								name: 'x'
+							},
+							init: {
+								type: 'Literal',
+								start: 17,
+								end: 18,
+								raw: '1',
+								value: 1
+							}
+						}
+					]
+				}
+			}
+		],
+		sourceType: 'module'
 	}
 });

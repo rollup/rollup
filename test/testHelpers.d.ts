@@ -1,6 +1,9 @@
 export function wait(ms: number): Promise<void>;
 export function withTimeout(promise: Promise<unknown>, timeoutMs: number, onTimeout: () => unknown): Promise<unknown>;
 export function compareError(actual: RollupError, expected: RollupError): void;
+export function expectError(testFunction: {
+    (): unknown;
+}, expectedError: RollupError): Promise<void>;
 export function compareLogs(actual: (RollupLog & {
     level: LogLevel;
 })[], expected: (RollupLog & {

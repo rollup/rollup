@@ -298,6 +298,7 @@ export interface TestConfigParseAndWalk extends TestConfigBase {
 	 * expects an error to be thrown.
 	 */
 	expectedAst?: ast.AstNode;
+	internalError?: RollupError;
 	error?: RollupError;
 	/**
 	 * Parse options to pass to parseAndWalk.
@@ -306,5 +307,5 @@ export interface TestConfigParseAndWalk extends TestConfigBase {
 	/**
 	 * Visitors object to pass to parseAndWalk.
 	 */
-	walk?: ParseAndWalkVisitors;
+	walk: ParseAndWalkVisitors;
 }
