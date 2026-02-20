@@ -290,7 +290,8 @@ function getFileNamesAndRemoveOutput(directory) {
 	} catch (error) {
 		if (error.code === 'ENOTDIR') {
 			throw new Error(
-				`${directory} is not located next to a "_config.js" file but is not a directory or old test output either. Please inspect and consider removing the file.`
+				`${directory} is not located next to a "_config.js" file but is not a directory or old test output either. Please inspect and consider removing the file.`,
+				{ cause: error }
 			);
 		}
 		throw error;
