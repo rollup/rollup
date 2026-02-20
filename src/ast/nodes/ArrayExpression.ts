@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -17,7 +16,7 @@ import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import SpreadElement from './SpreadElement';
 
-export default class ArrayExpression extends NodeBase<ast.ArrayExpression> {
+export default class ArrayExpression extends NodeBase {
 	declare parent: nodes.ArrayExpressionParent;
 	declare elements: readonly (nodes.Expression | SpreadElement | null)[];
 	declare type: NodeType.tArrayExpression;

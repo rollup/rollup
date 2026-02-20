@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
 	createHasEffectsContext,
@@ -14,7 +13,7 @@ import type { IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type SwitchCase from './SwitchCase';
 
-export default class SwitchStatement extends NodeBase<ast.SwitchStatement> {
+export default class SwitchStatement extends NodeBase {
 	declare parent: nodes.SwitchStatementParent;
 	declare cases: readonly SwitchCase[];
 	declare discriminant: nodes.Expression;
@@ -92,14 +91,6 @@ export default class SwitchStatement extends NodeBase<ast.SwitchStatement> {
 			}
 		}
 		this.defaultCase = null;
-	}
-
-	parseNode(esTreeNode: ast.SwitchStatement): this {
-		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
-			this,
-			this.parentScope
-		).parseNode(esTreeNode.discriminant as any);
-		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

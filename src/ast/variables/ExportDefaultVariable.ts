@@ -37,13 +37,13 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	addReference(identifier: IdentifierBase<any>): void {
+	addReference(identifier: IdentifierBase): void {
 		if (!this.hasId) {
 			this.name = identifier.name;
 		}
 	}
 
-	addUsedPlace(usedPlace: IdentifierBase<any> | MemberExpression): void {
+	addUsedPlace(usedPlace: IdentifierBase | MemberExpression): void {
 		const original = this.getOriginalVariable();
 		if (original === this) {
 			super.addUsedPlace(usedPlace);
