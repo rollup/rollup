@@ -20,22 +20,49 @@ export function fnB (args) {
   return args
 }
 
-export const fnC = /*#__NO_SIDE_EFFECTS__*/ (args) => {
+export const fnC1 = /*#__NO_SIDE_EFFECTS__*/ (args) => {
   console.log(args)
   return args
 }
 
+export const fnC2 = /*#__NO_SIDE_EFFECTS__*/ function (args) {
+  console.log(args);
+  return args;
+}
 
 /*#__NO_SIDE_EFFECTS__*/
-const fnD = (args) => {
+const fnD1 = (args) => {
   console.log(args)
   return args
 }
 
-export { fnD }
+/*#__NO_SIDE_EFFECTS__*/
+const fnD2 = function (args) {
+  console.log(args);
+  return args;
+}
+
+export { fnD1, fnD2 }
 
 /*#__NO_SIDE_EFFECTS__*/
-export const fnE = (args) => {
+export const fnE1 = (args) => {
+  console.log(args)
+  return args
+}
+
+/*#__NO_SIDE_EFFECTS__*/
+export const fnE2 = function (args) {
+  console.log(args);
+  return args;
+}
+
+/**
+ * This is a jsdoc comment, with pure annotation
+ *
+ * @param {any} args
+ * @__NO_SIDE_EFFECTS__
+ */
+export const fnF1 = (args) => {
   console.log(args)
   return args
 }
@@ -46,9 +73,9 @@ export const fnE = (args) => {
  * @param {any} args
  * @__NO_SIDE_EFFECTS__
  */
-export const fnF = (args) => {
-  console.log(args)
-  return args
+export const fnF2 = function (args) {
+  console.log(args);
+  return args;
 }
 
 // #__NO_SIDE_EFFECTS__
@@ -60,16 +87,28 @@ export async function fnG(args) {
 /**
  * #__NO_SIDE_EFFECTS__
  */
-export const fnH = async (args) => {
+export const fnH1 = async (args) => {
   console.log(args)
   return args
 }
 
-export const fnI = /*#__NO_SIDE_EFFECTS__*/ async (args) => {
+/**
+ * #__NO_SIDE_EFFECTS__
+ */
+export const fnH2 = async function (args) {
+  console.log(args);
+  return args;
+}
+
+export const fnI1 = /*#__NO_SIDE_EFFECTS__*/ async (args) => {
   console.log(args)
   return args
 }
 
+export const fnI2 = /*#__NO_SIDE_EFFECTS__*/ async function (args) {
+  console.log(args);
+  return args;
+}
 
 /**
  * #__NO_SIDE_EFFECTS__

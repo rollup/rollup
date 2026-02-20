@@ -17,7 +17,7 @@ impl AstConverter<'_> {
     );
     let forwarded_annotations = match &variable_declarator.init {
       Some(expression) => match &**expression {
-        Expr::Arrow(_) => {
+        Expr::Arrow(_) | Expr::Fn(_) => {
           let annotations = self
             .index_converter
             .take_collected_annotations(AnnotationKind::NoSideEffects);
