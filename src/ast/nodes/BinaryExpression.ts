@@ -60,10 +60,7 @@ const binaryOperators: Record<
 
 const UNASSIGNED = Symbol('Unassigned');
 
-export default class BinaryExpression
-	extends NodeBase<ast.BinaryExpression>
-	implements DeoptimizableEntity
-{
+export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
 	declare parent: nodes.BinaryExpressionParent;
 	declare left: nodes.Expression;
 	declare operator: ast.BinaryExpression['operator'];
