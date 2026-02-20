@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	type NodeRenderOptions,
@@ -16,7 +15,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class SwitchCase extends NodeBase<ast.SwitchCase> {
+export default class SwitchCase extends NodeBase {
 	declare parent: nodes.SwitchCaseParent;
 	declare consequent: readonly nodes.Statement[];
 	declare needsBoundaries: true;

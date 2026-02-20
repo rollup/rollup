@@ -1,11 +1,10 @@
-import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class AwaitExpression extends NodeBase<ast.AwaitExpression> {
+export default class AwaitExpression extends NodeBase {
 	declare parent: nodes.AwaitExpressionParent;
 	declare argument: nodes.Expression;
 	declare type: NodeType.tAwaitExpression;

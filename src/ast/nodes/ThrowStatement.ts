@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { type InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
@@ -7,7 +6,7 @@ import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class ThrowStatement extends NodeBase<ast.ThrowStatement> {
+export default class ThrowStatement extends NodeBase {
 	declare parent: nodes.ThrowStatementParent;
 	declare argument: nodes.Expression;
 	declare type: NodeType.tThrowStatement;

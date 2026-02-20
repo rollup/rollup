@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
@@ -23,7 +22,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class SequenceExpression extends NodeBase<ast.SequenceExpression> {
+export default class SequenceExpression extends NodeBase {
 	declare parent: nodes.SequenceExpressionParent;
 	declare expressions: nodes.Expression[];
 	declare type: NodeType.tSequenceExpression;

@@ -18,7 +18,7 @@ export function getAndIncludeFactoryVariable(
 	factory: string,
 	preserve: boolean,
 	importSource: string | null,
-	node: JSXElementBase<any> | JSXOpeningElement | JSXOpeningFragment,
+	node: JSXElementBase | JSXOpeningElement | JSXOpeningFragment,
 	context: InclusionContext
 ): Variable {
 	const [baseName, nestedName] = factory.split('.');

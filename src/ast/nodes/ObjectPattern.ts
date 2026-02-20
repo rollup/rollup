@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
@@ -17,10 +16,7 @@ import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class ObjectPattern
-	extends NodeBase<ast.ObjectPattern>
-	implements DeclarationPatternNode
-{
+export default class ObjectPattern extends NodeBase implements DeclarationPatternNode {
 	declare parent: nodes.ObjectPatternParent;
 	declare properties: readonly (Property | RestElement)[];
 	declare type: NodeType.tObjectPattern;

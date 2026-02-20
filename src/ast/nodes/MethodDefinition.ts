@@ -8,7 +8,7 @@ import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import PropertyBase from './shared/PropertyBase';
 
-export default class MethodDefinition extends PropertyBase<ast.MethodDefinition> {
+export default class MethodDefinition extends PropertyBase {
 	declare parent: nodes.MethodDefinitionParent;
 	declare key: nodes.Expression | PrivateIdentifier;
 	declare kind: ast.MethodDefinition['kind'];

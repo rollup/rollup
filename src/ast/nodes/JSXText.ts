@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedJsxOptions } from '../../rollup/types';
+import type { NormalizedJsxOptions } from '../../rollup/types';
 import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
@@ -7,7 +7,7 @@ import { NodeBase, onlyIncludeSelf } from './shared/Node';
 const RE_WHITESPACE_TRIM = /^[ \t]*\r?\n[ \t\r\n]*|[ \t]*\r?\n[ \t\r\n]*$/g;
 const RE_WHITESPACE_MERGE = /[ \t]*\r?\n[ \t\r\n]*/g;
 
-export default class JSXText extends NodeBase<ast.JSXText> {
+export default class JSXText extends NodeBase {
 	declare parent: nodes.JSXTextParent;
 	declare type: NodeType.tJSXText;
 	declare value: string;

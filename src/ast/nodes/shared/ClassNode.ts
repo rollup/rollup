@@ -1,4 +1,3 @@
-import type { AstNode } from '../../../rollup/ast-types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -27,10 +26,7 @@ import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
-export default class ClassNode<T extends AstNode>
-	extends NodeBase<T>
-	implements DeoptimizableEntity
-{
+export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare body: ClassBody;
 	declare id: Identifier | null;
 	declare superClass: nodes.Expression | null;

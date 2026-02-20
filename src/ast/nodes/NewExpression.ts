@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { renderCallArguments } from '../../utils/renderCallArguments';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -16,7 +16,7 @@ import type * as NodeType from './NodeType';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
-export default class NewExpression extends NodeBase<ast.NewExpression> {
+export default class NewExpression extends NodeBase {
 	declare parent: nodes.NewExpressionParent;
 	declare arguments: nodes.Expression[];
 	declare callee: nodes.Expression;

@@ -31,7 +31,7 @@ import {
 } from './shared/Node';
 import type VariableDeclarator from './VariableDeclarator';
 
-export default class VariableDeclaration extends NodeBase<ast.VariableDeclaration> {
+export default class VariableDeclaration extends NodeBase {
 	declare parent: nodes.VariableDeclarationParent;
 	declare declarations: readonly VariableDeclarator[];
 	declare kind: ast.VariableDeclaration['kind'];

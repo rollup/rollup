@@ -641,10 +641,7 @@ export interface YieldExpression extends BaseNode {
 export type BindingPattern = Identifier | ArrayPattern | ObjectPattern;
 
 export type DestructuringPattern =
-	| AssignmentPattern
-	| BindingPattern
-	| MemberExpression
-	| RestElement;
+	AssignmentPattern | BindingPattern | MemberExpression | RestElement;
 
 export type Expression =
 	| ArrayExpression
@@ -678,18 +675,10 @@ export type JSXChild = JSXElement | JSXExpressionContainer | JSXSpreadChild | JS
 export type JSXTagNameExpression = JSXMemberExpression | JSXIdentifier | JSXNamespacedName;
 
 export type Literal =
-	| LiteralBigInt
-	| LiteralBoolean
-	| LiteralNull
-	| LiteralNumber
-	| LiteralRegExp
-	| LiteralString;
+	LiteralBigInt | LiteralBoolean | LiteralNull | LiteralNumber | LiteralRegExp | LiteralString;
 
 export type ModuleDeclaration =
-	| ExportAllDeclaration
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ImportDeclaration;
+	ExportAllDeclaration | ExportDefaultDeclaration | ExportNamedDeclaration | ImportDeclaration;
 
 export type Parameter = BindingPattern | AssignmentPattern | RestElement;
 

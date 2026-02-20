@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -13,10 +12,7 @@ import { NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class ArrayPattern
-	extends NodeBase<ast.ArrayPattern>
-	implements DeclarationPatternNode
-{
+export default class ArrayPattern extends NodeBase implements DeclarationPatternNode {
 	declare parent: nodes.ArrayPatternParent;
 	declare elements: (nodes.DestructuringPattern | null)[];
 	declare type: NodeType.tArrayPattern;

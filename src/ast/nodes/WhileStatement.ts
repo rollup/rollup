@@ -1,4 +1,3 @@
-import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
@@ -10,7 +9,7 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class WhileStatement extends NodeBase<ast.WhileStatement> {
+export default class WhileStatement extends NodeBase {
 	declare parent: nodes.WhileStatementParent;
 	declare body: nodes.Statement;
 	declare test: nodes.Expression;
