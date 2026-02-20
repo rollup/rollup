@@ -1,7 +1,7 @@
 import isReference from 'is-reference';
 import type MagicString from 'magic-string';
 import '../../../typings/declarations';
-import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -23,10 +23,7 @@ import type { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
-export default class Identifier
-	extends IdentifierBase<ast.Identifier>
-	implements DeclarationPatternNode
-{
+export default class Identifier extends IdentifierBase implements DeclarationPatternNode {
 	declare parent: nodes.IdentifierParent;
 	declare name: string;
 	declare type: NodeType.tIdentifier;
