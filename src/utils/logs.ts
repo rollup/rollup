@@ -88,6 +88,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
 	FAIL_AFTER_WARNINGS = 'FAIL_AFTER_WARNINGS',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
+	FILE_NAME_OUTSIDE_OUTPUT_DIRECTORY = 'FILE_NAME_OUTSIDE_OUTPUT_DIRECTORY',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
 	FIRST_SIDE_EFFECT = 'FIRST_SIDE_EFFECT',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
@@ -354,6 +355,13 @@ export function logFileNameConflict(fileName: string): RollupLog {
 	return {
 		code: FILE_NAME_CONFLICT,
 		message: `The emitted file "${fileName}" overwrites a previously emitted file of the same name.`
+	};
+}
+
+export function logFileNameOutsideOutputDirectory(fileName: string): RollupLog {
+	return {
+		code: FILE_NAME_OUTSIDE_OUTPUT_DIRECTORY,
+		message: `The output file name "${fileName}" is not contained in the output directory. Make sure all file names are relative paths without ".." segments.`
 	};
 }
 
