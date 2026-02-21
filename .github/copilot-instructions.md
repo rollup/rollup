@@ -36,18 +36,24 @@ When adding/modifying functions that cross the JS-Rust boundary:
 - Focus on performance, avoid unnecessary copying of data or AST loops, build the final buffer once
 - When adding headers, reserve space for them once upfront to avoid the need to change all existing buffer references
 
+## Browser Path Shim
+
+- `browser/src/path.ts` replaces `node:path` in the browser build (wired via `rollup.config.ts` aliases)
+- `src/utils/relativeId.ts` imports `relative` **directly** from `../../browser/src/path` (not via `src/utils/path.ts`) so it works in both builds
+- `src/utils/path.ts` re-exports from `node:path`; for browser builds rollup.config.ts substitutes `browser/src/path.ts` transparently for all other imports
+
 ## Development Workflow
 
 ### Build Outputs
 
 - **Node build**: Artifacts placed in `dist/` (JavaScript + `.node` native modules)
-- **Browser build**: Artifacts placed in `browser/dist/`
+- **Browser build**: Artifacts placed in `browser/dist/`; browser tests use `browser/dist/rollup.browser.js`
 - All tests import from these dist folders - tests run against the full built artifact only
 
 ### Quick Rebuild Commands
 
 - `npm run build:quick` - Rebuild both JavaScript and Rust for Node build, copy to dist/
-- `npm run update:js` - Rebuild only JavaScript for Node, copy native to dist/
+- `npm run update:js` - Rebuild only JavaScript for both Node (`dist/`) and browser (`browser/dist/`), then copy native to dist/; run this after any change to `src/` or `browser/src/`
 - `npm run update:napi` - Rebuild only Rust NAPI, copy to dist/
 - `npm run build:copy-native` - Copy Rust `.node` files to dist/ (called internally by update commands)
 
