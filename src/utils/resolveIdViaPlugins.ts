@@ -1,7 +1,7 @@
 import type { ModuleLoaderResolveId } from '../ModuleLoader';
 import type {
 	CustomPluginOptions,
-	FlexibleResolveIdResult,
+	OriginalResolveIdResult,
 	Plugin,
 	PluginContext
 } from '../rollup/types';
@@ -19,7 +19,7 @@ export function resolveIdViaPlugins(
 	attributes: Record<string, string>,
 	importerAttributes: Record<string, string> | undefined,
 	importerRawId: string | undefined
-): Promise<[NonNullable<FlexibleResolveIdResult>, Plugin] | null> {
+): Promise<[NonNullable<OriginalResolveIdResult>, Plugin] | null> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
 	if (skip) {

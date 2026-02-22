@@ -12,7 +12,7 @@ import type { FileEmitter } from './FileEmitter';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
-import { generateIdByRawIdAndAttributes, getRawIdAndAttributes } from './moduleId';
+import { normalizeModuleIdToObject } from './moduleId';
 import { normalizeLog } from './options/options';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
@@ -69,12 +69,9 @@ export function getPluginContext(
 		getWatchFiles: () => Object.keys(graph.watchFiles),
 		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		load(resolvedId) {
-			if (resolvedId.id !== undefined) {
-				return graph.moduleLoader.preloadModule(resolvedId);
-			}
 			return graph.moduleLoader.preloadModule({
 				...resolvedId,
-				id: generateIdByRawIdAndAttributes(resolvedId.rawId, resolvedId.attributes)
+				...normalizeModuleIdToObject(resolvedId.id)
 			});
 		},
 		meta: {
@@ -87,14 +84,11 @@ export function getPluginContext(
 			let importerId: string | undefined;
 			let importerAttributes: Record<string, string> | undefined;
 			let importerRawId: string | undefined;
-			if (importer && typeof importer === 'object') {
-				({ rawId: importerRawId, attributes: importerAttributes } = importer);
-				importerId = generateIdByRawIdAndAttributes(importerRawId, importerAttributes);
-			} else if (importer) {
-				const { rawId, attributes } = getRawIdAndAttributes(importer);
+			if (importer) {
+				const { id, rawId, attributes } = normalizeModuleIdToObject(importer);
 				importerAttributes = attributes;
 				importerRawId = rawId;
-				importerId = importer;
+				importerId = id;
 			}
 			return graph.moduleLoader.resolveId(
 				source,

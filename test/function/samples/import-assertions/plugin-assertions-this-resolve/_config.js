@@ -37,9 +37,11 @@ module.exports = defineTest({
 				async resolveId(source, importer, { attributes }) {
 					if (source === 'external') {
 						return {
-							rawId: source,
-							external: true,
-							attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed']))
+							id: {
+								rawId: source,
+								attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed']))
+							},
+							external: true
 						};
 					}
 				}

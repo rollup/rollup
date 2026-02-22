@@ -30,3 +30,20 @@ export function normalizeModuleId(moduleId: UniqueModuleId): string {
 	}
 	return moduleId;
 }
+
+export function normalizeModuleIdToObject(
+	moduleId: string | { rawId: string; attributes?: Record<string, string> }
+): {
+	id: string;
+	rawId: string;
+	attributes?: Record<string, string>;
+} {
+	if (typeof moduleId === 'object') {
+		return {
+			...moduleId,
+			id: generateIdByRawIdAndAttributes(moduleId.rawId, moduleId.attributes)
+		};
+	}
+	const { rawId, attributes } = getRawIdAndAttributes(moduleId);
+	return { attributes, id: moduleId, rawId };
+}

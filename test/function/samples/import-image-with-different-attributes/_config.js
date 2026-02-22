@@ -6,8 +6,10 @@ module.exports = defineTest({
 				resolveId(source, _importer, { attributes }) {
 					if (source.includes('logo.png')) {
 						return {
-							rawId: source,
-							attributes
+							id: {
+								rawId: source,
+								attributes
+							}
 						};
 					}
 				},

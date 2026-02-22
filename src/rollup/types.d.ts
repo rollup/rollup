@@ -5,7 +5,7 @@ export type { ast };
 export const VERSION: string;
 
 // utils
-type NullValue = null | undefined | void;
+export type NullValue = null | undefined | void;
 export type MaybeArray<T> = T | T[];
 type MaybePromise<T> = T | Promise<T>;
 
@@ -97,10 +97,6 @@ export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: 
 
 export type UniqueModuleId = string | { rawId: string; attributes: Record<string, string> };
 
-export type ModuleIdSpecifier =
-	| { id: string; rawId?: never; attributes?: never }
-	| { id?: never; rawId: string; attributes?: Record<string, string> };
-
 export interface ModuleOptions {
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
@@ -163,7 +159,7 @@ export interface EmittedAsset {
 
 export interface EmittedChunk {
 	fileName?: string | undefined;
-	id: string;
+	id: UniqueModuleId;
 	implicitlyLoadedAfterOneOf?: UniqueModuleId[] | undefined;
 	importer?: UniqueModuleId | undefined;
 	name?: string | undefined;
@@ -252,7 +248,8 @@ export interface PluginContext extends MinimalPluginContext {
 	getWatchFiles: () => string[];
 	info: LoggingFunction;
 	load: (
-		options: ModuleIdSpecifier & {
+		options: {
+			id: UniqueModuleId;
 			resolveDependencies?: boolean;
 		} & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
@@ -300,23 +297,26 @@ export interface ResolvedId extends ModuleOptions {
 
 export type ResolvedIdMap = Record<string, ResolvedId>;
 
-type FlexiblePartialResolvedId = Partial<PartialNull<ModuleOptions>> &
-	ModuleIdSpecifier & {
-		external?: boolean | 'absolute' | 'relative' | undefined;
-		resolvedBy?: string | undefined;
-	};
-
-interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
+type OriginalPartialResolvedId = Partial<PartialNull<ModuleOptions>> & {
+	id:
+		| string
+		| {
+				rawId: string;
+				attributes?: Record<string, string>;
+		  };
 	external?: boolean | 'absolute' | 'relative' | undefined;
+	resolvedBy?: string | undefined;
+};
+
+type PartialResolvedId = OriginalPartialResolvedId & {
 	id: string;
 	rawId?: string;
 	attributes?: Record<string, string>;
-	resolvedBy?: string | undefined;
-}
+};
 
-export type FlexibleResolveIdResult = string | NullValue | false | FlexiblePartialResolvedId;
+export type OriginalResolveIdResult = string | NullValue | false | OriginalPartialResolvedId;
 
-export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
+export type ResolveIdResult = NullValue | false | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
@@ -329,7 +329,7 @@ export type ResolveIdHook = (
 		importerRawId?: string;
 		isEntry: boolean;
 	}
-) => FlexibleResolveIdResult;
+) => OriginalResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
@@ -421,7 +421,7 @@ export type ResolveDynamicImportHook = (
 		importerRawId: string;
 		importerAttributes: Record<string, string>;
 	}
-) => FlexibleResolveIdResult;
+) => OriginalResolveIdResult;
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,
