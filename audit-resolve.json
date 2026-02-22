@@ -1,65 +1,5 @@
 {
   "decisions": {
-    "1113214": {
-      "decision": "ignore",
-      "madeAt": 1771566169457,
-      "expiresAt": 1774158145442
-    },
-    "1113296": {
-      "decision": "ignore",
-      "madeAt": 1771566180086,
-      "expiresAt": 1774158145442
-    },
-    "1113214|@eslint/js>eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch>eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch>@typescript-eslint/utils>@eslint-community/eslint-utils>eslint>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|eslint-config-prettier>eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|eslint-plugin-prettier>eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|eslint-plugin-unicorn>@eslint-community/eslint-utils>eslint>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|eslint-plugin-vue>@eslint-community/eslint-utils>eslint>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch>eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
-    "1113214|vue-eslint-parser>eslint>@eslint-community/eslint-utils>ajv": {
-      "decision": "ignore",
-      "madeAt": 1771567906111,
-      "expiresAt": 1774159894900
-    },
     "1113296|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
       "decision": "ignore",
       "madeAt": 1771567910429,
@@ -99,6 +39,51 @@
       "decision": "ignore",
       "madeAt": 1771567910429,
       "expiresAt": 1774159894900
+    },
+    "1113371|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771655968819,
+      "expiresAt": 1774247954442
+    },
+    "1113371|eslint-plugin-vue>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
+    },
+    "1113371|fixturify>matcher-collection>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
+    },
+    "1113371|mocha>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
+    },
+    "1113371|nyc>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
+    },
+    "1113371|typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
+    },
+    "1113371|wasm-pack>binary-install>rimraf>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
+    },
+    "1113398|ajv": {
+      "decision": "ignore",
+      "madeAt": 1771656216790,
+      "expiresAt": 1774248208896
+    },
+    "1113371|@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1771656226170,
+      "expiresAt": 1774248219706
     }
   },
   "rules": {},
