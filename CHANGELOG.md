@@ -1,5 +1,17 @@
     # rollup changelog
 
+## 3.30.0
+
+_2026-02-22_
+
+### Features
+
+- Throw when the generated bundle contains paths that would leave the output directory (#6276)
+
+### Pull Requests
+
+- [#6276](https://github.com/rollup/rollup/pull/6276): Validate bundle stays within output dir (@lukastaegert)
+
 ## 3.29.5
 
 _2024-09-21_
