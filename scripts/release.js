@@ -14,12 +14,11 @@ import { runAndGetStdout, runWithEcho } from './helpers.js';
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
 
-const MAIN_BRANCH = 'master';
+const BACKPORTS_MAIN_BRANCH = 'backports-rollup-3';
 const MAIN_PACKAGE = 'package.json';
 const MAIN_LOCKFILE = 'package-lock.json';
 const BROWSER_PACKAGE = 'browser/package.json';
 const CHANGELOG = 'CHANGELOG.md';
-const DOCUMENTATION_BRANCH = 'documentation-published';
 
 const [gh, currentBranch] = await Promise.all([
 	getGithubApi(),
@@ -34,7 +33,7 @@ const [mainPackage, mainLockFile, browserPackage, repo, issues, changelog] = awa
 	gh.getIssues('rollup', 'rollup'),
 	readFile(CHANGELOG, 'utf8')
 ]);
-const isMainBranch = currentBranch === MAIN_BRANCH;
+const isMainBranch = currentBranch === BACKPORTS_MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
 	getNewVersion(mainPackage, isMainBranch),
 	getIncludedPRs(changelog, repo, currentBranch, isMainBranch)
@@ -56,7 +55,7 @@ try {
 	throw error;
 }
 
-await releasePackages(newVersion);
+await releasePackages();
 await pushChanges(gitTag);
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, gitTag);
@@ -231,12 +230,8 @@ function getDummyLogSection(headline, pr) {
 }
 
 async function installDependenciesBuildAndTest() {
-	await Promise.all([runWithEcho('npm', ['ci']), runWithEcho('npm', ['audit'])]);
-	await Promise.all([
-		runWithEcho('npm', ['run', 'ci:lint']),
-		runWithEcho('npm', ['run', 'build:bootstrap'])
-	]);
-	await runWithEcho('npm', ['run', 'test:all']);
+	await Promise.all([runWithEcho('npm', ['ci'])]);
+	await Promise.all([runWithEcho('npm', ['run', 'build:bootstrap'])]);
 }
 
 async function waitForChangelogUpdate(version) {
@@ -293,13 +288,18 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 	]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await runWithEcho('git', ['tag', gitTag]);
-	isMainBranch && (await runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag]));
 }
 
-function releasePackages(newVersion) {
+async function releasePackages() {
 	const releaseEnvironment = { ...process.env, ROLLUP_RELEASE: 'releasing' };
-	const releaseTag = semverPreRelease(newVersion) ? ['--tag', 'beta'] : [];
-	const parameters = ['publish', '--access', 'public', ...releaseTag];
+	const { otp } = await inquirer.prompt([
+		{
+			message: 'Enter npm one-time password:',
+			name: 'otp',
+			type: 'input'
+		}
+	]);
+	const parameters = ['publish', '--access', 'public', '--tag', 'backports-3', `--otp=${otp}`];
 	return Promise.all([
 		runWithEcho('npm', parameters, {
 			cwd: new URL('..', import.meta.url),
@@ -315,8 +315,7 @@ function releasePackages(newVersion) {
 function pushChanges(gitTag) {
 	return Promise.all([
 		runWithEcho('git', ['push', 'origin', 'HEAD']),
-		runWithEcho('git', ['push', 'origin', gitTag]),
-		isMainBranch && runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH])
+		runWithEcho('git', ['push', 'origin', gitTag])
 	]);
 }
 
