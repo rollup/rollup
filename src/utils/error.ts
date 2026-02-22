@@ -52,6 +52,7 @@ export const enum Errors {
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
+	FILE_NAME_OUTSIDE_OUTPUT_DIRECTORY = 'FILE_NAME_OUTSIDE_OUTPUT_DIRECTORY',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
@@ -187,6 +188,13 @@ export function errFileNameConflict(fileName: string): RollupLogProps {
 	return {
 		code: Errors.FILE_NAME_CONFLICT,
 		message: `The emitted file "${fileName}" overwrites a previously emitted file of the same name.`
+	};
+}
+
+export function errFileNameOutsideOutputDirectory(fileName: string): RollupLogProps {
+	return {
+		code: Errors.FILE_NAME_OUTSIDE_OUTPUT_DIRECTORY,
+		message: `The output file name "${fileName}" is not contained in the output directory. Make sure all file names are relative paths without ".." segments.`
 	};
 }
 

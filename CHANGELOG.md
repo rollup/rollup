@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 2.80.0
+
+_2026-02-22_
+
+### Features
+
+- Throw when the generated bundle contains paths that would leave the output directory (#6277)
+
+### Pull Requests
+
+- [#6277](https://github.com/rollup/rollup/pull/6277): Validate bundle stays within output dir (@lukastaegert)
+
+## 2.79.2
+
+_2024-09-26_
+
+### Bug Fixes
+
+- Resolve CVE-2024-43788 (#5677)
+
+### Pull Requests
+
+- [#5677](https://github.com/rollup/rollup/pull/5677): resolve DOM Clobbering CVE-2024-43788 (backport to v2) (@fabianszabo)
+
 ## 2.79.1
 
 _2022-09-22_
