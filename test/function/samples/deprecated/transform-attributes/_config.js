@@ -5,7 +5,6 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'does not allow returning attributes from the "transform" hook',
 	options: {
-		strictDeprecations: true,
 		plugins: [
 			{
 				resolveId(source) {

@@ -13,7 +13,9 @@ console.log({
   "exports": [
     "n"
   ],
+  "facadeModuleAttributes": {},
   "facadeModuleId": null,
+  "facadeModuleRawId": null,
   "isDynamicEntry": false,
   "isEntry": false,
   "isImplicitEntry": false,
@@ -23,14 +25,16 @@ console.log({
   "name": "dep2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "chunk-dep2-C9ddpexS.js",
+  "fileName": "chunk-dep2-B9YfStri.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {},
   "imports": [],
   "modules": {
     "**/dep2.js": {
+      "attributes": {},
       "code": "\t\t\tvar num = exports(\"n\", 2);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-C4X7hChn', module.meta.url).href);",
       "originalLength": 19,
+      "rawId": "**/dep2.js",
       "removedExports": [],
       "renderedExports": [
         "num"
@@ -42,5 +46,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-Jmzu7nOJ.js","entry-main2-ByL47NtH.js","chunk-dep2-C9ddpexS.js"])
+console.log('all chunks', ["entry-main1-DY1Bhs3H.js","entry-main2-D7FDn8XG.js","chunk-dep2-B9YfStri.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');
