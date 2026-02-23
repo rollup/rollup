@@ -176,13 +176,13 @@ export default class CallExpression
 		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
-			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
-			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+			this.returnExpression = UNKNOWN_RETURN_EXPRESSION; // In case of recursion
+			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
 				this.interaction,
 				recursionTracker,
 				this
-			));
+			);
 		}
 		return this.returnExpression;
 	}

@@ -1,3 +1,4 @@
+import { BLANK } from '../utils/blank';
 import type { HasEffectsContext } from './ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from './NodeInteractions';
 import {
@@ -6,12 +7,11 @@ import {
 	NODE_INTERACTION_UNKNOWN_CALL
 } from './NodeInteractions';
 import type { LiteralValueOrBigInt } from './nodes/Literal';
-import type { LiteralValueOrUnknown } from './nodes/shared/Expression';
 import {
 	ExpressionEntity,
+	LiteralExpression,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_RETURN_EXPRESSION,
-	UnknownValue
+	UNKNOWN_RETURN_EXPRESSION
 } from './nodes/shared/Expression';
 import {
 	EMPTY_PATH,
@@ -40,12 +40,7 @@ function assembleMemberDescriptions(
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
-export const UNDEFINED_EXPRESSION: ExpressionEntity =
-	new (class UndefinedExpression extends ExpressionEntity {
-		getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
-			return path.length > 0 ? UnknownValue : undefined;
-		}
-	})();
+export const UNDEFINED_EXPRESSION: ExpressionEntity = new LiteralExpression(undefined);
 
 const returnsUnknown: RawMemberDescription = {
 	value: {
@@ -285,7 +280,7 @@ export function getLiteralMembersForValue<T extends LiteralValueOrBigInt = Liter
 			return literalStringMembers;
 		}
 	}
-	return Object.create(null);
+	return BLANK as MemberDescriptions;
 }
 
 export function hasMemberEffectWhenCalled(
