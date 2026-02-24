@@ -5,6 +5,7 @@ import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import type { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import throwOnPhase from './shared/throwOnPhase';
 
 export default function cjs(
 	magicString: MagicStringBundle,
@@ -14,6 +15,7 @@ export default function cjs(
 		exports,
 		hasDefaultExport,
 		hasExports,
+		id,
 		indent: t,
 		intro,
 		isEntryFacade,
@@ -33,6 +35,7 @@ export default function cjs(
 		strict
 	}: NormalizedOutputOptions
 ): void {
+	throwOnPhase('cjs', id, dependencies);
 	const { _, n } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';

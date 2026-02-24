@@ -8,6 +8,7 @@ import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
+import throwOnPhase from './shared/throwOnPhase';
 import trimEmptyImports from './shared/trimEmptyImports';
 import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
@@ -73,6 +74,7 @@ export default function umd(
 		return error(logMissingNameOptionForUmdExport());
 	}
 
+	throwOnPhase('umd', id, dependencies);
 	warnOnBuiltins(log, dependencies);
 
 	const amdDeps = dependencies.map(

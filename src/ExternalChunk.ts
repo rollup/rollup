@@ -7,8 +7,10 @@ import { getImportPath } from './utils/relativeId';
 
 export default class ExternalChunk {
 	defaultVariableName = '';
+	hasSourcePhaseImport: boolean;
 	id: string;
 	namespaceVariableName = '';
+	sourceVariableName = '';
 	suggestedVariableName: string;
 	variableName = '';
 
@@ -23,6 +25,7 @@ export default class ExternalChunk {
 		private inputBase: string
 	) {
 		this.id = module.id;
+		this.hasSourcePhaseImport = module.hasSourcePhaseImport;
 		this.moduleInfo = module.info;
 		this.renormalizeRenderPath = module.renormalizeRenderPath;
 		this.suggestedVariableName = module.suggestedVariableName;

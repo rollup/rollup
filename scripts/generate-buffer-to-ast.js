@@ -80,6 +80,9 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 		case 'Float': {
 			return '';
 		}
+		case 'OptionalFixedString': {
+			return `const ${fieldName}Index = ${dataStart};\n`;
+		}
 		case 'OptionalNode': {
 			return `const ${fieldName}Position = ${dataStart};\n`;
 		}
@@ -117,6 +120,11 @@ function getFieldProperty([fieldName, fieldType], node, originalNode, offset) {
 		}
 		case 'InvalidAnnotations': {
 			return `...(${fieldName}.length > 0 ? { [INVALID_ANNOTATION_KEY]: ${fieldName} } : {})`;
+		}
+		case 'OptionalFixedString': {
+			const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
+			const typeCastString = typeCast ? ` as ${typeCast}` : '';
+			return `...(${fieldName}Index === 0 ? {} : { ${fieldName}: FIXED_STRINGS[${fieldName}Index]${typeCastString} })`;
 		}
 		default: {
 			return `${fieldName}: ${getFieldPropertyBase([fieldName, fieldType], node, originalNode, offset)}`;
