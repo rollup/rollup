@@ -897,7 +897,8 @@ export function logNamespaceConflict(
 export function logNonExternalSourcePhaseImport(source: string, importer: string): RollupLog {
 	return {
 		code: NON_EXTERNAL_SOURCE_PHASE_IMPORT,
-		message: `Source phase import "${source}" in "${relativeId(importer)}" must be external. Source phase imports are only supported for external modules. Use the "external" option to mark this module as external.`
+		message: `Source phase import "${source}" in "${relativeId(importer)}" must be external. Source phase imports are only supported for external modules. Use the "external" option to mark this module as external.`,
+		url: getRollupUrl(URL_SOURCE_PHASE_IMPORTS)
 	};
 }
 
@@ -1016,7 +1017,8 @@ export function logSourcePhaseFormatUnsupported(
 ): RollupLog {
 	return {
 		code: SOURCE_PHASE_FORMAT_UNSUPPORTED,
-		message: `Source phase imports are not supported for the "${outputFormat}" output format, importing "${dependencyId}" in "${chunkId}". Only the "es" output format supports source phase imports.`
+		message: `Source phase imports are not supported for the "${outputFormat}" output format, importing "${dependencyId}" in "${chunkId}". Use the "es" output format to support source phase imports.`,
+		url: getRollupUrl(URL_SOURCE_PHASE_IMPORTS)
 	};
 }
 
