@@ -1,5 +1,6 @@
 import type ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
+import type ExternalVariable from '../ast/variables/ExternalVariable';
 import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import type Variable from '../ast/variables/Variable';
 import type Chunk from '../Chunk';
@@ -110,6 +111,11 @@ function deconflictImportsEsmOrSystem(
 					? externalChunkByModule.get(module)!
 					: chunkByModule.get(module)!
 				).variableName
+			);
+		} else if (module instanceof ExternalModule && (variable as ExternalVariable).isSourcePhase) {
+			variable.setRenderNames(
+				null,
+				getSafeName(module.suggestedVariableName + '__source', usedNames, variable.forbiddenNames)
 			);
 		} else if (module instanceof ExternalModule && name === 'default') {
 			variable.setRenderNames(

@@ -35,7 +35,8 @@ const astMacros = astNodeNamesWithFieldOrder
 			fieldConverters += `
     // ${fieldName}`;
 			switch (fieldType) {
-				case 'FixedString': {
+				case 'FixedString':
+				case 'OptionalFixedString': {
 					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
 					fieldConverters += `
     let ${fieldName}_position = end_position + ${reservedBytes};

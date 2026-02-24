@@ -11,6 +11,7 @@ import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared
 export default class ImportDeclaration extends NodeBase {
 	declare attributes: ImportAttribute[];
 	declare needsBoundaries: true;
+	declare phase: 'source' | 'defer' | undefined;
 	declare source: Literal<string>;
 	declare specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	declare type: NodeType.tImportDeclaration;

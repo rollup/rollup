@@ -164,6 +164,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	MODULE_LEVEL_DIRECTIVE = 'MODULE_LEVEL_DIRECTIVE',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
+	NON_EXTERNAL_SOURCE_PHASE_IMPORT = 'NON_EXTERNAL_SOURCE_PHASE_IMPORT',
 	NO_FS_IN_BROWSER = 'NO_FS_IN_BROWSER',
 	NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE = 'NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE',
 	ONLY_INLINE_SOURCEMAPS = 'ONLY_INLINE_SOURCEMAPS',
@@ -173,6 +174,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	REDECLARATION_ERROR = 'REDECLARATION_ERROR',
 	RESERVED_NAMESPACE = 'RESERVED_NAMESPACE',
 	SHIMMED_EXPORT = 'SHIMMED_EXPORT',
+	SOURCE_PHASE_FORMAT_UNSUPPORTED = 'SOURCE_PHASE_FORMAT_UNSUPPORTED',
 	SOURCEMAP_BROKEN = 'SOURCEMAP_BROKEN',
 	SOURCEMAP_ERROR = 'SOURCEMAP_ERROR',
 	SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT = 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
@@ -892,6 +894,13 @@ export function logNamespaceConflict(
 	};
 }
 
+export function logNonExternalSourcePhaseImport(source: string, importer: string): RollupLog {
+	return {
+		code: NON_EXTERNAL_SOURCE_PHASE_IMPORT,
+		message: `Source phase import "${source}" in "${relativeId(importer)}" must be external. Source phase imports are only supported for external modules. Use the "external" option to mark this module as external.`
+	};
+}
+
 export function logNoFileSystemInBrowser(method: string): RollupLog {
 	return {
 		code: NO_FS_IN_BROWSER,
@@ -997,6 +1006,17 @@ export function logShimmedExport(id: string, binding: string): RollupLog {
 		code: SHIMMED_EXPORT,
 		exporter: id,
 		message: `Missing export "${binding}" has been shimmed in module "${relativeId(id)}".`
+	};
+}
+
+export function logSourcePhaseFormatUnsupported(
+	outputFormat: string,
+	chunkId: string,
+	dependencyId: string
+): RollupLog {
+	return {
+		code: SOURCE_PHASE_FORMAT_UNSUPPORTED,
+		message: `Source phase imports are not supported for the "${outputFormat}" output format, importing "${dependencyId}" in "${chunkId}". Only the "es" output format supports source phase imports.`
 	};
 }
 
