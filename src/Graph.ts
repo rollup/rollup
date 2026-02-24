@@ -228,7 +228,7 @@ export default class Graph {
 	private warnForMissingExports(): void {
 		for (const module of this.modules) {
 			for (const importDescription of module.importDescriptions.values()) {
-				if (importDescription.name !== '*') {
+				if (importDescription.name !== '*' && importDescription.phase !== 'source') {
 					const [variable, options] = importDescription.module.getVariableForExportName(
 						importDescription.name,
 						{ importChain: [module.id] }

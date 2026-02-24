@@ -23,6 +23,7 @@ const path = require('node:path');
 const { platform, version } = require('node:process');
 const { Parser } = require('acorn');
 const { importAssertions } = require('acorn-import-assertions');
+const importPhases = require('acorn-import-phases');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
 
@@ -465,7 +466,7 @@ exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringi
 /** @type {boolean} */
 exports.hasEsBuild = existsSync(path.join(__dirname, '../dist/es'));
 
-const acornParser = Parser.extend(importAssertions, jsx());
+const acornParser = Parser.extend(importAssertions, importPhases(), jsx());
 
 exports.verifyAstPlugin = {
 	name: 'verify-ast',

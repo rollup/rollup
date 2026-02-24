@@ -26,7 +26,7 @@ import type { ObjectPath } from './ast/utils/PathTracker';
 import { type EntityPathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
-import ExternalVariable from './ast/variables/ExternalVariable';
+import ExternalVariable, { SOURCE_PHASE_IMPORT } from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
@@ -94,6 +94,7 @@ import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 export interface ImportDescription {
 	module: Module | ExternalModule;
 	name: string;
+	phase: 'source' | 'instance';
 	source: string;
 	start: number;
 }
@@ -253,6 +254,7 @@ export default class Module {
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
+	readonly sourcePhaseSources = new Set<string>();
 	readonly sourcesWithAttributes = new Map<string, Record<string, string>>();
 	declare transformFiles?: EmittedFile[];
 
@@ -1118,16 +1120,19 @@ export default class Module {
 			}
 
 			const name =
-				specifier instanceof ImportDefaultSpecifier
-					? 'default'
-					: specifier instanceof ImportNamespaceSpecifier
-						? '*'
-						: specifier.imported instanceof Identifier
-							? specifier.imported.name
-							: specifier.imported.value;
+				node.phase === 'source'
+					? SOURCE_PHASE_IMPORT
+					: specifier instanceof ImportDefaultSpecifier
+						? 'default'
+						: specifier instanceof ImportNamespaceSpecifier
+							? '*'
+							: specifier.imported instanceof Identifier
+								? specifier.imported.name
+								: specifier.imported.value;
 			this.importDescriptions.set(localName, {
 				module: null as never, // filled in later
 				name,
+				phase: node.phase === 'source' ? 'source' : 'instance',
 				source,
 				start: specifier.start
 			});
@@ -1223,6 +1228,9 @@ export default class Module {
 			}
 		} else {
 			this.sourcesWithAttributes.set(source, parsedAttributes);
+		}
+		if ((declaration as ImportDeclaration).phase === 'source') {
+			this.sourcePhaseSources.add(source);
 		}
 	}
 
