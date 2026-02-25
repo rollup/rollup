@@ -7,6 +7,7 @@ module.exports = defineTest({
 		code: 'NON_EXTERNAL_SOURCE_PHASE_IMPORT',
 		message:
 			'Source phase import "./dep.js" in "main.js" must be external. Source phase imports are only supported for external modules. Use the "external" option to mark this module as external.',
+		url: 'https://rollupjs.org/es-module-syntax/#source-phase-import',
 		watchFiles: [ID_MAIN]
 	}
 });
