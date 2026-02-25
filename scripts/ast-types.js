@@ -26,7 +26,7 @@
  * For JSX, see also https://github.com/facebook/jsx/blob/main/AST.md
  */
 
-/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"NullableString"|"Float"} FieldType */
+/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalFixedString"|"OptionalString"|"NullableString"|"Float"} FieldType */
 
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
@@ -354,23 +354,33 @@ export const AST_NODES = {
 		useMacro: false
 	},
 	ImportDeclaration: {
-		estreeType: 'estree.ImportDeclaration & { attributes: ImportAttributeNode[] }',
+		estreeType:
+			'estree.ImportDeclaration & { attributes: ImportAttributeNode[]; phase?: "source" | "defer" }',
 		fields: [
 			['specifiers', 'NodeList'],
 			['source', 'Node'],
-			['attributes', 'NodeList']
+			['attributes', 'NodeList'],
+			['phase', 'OptionalFixedString']
 		],
+		fieldTypes: {
+			phase: '"source" | "defer"'
+		},
 		useMacro: false
 	},
 	ImportDefaultSpecifier: {
 		fields: [['local', 'Node']]
 	},
 	ImportExpression: {
-		estreeType: 'estree.ImportExpression & { options: estree.Expression | null }',
+		estreeType:
+			'estree.ImportExpression & { options: estree.Expression | null; phase?: "source" | "defer" }',
 		fields: [
 			['source', 'Node'],
-			['options', 'OptionalNode']
+			['options', 'OptionalNode'],
+			['phase', 'OptionalFixedString']
 		],
+		fieldTypes: {
+			phase: '"source" | "defer"'
+		},
 		scriptedFields: {
 			source: `node.source = convertNode(node, scope, $position, buffer);
 			  node.sourceAstNode = convertJsonNode($position, buffer);`

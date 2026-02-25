@@ -44,11 +44,23 @@ function getImportBlock(
 	{ _ }: GenerateCodeSnippets
 ): string[] {
 	const importBlock: string[] = [];
-	for (const { importPath, reexports, imports, name, attributes } of dependencies) {
+	for (const {
+		importPath,
+		reexports,
+		imports,
+		name,
+		attributes,
+		sourcePhaseImport
+	} of dependencies) {
 		const assertion = attributes ? `${_}${importAttributesKey}${_}${attributes}` : '';
 		const pathWithAssertion = `'${importPath}'${assertion};`;
+		if (sourcePhaseImport) {
+			importBlock.push(`import source ${sourcePhaseImport} from${_}${pathWithAssertion}`);
+		}
 		if (!reexports && !imports) {
-			importBlock.push(`import${_}${pathWithAssertion}`);
+			if (!sourcePhaseImport) {
+				importBlock.push(`import${_}${pathWithAssertion}`);
+			}
 			continue;
 		}
 		if (imports) {

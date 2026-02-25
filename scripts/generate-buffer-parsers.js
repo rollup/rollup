@@ -157,6 +157,12 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 				needsScope: false
 			};
 		}
+		case 'OptionalFixedString': {
+			return {
+				definition: `const ${fieldName}Index = ${dataStart};\n${assignmentLeftHand}${fieldName}Index === 0 ? undefined : FIXED_STRINGS[${fieldName}Index]${typeCastString};`,
+				needsScope: false
+			};
+		}
 		case 'Float': {
 			return {
 				definition: `${assignmentLeftHand}new DataView(buffer.buffer).getFloat64((${getPosition}) << 2, true);`,
