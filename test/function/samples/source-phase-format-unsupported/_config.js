@@ -7,6 +7,7 @@ module.exports = defineTest({
 	generateError: {
 		code: 'SOURCE_PHASE_FORMAT_UNSUPPORTED',
 		message:
-			'Source phase imports are not supported for the "cjs" output format, importing "external" in "main.js". Only the "es" output format supports source phase imports.'
+			'Source phase imports are not supported for the "cjs" output format, importing "external" in "main.js". Use the "es" output format to support source phase imports.',
+		url: 'https://rollupjs.org/es-module-syntax/#source-phase-import'
 	}
 });
