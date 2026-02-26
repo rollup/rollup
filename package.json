@@ -180,7 +180,7 @@
     "mocha": "11.3.0",
     "nodemon": "^3.1.11",
     "npm-audit-resolver": "^3.0.0-RC.0",
-    "nyc": "^17.1.0",
+    "nyc": "^18.0.0",
     "patch-package": "^8.0.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.3",
