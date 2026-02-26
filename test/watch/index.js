@@ -4,6 +4,7 @@ const { rm, unlink, writeFile, mkdir } = require('node:fs/promises');
 const path = require('node:path');
 const { hrtime } = require('node:process');
 const { copy } = require('fs-extra');
+const { default: MagicString } = require('magic-string');
 /**
  * @type {import("../../src/rollup/types")} Rollup
  */
@@ -1246,6 +1247,66 @@ describe('rollup.watch', function () {
 			'END',
 			() => {
 				assert.strictEqual(run(BUNDLE_FILE), 42);
+			}
+		]);
+	});
+
+	it('updates the sourcemap if the load hook returns a different sourcemap but with a same code', async () => {
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		const INITIAL_CONTENT =
+			`
+				// trim-start
+				export default 42;
+				// trim-end
+			`.trim() + '\n';
+		const UPDATED_CONTENT =
+			`
+				// trim-start (updated)
+				export default 42;
+				// trim-end
+			`.trim() + '\n';
+		atomicWriteFileSync(ENTRY_FILE, INITIAL_CONTENT);
+
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			plugins: {
+				load(id) {
+					const content = readFileSync(id, 'utf8');
+					const ms = new MagicString(content);
+					ms.replace(/^.*\/\/\s*trim-start\s*$/, '').replace(/\s*\/\/\s*trim-end\s*$/, '');
+					return {
+						code: ms.toString(),
+						map: ms.generateMap({ hires: true })
+					};
+				}
+			},
+			output: {
+				file: BUNDLE_FILE,
+				sourcemapFile: BUNDLE_FILE + '.map',
+				format: 'cjs',
+				exports: 'auto',
+				sourcemap: true
+			}
+		});
+		let initialMap;
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				initialMap = readFileSync(BUNDLE_FILE + '.map', 'utf8');
+				atomicWriteFileSync(ENTRY_FILE, UPDATED_CONTENT);
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				const updatedMap = readFileSync(BUNDLE_FILE + '.map', 'utf8');
+				assert.notStrictEqual(updatedMap, initialMap);
 			}
 		]);
 	});
