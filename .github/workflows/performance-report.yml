@@ -59,7 +59,7 @@ jobs:
       - name: Build artefacts 123
         run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
       - name: Upload artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.settings.name }}
           path: dist/
@@ -99,7 +99,7 @@ jobs:
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Download all artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           path: _benchmark
       - name: Change rollup import in internal benchmark
