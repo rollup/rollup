@@ -678,8 +678,9 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
+			const cached = this.namespaceReexportsByName.get(name);
 			const foundNamespaceReexport =
-				this.namespaceReexportsByName.get(name) ??
+				cached ??
 				this.getVariableFromNamespaceReexports(
 					name,
 					importerForSideEffects,
@@ -688,6 +689,17 @@ export default class Module {
 				);
 			this.namespaceReexportsByName.set(name, foundNamespaceReexport);
 			if (foundNamespaceReexport[0]) {
+				if (cached && importerForSideEffects) {
+					// On cache hit, re-traverse the export * chain to record side-effect dependencies
+					// for the new importer. The return value is intentionally discarded; only the
+					// side-effect recording triggered during traversal is needed.
+					this.getVariableFromNamespaceReexports(
+						name,
+						importerForSideEffects,
+						searchedNamesAndModules,
+						[...importChain, this.id]
+					);
+				}
 				return foundNamespaceReexport;
 			}
 		}
