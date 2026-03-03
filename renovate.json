@@ -24,7 +24,6 @@
       "matchPackageNames": [
         "node",
         "npm",
-        "fsevents",
         "core-js",
         "@napi-rs/cli",
         "mocha"

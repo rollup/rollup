@@ -7,13 +7,15 @@ import type Variable from '../../variables/Variable';
 import JSXEmptyExpression from '../JSXEmptyExpression';
 import JSXExpressionContainer from '../JSXExpressionContainer';
 import JSXText from '../JSXText';
-import type { JSXChild, JsxMode } from './jsxHelpers';
+import type * as nodes from '../node-unions';
+import type { JsxMode } from './jsxHelpers';
 import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
 import { doNotDeoptimize, NodeBase } from './Node';
 
 export default class JSXElementBase extends NodeBase {
-	declare children: JSXChild[];
+	declare parent: nodes.JSXElementParent | nodes.JSXFragmentParent;
+	declare children: nodes.JSXChild[];
 
 	protected factoryVariable: Variable | null = null;
 	protected factory: string | null = null;
@@ -66,7 +68,7 @@ export default class JSXElementBase extends NodeBase {
 		const { children } = this;
 		let hasMultipleChildren = false;
 		let childrenEnd = openingEnd;
-		let firstChild: JSXChild | null = null;
+		let firstChild: nodes.JSXChild | null = null;
 		for (const child of children) {
 			if (
 				(child instanceof JSXExpressionContainer &&

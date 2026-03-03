@@ -14,6 +14,7 @@ description: 'How to write and run tests for this project'
     npm run build:quick
     npm run test:quick
     ```
+  - always add `solo: true` when running a single test, and remove it before finishing
   - each test category is run by a test/<category>/index.js file
   - the available options for each test category are defined in test/types.d.ts
   - see below for the different categories

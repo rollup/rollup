@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
+import type { FieldDescription, NodeDescription } from './ast-types.js';
 import { astNodeNamesWithFieldOrder } from './ast-types.js';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
@@ -12,8 +13,7 @@ const nodeTypeImports = nodeTypes.map(name => `import ${name} from './nodes/${na
 const nodeTypeStrings = nodeTypes.map(name => `\t'${name}'`);
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
-	/** @type {string[]} */
-	const definitions = [];
+	const definitions: string[] = [];
 	let offset = 0;
 	let needsBuffer = false;
 	let needsScope = false;
@@ -26,7 +26,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 				let assignmentLeftHand = node.baseForAdditionalFields?.includes(flagName)
 					? `const ${flagName} = `
 					: '';
-				if (!node.hiddenFields?.includes(flagName)) {
+				if (!node.serializeHiddenFields?.[flagName]) {
 					assignmentLeftHand += `node.${flagName} = `;
 				}
 				return `${assignmentLeftHand}(flags & ${1 << index}) === ${1 << index};`;
@@ -34,12 +34,12 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 		);
 	}
 	for (const [index, field] of fields.entries()) {
-		const fieldDefinition = getFieldDefinition(field, node, originalNode, offset + index);
+		const fieldDefinition = getFieldDefinition(field, name, node, originalNode, offset + index);
 		needsBuffer = true;
 		needsScope ||= fieldDefinition.needsScope;
 		definitions.push(`${fieldDefinition.definition}\n`);
 	}
-	for (const [fieldName, fieldValue] of Object.entries(node.additionalFields || {})) {
+	for (const [fieldName, { value: fieldValue }] of Object.entries(node.additionalFields || {})) {
 		definitions.push(`node.${fieldName} = ${fieldValue};\n`);
 	}
 	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
@@ -51,31 +51,29 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	if (needsScope) {
 		definitions.unshift('const {scope} = node;');
 	}
-	/** @type {string[]} */
-	const parameters = [];
+	const parameters: string[] = [];
 	if (definitions.length > 0) {
 		parameters.push(`node: ${node.astType || name}`);
 		if (needsBuffer) {
 			parameters.push('position, buffer');
 		}
 	}
-	return `function ${firstLettersLowercase(name)} (${parameters.join(', ')}) {
+	return `function ${node.converterFunction || firstLettersLowercase(name)} (${parameters.join(', ')}) {
     ${definitions.join('')}}`;
 });
 
-/**
- * @param {import("./ast-types.js").FieldWithType} field
- * @param {import("./ast-types.js").NodeDescription} node
- * @param {import("./ast-types.js").NodeDescription} originalNode
- * @param {number} offset
- * @returns {{definition: string, needsScope: boolean}}
- */
-function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) {
+function getFieldDefinition(
+	field: FieldDescription,
+	nodeName: string,
+	node: NodeDescription,
+	originalNode: NodeDescription,
+	offset: number
+): { definition: string; needsScope: boolean } {
 	const getPosition = offset > 0 ? `position + ${offset}` : 'position';
 	const dataStart = `buffer[${getPosition}]`;
-	if (node.scriptedFields?.[fieldName]) {
+	if (node.scriptedFields?.[field.name]) {
 		return {
-			definition: node.scriptedFields?.[fieldName]
+			definition: node.scriptedFields?.[field.name]
 				.replace(/\$position/g, dataStart)
 				.replace(
 					/\$type([A-Z]\w+)\b/g,
@@ -85,40 +83,38 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 			needsScope: true
 		};
 	}
-	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
-	const typeCastString = typeCast ? ` as ${typeCast}` : '';
-	let assignmentLeftHand = node.baseForAdditionalFields?.includes(fieldName)
-		? `const ${fieldName} = `
+	let assignmentLeftHand = node.baseForAdditionalFields?.includes(field.name)
+		? `const ${field.name} = `
 		: '';
-	if (!node.hiddenFields?.includes(fieldName)) {
-		assignmentLeftHand += `node.${fieldName} = `;
+	if (!node.serializeHiddenFields?.[field.name]) {
+		assignmentLeftHand += `node.${field.name} = `;
 	}
-	const scope = originalNode?.scopes?.[fieldName] || node?.scopes?.[fieldName] || 'scope';
-	switch (fieldType) {
+	const scope = originalNode?.scopes?.[field.name] || node?.scopes?.[field.name] || 'scope';
+	switch (field.type) {
 		case 'Node': {
+			if (field.allowNull) {
+				let definition = `const ${field.name}Position = ${dataStart};`;
+				let needsScope = false;
+				if (!node.optionalFallback?.[field.name]) {
+					needsScope = true;
+					let additionalDefinition = `\n${assignmentLeftHand}${field.name}Position === 0 ? null : convertNode(node, ${scope}, ${field.name}Position, buffer)`;
+					if (node.postProcessFields?.[field.name]) {
+						const [variableName, postProcess] = node.postProcessFields[field.name];
+						additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
+					}
+					definition += additionalDefinition;
+				}
+				return { definition, needsScope };
+			}
 			return {
-				definition: `${assignmentLeftHand}convertNode(node, ${scope}, ${dataStart}, buffer)${typeCastString};`,
+				definition: `${assignmentLeftHand}convertNode(node, ${scope}, ${dataStart}, buffer);`,
 				needsScope: true
 			};
 		}
-		case 'OptionalNode': {
-			let definition = `const ${fieldName}Position = ${dataStart};`;
-			let needsScope = false;
-			if (!node.optionalFallback?.[fieldName]) {
-				needsScope = true;
-				let additionalDefinition = `\n${assignmentLeftHand}${fieldName}Position === 0 ? null : convertNode(node, ${scope}, ${fieldName}Position, buffer)${typeCastString}`;
-				if (node.postProcessFields?.[fieldName]) {
-					const [variableName, postProcess] = node.postProcessFields[fieldName];
-					additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
-				}
-				definition += additionalDefinition;
-			}
-			return { definition, needsScope };
-		}
 		case 'NodeList': {
-			let definition = `${assignmentLeftHand}convertNodeList(node, ${scope}, ${dataStart}, buffer)${typeCastString}`;
-			if (node.postProcessFields?.[fieldName]) {
-				const [variableName, postProcess] = node.postProcessFields[fieldName];
+			let definition = `${assignmentLeftHand}convertNodeList(node, ${scope}, ${dataStart}, buffer)`;
+			if (node.postProcessFields?.[field.name]) {
+				const [variableName, postProcess] = node.postProcessFields[field.name];
 				definition = `const ${variableName} = (${definition});\n${postProcess}`;
 			}
 			return {
@@ -126,11 +122,10 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 				needsScope: true
 			};
 		}
-		case 'Annotations':
-		case 'InvalidAnnotations': {
-			let definition = `${assignmentLeftHand}convertAnnotations(${dataStart}, buffer)${typeCastString}`;
-			if (node.postProcessFields?.[fieldName]) {
-				const [variableName, postProcess] = node.postProcessFields[fieldName];
+		case 'Annotations': {
+			let definition = `${assignmentLeftHand}convertAnnotations(${dataStart}, buffer)`;
+			if (node.postProcessFields?.[field.name]) {
+				const [variableName, postProcess] = node.postProcessFields[field.name];
 				definition = `const ${variableName} = (${definition});\n${postProcess}`;
 			}
 			return {
@@ -139,21 +134,20 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 			};
 		}
 		case 'String': {
+			if (field.optional) {
+				return {
+					definition: `const ${field.name}Position = ${dataStart};\n${assignmentLeftHand}${field.name}Position === 0 ? undefined : buffer.convertString(${field.name}Position);`,
+					needsScope: false
+				};
+			}
 			return {
-				definition: `${assignmentLeftHand}buffer.convertString(${dataStart})${typeCastString};`,
-				needsScope: false
-			};
-		}
-		case 'OptionalString':
-		case 'NullableString': {
-			return {
-				definition: `const ${fieldName}Position = ${dataStart};\n${assignmentLeftHand}${fieldName}Position === 0 ? ${fieldType === 'OptionalString' ? 'undefined' : 'null'} : buffer.convertString(${fieldName}Position)${typeCastString};`,
+				definition: `${assignmentLeftHand}buffer.convertString(${dataStart});`,
 				needsScope: false
 			};
 		}
 		case 'FixedString': {
 			return {
-				definition: `${assignmentLeftHand}FIXED_STRINGS[${dataStart}]${typeCastString};`,
+				definition: `${assignmentLeftHand}FIXED_STRINGS[${dataStart}] as ast.${nodeName}['${field.name}'];`,
 				needsScope: false
 			};
 		}
@@ -164,17 +158,16 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 			};
 		}
 		default: {
-			throw new Error(`Unknown field type: ${fieldType}`);
+			throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 		}
 	}
 }
 
 const bufferParsers = `${notEditFilesComment}
-import type * as estree from 'estree';
-import type { AstContext } from '../Module';
+import type { ast } from '../rollup/types';
 import { convertAnnotations } from '../utils/astConverterHelpers';
 import { EMPTY_ARRAY } from '../utils/blank';
-import { convertNode as convertJsonNode } from '../utils/bufferToAst';
+import { convertNode as convertJsonNode } from '../utils/bufferToLazyAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { AstBuffer } from '../utils/getAstBuffer';
 import { getAstBuffer } from '../utils/getAstBuffer';
@@ -189,7 +182,7 @@ import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(
   buffer: Buffer | Uint8Array,
-  parent: Node | { context: AstContext; type: string },
+  parent: Node | null,
   parentScope: ModuleScope
 ): Program {
   return convertNode(parent, parentScope, 0, getAstBuffer(buffer));
@@ -199,16 +192,16 @@ const nodeTypeStrings = [
   ${nodeTypeStrings.join(',\n')}
 ] as const;
 
-const nodeConstructors: (typeof NodeBase)[] = [
+const nodeConstructors = [
   ${nodeTypes.join(',\n')}
-];
+] as const;
 
 const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[] = [
   ${jsConverters.join(',\n')}
 ];
 
 function convertNode(
-  parent: Node | { context: AstContext; type: string },
+  parent: Node | null,
   parentScope: ChildScope,
   position: number,
   buffer: AstBuffer
@@ -221,7 +214,7 @@ function convertNode(
     throw new Error(\`Unknown node type: $\{nodeType}\`);
   }
   const node = new NodeConstructor(parent, parentScope);
-  node.type = nodeTypeStrings[nodeType];
+  node.type = nodeTypeStrings[nodeType] as any;
   node.start = buffer[position + 1];
   node.end = buffer[position + 2];
   bufferParsers[nodeType](node, position + 3, buffer);
@@ -230,7 +223,7 @@ function convertNode(
 }
 
 function convertNodeList(
-  parent: Node | { context: AstContext; type: string },
+  parent: Node | null,
   parentScope: ChildScope,
   position: number,
   buffer: AstBuffer

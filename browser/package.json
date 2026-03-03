@@ -22,9 +22,6 @@
     "url": "https://github.com/rollup/rollup/issues"
   },
   "homepage": "https://rollupjs.org/",
-  "dependencies": {
-    "@types/estree": "1.0.8"
-  },
   "files": [
     "dist/**/*.wasm",
     "dist/**/*.js",
