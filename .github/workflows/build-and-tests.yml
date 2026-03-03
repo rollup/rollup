@@ -254,7 +254,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@f8d25fb8a2df08dcd3cead89780d572767b8655f # v2.68.0
+        uses: taiki-e/install-action@2dc1234c293fde032a8e34c74501c7d6403e92ae # v2.68.14
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
