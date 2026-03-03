@@ -594,6 +594,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.specifiers = convertNodeList(node, scope, buffer[position], buffer);
 		node.source = convertNode(node, scope, buffer[position + 1], buffer);
 		node.attributes = convertNodeList(node, scope, buffer[position + 2], buffer);
+		const phaseIndex = buffer[position + 3];
+		node.phase = phaseIndex === 0 ? undefined : (FIXED_STRINGS[phaseIndex] as 'source' | 'defer');
 	},
 	function importDefaultSpecifier(node: ImportDefaultSpecifier, position, buffer) {
 		const { scope } = node;
@@ -605,6 +607,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.sourceAstNode = convertJsonNode(buffer[position], buffer);
 		const optionsPosition = buffer[position + 1];
 		node.options = optionsPosition === 0 ? null : convertNode(node, scope, optionsPosition, buffer);
+		const phaseIndex = buffer[position + 2];
+		node.phase = phaseIndex === 0 ? undefined : (FIXED_STRINGS[phaseIndex] as 'source' | 'defer');
 	},
 	function importNamespaceSpecifier(node: ImportNamespaceSpecifier, position, buffer) {
 		const { scope } = node;

@@ -27,6 +27,7 @@ import {
 	logImplicitDependantCannotBeExternal,
 	logInconsistentImportAttributes,
 	logInternalIdCannotBeExternal,
+	logNonExternalSourcePhaseImport,
 	logUnresolvedEntry,
 	logUnresolvedImplicitDependant,
 	logUnresolvedImport,
@@ -524,13 +525,23 @@ export class ModuleLoader {
 		module: Module,
 		resolveStaticDependencyPromises: readonly ResolveStaticDependencyPromise[]
 	): Promise<void> {
-		for (const dependency of await Promise.all(
+		for (const { dependency, isSourcePhase } of await Promise.all(
 			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
-				resolveStaticDependencyPromise.then(([source, resolvedId]) =>
-					this.fetchResolvedDependency(source, module.id, resolvedId)
-				)
+				resolveStaticDependencyPromise.then(([source, resolvedId]) => {
+					const isSourcePhase = module.sourcePhaseSources.has(source);
+					if (isSourcePhase && !resolvedId.external) {
+						return error(logNonExternalSourcePhaseImport(source, module.id));
+					}
+					return this.fetchResolvedDependency(source, module.id, resolvedId).then(dependency => ({
+						dependency,
+						isSourcePhase
+					}));
+				})
 			)
 		)) {
+			if (isSourcePhase && dependency instanceof ExternalModule) {
+				dependency.hasSourcePhaseImport = true;
+			}
 			module.dependencies.add(dependency);
 			dependency.importers.push(module.id);
 		}

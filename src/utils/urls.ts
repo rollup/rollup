@@ -36,6 +36,9 @@ export const URL_TREESHAKE_NOSIDEEFFECTS = 'configuration-options/#no-side-effec
 export const URL_TREESHAKE_MODULESIDEEFFECTS = 'configuration-options/#treeshake-modulesideeffects';
 export const URL_WATCH = 'configuration-options/#watch';
 
+// es-module-syntax
+export const URL_SOURCE_PHASE_IMPORTS = 'es-module-syntax/#source-phase-import';
+
 // command-line-interface
 export const URL_BUNDLE_CONFIG_AS_CJS = 'command-line-interface/#bundleconfigascjs';
 export const URL_CONFIGURATION_FILES = 'command-line-interface/#configuration-files';
