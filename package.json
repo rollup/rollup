@@ -177,7 +177,7 @@
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.21",
     "memfs": "^4.56.10",
-    "mocha": "11.3.0",
+    "mocha": "11.7.5",
     "nodemon": "^3.1.14",
     "npm-audit-resolver": "^3.0.0-RC.0",
     "nyc": "^18.0.0",

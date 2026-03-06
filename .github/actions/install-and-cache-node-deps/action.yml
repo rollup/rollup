@@ -12,9 +12,15 @@ runs:
           ~/.npm
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
         restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-    - name: Install Node dependencies
+    - name: Pin npm version and install Node dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare:patch
+      run: |
+        if node -e "const v=process.versions.node.split('.').map(Number);const min=[20,17];process.exit(v[0]>min[0]||v[0]===min[0]&&v[1]>=min[1]?0:1)"; then
+          npm config set prefix ~/.npm-global
+          npm install -g npm@11.6.2
+          echo "$HOME/.npm-global/bin" >> $GITHUB_PATH
+        fi
+        npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare:patch
       shell: bash
     - name: Save Node dependencies cache
       if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
@@ -24,4 +30,3 @@ runs:
           node_modules
           ~/.npm
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-
