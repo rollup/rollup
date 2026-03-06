@@ -3,6 +3,9 @@
   "extends": [
     "config:recommended"
   ],
+  "constraints": {
+    "npm": "11.6.2"
+  },
   "dependencyDashboard": true,
   "configMigration": true,
   "rangeStrategy": "bump",
@@ -26,8 +29,7 @@
         "npm",
         "fsevents",
         "core-js",
-        "@napi-rs/cli",
-        "mocha"
+        "@napi-rs/cli"
       ],
       "enabled": false
     },
@@ -35,7 +37,8 @@
       "matchPackageNames": [
         "@types/node",
         "yargs-parser",
-        "@inquirer/prompts"
+        "@inquirer/prompts",
+        "@rollup/plugin-terser"
       ],
       "matchUpdateTypes": [
         "major"
