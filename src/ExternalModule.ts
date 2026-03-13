@@ -11,7 +11,6 @@ export default class ExternalModule {
 	readonly dynamicImporters: string[] = [];
 	execIndex = Infinity;
 	readonly exportedVariables = new Map<ExternalVariable, string>();
-	hasSourcePhaseImport = false;
 	readonly importers: string[] = [];
 	readonly info: ModuleInfo;
 	reexported = false;
