@@ -525,23 +525,16 @@ export class ModuleLoader {
 		module: Module,
 		resolveStaticDependencyPromises: readonly ResolveStaticDependencyPromise[]
 	): Promise<void> {
-		for (const { dependency, isSourcePhase } of await Promise.all(
+		for (const dependency of await Promise.all(
 			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
 				resolveStaticDependencyPromise.then(([source, resolvedId]) => {
-					const isSourcePhase = module.sourcePhaseSources.has(source);
-					if (isSourcePhase && !resolvedId.external) {
+					if (module.sourcePhaseSources.has(source) && !resolvedId.external) {
 						return error(logNonExternalSourcePhaseImport(source, module.id));
 					}
-					return this.fetchResolvedDependency(source, module.id, resolvedId).then(dependency => ({
-						dependency,
-						isSourcePhase
-					}));
+					return this.fetchResolvedDependency(source, module.id, resolvedId);
 				})
 			)
 		)) {
-			if (isSourcePhase && dependency instanceof ExternalModule) {
-				dependency.hasSourcePhaseImport = true;
-			}
 			module.dependencies.add(dependency);
 			dependency.importers.push(module.id);
 		}
