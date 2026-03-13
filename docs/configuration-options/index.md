@@ -58,6 +58,8 @@ When providing a function, it is called with three parameters `(id, parent, isRe
 
 When creating an `iife` or `umd` bundle, you will need to provide global variable names to replace your external imports via the [`output.globals`](#output-globals) option.
 
+Note that [source phase imports](../es-module-syntax/index.md#source-phase-import) (`import source x from 'y'`) are required to be external. Rollup will raise an error if a source phase import resolves to a module that is not external.
+
 If a relative import, i.e. starting with `./` or `../`, is marked as "external", rollup will internally resolve the id to an absolute file system location so that different imports of the external module can be merged. When the resulting bundle is written, the import will again be converted to a relative import. Example:
 
 ```js

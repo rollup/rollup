@@ -6,8 +6,12 @@ import type IdentifierBase from '../nodes/shared/IdentifierBase';
 import { type ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
+/** Synthetic import name for source phase imports, similar to '*' for namespaces */
+export const SOURCE_PHASE_IMPORT = '*source';
+
 export default class ExternalVariable extends Variable {
 	readonly isNamespace: boolean;
+	readonly isSourcePhase: boolean;
 	readonly module: ExternalModule;
 	referenced = false;
 
@@ -15,6 +19,7 @@ export default class ExternalVariable extends Variable {
 		super(name);
 		this.module = module;
 		this.isNamespace = name === '*';
+		this.isSourcePhase = name === SOURCE_PHASE_IMPORT;
 	}
 
 	addReference(identifier: IdentifierBase): void {

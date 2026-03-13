@@ -404,13 +404,15 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 		};
 	},
 	function importDeclaration(position, buffer): ImportDeclarationNode {
+		const phaseIndex = buffer[position + 5];
 		return {
 			type: 'ImportDeclaration',
 			start: buffer[position],
 			end: buffer[position + 1],
 			specifiers: convertNodeList(buffer[position + 2], buffer),
 			source: convertNode(buffer[position + 3], buffer),
-			attributes: convertNodeList(buffer[position + 4], buffer)
+			attributes: convertNodeList(buffer[position + 4], buffer),
+			...(phaseIndex === 0 ? {} : { phase: FIXED_STRINGS[phaseIndex] as 'source' | 'defer' })
 		};
 	},
 	function importDefaultSpecifier(position, buffer): ImportDefaultSpecifierNode {
@@ -423,12 +425,14 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 	},
 	function importExpression(position, buffer): ImportExpressionNode {
 		const optionsPosition = buffer[position + 3];
+		const phaseIndex = buffer[position + 4];
 		return {
 			type: 'ImportExpression',
 			start: buffer[position],
 			end: buffer[position + 1],
 			source: convertNode(buffer[position + 2], buffer),
-			options: optionsPosition === 0 ? null : convertNode(optionsPosition, buffer)
+			options: optionsPosition === 0 ? null : convertNode(optionsPosition, buffer),
+			...(phaseIndex === 0 ? {} : { phase: FIXED_STRINGS[phaseIndex] as 'source' | 'defer' })
 		};
 	},
 	function importNamespaceSpecifier(position, buffer): ImportNamespaceSpecifierNode {
@@ -1020,11 +1024,11 @@ export type ImportAttributeNode = RollupAstNode<{
 	value: estree.Literal;
 }>;
 export type ImportDeclarationNode = RollupAstNode<
-	estree.ImportDeclaration & { attributes: ImportAttributeNode[] }
+	estree.ImportDeclaration & { attributes: ImportAttributeNode[]; phase?: 'source' | 'defer' }
 >;
 export type ImportDefaultSpecifierNode = RollupAstNode<estree.ImportDefaultSpecifier>;
 export type ImportExpressionNode = RollupAstNode<
-	estree.ImportExpression & { options: estree.Expression | null }
+	estree.ImportExpression & { options: estree.Expression | null; phase?: 'source' | 'defer' }
 >;
 export type ImportNamespaceSpecifierNode = RollupAstNode<estree.ImportNamespaceSpecifier>;
 export type ImportSpecifierNode = RollupAstNode<estree.ImportSpecifier>;
