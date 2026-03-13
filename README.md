@@ -9,8 +9,8 @@
   <a href="https://nodejs.org/en/about/previous-releases">
     <img src="https://img.shields.io/node/v/rollup.svg" alt="node compatibility">
   </a>
-  <a href="https://packagephobia.now.sh/result?p=rollup">
-    <img src="https://packagephobia.now.sh/badge?p=rollup" alt="install size" >
+  <a href="https://packagephobia.com/result?p=rollup">
+    <img src="https://packagephobia.com/badge?p=rollup" alt="install size" >
   </a>
   <a href="https://codecov.io/gh/rollup/rollup">
     <img src="https://codecov.io/gh/rollup/rollup/graph/badge.svg" alt="code coverage" >
