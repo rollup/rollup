@@ -1,7 +1,13 @@
-module.exports = {
-	description: 'ensures side-effects are recorded when namespace reexports hit cache (#6274)',
+module.exports = defineTest({
+	description:
+		'correctly tracks side-effect dependencies for multiple importers through namespace reexport cache',
 	options: {
-		input: ['main1.js', 'main2.js'],
-		treeshake: { moduleSideEffects: true }
+		input: ['entry1.js', 'entry2.js'],
+		treeshake: {
+			moduleSideEffects(id) {
+				if (id.endsWith('index.js')) return false;
+				return true;
+			}
+		}
 	}
-};
+});

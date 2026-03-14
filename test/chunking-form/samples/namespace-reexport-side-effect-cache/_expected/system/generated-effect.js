@@ -3,9 +3,9 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			console.log('side effect');
+			const foo = exports("f", 'foo');
 
-			const B = exports("B", 1);
+			console.log('side effect');
 
 		})
 	};
