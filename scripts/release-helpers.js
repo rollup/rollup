@@ -81,7 +81,12 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 				commits.map(({ author, commit }) => author?.login || commit.author.name)
 			);
 			otherAuthors.delete(mainAuthor);
-			const bodyWithoutComments = pullRequest.body.replace(/<!--[\S\s]*?-->/g, '');
+			let bodyWithoutComments = pullRequest.body;
+			let previousBody;
+			do {
+				previousBody = bodyWithoutComments;
+				bodyWithoutComments = bodyWithoutComments.replace(/<!--[\S\s]*?-->/g, '');
+			} while (bodyWithoutComments !== previousBody);
 			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;
 			const closed = [];
 			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
