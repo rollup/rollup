@@ -385,11 +385,19 @@ export class ModuleLoader {
 	): Promise<void> {
 		const dependencies = await Promise.all(
 			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
-				resolveDynamicImportPromise.then(async ([{ node }, resolvedId]) => {
+				resolveDynamicImportPromise.then(async ([{ argument, node }, resolvedId]) => {
 					if (resolvedId === null) return null;
 					if (typeof resolvedId === 'string') {
 						node.resolution = resolvedId;
 						return null;
+					}
+					if (node.phase === 'source' && !resolvedId.external) {
+						return error(
+							logNonExternalSourcePhaseImport(
+								typeof argument === 'string' ? argument : relativeId(resolvedId.id),
+								module.id
+							)
+						);
 					}
 					return (node.resolution = await this.fetchResolvedDependency(
 						relativeId(resolvedId.id),
