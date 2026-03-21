@@ -680,15 +680,27 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
-			const foundNamespaceReexport =
-				this.namespaceReexportsByName.get(name) ??
+			let foundNamespaceReexport = this.namespaceReexportsByName.get(name);
+			if (!foundNamespaceReexport) {
+				foundNamespaceReexport = this.getVariableFromNamespaceReexports(
+					name,
+					importerForSideEffects,
+					searchedNamesAndModules,
+					[...importChain, this.id]
+				);
+				this.namespaceReexportsByName.set(name, foundNamespaceReexport);
+			} else if (importerForSideEffects) {
+				// `namespaceReexportsByName` caches the resolved binding, but side-effect
+				// dependencies must be recorded per importer. Re-run the namespace search
+				// when we already have a cache hit so each `importerForSideEffects` still
+				// propagates `moduleSideEffects` information (see #6274).
 				this.getVariableFromNamespaceReexports(
 					name,
 					importerForSideEffects,
 					searchedNamesAndModules,
 					[...importChain, this.id]
 				);
-			this.namespaceReexportsByName.set(name, foundNamespaceReexport);
+			}
 			if (foundNamespaceReexport[0]) {
 				return foundNamespaceReexport;
 			}
