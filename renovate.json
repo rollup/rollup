@@ -38,7 +38,8 @@
         "@types/node",
         "yargs-parser",
         "@inquirer/prompts",
-        "@rollup/plugin-terser"
+        "@rollup/plugin-terser",
+        "vite"
       ],
       "matchUpdateTypes": [
         "major"
