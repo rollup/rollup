@@ -27,6 +27,7 @@ import {
 	logImplicitDependantCannotBeExternal,
 	logInconsistentImportAttributes,
 	logInternalIdCannotBeExternal,
+	logNonExternalSourcePhaseImport,
 	logUnresolvedEntry,
 	logUnresolvedImplicitDependant,
 	logUnresolvedImport,
@@ -384,11 +385,19 @@ export class ModuleLoader {
 	): Promise<void> {
 		const dependencies = await Promise.all(
 			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
-				resolveDynamicImportPromise.then(async ([{ node }, resolvedId]) => {
+				resolveDynamicImportPromise.then(async ([{ argument, node }, resolvedId]) => {
 					if (resolvedId === null) return null;
 					if (typeof resolvedId === 'string') {
 						node.resolution = resolvedId;
 						return null;
+					}
+					if (node.phase === 'source' && !resolvedId.external) {
+						return error(
+							logNonExternalSourcePhaseImport(
+								typeof argument === 'string' ? argument : relativeId(resolvedId.id),
+								module.id
+							)
+						);
 					}
 					return (node.resolution = await this.fetchResolvedDependency(
 						relativeId(resolvedId.id),
@@ -526,9 +535,12 @@ export class ModuleLoader {
 	): Promise<void> {
 		for (const dependency of await Promise.all(
 			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
-				resolveStaticDependencyPromise.then(([source, resolvedId]) =>
-					this.fetchResolvedDependency(source, module.id, resolvedId)
-				)
+				resolveStaticDependencyPromise.then(([source, resolvedId]) => {
+					if (module.sourcePhaseSources.has(source) && !resolvedId.external) {
+						return error(logNonExternalSourcePhaseImport(source, module.id));
+					}
+					return this.fetchResolvedDependency(source, module.id, resolvedId);
+				})
 			)
 		)) {
 			module.dependencies.add(dependency);

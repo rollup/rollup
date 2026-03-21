@@ -6,6 +6,7 @@ import type ImportExpression from './ast/nodes/ImportExpression';
 import { formatsMaybeAccessDocumentCurrentScript } from './ast/nodes/MetaProperty';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
+import type ExternalVariable from './ast/variables/ExternalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
@@ -107,6 +108,7 @@ export interface ChunkDependency {
 	namedExportsMode: boolean;
 	namespaceVariableName: string | undefined;
 	reexports: ReexportSpecifier[] | null;
+	sourcePhaseImport: string | undefined;
 }
 
 export type ChunkExports = {
@@ -125,6 +127,7 @@ export interface ReexportSpecifier {
 export interface ImportSpecifier {
 	imported: string;
 	local: string;
+	phase: 'source' | 'instance';
 }
 
 interface FacadeName {
@@ -1074,10 +1077,17 @@ export default class Chunk {
 			const module = variable.module!;
 			let dependency: Chunk | ExternalChunk;
 			let imported: string;
+			const isSourcePhase =
+				module instanceof ExternalModule && (variable as ExternalVariable).isSourcePhase;
 			if (module instanceof ExternalModule) {
 				dependency = this.externalChunkByModule.get(module)!;
 				imported = variable.name;
-				if (imported !== 'default' && imported !== '*' && interop(module.id) === 'defaultOnly') {
+				if (
+					!isSourcePhase &&
+					imported !== 'default' &&
+					imported !== '*' &&
+					interop(module.id) === 'defaultOnly'
+				) {
 					return error(logUnexpectedNamedImport(module.id, imported, false));
 				}
 			} else {
@@ -1086,7 +1096,8 @@ export default class Chunk {
 			}
 			getOrCreate(importsByDependency, dependency, getNewArray).push({
 				imported,
-				local: variable.getName(this.snippets.getPropertyAccess)
+				local: variable.getName(this.snippets.getPropertyAccess),
+				phase: isSourcePhase ? 'source' : 'instance'
 			});
 		}
 		return importsByDependency;
@@ -1241,6 +1252,9 @@ export default class Chunk {
 			const namedExportsMode =
 				dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
 			const importPath = dependency.getImportPath(fileName);
+			// Separate source-phase imports from regular imports
+			const sourcePhaseImport = imports?.find(index => index.phase === 'source');
+			const instanceImports = imports?.filter(index => index.phase !== 'source') ?? null;
 
 			renderedDependencies.set(dependency, {
 				attributes:
@@ -1258,12 +1272,13 @@ export default class Chunk {
 						this.inputOptions.onLog
 					),
 				importPath,
-				imports,
+				imports: instanceImports && instanceImports.length > 0 ? instanceImports : null,
 				isChunk: dependency instanceof Chunk,
 				name: dependency.variableName,
 				namedExportsMode,
 				namespaceVariableName: dependency.namespaceVariableName,
-				reexports
+				reexports,
+				sourcePhaseImport: sourcePhaseImport?.local
 			});
 		}
 

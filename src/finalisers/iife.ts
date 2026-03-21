@@ -12,6 +12,7 @@ import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
+import throwOnPhase from './shared/throwOnPhase';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
@@ -23,6 +24,7 @@ export default function iife(
 		exports,
 		hasDefaultExport,
 		hasExports,
+		id,
 		indent: t,
 		intro,
 		namedExportsMode,
@@ -44,6 +46,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): void {
+	throwOnPhase('iife', id, dependencies);
 	const { _, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.includes('.');
 	const useVariableAssignment = !extend && !isNamespaced;

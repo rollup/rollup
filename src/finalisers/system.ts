@@ -6,6 +6,7 @@ import { stringifyObjectKeyIfNeeded } from '../utils/identifierHelpers';
 import { getHelpersBlock } from '../utils/interopHelpers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
 import type { FinaliserOptions } from './index';
+import throwOnPhase from './shared/throwOnPhase';
 
 export default function system(
 	magicString: MagicStringBundle,
@@ -14,6 +15,7 @@ export default function system(
 		dependencies,
 		exports,
 		hasExports,
+		id,
 		indent: t,
 		intro,
 		snippets,
@@ -29,6 +31,7 @@ export default function system(
 		systemNullSetters
 	}: NormalizedOutputOptions
 ): void {
+	throwOnPhase('system', id, dependencies);
 	const { _, getFunctionIntro, getNonArrowFunctionIntro, n, s } = snippets;
 	const { importBindings, setters, starExcludes } = analyzeDependencies(
 		dependencies,
