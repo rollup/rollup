@@ -1,5 +1,36 @@
 # rollup changelog
 
+## 4.59.1
+
+_2026-03-21_
+
+### Bug Fixes
+
+- Fix a crash when using lazy dynamic imports with moduleSideEffects:false (#6306)
+
+### Pull Requests
+
+- [#6281](https://github.com/rollup/rollup/pull/6281): fix(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6282](https://github.com/rollup/rollup/pull/6282): chore(deps): update github artifact actions (major) (@renovate[bot], @lukastaegert)
+- [#6283](https://github.com/rollup/rollup/pull/6283): chore(deps): update dependency nyc to v18 (@renovate[bot], @lukastaegert)
+- [#6284](https://github.com/rollup/rollup/pull/6284): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6285](https://github.com/rollup/rollup/pull/6285): chore(deps): lock file maintenance (@renovate[bot])
+- [#6290](https://github.com/rollup/rollup/pull/6290): chore(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6291](https://github.com/rollup/rollup/pull/6291): chore(deps): update dependency @shikijs/vitepress-twoslash to v4 (@renovate[bot])
+- [#6292](https://github.com/rollup/rollup/pull/6292): chore(deps): lock file maintenance (@renovate[bot])
+- [#6297](https://github.com/rollup/rollup/pull/6297): chore(deps): update minor/patch updates (@renovate[bot])
+- [#6298](https://github.com/rollup/rollup/pull/6298): chore(deps): lock file maintenance (@renovate[bot])
+- [#6299](https://github.com/rollup/rollup/pull/6299): chore(deps): lock file maintenance (@renovate[bot])
+- [#6300](https://github.com/rollup/rollup/pull/6300): docs: update packagephobia link (@bluwy)
+- [#6301](https://github.com/rollup/rollup/pull/6301): chore(deps): update dependency lint-staged to ^16.3.3 (@renovate[bot])
+- [#6306](https://github.com/rollup/rollup/pull/6306): fix: fix chunk assignment for deoptimized module with dynamic import (@JoaoBrlt, @lukastaegert)
+- [#6307](https://github.com/rollup/rollup/pull/6307): chore(deps): update minor/patch updates (@renovate[bot])
+- [#6308](https://github.com/rollup/rollup/pull/6308): chore(deps): update dependency lru-cache to v11 (@renovate[bot])
+- [#6309](https://github.com/rollup/rollup/pull/6309): chore(deps): update dependency vite to v8 (@renovate[bot])
+- [#6310](https://github.com/rollup/rollup/pull/6310): chore(deps): lock file maintenance (@renovate[bot])
+- [#6311](https://github.com/rollup/rollup/pull/6311): chore(deps): lock file maintenance (@renovate[bot])
+- [#6312](https://github.com/rollup/rollup/pull/6312): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.59.0
 
 _2026-02-22_
