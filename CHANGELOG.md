@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.60.0
+
+_2026-03-22_
+
+### Features
+
+- Support source phase imports as long as they are external (#6279)
+
+### Pull Requests
+
+- [#6279](https://github.com/rollup/rollup/pull/6279): feat: external only Source Phase imports support (@guybedford, @lukastaegert)
+
 ## 4.59.1
 
 _2026-03-21_
