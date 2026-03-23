@@ -165,8 +165,8 @@ function getVariableForExportNameRecursive(
 	isExportAllSearch: boolean | undefined,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>(),
 	importChain: string[],
-	sideEffectCollector?: Set<Module>,
-	cyclicReexporterCollector?: Module[]
+	sideEffectModules?: Set<Module>,
+	exportOrReexportModules?: Set<Module>
 ): [variable: Variable | null, options?: VariableOptions] {
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
@@ -178,12 +178,12 @@ function getVariableForExportNameRecursive(
 		searchedNamesAndModules.set(name, new Set([target]));
 	}
 	return target.getVariableForExportName(name, {
-		cyclicReexporterCollector,
+		exportOrReexportModules,
 		importChain,
 		importerForSideEffects,
 		isExportAllSearch,
 		searchedNamesAndModules,
-		sideEffectCollector
+		sideEffectModules
 	});
 }
 
@@ -275,11 +275,11 @@ export default class Module {
 	private readonly exportShimVariable = new ExportShimVariable(this);
 	private readonly namespaceReexportsByName = new Map<
 		string,
-		[variable: Variable | null, options?: VariableOptions]
-	>();
-	private readonly namespaceSideEffectsByName = new Map<
-		string,
-		{ sideEffectModules: Set<Module>; cyclicReexporters: Module[] }
+		| [null]
+		| [
+				variable: Variable,
+				options: PartialRequired<VariableOptions, 'exportOrReexportModules' | 'sideEffectModules'>
+		  ]
 	>();
 	private readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
@@ -599,21 +599,21 @@ export default class Module {
 	getVariableForExportName(
 		name: string,
 		{
-			cyclicReexporterCollector,
 			importerForSideEffects,
 			importChain = [],
 			isExportAllSearch,
 			onlyExplicit,
 			searchedNamesAndModules,
-			sideEffectCollector
+			sideEffectModules,
+			exportOrReexportModules
 		}: {
-			cyclicReexporterCollector?: Module[];
 			importerForSideEffects?: Module;
 			importChain?: string[];
 			isExportAllSearch?: boolean;
 			onlyExplicit?: boolean;
 			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
-			sideEffectCollector?: Set<Module>;
+			sideEffectModules?: Set<Module>;
+			exportOrReexportModules?: Set<Module>;
 		} = EMPTY_OBJECT
 	): [variable: Variable | null, options?: VariableOptions] {
 		if (name[0] === '*') {
@@ -638,8 +638,8 @@ export default class Module {
 				false,
 				searchedNamesAndModules,
 				[...importChain, this.id],
-				sideEffectCollector,
-				cyclicReexporterCollector
+				sideEffectModules,
+				exportOrReexportModules
 			);
 			if (!variable) {
 				return this.error(
@@ -662,13 +662,10 @@ export default class Module {
 					).add(this);
 				}
 			}
-			// Collect for cache - independent of importerForSideEffects
-			if (cyclicReexporterCollector) {
-				cyclicReexporterCollector.push(this);
+			if (this.info.moduleSideEffects) {
+				sideEffectModules?.add(this);
 			}
-			if (sideEffectCollector && this.info.moduleSideEffects) {
-				sideEffectCollector.add(this);
-			}
+			exportOrReexportModules?.add(this);
 			return [variable];
 		}
 
@@ -679,8 +676,10 @@ export default class Module {
 			}
 			const name = exportDeclaration.localName;
 			const variable = this.traceVariable(name, {
+				exportOrReexportModules,
 				importerForSideEffects,
-				searchedNamesAndModules
+				searchedNamesAndModules,
+				sideEffectModules
 			});
 			if (!variable) {
 				return [null, { missingButExportExists: true }];
@@ -693,13 +692,10 @@ export default class Module {
 					getNewSet<Module>
 				).add(this);
 			}
-			// Collect for cache - independent of importerForSideEffects
-			if (cyclicReexporterCollector) {
-				cyclicReexporterCollector.push(this);
-			}
-			if (sideEffectCollector) {
-				sideEffectCollector.add(this);
-			}
+
+			sideEffectModules?.add(this);
+			exportOrReexportModules?.add(this);
+
 			return [variable];
 		}
 
@@ -708,70 +704,38 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
-			const cached = this.namespaceReexportsByName.get(name);
-			if (cached) {
-				if (cached[0]) {
-					const meta = this.namespaceSideEffectsByName.get(name);
-					if (meta) {
-						if (importerForSideEffects) {
-							const deps = getOrCreate(
-								importerForSideEffects.sideEffectDependenciesByVariable,
-								cached[0],
-								getNewSet<Module>
-							);
-							for (const module_ of meta.sideEffectModules) {
-								deps.add(module_);
-							}
-							for (const reexporter of meta.cyclicReexporters) {
-								setAlternativeExporterIfCyclic(cached[0], importerForSideEffects, reexporter);
-							}
-						}
-						// Propagate to parent collectors for nested export * caching
-						if (sideEffectCollector) {
-							for (const module_ of meta.sideEffectModules) {
-								sideEffectCollector.add(module_);
-							}
-						}
-						if (cyclicReexporterCollector) {
-							for (const module_ of meta.cyclicReexporters) {
-								cyclicReexporterCollector.push(module_);
-							}
-						}
-					}
-					return cached;
-				}
-			} else {
-				const localSE = new Set<Module>();
-				const localCR: Module[] = [];
-				const foundNamespaceReexport = this.getVariableFromNamespaceReexports(
+			const foundNamespaceReexport =
+				this.namespaceReexportsByName.get(name) ??
+				this.getVariableFromNamespaceReexports(
 					name,
 					importerForSideEffects,
 					searchedNamesAndModules,
-					[...importChain, this.id],
-					localSE,
-					localCR
+					[...importChain, this.id]
 				);
-				this.namespaceReexportsByName.set(name, foundNamespaceReexport);
-				if (foundNamespaceReexport[0]) {
-					this.namespaceSideEffectsByName.set(name, {
-						cyclicReexporters: localCR,
-						sideEffectModules: localSE
-					});
-					// Propagate to parent collectors
-					if (sideEffectCollector) {
-						for (const module_ of localSE) {
-							sideEffectCollector.add(module_);
+			this.namespaceReexportsByName.set(name, foundNamespaceReexport);
+			if (foundNamespaceReexport[0]) {
+				const [namespaceReexportVariable, namespaceReexportOptions] = foundNamespaceReexport;
+				if (importerForSideEffects) {
+					const { exportOrReexportModules, sideEffectModules } = namespaceReexportOptions;
+					for (const module of exportOrReexportModules) {
+						if (importerForSideEffects.alternativeReexportModules.has(namespaceReexportVariable)) {
+							continue;
 						}
+						setAlternativeExporterIfCyclic(
+							namespaceReexportVariable,
+							importerForSideEffects,
+							module
+						);
 					}
-					if (cyclicReexporterCollector) {
-						for (const module_ of localCR) {
-							cyclicReexporterCollector.push(module_);
-						}
+					for (const module of sideEffectModules) {
+						getOrCreate(
+							importerForSideEffects.sideEffectDependenciesByVariable,
+							namespaceReexportVariable,
+							getNewSet<Module>
+						).add(module);
 					}
 				}
-				if (foundNamespaceReexport[0]) {
-					return foundNamespaceReexport;
-				}
+				return foundNamespaceReexport;
 			}
 		}
 
@@ -1026,11 +990,15 @@ export default class Module {
 		{
 			importerForSideEffects,
 			isExportAllSearch,
-			searchedNamesAndModules
+			searchedNamesAndModules,
+			sideEffectModules,
+			exportOrReexportModules
 		}: {
 			importerForSideEffects?: Module;
 			isExportAllSearch?: boolean;
 			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
+			sideEffectModules?: Set<Module>;
+			exportOrReexportModules?: Set<Module>;
 		} = EMPTY_OBJECT
 	): Variable | null {
 		const localVariable = this.scope.variables.get(name);
@@ -1052,7 +1020,9 @@ export default class Module {
 				importerForSideEffects || this,
 				isExportAllSearch,
 				searchedNamesAndModules,
-				[this.id]
+				[this.id],
+				sideEffectModules,
+				exportOrReexportModules
 			);
 
 			if (!declaration) {
@@ -1333,13 +1303,18 @@ export default class Module {
 		name: string,
 		importerForSideEffects: Module | undefined,
 		searchedNamesAndModules: Map<string, Set<Module | ExternalModule>> | undefined,
-		importChain: string[],
-		sideEffectCollector?: Set<Module>,
-		cyclicReexporterCollector?: Module[]
-	): [variable: Variable | null, options?: VariableOptions] {
+		importChain: string[]
+	):
+		| [null]
+		| [
+				variable: Variable,
+				options: PartialRequired<VariableOptions, 'exportOrReexportModules' | 'sideEffectModules'>
+		  ] {
 		let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
 		const foundInternalDeclarations = new Map<Variable, Module>();
 		const foundExternalDeclarations = new Set<ExternalVariable>();
+		const sideEffectModules = new Set<Module>();
+		const exportOrReexportModules = new Set<Module>();
 		for (const module of this.exportAllModules) {
 			// Synthetic namespaces should not hide "regular" exports of the same name
 			if (module.info.syntheticNamedExports === name) {
@@ -1354,8 +1329,8 @@ export default class Module {
 				// imported through different namespace reexports gracefully
 				copyNameToModulesMap(searchedNamesAndModules),
 				importChain,
-				sideEffectCollector,
-				cyclicReexporterCollector
+				sideEffectModules,
+				exportOrReexportModules
 			);
 
 			if (module instanceof ExternalModule || options?.indirectExternal) {
@@ -1372,7 +1347,7 @@ export default class Module {
 			const foundDeclarationList = [...foundInternalDeclarations];
 			const usedDeclaration = foundDeclarationList[0][0];
 			if (foundDeclarationList.length === 1) {
-				return [usedDeclaration];
+				return [usedDeclaration, { exportOrReexportModules, sideEffectModules }];
 			}
 			this.options.onLog(
 				LOGLEVEL_WARN,
@@ -1399,10 +1374,13 @@ export default class Module {
 					)
 				);
 			}
-			return [usedDeclaration, { indirectExternal: true }];
+			return [
+				usedDeclaration,
+				{ exportOrReexportModules, indirectExternal: true, sideEffectModules }
+			];
 		}
 		if (foundSyntheticDeclaration) {
-			return [foundSyntheticDeclaration];
+			return [foundSyntheticDeclaration, { exportOrReexportModules, sideEffectModules }];
 		}
 		return [null];
 	}
@@ -1519,9 +1497,13 @@ const copyNameToModulesMap = (
 	new Map(Array.from(searchedNamesAndModules, ([name, modules]) => [name, new Set(modules)]));
 
 interface VariableOptions {
+	exportOrReexportModules?: Set<Module>;
 	indirectExternal?: boolean;
 	missingButExportExists?: boolean;
+	sideEffectModules?: Set<Module>;
 }
 
 const sortExportedVariables = ([a]: [string, Variable], [b]: [string, Variable]) =>
 	a < b ? -1 : a > b ? 1 : 0;
+
+type PartialRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
