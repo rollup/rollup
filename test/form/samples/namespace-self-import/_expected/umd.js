@@ -4,10 +4,9 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.iife = {}));
 })(this, (function (exports) { 'use strict';
 
-	var self = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var self = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		get p () { return p; }
-	});
+	}, null));
 
 	console.log(Object.keys(self));
 
