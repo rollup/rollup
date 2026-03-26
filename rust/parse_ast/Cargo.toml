@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.102"
-swc_compiler_base = "49.0.0"
+swc_compiler_base = "50.0.0"
 swc_config = "4.0.0"
 swc_common = { version = "19.0.0", features = ["parking_lot"] }
 swc_ecma_ast = "21.0.0"
-swc_ecma_parser = "35.0.0"
+swc_ecma_parser = "36.0.0"
 parking_lot = "0.12.5"
