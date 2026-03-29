@@ -35,11 +35,12 @@
     },
     {
       "matchPackageNames": [
-        "@types/node",
-        "yargs-parser",
         "@inquirer/prompts",
         "@rollup/plugin-terser",
-        "vite"
+        "@types/node",
+        "typescript",
+        "vite",
+        "yargs-parser",
       ],
       "matchUpdateTypes": [
         "major"
