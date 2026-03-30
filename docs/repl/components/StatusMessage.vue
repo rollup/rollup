@@ -7,7 +7,7 @@
 		{{ message.message }}
 		<a
 			v-if="isGuideUrl(message.url)"
-			:href="message.url!.slice(websitePrefix.length)"
+			:href="getGuidePath(message.url!)"
 			class="link"
 			:class="{ error: isError }"
 			>(<span class="link-text">link</span>)</a
@@ -35,7 +35,26 @@ const frame = computed(() => {
 	return '';
 });
 
-const isGuideUrl = (url: string | undefined) => url && url.startsWith(websitePrefix);
+const isGuideUrl = (url: string | undefined): boolean => {
+	if (!url) return false;
+	try {
+		const parsed = new URL(url);
+		return parsed.origin === websitePrefix;
+	} catch {
+		return false;
+	}
+};
+
+const getGuidePath = (url: string): string => {
+	try {
+		const parsed = new URL(url);
+		// Return path relative to the site root, preserving query and hash.
+		return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+	} catch {
+		// Fallback: do not expose the raw URL; return root.
+		return '/';
+	}
+};
 </script>
 
 <style scoped>
