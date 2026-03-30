@@ -425,7 +425,11 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 			getDynamicImporters(dynamicEntry),
 			dynamicEntry.implicitlyLoadedAfter
 		])) {
-			for (const entry of dependentEntriesByModule.get(importer)!) {
+			const importerEntries = dependentEntriesByModule.get(importer);
+			if (!importerEntries) {
+				continue;
+			}
+			for (const entry of importerEntries) {
 				dynamicallyDependentEntries.add(entry);
 			}
 		}

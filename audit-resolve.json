@@ -14,6 +14,16 @@
       "decision": "ignore",
       "madeAt": 1772778003517,
       "expiresAt": 1775369996393
+    },
+    "1115519|@rollup/plugin-terser>serialize-javascript": {
+      "decision": "ignore",
+      "madeAt": 1774678997033,
+      "expiresAt": 1777270978460
+    },
+    "1115519|mocha>diff>serialize-javascript": {
+      "decision": "ignore",
+      "madeAt": 1774678997033,
+      "expiresAt": 1777270978460
     }
   },
   "rules": {},

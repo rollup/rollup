@@ -35,12 +35,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         with:
           toolchain: nightly-2025-07-25
           components: rust-src
       - name: Restore Cargo cache
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -61,7 +61,7 @@ jobs:
           npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' &&
           npm run build:copy-native && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
-        uses: zdurham/s3-upload-github-action@master
+        uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd # master
         with:
           args: --cache-control max-age=300,public
         env:
@@ -72,7 +72,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Upload "${{ github.event.number }}/rollup.browser.js.map" to bucket
-        uses: zdurham/s3-upload-github-action@master
+        uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd # master
         with:
           args: --cache-control max-age=300,public
         env:
@@ -83,7 +83,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Upload "${{ github.event.number }}/bindings_wasm_bg.wasm" to bucket
-        uses: zdurham/s3-upload-github-action@master
+        uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd # master
         with:
           args: --cache-control max-age=300,public
         env:

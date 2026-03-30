@@ -201,8 +201,8 @@ impl<'a> AstConverter<'a> {
     is_chained: bool,
   ) {
     match &call_expression.callee {
-      Callee::Import(_) => {
-        self.store_import_expression(&call_expression.span, &call_expression.args)
+      Callee::Import(import) => {
+        self.store_import_expression(&call_expression.span, &call_expression.args, import)
       }
       Callee::Expr(callee_expression) => self.store_call_expression(
         &call_expression.span,
