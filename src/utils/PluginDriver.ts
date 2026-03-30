@@ -401,7 +401,7 @@ export class PluginDriver {
 	 * Run a sync plugin hook and return the result.
 	 * @param hookName Name of the plugin hook. Must be in `PluginHooks`.
 	 * @param args Arguments passed to the plugin hook.
-	 * @param plugin The acutal plugin
+	 * @param plugin The actual plugin
 	 * @param replaceContext When passed, the plugin context can be overridden.
 	 */
 	private runHookSync<H extends SyncPluginHooks>(

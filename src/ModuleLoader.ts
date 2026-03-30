@@ -279,8 +279,8 @@ export class ModuleLoader {
 						for (const module of implicitlyLoadedAfterModules) {
 							entryModule.implicitlyLoadedAfter.add(module);
 						}
-						for (const dependant of entryModule.implicitlyLoadedAfter) {
-							dependant.implicitlyLoadedBefore.add(entryModule);
+						for (const dependent of entryModule.implicitlyLoadedAfter) {
+							dependent.implicitlyLoadedBefore.add(entryModule);
 						}
 					}
 				}
@@ -677,8 +677,8 @@ export class ModuleLoader {
 			// be performed atomically
 			module.info.isEntry = true;
 			this.implicitEntryModules.delete(module);
-			for (const dependant of module.implicitlyLoadedAfter) {
-				dependant.implicitlyLoadedBefore.delete(module);
+			for (const dependent of module.implicitlyLoadedAfter) {
+				dependent.implicitlyLoadedBefore.delete(module);
 			}
 			module.implicitlyLoadedAfter.clear();
 		}

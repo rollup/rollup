@@ -56,7 +56,7 @@ const fnF = (args) => {
 
 const fnAlias = fnA;
 
-// This annonation get ignored
+// This annotation get ignored
 
 let fnLet = (args) => {
   console.log(args);

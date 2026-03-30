@@ -106,7 +106,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				options
 			);
 		} else if (this.variable.getOriginalVariable() !== this.variable) {
-			// Remove altogether to prevent re-declaring the same variable
+			// Remove altogether to prevent redeclaring the same variable
 			treeshakeNode(this, code, start, end);
 			return;
 		} else if (this.variable.included) {

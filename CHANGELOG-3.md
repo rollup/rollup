@@ -589,7 +589,7 @@ _2023-03-20_
 ### Pull Requests
 
 - [#4912](https://github.com/rollup/rollup/pull/4912): fix: make file name deterministic in parallel emits (fix #4909) ( @sun0day)
-- [#4913](https://github.com/rollup/rollup/pull/4913): Provide synthetic namespace for dynamic imports when perserving modules (@lukastaegert)
+- [#4913](https://github.com/rollup/rollup/pull/4913): Provide synthetic namespace for dynamic imports when preserving modules (@lukastaegert)
 
 ## 3.19.1
 
@@ -770,8 +770,8 @@ _2023-02-01_
 
 ### Bug Fixes
 
-- Handle self-references in class static blocks and construtors when the class is renamed (#4827)
-- Improve warnings when creating circular chunks taht reexport variables (#4829)
+- Handle self-references in class static blocks and constructors when the class is renamed (#4827)
+- Improve warnings when creating circular chunks that reexport variables (#4829)
 
 ### Pull Requests
 
@@ -1104,7 +1104,7 @@ _2022-10-18_
 
 ### Bug Fixes
 
-- Fix an issue whre Rollup confused `new.target` with `import.meta` (#4679)
+- Fix an issue where Rollup confused `new.target` with `import.meta` (#4679)
 - Ensure that Rollup does not make assumptions about the value of unknown namespace import members (#4684)
 
 ### Pull Requests

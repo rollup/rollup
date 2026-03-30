@@ -328,7 +328,7 @@ _2018-06-23_
 _2018-06-21_
 
 - Do not try to deconflict "undefined" ([#2291](https://github.com/rollup/rollup/pull/2291))
-- Properly track values for loop interator declarations and reassigned namespaces, add smoke test ([#2292](https://github.com/rollup/rollup/pull/2292))
+- Properly track values for loop iterator declarations and reassigned namespaces, add smoke test ([#2292](https://github.com/rollup/rollup/pull/2292))
 
 ## 0.61.0
 
@@ -339,7 +339,7 @@ _2018-06-20_
 - Handle known undefined properties when evaluating conditionals ([#2265](https://github.com/rollup/rollup/pull/2265))
 - Access watch events via the plugin context ([#2261](https://github.com/rollup/rollup/pull/2261))
 - Add option to suppress `__esModule` flag in output ([#2287](https://github.com/rollup/rollup/pull/2287))
-- Fix issue when re-declaring variables, track reassignments in more cases ([#2279](https://github.com/rollup/rollup/pull/2279))
+- Fix issue when redeclaring variables, track reassignments in more cases ([#2279](https://github.com/rollup/rollup/pull/2279))
 - Add VSCode debug settings ([#2276](https://github.com/rollup/rollup/pull/2276))
 
 ## 0.60.7

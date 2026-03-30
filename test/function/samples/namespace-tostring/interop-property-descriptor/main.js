@@ -11,13 +11,13 @@ function verifyNamespace(ns, expected) {
 	});
 
 	const assigned = Object.assign({}, ns);
-	const spreaded = { ...ns };
+	const spread = { ...ns };
 
 	assert.deepStrictEqual(assigned, expected);
 	assert.strictEqual(assigned[Symbol.toStringTag], undefined);
 
-	assert.deepStrictEqual(spreaded, expected);
-	assert.strictEqual(spreaded[Symbol.toStringTag], undefined);
+	assert.deepStrictEqual(spread, expected);
+	assert.strictEqual(spread[Symbol.toStringTag], undefined);
 }
 
 verifyNamespace(nsDefault, { answer: 42, default: { answer: 42 } });
