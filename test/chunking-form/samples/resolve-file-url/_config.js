@@ -28,15 +28,15 @@ module.exports = defineTest({
 					}
 				},
 				resolveFileUrl({
-					attributes,
 					chunkId,
 					fileName,
 					format,
+					moduleAttributes,
 					moduleId,
 					referenceId,
 					relativePath
 				}) {
-					assert.deepEqual(attributes, {});
+					assert.deepEqual(moduleAttributes, {});
 					if (!moduleId.endsWith('resolved')) {
 						return `'chunkId=${chunkId}:moduleId=${moduleId
 							.replace(/\\/g, '/')
@@ -50,8 +50,8 @@ module.exports = defineTest({
 				}
 			},
 			{
-				resolveFileUrl({ attributes, moduleId }) {
-					assert.deepEqual(attributes, {});
+				resolveFileUrl({ moduleAttributes, moduleId }) {
+					assert.deepEqual(moduleAttributes, {});
 					if (moduleId === 'resolved') {
 						return `'resolved'`;
 					}

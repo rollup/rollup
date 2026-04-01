@@ -1,9 +1,9 @@
 'use strict';
 
-var a = require('a');
+var a_type_a_extra_extra = require('a');
 var b = require('b');
-var c = require('c');
-var d$1 = require('d');
+var c_type_c = require('c');
+var d_type_d = require('d');
 require('unresolved');
 
 function _interopNamespaceDefault(e) {
@@ -25,15 +25,15 @@ function _interopNamespaceDefault(e) {
 
 var b__namespace = /*#__PURE__*/_interopNamespaceDefault(b);
 
-console.log(a.a, b__namespace, d);
+console.log(a_type_a_extra_extra.a, b__namespace, d);
 
 Object.defineProperty(exports, "c", {
 	enumerable: true,
-	get: function () { return c.c; }
+	get: function () { return c_type_c.c; }
 });
-Object.keys(d$1).forEach(function (k) {
+Object.keys(d_type_d).forEach(function (k) {
 	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 		enumerable: true,
-		get: function () { return d$1[k]; }
+		get: function () { return d_type_d[k]; }
 	});
 });
