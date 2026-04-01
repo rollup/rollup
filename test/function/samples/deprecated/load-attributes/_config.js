@@ -5,7 +5,6 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'does not allow returning attributes from the "load" hook',
 	options: {
-		strictDeprecations: true,
 		plugins: [
 			{
 				resolveId(source) {
@@ -16,7 +15,7 @@ module.exports = defineTest({
 					}
 				},
 				load(id) {
-					if (id.endsWith('.json')) {
+					if (id.includes('.json')) {
 						return {
 							code: 'export default {a:1}',
 							attributes: {}
@@ -29,7 +28,7 @@ module.exports = defineTest({
 	error: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'Could not load ./foo.json (imported by main.js): Returning attributes from the "load" hook is forbidden.',
+			'Could not load ./foo.json?type=json (imported by main.js): Returning attributes from the "load" hook is forbidden.',
 		url: 'https://rollupjs.org/plugin-development/#load',
 		watchFiles: [ID_MAIN]
 	}
