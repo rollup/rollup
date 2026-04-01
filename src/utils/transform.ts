@@ -69,11 +69,11 @@ export default async function transform(
 				}
 				return previousCode;
 			}
-			if (result.attributes) {
+			if ((result as any).attributes) {
 				warnDeprecation(
 					'Returning attributes from the "transform" hook is forbidden.',
 					URL_TRANSFORM,
-					false,
+					true,
 					options
 				);
 			}
@@ -117,7 +117,8 @@ export default async function transform(
 				currentSource,
 				id,
 				{
-					attributes: module.info.attributes
+					attributes: module.info.attributes,
+					rawId: module.info.rawId
 				}
 			],
 			transformReducer,

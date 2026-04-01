@@ -138,7 +138,6 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	FIRST_SIDE_EFFECT = 'FIRST_SIDE_EFFECT',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
-	INCONSISTENT_IMPORT_ATTRIBUTES = 'INCONSISTENT_IMPORT_ATTRIBUTES',
 	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
@@ -497,30 +496,6 @@ export function logIllegalImportReassignment(name: string, importingId: string):
 		message: `Illegal reassignment of import "${name}" in "${relativeId(importingId)}".`
 	};
 }
-
-export function logInconsistentImportAttributes(
-	existingAttributes: Record<string, string>,
-	newAttributes: Record<string, string>,
-	source: string,
-	importer: string
-): RollupLog {
-	return {
-		code: INCONSISTENT_IMPORT_ATTRIBUTES,
-		message: `Module "${relativeId(importer)}" tried to import "${relativeId(
-			source
-		)}" with ${formatAttributes(
-			newAttributes
-		)} attributes, but it was already imported elsewhere with ${formatAttributes(
-			existingAttributes
-		)} attributes. Please ensure that import attributes for the same module are always consistent.`
-	};
-}
-
-const formatAttributes = (attributes: Record<string, string>): string => {
-	const entries = Object.entries(attributes);
-	if (entries.length === 0) return 'no';
-	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
-};
 
 export function logInvalidAnnotation(
 	comment: string,
