@@ -12,6 +12,7 @@ import type { FileEmitter } from './FileEmitter';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
+import { normalizeModuleIdToObject } from './moduleId';
 import { normalizeLog } from './options/options';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
@@ -68,27 +69,36 @@ export function getPluginContext(
 		getWatchFiles: () => Object.keys(graph.watchFiles),
 		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		load(resolvedId) {
-			return graph.moduleLoader.preloadModule(resolvedId);
+			return graph.moduleLoader.preloadModule({
+				...resolvedId,
+				...normalizeModuleIdToObject(resolvedId.id)
+			});
 		},
 		meta: {
 			rollupVersion,
 			watchMode: graph.watchMode
 		},
 		parse: parseAst,
-		resolve(
-			source,
-			importer,
-			{ attributes, custom, isEntry, skipSelf, importerAttributes } = BLANK
-		) {
+		resolve(source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) {
 			skipSelf ??= true;
+			let importerId: string | undefined;
+			let importerAttributes: Record<string, string> | undefined;
+			let importerRawId: string | undefined;
+			if (importer) {
+				const { id, rawId, attributes } = normalizeModuleIdToObject(importer);
+				importerAttributes = attributes;
+				importerRawId = rawId;
+				importerId = id;
+			}
 			return graph.moduleLoader.resolveId(
 				source,
-				importer,
+				importerId,
 				custom,
 				isEntry,
 				attributes || EMPTY_OBJECT,
 				importerAttributes,
-				skipSelf ? [{ importer, plugin, source }] : null
+				importerRawId,
+				skipSelf ? [{ importer: importerId, plugin, source }] : null
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,

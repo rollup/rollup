@@ -11,6 +11,7 @@ module.exports = defineTest({
 			modules: [
 				{
 					id: './lib2.js',
+					rawId: './lib2.js',
 					astBuffer: serializeAst(
 						acorn.parse(code, {
 							ecmaVersion: 6,
@@ -32,37 +33,37 @@ module.exports = defineTest({
 		plugins: [
 			{
 				resolveId(source, _importer, options) {
-					if (source.endsWith('.json')) {
+					if (source.includes('.json')) {
 						assert.deepEqual(options.attributes, { type: 'json' });
 						return {
 							id: source
 						};
 					}
-					if (source.endsWith('lib2.js')) {
+					if (source.includes('lib2.js')) {
 						return {
 							id: source
 						};
 					}
-					if (source.endsWith('lib4.js')) {
+					if (source.includes('lib4.js')) {
 						assert.deepEqual(options.importerAttributes, { type: 'javascript' });
 					}
 				},
 				resolveDynamicImport(specifier, _importer, options) {
-					if (specifier.endsWith('lib4.js')) {
+					if (specifier.includes('lib4.js')) {
 						assert.deepEqual(options.importerAttributes, { type: 'javascript' });
 					}
 				},
 				load(id, options) {
-					if (id.endsWith('.json')) {
+					if (id.includes('.json')) {
 						assert.deepEqual(options.attributes, { type: 'json' });
 						return 'export default {a:1}';
 					}
-					if (id.endsWith('lib2.js')) {
+					if (id.includes('lib2.js')) {
 						return code;
 					}
 				},
 				transform(code, id, options) {
-					if (id.endsWith('.json')) {
+					if (id.includes('.json')) {
 						assert.deepEqual(options.attributes, { type: 'json' });
 						return code;
 					}
@@ -71,7 +72,7 @@ module.exports = defineTest({
 					assert.deepEqual(attributes, { type: 'javascript' });
 				},
 				renderDynamicImport(options) {
-					if (options.targetModuleId.endsWith('lib3.js')) {
+					if (options.targetModuleId.includes('lib3.js')) {
 						assert.deepEqual(options.targetModuleAttributes, { type: 'javascript' });
 					}
 				}

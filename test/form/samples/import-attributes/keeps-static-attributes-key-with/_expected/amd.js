@@ -1,4 +1,4 @@
-define(['exports', 'a', 'b', 'c', 'd', 'unresolved'], (function (exports, a, b, c, d$1, unresolved) { 'use strict';
+define(['exports', 'a', 'b', 'c', 'd', 'unresolved'], (function (exports, a_type_a_extra_extra, b, c_type_c, d_type_d, unresolved_type_e) { 'use strict';
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -19,16 +19,16 @@ define(['exports', 'a', 'b', 'c', 'd', 'unresolved'], (function (exports, a, b, 
 
 	var b__namespace = /*#__PURE__*/_interopNamespaceDefault(b);
 
-	console.log(a.a, b__namespace, d);
+	console.log(a_type_a_extra_extra.a, b__namespace, d);
 
 	Object.defineProperty(exports, "c", {
 		enumerable: true,
-		get: function () { return c.c; }
+		get: function () { return c_type_c.c; }
 	});
-	Object.keys(d$1).forEach(function (k) {
+	Object.keys(d_type_d).forEach(function (k) {
 		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
-			get: function () { return d$1[k]; }
+			get: function () { return d_type_d[k]; }
 		});
 	});
 
