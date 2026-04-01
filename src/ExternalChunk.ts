@@ -14,7 +14,7 @@ export default class ExternalChunk {
 
 	private fileName: string | null = null;
 	private importAttributes: string | null = null;
-	private moduleInfo: ModuleInfo;
+	public readonly moduleInfo: ModuleInfo;
 	private renormalizeRenderPath: boolean;
 
 	constructor(
@@ -33,9 +33,14 @@ export default class ExternalChunk {
 			return this.fileName;
 		}
 		const { paths } = this.options;
+		const rawId = this.moduleInfo.rawId;
 		return (this.fileName =
-			(typeof paths === 'function' ? paths(this.id) : paths[this.id]) ||
-			(this.renormalizeRenderPath ? normalize(relative(this.inputBase, this.id)) : this.id));
+			(typeof paths === 'function'
+				? paths(rawId, {
+						attributes: this.moduleInfo.attributes
+					})
+				: paths[rawId]) ||
+			(this.renormalizeRenderPath ? normalize(relative(this.inputBase, rawId)) : rawId));
 	}
 
 	getImportAttributes(snippets: GenerateCodeSnippets): string | null {
