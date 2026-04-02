@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.60.1
+
+_2026-03-30_
+
+### Bug Fixes
+
+- Resolve a situation where side effect imports could be dropped due to a caching issue (#6286)
+
+### Pull Requests
+
+- [#6286](https://github.com/rollup/rollup/pull/6286): fix: skip dropping side-effects on namespaceReexportsByName cache hit (#6274) (@littlegrayss, @TrickyPi)
+- [#6317](https://github.com/rollup/rollup/pull/6317): chore(deps): pin dependencies (@renovate[bot], @lukastaegert)
+- [#6318](https://github.com/rollup/rollup/pull/6318): chore(deps): update msys2/setup-msys2 digest to cafece8 (@renovate[bot], @lukastaegert)
+- [#6319](https://github.com/rollup/rollup/pull/6319): chore(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6320](https://github.com/rollup/rollup/pull/6320): chore(deps): pin dependency typescript to v5 (@renovate[bot], @lukastaegert)
+- [#6321](https://github.com/rollup/rollup/pull/6321): chore(deps): update openharmony-rs/setup-ohos-sdk action to v1 (@renovate[bot], @lukastaegert)
+- [#6322](https://github.com/rollup/rollup/pull/6322): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6323](https://github.com/rollup/rollup/pull/6323): chore(deps): lock file maintenance (@renovate[bot])
+- [#6324](https://github.com/rollup/rollup/pull/6324): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+
 ## 4.60.0
 
 _2026-03-22_
