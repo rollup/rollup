@@ -4,10 +4,10 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-wasm-bindgen = "0.2.114"
+wasm-bindgen = "0.2.117"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
-js-sys = "0.3.91"
+js-sys = "0.3.94"
 console_error_panic_hook = "0.1.7"
 
 [lib]
