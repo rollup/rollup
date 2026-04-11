@@ -1454,6 +1454,16 @@ export default class Chunk {
 			preserveModules,
 			externalLiveBindings
 		} = this.outputOptions;
+		// Reset stale render names from previous output renderings of the same
+		// module graph. Without this, variables that were renamed during a prior
+		// output's import deconfliction (e.g. given a chunk-prefixed
+		// `renderBaseName` like `vendor`) would carry that name into the next
+		// output, producing invalid identifiers such as `function vendor.foo()`.
+		for (const module of this.orderedModules) {
+			for (const variable of module.scope.variables.values()) {
+				variable.setRenderNames(null, null);
+			}
+		}
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName.get(exportName)!;
