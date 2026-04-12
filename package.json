@@ -216,7 +216,7 @@
     "esbuild": ">0.24.2",
     "lodash-es": ">4.17.22",
     "path-scurry": {
-      "lru-cache": "^11.2.7"
+      "lru-cache": "^11.3.3"
     },
     "readable-stream": "npm:@built-in/readable-stream@1",
     "semver": "^7.7.4",
