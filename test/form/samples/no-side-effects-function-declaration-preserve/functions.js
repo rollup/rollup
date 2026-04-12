@@ -61,7 +61,7 @@ export * from './sub-functions'
 
 export const fnAlias = fnA
 
-// This annonation get ignored
+// This annotation get ignored
 /** @__NO_SIDE_EFFECTS__ */
 export let fnLet = (args) => {
   console.log(args)

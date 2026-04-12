@@ -493,7 +493,7 @@ _2022-02-07_
 - [#4373](https://github.com/rollup/rollup/pull/4373): fix: even more types (@dnalborczyk)
 - [#4382](https://github.com/rollup/rollup/pull/4382): Update contribution tut link desc (@lemredd)
 - [#4383](https://github.com/rollup/rollup/pull/4383): chore: bump deps (@dnalborczyk)
-- [#4384](https://github.com/rollup/rollup/pull/4384): chore: move "wait" to utils + re-use (@dnalborczyk)
+- [#4384](https://github.com/rollup/rollup/pull/4384): chore: move "wait" to utils + reuse (@dnalborczyk)
 - [#4385](https://github.com/rollup/rollup/pull/4385): refactor: convert watch tests to async functions (@dnalborczyk)
 - [#4386](https://github.com/rollup/rollup/pull/4386): refactor: use fs.promises in resolve id, Part 4 (@dnalborczyk and @lukastaegert)
 - [#4389](https://github.com/rollup/rollup/pull/4389): refactor: use fs.promises in generate license file, rollup config, Part 5 (@dnalborczyk)
@@ -568,7 +568,7 @@ _2022-01-21_
 
 ### Pull Requests
 
-- [#4351](https://github.com/rollup/rollup/pull/4351): refactor: re-use source mapping url (@dnalborczyk)
+- [#4351](https://github.com/rollup/rollup/pull/4351): refactor: reuse source mapping url (@dnalborczyk)
 - [#4352](https://github.com/rollup/rollup/pull/4352): refactor: replace require-relative with built-in require.resolve (@dnalborczyk)
 - [#4353](https://github.com/rollup/rollup/pull/4353): chore: bump deps (@dnalborczyk)
 - [#4354](https://github.com/rollup/rollup/pull/4354): Add importedIdResolutions to moduleInfo (@lukastaegert)
@@ -641,7 +641,7 @@ _2021-12-24_
 - [#4299](https://github.com/rollup/rollup/pull/4299): Add additional string prototype methods (@dnalborczyk)
 - [#4300](https://github.com/rollup/rollup/pull/4300): Bump deps, fix expected test result for core-js (@dnalborczyk)
 - [#4302](https://github.com/rollup/rollup/pull/4302): Replace type assertion with type guard (@dnalborczyk)
-- [#4304](https://github.com/rollup/rollup/pull/4304): Re-use reserved names set (@dnalborczyk)
+- [#4304](https://github.com/rollup/rollup/pull/4304): Reuse reserved names set (@dnalborczyk)
 - [#4305](https://github.com/rollup/rollup/pull/4305): Expose isIncluded in module info (@william57m)
 - [#4306](https://github.com/rollup/rollup/pull/4306): Fix git line breaks on windows (@dnalborczyk)
 - [#4307](https://github.com/rollup/rollup/pull/4307): Add macos to pipeline (@dnalborczyk)
@@ -1580,7 +1580,7 @@ _2021-02-05_
 
 ### Bug Fixes
 
-- Prevent invalid code when simplifying assignments and delcarations (#3951)
+- Prevent invalid code when simplifying assignments and declarations (#3951)
 - Prevent behaviour-changing line-breaks when simplifying assignments in return statements (#3951)
 - Slightly improve white-space rendering when simplifying certain expressions (#3951)
 
@@ -1777,7 +1777,7 @@ _2020-11-29_
 
 ### Features
 
-- Support RequireJS comaptible AMD ids in code-splitting builds via amd.autoId (#3867)
+- Support RequireJS compatible AMD ids in code-splitting builds via amd.autoId (#3867)
 - Allow adding an AMD id base path (#3867)
 
 ### Bug Fixes
@@ -1894,7 +1894,7 @@ _2020-10-13_
 ### Pull Requests
 
 - [#3813](https://github.com/rollup/rollup/pull/3813): Add moduleParsed plugin hook (@lukastaegert)
-- [#3815](https://github.com/rollup/rollup/pull/3815): Docs: wile => while (@tjenkinson)
+- [#3815](https://github.com/rollup/rollup/pull/3815): Docs: while => while (@tjenkinson)
 - [#3817](https://github.com/rollup/rollup/pull/3817): Docs: fix code snippet (@codefrau)
 - [#3818](https://github.com/rollup/rollup/pull/3818): Update documentation on configuring Babel, removing the section on passing '{"modules": false}' as that is no longer needed since Babel 7 (@Robin-Hoodie)
 
@@ -2867,7 +2867,7 @@ _2020-04-09_
 
 ### Pull Requests
 
-- [#3492](https://github.com/rollup/rollup/pull/3492): Always use a new inclusion context when including declarations of variables, always inlcude labels when not treeshaking (@lukastaegert)
+- [#3492](https://github.com/rollup/rollup/pull/3492): Always use a new inclusion context when including declarations of variables, always include labels when not treeshaking (@lukastaegert)
 
 ## 2.3.4
 
@@ -3043,7 +3043,7 @@ _2020-03-07_
 
 ### Bug Fixes
 
-- Reenable importing rollup in Node 13.0 - 13.7 (#3428)
+- Re-enable importing rollup in Node 13.0 - 13.7 (#3428)
 
 ### Pull Requests
 

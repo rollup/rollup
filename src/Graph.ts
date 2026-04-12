@@ -205,9 +205,9 @@ export default class Graph {
 		}
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
 		for (const module of this.implicitEntryModules) {
-			for (const dependant of module.implicitlyLoadedAfter) {
-				if (!(dependant.info.isEntry || dependant.isIncluded())) {
-					error(logImplicitDependantIsNotIncluded(dependant));
+			for (const dependent of module.implicitlyLoadedAfter) {
+				if (!(dependent.info.isEntry || dependent.isIncluded())) {
+					error(logImplicitDependantIsNotIncluded(dependent));
 				}
 			}
 		}

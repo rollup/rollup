@@ -1,3 +1,3 @@
 module.exports = defineTest({
-	description: 'tracks assigments included via try-catch-deoptimization'
+	description: 'tracks assignments included via try-catch-deoptimization'
 });

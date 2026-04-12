@@ -1,3 +1,3 @@
 module.exports = defineTest({
-	description: 'handles accessing funciton return values in deoptimized conditionals'
+	description: 'handles accessing function return values in deoptimized conditionals'
 });
