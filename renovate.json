@@ -28,10 +28,16 @@
         "node",
         "npm",
         "fsevents",
-        "core-js",
-        "@napi-rs/cli"
+        "core-js"
       ],
       "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "@napi-rs/cli"
+      ],
+      "enabled": false,
+      "description": "napi-rs no longer runs on Node 18 as of v3.5.0"
     },
     {
       "matchPackageNames": [
@@ -40,7 +46,7 @@
         "@types/node",
         "typescript",
         "vite",
-        "yargs-parser",
+        "yargs-parser"
       ],
       "matchUpdateTypes": [
         "major"
