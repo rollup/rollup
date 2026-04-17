@@ -12,7 +12,7 @@ var hasRequiredEs5Shim;
 function requireEs5Shim () {
 	if (hasRequiredEs5Shim) return es5Shim$1.exports;
 	hasRequiredEs5Shim = 1;
-	(function (module, exports$1) {
+	(function (module, exports) {
 
 		// UMD (Universal Module Definition)
 		// see https://github.com/umdjs/umd/blob/master/templates/returnExports.js

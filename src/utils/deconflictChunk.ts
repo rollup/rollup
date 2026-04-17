@@ -63,7 +63,12 @@ export function deconflictChunk(
 ): void {
 	const reversedModules = [...modules].reverse();
 	for (const module of reversedModules) {
-		module.scope.addUsedOutsideNames(usedNames, accessedGlobalsByScope);
+		module.scope.addUsedOutsideNames(
+			usedNames,
+			format,
+			exportNamesByVariable,
+			accessedGlobalsByScope
+		);
 	}
 	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
 
