@@ -9,18 +9,18 @@ System.register('bundle', [], (function (exports) {
 			console.log(exports$1);
 
 			function nestedConflict() {
-				const exports = {
+				const exports$1 = {
 					x: 42
 				};
-				console.log(exports);
+				console.log(exports$1);
 				exports("x", x + 1), x++;
 			}
 
 			function nestedNoConflict() {
-				const exports = {
+				const exports$1 = {
 					x: 42
 				};
-				console.log(exports);
+				console.log(exports$1);
 			}
 
 			var x = exports("x", 43);

@@ -8,6 +8,7 @@ import Scope from './Scope';
 
 export default class ChildScope extends Scope {
 	readonly accessedOutsideVariables = new Map<string, Variable>();
+	declare private accessedByDirectEval?: true;
 	declare private accessedDynamicImports?: Set<ImportExpression>;
 
 	constructor(
@@ -24,6 +25,13 @@ export default class ChildScope extends Scope {
 		);
 		if (this.parent instanceof ChildScope) {
 			this.parent.addAccessedDynamicImport(importExpression);
+		}
+	}
+
+	addAccessedDirectEval(): void {
+		this.accessedByDirectEval = true;
+		if (this.parent instanceof ChildScope) {
+			this.parent.addAccessedDirectEval();
 		}
 	}
 
@@ -91,7 +99,12 @@ export default class ChildScope extends Scope {
 			if (variable.included || variable.alwaysRendered) {
 				variable.setRenderNames(
 					null,
-					name === 'exports' ? 'exports' : getSafeName(name, usedNames, variable.forbiddenNames)
+					name === 'exports' &&
+						this.accessedByDirectEval &&
+						!usedNames.has('exports') &&
+						!variable.forbiddenNames?.has('exports')
+						? 'exports'
+						: getSafeName(name, usedNames, variable.forbiddenNames)
 				);
 			}
 		}

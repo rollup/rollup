@@ -131,6 +131,9 @@ export default class CallExpression
 
 	initialise() {
 		super.initialise();
+		if (this.callee instanceof Identifier && this.callee.name === 'eval') {
+			this.scope.addAccessedDirectEval();
+		}
 		if (
 			this.annotations &&
 			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
