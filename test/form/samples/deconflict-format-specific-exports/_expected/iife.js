@@ -7,18 +7,18 @@ var bundle = (function (exports) {
 	console.log(exports$1);
 
 	function nestedConflict() {
-		const exports$1 = {
+		const exports = {
 			x: 42
 		};
-		console.log(exports$1);
+		console.log(exports);
 		exports.x++;
 	}
 
 	function nestedNoConflict() {
-		const exports$1 = {
+		const exports = {
 			x: 42
 		};
-		console.log(exports$1);
+		console.log(exports);
 	}
 
 	exports.x = 43;
