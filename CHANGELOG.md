@@ -1,5 +1,34 @@
 # rollup changelog
 
+## 4.60.2
+
+_2026-04-18_
+
+### Bug Fixes
+
+- Resolve a variable rendering bug when generating different formats from the same build (#6350)
+
+### Pull Requests
+
+- [#6327](https://github.com/rollup/rollup/pull/6327): docs: fix various typos in source and documentation (@Abhi3975, @lukastaegert)
+- [#6331](https://github.com/rollup/rollup/pull/6331): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6332](https://github.com/rollup/rollup/pull/6332): chore(deps): update codecov/codecov-action action to v6 (@renovate[bot])
+- [#6333](https://github.com/rollup/rollup/pull/6333): chore(deps): update dependency eslint-plugin-unicorn to v64 (@renovate[bot])
+- [#6334](https://github.com/rollup/rollup/pull/6334): fix(deps): update rust crate swc_compiler_base to v51 (@renovate[bot])
+- [#6335](https://github.com/rollup/rollup/pull/6335): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6346](https://github.com/rollup/rollup/pull/6346): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6347](https://github.com/rollup/rollup/pull/6347): chore(deps): update dependency lru-cache to v11 (@renovate[bot])
+- [#6348](https://github.com/rollup/rollup/pull/6348): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6349](https://github.com/rollup/rollup/pull/6349): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6350](https://github.com/rollup/rollup/pull/6350): fix: reset variable render names between outputs in the same generate (@barry3406, @lukastaegert)
+- [#6351](https://github.com/rollup/rollup/pull/6351): chore(deps): update minor/patch updates (@renovate[bot])
+- [#6352](https://github.com/rollup/rollup/pull/6352): chore(deps): update cross-platform-actions/action action to v1 (@renovate[bot])
+- [#6353](https://github.com/rollup/rollup/pull/6353): chore(deps): update dependency lru-cache to v11 (@renovate[bot], @lukastaegert)
+- [#6354](https://github.com/rollup/rollup/pull/6354): chore(deps): lock file maintenance (@renovate[bot])
+- [#6355](https://github.com/rollup/rollup/pull/6355): chore(deps): lock file maintenance (@renovate[bot])
+- [#6356](https://github.com/rollup/rollup/pull/6356): chore(deps): lock file maintenance (@renovate[bot])
+- [#6358](https://github.com/rollup/rollup/pull/6358): chore: remove cross-env from devDeps (@K-tecchan)
+
 ## 4.60.1
 
 _2026-03-30_
