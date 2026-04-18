@@ -6,7 +6,7 @@ import type {
 	SourceMapInput
 } from '../rollup/types';
 
-// While the types for SourceMapInput are what we expect to recieve from plugins, there are cases
+// While the types for SourceMapInput are what we expect to receive from plugins, there are cases
 // in the wild where plugins return `{mappings: null}`, so we want this function to be a little more
 // permissive on the input end so that we can normalize the output when creating the decoded sourcemap.
 interface UnexpectedInput {

@@ -122,7 +122,7 @@ A special feature of the website is that the REPL at `http://localhost:5173/repl
 
 ## Navigating the codebase
 
-See the [architecure documentation](ARCHITECTURE.md) for an overview of the codebase and a high-level explanation of how Rollup works.
+See the [architecture documentation](ARCHITECTURE.md) for an overview of the codebase and a high-level explanation of how Rollup works.
 
 ## Submitting code
 

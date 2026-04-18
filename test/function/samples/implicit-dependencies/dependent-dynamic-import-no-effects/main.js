@@ -1,2 +1,2 @@
-import './dependant';
+import './dependent';
 export default 'main';

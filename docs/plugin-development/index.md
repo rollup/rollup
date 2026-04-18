@@ -1190,7 +1190,7 @@ function retainImportExpressionPlugin() {
 }
 ```
 
-When a dynamic import occurs, the browser will fetch the requested module and parse it. If the target module is discovered to have imports and they have not already been fetched, the browser must perform more network requests before it can execute the module. This will incur the latency of an additional network round trip. For static modules, Rollup will hoist transitive dependencies ([`hoistTransitiveDependencies`](../configuration-options/index.md#output-hoisttransitiveimports)) to prevent this from occuring. However, dependency hoisting is currently not automatically performed for dynamic imports.
+When a dynamic import occurs, the browser will fetch the requested module and parse it. If the target module is discovered to have imports and they have not already been fetched, the browser must perform more network requests before it can execute the module. This will incur the latency of an additional network round trip. For static modules, Rollup will hoist transitive dependencies ([`hoistTransitiveDependencies`](../configuration-options/index.md#output-hoisttransitiveimports)) to prevent this from occurring. However, dependency hoisting is currently not automatically performed for dynamic imports.
 
 The following plugin can achieve similar preloading behavior for dynamic imports:
 

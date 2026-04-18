@@ -336,7 +336,7 @@ _2019-11-12_
 ### Features
 
 - Add support for output-specific plugins (#3218)
-- Reenable parallel output processing when using the CLI (#3218)
+- Re-enable parallel output processing when using the CLI (#3218)
 - Warn if files are emitted that would overwrite previously emitted files (#3218)
 
 ### Bug Fixes
@@ -988,7 +988,7 @@ _2019-06-11_
 
 ### Bug Fixes
 
-- Handle feature detection with "typeof" for regular expressios (#2916)
+- Handle feature detection with "typeof" for regular expressions (#2916)
 - Deoptimize `'' + variable'` type coercion as expression statement for feature detection (#2917)
 - Always observe argument side-effects when tree-shaking (#2924)
 
@@ -1725,7 +1725,7 @@ _2019-01-03_
 ### Bug Fixes
 
 - Properly handle reexporting an external default export for non-ESM targets when using named exports mode (#2620)
-- Do not (wrongly) re-declare input options in the merged `RollupOptions` type (#2622)
+- Do not (wrongly) redeclare input options in the merged `RollupOptions` type (#2622)
 
 ### Pull Requests
 
@@ -1796,7 +1796,7 @@ _2018-12-28_
 
 ### Pull Requests
 
-- [#2293](https://github.com/rollup/rollup/pull/2293): Unify code paths for 1.0 relase and update documentation ( @guybedford and @lukastaegert)
+- [#2293](https://github.com/rollup/rollup/pull/2293): Unify code paths for 1.0 release and update documentation ( @guybedford and @lukastaegert)
 - [#2409](https://github.com/rollup/rollup/pull/2409): Remove old deprecated features and add new deprecation warnings ( @guybedford)
 - [#2486](https://github.com/rollup/rollup/pull/2486): Upgrade to acorn 6 (@marijnh)
 - [#2611](https://github.com/rollup/rollup/pull/2611): Fix hook's name in test description (@Andarist)

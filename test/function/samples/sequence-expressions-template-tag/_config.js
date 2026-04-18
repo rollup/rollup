@@ -1,3 +1,3 @@
 module.exports = defineTest({
-	description: 'uses corrrect "this" for tagged template expressions in simplified sequences'
+	description: 'uses correct "this" for tagged template expressions in simplified sequences'
 });
