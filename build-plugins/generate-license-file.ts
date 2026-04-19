@@ -10,7 +10,7 @@ async function generateLicenseFile(
 	const coreLicense = await readFile('LICENSE-CORE.md', 'utf8');
 	const licenses = new Set<string>();
 	const dependencyLicenseTexts = [...dependencies]
-		.filter(({ name }) => name !== '@rollup/browser')
+		.filter(({ name }) => name !== '@rollup/browser' && name !== 'tslib')
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
 		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
 			let text = `## ${name}\n`;
