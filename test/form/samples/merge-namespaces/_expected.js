@@ -20,8 +20,6 @@ const __synthetic$1 = { module: 'synthetic' };
 
 const __synthetic = { module: 'reexport' };
 
-var ns = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null
-}, [__synthetic, __synthetic$1, external1, external2]);
+var ns = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({}, null), [__synthetic, __synthetic$1, external1, external2]);
 
 console.log(ns);
