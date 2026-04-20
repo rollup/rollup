@@ -143,7 +143,7 @@ interface ChunkPartition {
  * per dynamic entry to marks all dynamic entry dependencies as "dirty" and put
  * them back into the iteration. As an additional optimization, we note for
  * each dynamic entry which dynamic dependent entries have changed and only
- * intersect those entries again on subsequent interations.
+ * intersect those entries again on subsequent iterations.
  *
  * Then we remove the dynamic entries from the list of dependent entries for
  * those chunks that are already loaded for that dynamic entry and create
