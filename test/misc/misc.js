@@ -172,6 +172,102 @@ describe('misc', () => {
 		}
 	});
 
+	it('produces consistent chunk assignments and export names regardless of parallel file read order (#5902)', async () => {
+		const FILES = {
+			'main1.js': "import './shared.js'; import('./alpha.js'); import('./beta.js');",
+			'main2.js': "import './shared.js'; import('./gamma.js'); import('./delta.js');",
+			'shared.js':
+				"export { shared } from './lib/shared.js'; import './lib/common-1.js'; import './lib/common-2.js';",
+			'alpha.js': "import { alpha } from './lib/alpha.js'; console.log(alpha);",
+			'beta.js': "import { beta } from './lib/beta.js'; console.log(beta);",
+			'gamma.js': "import { gamma } from './lib/gamma.js'; console.log(gamma);",
+			'delta.js': "import { delta } from './lib/delta.js'; console.log(delta);",
+			'lib/shared.js': "export const shared = 'shared';",
+			'lib/common-1.js': "export const common1 = 'common-1';",
+			'lib/common-2.js': "export const common2 = 'common-2';",
+			'lib/alpha.js':
+				"import './tiny/a-1.js'; import './tiny/a-2.js'; export const alpha = 'alpha';",
+			'lib/beta.js': "import './tiny/b-1.js'; import './tiny/b-2.js'; export const beta = 'beta';",
+			'lib/gamma.js':
+				"import './tiny/c-1.js'; import './tiny/c-2.js'; export const gamma = 'gamma';",
+			'lib/delta.js':
+				"import './tiny/d-1.js'; import './tiny/d-2.js'; export const delta = 'delta';",
+			'lib/tiny/a-1.js': "export const a1 = 'a1';",
+			'lib/tiny/a-2.js': "export const a2 = 'a2';",
+			'lib/tiny/b-1.js': "export const b1 = 'b1';",
+			'lib/tiny/b-2.js': "export const b2 = 'b2';",
+			'lib/tiny/c-1.js': "export const c1 = 'c1';",
+			'lib/tiny/c-2.js': "export const c2 = 'c2';",
+			'lib/tiny/d-1.js': "export const d1 = 'd1';",
+			'lib/tiny/d-2.js': "export const d2 = 'd2';"
+		};
+
+		const buildBundle = async delays => {
+			let manualChunkCounter = 0;
+			const bundle = await rollup.rollup({
+				input: ['main1.js', 'main2.js'],
+				maxParallelFileOps: 3,
+				plugins: [
+					{
+						name: 'delayed-loader',
+						async resolveId(source, importer) {
+							let resolved = source in FILES ? source : null;
+							if (!resolved && importer) {
+								const dir = importer.includes('/')
+									? importer.slice(0, importer.lastIndexOf('/'))
+									: '';
+								const candidate = dir
+									? `${dir}/${source}`.replace(/^\.\//, '').replace(/\/\.\//g, '/')
+									: source.replace(/^\.\//, '');
+								if (candidate in FILES) resolved = candidate;
+							}
+							if (!resolved) return null;
+							const delay = delays[resolved] ?? 0;
+							if (delay > 0) {
+								await new Promise(resolve => setTimeout(resolve, delay));
+							}
+							return resolved;
+						},
+						load(id) {
+							return id in FILES ? FILES[id] : null;
+						}
+					}
+				]
+			});
+
+			const { output } = await bundle.generate({
+				chunkFileNames: '[name]-[hash].js',
+				format: 'es',
+				manualChunks(_id) {
+					manualChunkCounter++;
+					return `chunk-${Math.floor(manualChunkCounter / 2)}`;
+				}
+			});
+
+			return output
+				.map(chunk => ({
+					code: chunk.type === 'chunk' ? chunk.code : String(chunk.source),
+					fileName: chunk.fileName
+				}))
+				.sort((chunkA, chunkB) => chunkA.fileName.localeCompare(chunkB.fileName));
+		};
+
+		const firstOutput = await buildBundle({
+			'lib/alpha.js': 30,
+			'lib/gamma.js': 20,
+			'lib/tiny/a-1.js': 40,
+			'lib/tiny/c-1.js': 10
+		});
+		const secondOutput = await buildBundle({
+			'lib/beta.js': 30,
+			'lib/delta.js': 20,
+			'lib/tiny/b-1.js': 40,
+			'lib/tiny/d-1.js': 10
+		});
+
+		assert.deepStrictEqual(secondOutput, firstOutput);
+	});
+
 	it('ignores falsy plugins', () =>
 		rollup.rollup({
 			input: 'x',

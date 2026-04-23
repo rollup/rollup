@@ -10,4 +10,4 @@ var dynamic$1 = /*#__PURE__*/Object.freeze({
 	dynamic: dynamic
 });
 
-export { dep as a, dynamic$1 as b, dynamic as d };
+export { dynamic as a, dynamic$1 as b, dep as d };

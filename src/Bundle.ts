@@ -131,7 +131,10 @@ export default class Bundle {
 			getModuleIds: () => this.graph.modulesById.keys(),
 			getModuleInfo: this.graph.getModuleInfo
 		};
-		for (const module of this.graph.modulesById.values()) {
+		const sortedModules = [...this.graph.modulesById.values()].sort((moduleA, moduleB) =>
+			moduleA.id < moduleB.id ? -1 : moduleA.id > moduleB.id ? 1 : 0
+		);
+		for (const module of sortedModules) {
 			if (module instanceof Module) {
 				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
 				if (typeof manualChunkAlias === 'string') {

@@ -7,7 +7,7 @@ System.register(['./generated-dynamic.js'], (function (exports, module) {
 		}],
 		execute: (function () {
 
-			Promise.all([module.import('./generated-dynamic.js').then(function (n) { return n.b; }), module.import('./generated-dynamic.js').then(function (n) { return n.d; }), module.import('./generated-dynamic.js').then(function (n) { return n.a; })]).then(
+			Promise.all([module.import('./generated-dynamic.js').then(function (n) { return n.d; }), module.import('./generated-dynamic.js').then(function (n) { return n.a; }), module.import('./generated-dynamic.js').then(function (n) { return n.b; })]).then(
 				results => console.log(results, DEP)
 			);
 

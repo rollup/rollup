@@ -1,1 +1,1 @@
-export { a as ItemOne } from './generated-main1.js';
+export { O as ItemOne } from './generated-main1.js';

@@ -3,7 +3,7 @@ System.register(['./generated-main1.js'], (function (exports) {
     var ONE_CONSTANT;
     return {
         setters: [function (module) {
-            ONE_CONSTANT = module.O;
+            ONE_CONSTANT = module.a;
         }],
         execute: (function () {
 

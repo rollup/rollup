@@ -1,4 +1,4 @@
-import { O as ONE_CONSTANT } from './generated-main1.js';
+import { a as ONE_CONSTANT } from './generated-main1.js';
 
 class Two {
     test() {

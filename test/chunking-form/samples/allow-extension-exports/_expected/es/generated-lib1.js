@@ -13,4 +13,4 @@ var lib3 = /*#__PURE__*/Object.freeze({
 	value3: value3
 });
 
-export { value2 as a, lib3 as l, value1 as v, value1$1 as value1, value3 };
+export { value1 as a, lib3 as l, value2 as v, value1$1 as value1, value3 };

@@ -1,1 +1,1 @@
-export { v as value1, a as value2 } from './generated-lib1.js';
+export { a as value1, v as value2 } from './generated-lib1.js';
