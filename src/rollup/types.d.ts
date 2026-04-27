@@ -352,16 +352,10 @@ export type LoadResult = SourceDescription | string | NullValue;
 export type LoadHook = (
 	this: PluginContext,
 	id: string,
-	// temporarily marked as optional for better Vite type-compatibility
-	options?:
-		| {
-				rawId: string;
-				// unused, temporarily added for better Vite type-compatibility
-				ssr?: boolean | undefined;
-				// temporarily marked as optional for better Vite type-compatibility
-				attributes?: Record<string, string>;
-		  }
-		| undefined
+	options: {
+		rawId: string;
+		attributes: Record<string, string>;
+	}
 ) => LoadResult;
 
 export interface TransformPluginContext extends PluginContext {
@@ -378,16 +372,10 @@ export type TransformHook = (
 	this: TransformPluginContext,
 	code: string,
 	id: string,
-	// temporarily marked as optional for better Vite type-compatibility
-	options?:
-		| {
-				rawId: string;
-				// unused, temporarily added for better Vite type-compatibility
-				ssr?: boolean | undefined;
-				// temporarily marked as optional for better Vite type-compatibility
-				attributes?: Record<string, string>;
-		  }
-		| undefined
+	options: {
+		rawId: string;
+		attributes: Record<string, string>;
+	}
 ) => TransformResult;
 
 export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => void;
