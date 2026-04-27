@@ -97,7 +97,7 @@ export function getPluginContext(
 				custom,
 				isEntry,
 				attributes || EMPTY_OBJECT,
-				importerAttributes,
+				importerAttributes || EMPTY_OBJECT,
 				importerRawId,
 				skipSelf ? [{ importer: importerId, plugin, source }] : null
 			);

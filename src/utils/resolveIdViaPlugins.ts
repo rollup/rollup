@@ -54,7 +54,7 @@ export function resolveIdViaPlugins(
 					custom,
 					isEntry,
 					attributes || EMPTY_OBJECT,
-					importerAttributes,
+					importerAttributes || EMPTY_OBJECT,
 					importerRawId,
 					skipSelf ? [...skip, { importer: importerId, plugin, source }] : skip
 				);
@@ -69,7 +69,7 @@ export function resolveIdViaPlugins(
 			{
 				attributes,
 				custom: customOptions,
-				importerAttributes,
+				importerAttributes: importerAttributes || EMPTY_OBJECT,
 				importerRawId,
 				isEntry
 			}
