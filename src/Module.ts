@@ -1038,8 +1038,8 @@ export default class Module {
 				const parsedAttributes = getAttributesFromImportExportDeclaration(node.attributes);
 				if (existingAttributesList) {
 					if (
-						!existingAttributesList.some(attributes =>
-							doAttributesDiffer(attributes, parsedAttributes)
+						!existingAttributesList.find(
+							attributes => !doAttributesDiffer(attributes, parsedAttributes)
 						)
 					) {
 						existingAttributesList.push(parsedAttributes);

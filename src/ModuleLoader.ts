@@ -63,7 +63,7 @@ export type ModuleLoaderResolveId = (
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean | undefined,
 	attributes: Record<string, string>,
-	importerAttributes: Record<string, string> | undefined,
+	importerAttributes: Record<string, string>,
 	importerRawId: string | undefined,
 	skip?: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 ) => Promise<ResolvedId | null>;
@@ -556,8 +556,8 @@ export class ModuleLoader {
 		importer: string | undefined,
 		source: string,
 		attributes: Record<string, string>,
-		importerAttributes: Record<string, string> | undefined,
-		importerRawId: string | undefined
+		importerAttributes: Record<string, string>,
+		importerRawId?: string
 	): NormalizedResolveIdWithoutDefaults | null {
 		const { makeAbsoluteExternalsRelative } = this.options;
 		if (resolveIdResult) {
@@ -741,7 +741,7 @@ export class ModuleLoader {
 		importer: UniqueModuleId | undefined,
 		implicitlyLoadedBefore: UniqueModuleId | null,
 		isLoadForManualChunks = false,
-		attributes?: Record<string, string>
+		attributes: Record<string, string> = EMPTY_OBJECT
 	): Promise<Module> {
 		const implicitlyLoadedBeforeId = implicitlyLoadedBefore
 			? normalizeModuleId(implicitlyLoadedBefore)
@@ -760,7 +760,7 @@ export class ModuleLoader {
 			null,
 			EMPTY_OBJECT,
 			true,
-			attributes || EMPTY_OBJECT,
+			attributes,
 			importerAttributes,
 			importerRawId,
 			this.options.fs
@@ -789,7 +789,7 @@ export class ModuleLoader {
 					typeof resolveIdResult === 'object'
 						? (resolveIdResult as NormalizedResolveIdWithoutDefaults)
 						: { id: resolveIdResult },
-					EMPTY_OBJECT
+					attributes
 				)!
 			),
 			undefined,
