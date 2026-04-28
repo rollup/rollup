@@ -1,4 +1,4 @@
-import { value1, a as value1$1, v as value2 } from './generated-lib1.js';
+import { value1, v as value1$1, a as value2 } from './generated-lib1.js';
 
 console.log(value1);
 console.log(value1$1);

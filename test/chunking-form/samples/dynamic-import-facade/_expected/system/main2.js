@@ -3,7 +3,7 @@ System.register(['./generated-dynamic.js'], (function () {
 	var dynamic, dep;
 	return {
 		setters: [function (module) {
-			dynamic = module.a;
+			dynamic = module.b;
 			dep = module.d;
 		}],
 		execute: (function () {

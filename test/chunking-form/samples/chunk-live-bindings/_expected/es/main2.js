@@ -1,4 +1,4 @@
-import { a as fn, b as text } from './generated-dep1.js';
+import { f as fn, t as text } from './generated-dep1.js';
 
 class Main2 {
   constructor () {

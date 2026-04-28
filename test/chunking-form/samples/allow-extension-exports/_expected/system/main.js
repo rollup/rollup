@@ -4,8 +4,8 @@ System.register(['./generated-lib1.js'], (function (exports, module) {
 	return {
 		setters: [function (module) {
 			value1 = module.value1;
-			value1$1 = module.a;
-			value2 = module.v;
+			value1$1 = module.v;
+			value2 = module.a;
 		}],
 		execute: (function () {
 
