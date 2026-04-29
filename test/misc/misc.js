@@ -185,7 +185,6 @@ describe('misc', () => {
 		const buildBundle = async delays => {
 			const bundle = await rollup.rollup({
 				input: 'main.js',
-				maxParallelFileOps: 7,
 				plugins: [
 					{
 						name: 'delayed-loader',
