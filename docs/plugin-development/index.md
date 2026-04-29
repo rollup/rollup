@@ -344,6 +344,7 @@ Notifies a plugin when the watcher process will close so that all open resources
 
 ```typescript
 type Options = {
+	rawId: string;
 	attributes: Record<string, string>;
 };
 
@@ -359,7 +360,7 @@ interface SourceDescription {
 }
 ```
 
-Defines a custom loader. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
+Defines a custom loader. `options.rawId` is the resolved id, while `options.attributes` contains the import attributes for this module. Together, `rawId` and `attributes` determine the unique module id that is passed as the first parameter to this hook. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
 
 ::: warning CHANGED RECOMMENDATION In contrast to previous versions of Rollup, **it is no longer recommended to return an AST** from this hook even if you have already generated one. Rollup needs to convert the AST into its internal binary format before it can be used. This carries a significant performance cost. Instead, you should only return the code and let Rollup handle parsing internally. :::
 
@@ -373,7 +374,7 @@ See [synthetic named exports](#synthetic-named-exports) for the effect of the `s
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If a `meta` object is returned by this hook, it will be merged shallowly with any `meta` object returned by the resolveId hook. If no hook returns a `meta` object it will default to an empty object. The `transform` hook can further add or replace properties of this object.
 
-You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `rawId`, `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 ### moduleParsed
 
@@ -479,6 +480,7 @@ type ResolveDynamicImportHook = (
 	importer: string,
 	options: {
 		attributes: Record<string, string>;
+		importerRawId: string;
 		importerAttributes: Record<string, string>;
 	}
 ) => ResolveIdResult;
@@ -494,7 +496,7 @@ Defines a custom resolver for dynamic imports. Returning `false` signals that th
 
 `attributes` tells you which import attributes were present in the import. I.e. `import("foo", {assert: {type: "json"}})` will pass along `attributes: {type: "json"}`.
 
-`importerAttributes` are the import attributes of the importing module.
+`importerRawId` and `importerAttributes` are the raw id and import attributes of the importing module.
 
 In case a dynamic import is passed a string as argument, a string returned from this hook will be interpreted as an existing module id while returning `null` will defer to other resolvers and eventually to `resolveId` .
 
@@ -520,7 +522,8 @@ type ResolveIdHook = (
 	source: string,
 	importer: string | undefined,
 	options: {
-		importerAttributes: Record<string, string> | undefined;
+		importerAttributes: Record<string, string>;
+		importerRawId?: string;
 		attributes: Record<string, string>;
 		custom?: { [plugin: string]: any };
 		isEntry: boolean;
@@ -532,7 +535,7 @@ type ResolveIdResult = string | null | false | PartialResolvedId;
 interface PartialResolvedId {
 	id: string;
 	external?: boolean | 'absolute' | 'relative';
-	attributes?: Record<string, string> | null;
+	attributes?: Record<string, string>;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	resolvedBy?: string | null;
@@ -548,9 +551,9 @@ import { foo } from '../bar.js';
 
 the source will be `"../bar.js"`.
 
-The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
+The `importer` is the id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
 
-The `importerAttributes` are the import attributes of the importing module. When resolving entry points, importerAttributes will usually be `undefined`.
+The `importerAttributes` are the import attributes of the importing module. The `importerRawId` is the id of the importing module without its own import attributes. When resolving entry points, `importerRawId` will usually be `undefined` and `importerAttributes` will be an empty object.
 
 For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](#this-resolve) context function.
 
@@ -658,13 +661,13 @@ If `false` is returned for `moduleSideEffects` in the first hook that resolves a
 
 `resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](#this-resolve).
 
-If you return a value for `attributes` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, attributes: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `attributes` input parameter will be used. Pass an empty object to remove any attributes. While `attributes` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
+If you return a value for `attributes` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, attributes: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `attributes` input parameter will be used. Pass an empty object to remove any attributes. For bundled modules, attributes are part of the module identity: importing the same resolved raw id with different attributes will create distinct modules with distinct module ids.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will default to `false`. The `load` and `transform` hooks can override this.
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will default to an empty object. The `load` and `transform` hooks can add or replace properties of this object.
 
-Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, values for `external`, `attributes`, `meta`, `moduleSideEffects` or `syntheticNamedExports` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](#load) and [`transform`](#transform) hooks for that module that may override these values and should take precedence if they do so.
+Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, `id` and `attributes` together determine which module is loaded. Values for `external`, `meta`, `moduleSideEffects` or `syntheticNamedExports` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](#load) and [`transform`](#transform) hooks for that module that may override these values and should take precedence if they do so.
 
 When triggering this hook from a plugin via [`this.resolve`](#this-resolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](#custom-resolver-options).
 
@@ -685,6 +688,7 @@ type ShouldTransformCachedModuleHook = (options: {
 	attributes: Record<string, string>;
 	code: string;
 	id: string;
+	rawId: string;
 	meta: { [plugin: string]: any };
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
@@ -708,6 +712,7 @@ If a plugin does not return a boolean, Rollup will trigger this hook for other p
 
 ```typescript
 type Options = {
+	rawId: string;
 	attributes: Record<string, string>;
 };
 
@@ -723,7 +728,7 @@ interface SourceDescription {
 }
 ```
 
-Can be used to transform individual modules. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import.
+Can be used to transform individual modules. `options.rawId` is the resolved id, while `options.attributes` contains the import attributes for this module. Together, `rawId` and `attributes` determine the unique module id that is passed as the second parameter to this hook.
 
 ::: warning CHANGED RECOMMENDATION In contrast to previous versions of Rollup, **it is no longer recommended to return an AST** from this hook even if you have already generated one. Rollup needs to convert the AST into its internal binary format before it can be used. This carries a significant performance cost. Instead, you should only return the code and let Rollup handle parsing internally. :::
 
@@ -749,7 +754,7 @@ See [synthetic named exports](#synthetic-named-exports) for the effect of the `s
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module or eventually default to an empty object.
 
-You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `rawId`, `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 ### watchChange
 
@@ -981,6 +986,8 @@ interface OutputChunk {
 	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
+	facadeModuleRawId: string | null;
+	facadeModuleAttributes: Record<string, string>;
 	fileName: string;
 	implicitlyLoadedBefore: string[];
 	imports: string[];
@@ -996,6 +1003,8 @@ interface OutputChunk {
 			renderedLength: number;
 			originalLength: number;
 			code: string | null;
+			rawId: string;
+			attributes: Record<string, string>;
 		};
 	};
 	moduleIds: string[];
@@ -1073,6 +1082,8 @@ interface RenderedChunk {
 	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
+	facadeModuleRawId: string | null;
+	facadeModuleAttributes: Record<string, string>;
 	fileName: string;
 	implicitlyLoadedBefore: string[];
 	importedBindings: {
@@ -1117,9 +1128,12 @@ type renderDynamicImportHook = (options: {
 	customResolution: string | null;
 	format: string;
 	moduleId: string;
+	moduleRawId: string;
+	moduleAttributes: Record<string, string>;
 	targetModuleId: string | null;
+	targetModuleRawId: string | null;
 	chunk: PreRenderedChunkWithFileName;
-	targetChunk: PreRenderedChunkWithFileName;
+	targetChunk: PreRenderedChunkWithFileName | null;
 	getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
 	targetModuleAttributes: Record<string, string>;
 }) => { left: string; right: string } | null;
@@ -1148,7 +1162,7 @@ See the [`chunkFileNames`](../configuration-options/index.md#output-chunkfilenam
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
-`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id and `targetModuleAttributes` will be set to the import attributes that were applied to this resolved module, otherwise `targetModuleId` will be `null` and `targetModuleAttributes` will be an empty object. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
+`format` is the rendered output format, `moduleId` the id of the module performing the dynamic import. `moduleRawId` is the same module id without import attributes, and `moduleAttributes` are the import attributes of the importing module. If the import could be resolved to an internal or external id, then `targetModuleId` will be set to this id, `targetModuleRawId` will be set to the target id without import attributes, and `targetModuleAttributes` will be set to the import attributes that were applied to this resolved module. Otherwise, `targetModuleId` and `targetModuleRawId` will be `null` and `targetModuleAttributes` will be an empty object. If the dynamic import contained a non-string expression that was resolved by a [`resolveDynamicImport`](#resolvedynamicimport) hook to a replacement string, then `customResolution` will contain that string. `chunk` and `targetChunk` provide additional information about the chunk performing the import and the chunk being imported (the target chunk), respectively. `getTargetChunkImports` returns an array containing chunks which are imported by the target chunk. If the target chunk is unresolved or external, `targetChunk` will be null and `getTargetChunkImports` will return null.
 
 The `PreRenderedChunkWithFileName` type is identical to the `PreRenderedChunk` type except for the addition of the `fileName` field, which contains the path and file name of the chunk. `fileName` may contain a placeholder if the chunk file name format contains a hash.
 
@@ -1282,11 +1296,12 @@ Called initially each time `bundle.generate()` or `bundle.write()` is called. To
 
 ```typescript
 type ResolveFileUrlHook = (options: {
-	attributes: Record<string, string>;
 	chunkId: string;
 	fileName: string;
 	format: InternalModuleFormat;
 	moduleId: string;
+	moduleRawId: string;
+	moduleAttributes: Record<string, string>;
 	referenceId: string;
 	relativePath: string;
 }) => string | NullValue;
@@ -1296,11 +1311,12 @@ Allows to customize how Rollup resolves URLs of files that were emitted by plugi
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
-- `attributes`: The import attributes of the module that references this file.
 - `chunkId`: The id of the chunk this file is referenced from. If the chunk file name would contain a hash, this id will contain a placeholder instead. Rollup will replace this placeholder with the actual file name if it ends up in the generated code.
 - `fileName`: The path and file name of the emitted file, relative to `output.dir` without a leading `./`. Again if this is a chunk that would have a hash in its name, it will contain a placeholder instead.
 - `format`: The rendered output format.
 - `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
+- `moduleRawId`: The id of the original module without import attributes.
+- `moduleAttributes`: The import attributes of the module that references this file.
 - `referenceId`: The reference id of the file.
 - `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
 
@@ -1324,7 +1340,7 @@ function resolveToDocumentPlugin() {
 
 |  |  |
 | --: | :-- |
-| Type: | `(property: string \| null, {attributes: Record<string, string>, chunkId: string, moduleId: string, format: string}) => string \| null` |
+| Type: | `(property: string \| null, {chunkId: string, moduleId: string, moduleRawId: string, moduleAttributes: Record<string, string>, format: string}) => string \| null` |
 | Kind: | sync, first |
 | Previous: | [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the current chunk |
 | Next: | [`banner`](#banner), [`footer`](#footer), [`intro`](#intro), [`outro`](#outro) in parallel for the current chunk |
@@ -1333,7 +1349,7 @@ Allows to customize how Rollup handles `import.meta` and `import.meta.someProper
 
 By default, for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
 
-This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. The `attributes` parameter contains the import attributes of the module. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. The `moduleAttributes` parameter contains the import attributes of the module, while `moduleRawId` contains its id without import attributes. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
 
 ```js twoslash
 // ---cut-start---
@@ -1424,10 +1440,11 @@ function plugin() {
 interface EmittedChunk {
 	type: 'chunk';
 	id: string;
+	attributes?: Record<string, string>;
 	name?: string;
 	fileName?: string;
-	implicitlyLoadedAfterOneOf?: string[];
-	importer?: string;
+	implicitlyLoadedAfterOneOf?: UniqueModuleId[];
+	importer?: UniqueModuleId;
 	preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
 }
 
@@ -1451,6 +1468,8 @@ interface EmittedAsset {
 
 Emits a new file that is included in the build output and returns a `referenceId` that can be used in various places to reference the emitted file. You can emit chunks, prebuilt chunks or assets.
 
+The `UniqueModuleId` type is defined in [`this.getModuleInfo`](#this-getmoduleinfo).
+
 When emitting chunks or assets, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used. Prebuilt chunks must always have a `fileName`.
 
 You can reference the URL of an emitted file in any code returned by a [`load`](#load) or [`transform`](#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId` (returns a string) or `import.meta.ROLLUP_FILE_URL_OBJ_referenceId` (returns a URL object). See [File URLs](#file-urls) for more details and an example.
@@ -1461,11 +1480,11 @@ The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can b
 - chunk file names that do not contain a hash are available as soon as chunks are created after the `renderStart` hook.
 - if a chunk file name would contain a hash, using `getFileName` in any hook before [`generateBundle`](#generatebundle) will return a name containing a placeholder instead of the actual name. If you use this file name or parts of it in a chunk you transform in [`renderChunk`](#renderchunk), Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
 
-If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](../configuration-options/index.md#preserveentrysignatures) for this particular chunk.
+If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. The `attributes` property is used as the entry module's import attributes. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. The `importer` can be either a module id string or an object with `rawId` and `attributes` to identify a module that was imported with attributes. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](../configuration-options/index.md#preserveentrysignatures) for this particular chunk.
 
 This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) name pattern will be used.
 
-By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of module ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to prevent this in some cases. Those ids will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
+By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of module ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to prevent this in some cases. Those ids can be strings or `{ rawId, attributes }` objects and will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
 
 <!-- prettier-ignore-start -->
 ```js twoslash
@@ -1664,13 +1683,19 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 
 ### this.getModuleInfo
 
-|       |                                              |
-| ----: | :------------------------------------------- |
-| Type: | `(moduleId: string) => (ModuleInfo \| null)` |
+|       |                                                      |
+| ----: | :--------------------------------------------------- |
+| Type: | `(moduleId: UniqueModuleId) => (ModuleInfo \| null)` |
 
 ```typescript
+type UniqueModuleId =
+	| string
+	| { rawId: string; attributes: Record<string, string> };
+
 interface ModuleInfo {
 	id: string; // the id of the module, for convenience
+	rawId: string; // the id of the module without import attributes
+	attributes: { [key: string]: string }; // import attributes for this module
 	code: string | null; // the source code of the module, `null` if external or not yet available
 	ast: ast.Program; // the parsed abstract syntax tree if available
 	hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
@@ -1687,7 +1712,6 @@ interface ModuleInfo {
 	dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
 	implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
 	implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
-	attributes: { [key: string]: string }; // import attributes for this module
 	meta: { [plugin: string]: any }; // custom module meta-data
 	moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
 	syntheticNamedExports: boolean | string; // final value of synthetic named exports
@@ -1708,14 +1732,14 @@ Returns additional information about the module in question. See [Working with A
 
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](#buildend) hook:
 
-- `id` and `isExternal` will never change.
+- `id`, `rawId`, `attributes` and `isExternal` will never change.
 - `code`, `ast`, `hasDefaultExport`, `exports` and `exportedBindings` are only available after parsing, i.e. in the [`moduleParsed`](#moduleparsed) hook or after awaiting [`this.load`](#this-load). At that point, they will no longer change.
 - if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](#this-emitfile) or because a plugin inspects a potential entry point via [`this.load`](#this-load) in the [`resolveId`](#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](#transform) hook. It will no longer change after `buildEnd`.
 - Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](#this-emitfile).
 - `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
 - `isIncluded` is only available after `buildEnd`, at which point it will no longer change.
 - `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](#this-load) with the `resolveDependencies` flag. At that point, they will no longer change.
-- `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](#load) and [`transform`](#transform) hooks. Moreover, while most properties are read-only, these properties are writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` itself should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
+- `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](#load) and [`transform`](#transform) hooks. Moreover, while most properties are read-only, these properties are writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` itself should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
 Returns `null` if the module id cannot be found.
 
@@ -1745,22 +1769,23 @@ If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to
 
 ```typescript
 type Load = (options: {
-	id: string;
+	id: UniqueModuleId;
 	resolveDependencies?: boolean;
-	attributes?: Record<string, string> | null;
 	meta?: CustomPluginOptions | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
 }) => Promise<ModuleInfo>;
 ```
 
-Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
+The `UniqueModuleId` type is defined in [`this.getModuleInfo`](#this-getmoduleinfo).
+
+Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. The id can either be a string or a `{ rawId, attributes }` object if you need to identify a module that uses import attributes. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
 This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#this-resolve) to this function as long as it is neither `null` nor external.
 
 The returned Promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the Promise returned by `this.load` wait until all dependency ids have been resolved.
 
-Note that with regard to the `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
+Note that with regard to the `meta`, `moduleSideEffects` and `syntheticNamedExports` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
 
 ```js twoslash
 // ---cut-start---
@@ -1930,11 +1955,10 @@ Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](h
 ```typescript
 type Resolve = (
 	source: string,
-	importer?: string,
+	importer?: UniqueModuleId,
 	options?: {
 		skipSelf?: boolean;
 		isEntry?: boolean;
-		importerAttributes?: Record<string, string>;
 		attributes?: Record<string, string>;
 		custom?: { [plugin: string]: any };
 	}
@@ -1943,7 +1967,7 @@ type Resolve = (
 
 ::: tip
 
-The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`](#this-getmoduleinfo).
+The **UniqueModuleId** and return type **ResolvedId** of this hook are defined in [`this.getModuleInfo`](#this-getmoduleinfo).
 
 :::
 
@@ -1955,7 +1979,7 @@ You can also pass an object of plugin-specific options via the `custom` option, 
 
 The value for `isEntry` you pass here will be passed along to the [`resolveId`](#resolveid) hooks handling this call, otherwise `false` will be passed if there is an importer and `true` if there is not.
 
-If you pass an object for `importerAttributes`, it will assume that the import attributes of the importer are those in that object.
+If `importer` is an object with `rawId` and `attributes`, Rollup will use those values to identify the importing module and pass them to [`resolveId`](#resolveid) as `importerRawId` and `importerAttributes`.
 
 If you pass an object for `attributes`, it will simulate resolving an import with an assertion, e.g. `attributes: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
@@ -2318,18 +2342,20 @@ import('./utils.js').then(utils => utils.process(data));
 
 Rollup provides access to these attributes in plugin hooks, allowing plugins to handle modules differently based on their import attributes.
 
+Import attributes are part of a module's identity. If the same resolved raw id is imported with different attributes, Rollup creates separate modules with separate module ids. Internally, the generated `id` is based on the `rawId` and the attributes encoded as URL search parameters, e.g. a raw id of `./logo.png` with `{ size: '100' }` can become `./logo.png?size=100`.
+
 ### Accessing import attributes in plugins
 
 When a module is imported with attributes, these attributes are made available to plugins in several hooks:
 
 - In the [`resolveId`](#resolveid) hook, `options.attributes` contains the import attributes, and `options.importerAttributes` contains the attributes of the importing module.
-- In the [`load`](#load) hook, `options.attributes` contains the import attributes that were used when the module was first imported.
+- In the [`load`](#load) hook, `options.attributes` contains the import attributes.
 - In the [`transform`](#transform) hook, `options.attributes` contains the import attributes.
 - In the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook, the `attributes` field contains the import attributes.
 - In the [`resolveDynamicImport`](#resolvedynamicimport) hook, `options.attributes` contains the import attributes from the dynamic import, and `options.importerAttributes` contains the attributes of the importing module.
-- In the [`renderDynamicImport`](#renderdynamicimport) hook, `targetModuleAttributes` contains the import attributes of the resolved dynamic import target.
-- In the [`resolveFileUrl`](#resolvefileurl) hook, `options.attributes` contains the import attributes of the module that references the file.
-- In the [`resolveImportMeta`](#resolveimportmeta) hook, `options.attributes` contains the import attributes of the module.
+- In the [`renderDynamicImport`](#renderdynamicimport) hook, `options.moduleAttributes` contains the import attributes of the importing module, and `options.targetModuleAttributes` contains the import attributes of the resolved dynamic import target.
+- In the [`resolveFileUrl`](#resolvefileurl) hook, `options.moduleAttributes` contains the import attributes of the module that references the file.
+- In the [`resolveImportMeta`](#resolveimportmeta) hook, `options.moduleAttributes` contains the import attributes of the module.
 - In the [`moduleParsed`](#moduleparsed) hook, `moduleInfo.attributes` contains the import attributes.
 
 ### Using import attributes to customize module handling
