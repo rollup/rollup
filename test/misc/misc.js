@@ -209,6 +209,41 @@ describe('misc', () => {
 				])
 			));
 
+	it('does not leak chunk-prefixed render names from one output into another (#6296)', async () => {
+		const bundle = await rollup.rollup({
+			input: 'main',
+			plugins: [
+				loader({
+					main: `import { _ } from 'helper';\nconsole.log(_);`,
+					helper: `export function _(target, property) { return target[property]; }`
+				})
+			]
+		});
+
+		// Generating the chunked CJS first sets `renderBaseName` on the `_`
+		// variable to the chunk name (`vendor`). Without resetting render names
+		// at the start of each output, the subsequent UMD generate would emit
+		// `function vendor._(...)`, which is invalid JavaScript.
+		const cjs = await bundle.generate({
+			format: 'cjs',
+			dir: 'dist',
+			manualChunks: id => (id === 'helper' ? 'vendor' : undefined)
+		});
+		assert.ok(
+			cjs.output.some(chunk => chunk.fileName.startsWith('vendor')),
+			'CJS output should contain a vendor chunk'
+		);
+
+		const umd = await bundle.generate({ format: 'umd', name: 'main' });
+		const umdCode = umd.output[0].code;
+		assert.ok(
+			!/function\s+vendor\./.test(umdCode),
+			`UMD output should not contain a dotted function declaration:\n${umdCode}`
+		);
+		// And the function should still parse — eval the wrapper to verify.
+		assert.doesNotThrow(() => new Function(umdCode), 'UMD output should be valid JavaScript');
+	});
+
 	it('allows passing the same object to `rollup` and `generate`', () => {
 		const options = {
 			input: 'input',
