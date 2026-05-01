@@ -34,6 +34,16 @@
       "decision": "ignore",
       "madeAt": 1775278421094,
       "expiresAt": 1777870392675
+    },
+    "1116970|@mermaid-js/mermaid-cli>@mermaid-js/layout-elk>mermaid>uuid": {
+      "decision": "ignore",
+      "madeAt": 1777608910885,
+      "expiresAt": 1780200878843
+    },
+    "1116970|nyc>istanbul-lib-processinfo>uuid": {
+      "decision": "ignore",
+      "madeAt": 1777608910885,
+      "expiresAt": 1780200878843
     }
   },
   "rules": {},
