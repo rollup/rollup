@@ -7,7 +7,7 @@ var fooEsModule = require('external-esModule');
 
 function _interopDefault (e) { return e && e.__esModule ? e.default : e; }
 
-function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }
+function _interopNamespaceDefaultOnly (e) { return Object.freeze(/*#__PURE__*/Object.setPrototypeOf({ default: e }, null)); }
 
 function _interopNamespaceDefault(e) {
 	var n = Object.create(null);

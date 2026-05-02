@@ -8,11 +8,10 @@ System.register(['./generated-geometry.js'], (function () {
 		}],
 		execute: (function () {
 
-			var mod = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var mod = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				geometry: geometry,
 				volume: volume
-			});
+			}, null));
 
 			console.log(mod);
 
