@@ -4,8 +4,8 @@ System.register(['./generated-shared2.js'], (function () {
 	return {
 		setters: [function (module) {
 			shared1 = module.s;
-			shared2 = module.a;
-			foo = module.b;
+			shared2 = module.b;
+			foo = module.f;
 		}],
 		execute: (function () {
 

@@ -14,4 +14,4 @@ function fn () {
   console.log('dep3 fn');
 }
 
-export { fn as a, fn$1 as f };
+export { fn$1 as a, fn as f };

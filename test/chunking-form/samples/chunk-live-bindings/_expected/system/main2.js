@@ -3,8 +3,8 @@ System.register(['./generated-dep1.js'], (function (exports) {
   var fn, text;
   return {
     setters: [function (module) {
-      fn = module.a;
-      text = module.b;
+      fn = module.f;
+      text = module.t;
     }],
     execute: (function () {
 

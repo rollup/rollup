@@ -172,6 +172,63 @@ describe('misc', () => {
 		}
 	});
 
+	it('produces consistent chunk hash names regardless of the order in which chunks are emitted(#5902)', async () => {
+		const FILES = {
+			'main.js': "export * from 'foo.js'; export * from 'bar.js';",
+			'foo.js': "export const foo = 'foo';",
+			'bar.js': "export const bar = 'bar';",
+			'foo-emit.js': "import { quz2 } from 'quz.js'; export const foo = 'foo' + quz2;",
+			'bar-emit.js': "import { quz } from 'quz.js'; export const bar = 'bar' + quz;",
+			'quz.js': "export const quz = 'quz'; export const quz2 = 'quz2';"
+		};
+
+		const buildBundle = async delays => {
+			const bundle = await rollup.rollup({
+				input: 'main.js',
+				plugins: [
+					{
+						name: 'delayed-loader',
+						async resolveId(source) {
+							const delay = delays[source] ?? 0;
+							if (delay) {
+								await new Promise(resolve => setTimeout(resolve, delay));
+							}
+							if (source === 'foo.js') {
+								this.emitFile({
+									type: 'chunk',
+									id: 'foo-emit.js'
+								});
+							}
+							if (source === 'bar.js') {
+								this.emitFile({
+									type: 'chunk',
+									id: 'bar-emit.js'
+								});
+							}
+							return source;
+						},
+						load(id) {
+							return FILES[id];
+						}
+					}
+				]
+			});
+
+			return bundle.generate({
+				chunkFileNames: '[name]-[hash].js',
+				format: 'es'
+			});
+		};
+
+		const { output: output1 } = await buildBundle({ 'foo.js': 100, 'bar.js': 50, 'quz.js': 150 });
+		const { output: output2 } = await buildBundle({ 'foo.js': 50, 'bar.js': 100, 'quz.js': 150 });
+
+		assert.deepStrictEqual(
+			output1.map(chunk => chunk.fileName).sort(),
+			output2.map(chunk => chunk.fileName).sort()
+		);
+	});
+
 	it('ignores falsy plugins', () =>
 		rollup.rollup({
 			input: 'x',

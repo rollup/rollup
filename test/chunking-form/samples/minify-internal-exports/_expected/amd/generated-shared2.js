@@ -6,9 +6,9 @@ define(['exports'], (function (exports) { 'use strict';
 	var shared2 = 'shared2';
 	const foo = 'foo2';
 
-	exports.a = shared2;
-	exports.b = foo;
-	exports.f = foo$1;
+	exports.a = foo$1;
+	exports.b = shared2;
+	exports.f = foo;
 	exports.s = shared1;
 
 }));

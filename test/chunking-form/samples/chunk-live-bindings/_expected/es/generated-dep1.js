@@ -17,4 +17,4 @@ function fn () {
 
 var text = 'dep2 fn';
 
-export { fn$1 as a, text$1 as b, fn as f, text as t };
+export { fn as a, text as b, fn$1 as f, text$1 as t };

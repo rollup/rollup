@@ -4,8 +4,8 @@ System.register([], (function (exports) {
     execute: (function () {
 
       exports({
-        a: fn$1,
-        f: fn
+        a: fn,
+        f: fn$1
       });
 
       function fn$2 () {
@@ -15,17 +15,17 @@ System.register([], (function (exports) {
       function fn$1 () {
         fn$2();
         console.log(text);
-        exports("b", text$1 = 'dep1 fn after dep2');
+        exports("t", text$1 = 'dep1 fn after dep2');
       }
 
-      var text$1 = exports("b", 'dep1 fn');
+      var text$1 = exports("t", 'dep1 fn');
 
       function fn () {
         console.log(text$1);
-        exports("t", text = 'dep2 fn after dep1');
+        exports("b", text = 'dep2 fn after dep1');
       }
 
-      var text = exports("t", 'dep2 fn');
+      var text = exports("b", 'dep2 fn');
 
     })
   };

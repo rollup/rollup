@@ -3,7 +3,7 @@ System.register(['./generated-dep1.js'], (function (exports) {
   var fn;
   return {
     setters: [function (module) {
-      fn = module.a;
+      fn = module.f;
     }],
     execute: (function () {
 

@@ -17,4 +17,4 @@ var dynamic1 = /*#__PURE__*/Object.freeze({
 	DYNAMIC_B: DYNAMIC_A
 });
 
-export { dynamic1 as a, dynamic2 as d };
+export { dynamic2 as a, dynamic1 as d };
