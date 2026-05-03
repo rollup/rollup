@@ -7,12 +7,12 @@ define(['exports'], (function (exports) { 'use strict';
 	function requireC () {
 		if (hasRequiredC) return c;
 		hasRequiredC = 1;
-		(function (exports$1) {
-			exports$1.preFaPrint = {
+		(function (exports) {
+			exports.preFaPrint = {
 				foo: 1
 			};
 
-			exports$1.faPrint = exports$1.preFaPrint; 
+			exports.faPrint = exports.preFaPrint; 
 		} (c));
 		return c;
 	}
