@@ -41,6 +41,13 @@
     },
     {
       "matchPackageNames": [
+        "stacker"
+      ],
+      "allowedVersions": "<=0.1.23",
+      "description": "stacker 0.1.24+ requires windows-sys >=0.60 which uses windows-link instead of windows-targets, breaking the x86_64-pc-windows-gnu (MinGW) build. Pin until upstream fixes this."
+    },
+    {
+      "matchPackageNames": [
         "@inquirer/prompts",
         "@rollup/plugin-terser",
         "@types/node",
