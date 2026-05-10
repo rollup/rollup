@@ -244,7 +244,7 @@ function getChunkDefinitionsFromManualChunks(
 		([entryA], [entryB]) => entryA.execIndex - entryB.execIndex
 	);
 	let nextAliasMask = 1n;
-	const maskByAlias = new Map();
+	const maskByAlias = new Map<string, bigint>();
 	for (const [entry, alias] of sortedEntriesWithAlias) {
 		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
 			(manualChunkModulesByAlias[alias] ||= []).push(entry);
@@ -307,7 +307,13 @@ function traverseStaticDependencies(
 	const modulesToHandle = new Set([entry]);
 	for (const module of modulesToHandle) {
 		for (const dependency of module.dependencies) {
-			if (!(dependency instanceof ExternalModule || manualChunkModules.has(dependency))) {
+			if (
+				!(
+					dependency instanceof ExternalModule ||
+					manualChunkModules.has(dependency) ||
+					modulesToHandle.has(dependency)
+				)
+			) {
 				modulesToHandle.add(dependency);
 				handleStaticDependency(dependency);
 			}
