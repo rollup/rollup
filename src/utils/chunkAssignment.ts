@@ -1,7 +1,7 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import type { LogHandler } from '../rollup/types';
-import { getNewSet, getOrCreate } from './getOrCreate';
+import { getNewArray, getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { logOptimizeChunkStatus } from './logs';
 import { timeEnd, timeStart } from './timers';
@@ -157,11 +157,12 @@ export function getChunkAssignments(
 	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
-	const { chunkDefinitions, modulesInManualChunks } = getChunkDefinitionsFromManualChunks(
-		manualChunkAliasByEntry,
-		isManualChunksFunctionForm,
-		onlyExplicitManualChunks
-	);
+	const { chunkDefinitions, combinedManualChunkAliasMaskByModule, modulesInManualChunks } =
+		getChunkDefinitionsFromManualChunks(
+			manualChunkAliasByEntry,
+			isManualChunksFunctionForm,
+			onlyExplicitManualChunks
+		);
 	const {
 		allEntries,
 		dependentEntriesByModule,
@@ -200,6 +201,14 @@ export function getChunkAssignments(
 		alreadyLoadedAtomsByEntry,
 		awaitedAlreadyLoadedAtomsByEntry
 	);
+	if (combinedManualChunkAliasMaskByModule.size > 0) {
+		extractManualChunkStaticDependenciesFromEntryChunkAtoms(
+			chunkAtoms,
+			combinedManualChunkAliasMaskByModule,
+			chunkDefinitions,
+			allEntries
+		);
+	}
 	const { chunks, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
@@ -223,15 +232,35 @@ function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
-): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
+): {
+	chunkDefinitions: ChunkDefinitions;
+	combinedManualChunkAliasMaskByModule: ReadonlyMap<Module, bigint>;
+	modulesInManualChunks: Set<Module>;
+} {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
+	const combinedManualChunkAliasMaskByModule = new Map<Module, bigint>();
 	const sortedEntriesWithAlias = [...manualChunkAliasByEntry].sort(
 		([entryA], [entryB]) => entryA.execIndex - entryB.execIndex
 	);
+	let nextAliasMask = 1n;
+	const maskByAlias = new Map();
 	for (const [entry, alias] of sortedEntriesWithAlias) {
 		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
 			(manualChunkModulesByAlias[alias] ||= []).push(entry);
+			traverseStaticDependencies(entry, modulesInManualChunks, (module: Module) => {
+				let aliasMask = maskByAlias.get(alias);
+				if (!aliasMask) {
+					aliasMask = nextAliasMask;
+					maskByAlias.set(alias, aliasMask);
+					nextAliasMask <<= 1n;
+				}
+				const combinedAliasMask = combinedManualChunkAliasMaskByModule.get(module);
+				combinedManualChunkAliasMaskByModule.set(
+					module,
+					combinedAliasMask ? combinedAliasMask | aliasMask : aliasMask
+				);
+			});
 		} else {
 			addStaticDependenciesToManualChunk(
 				entry,
@@ -246,7 +275,11 @@ function getChunkDefinitionsFromManualChunks(
 	for (const [alias, modules] of manualChunks) {
 		chunkDefinitions[index++] = { alias, modules };
 	}
-	return { chunkDefinitions, modulesInManualChunks };
+	return {
+		chunkDefinitions,
+		combinedManualChunkAliasMaskByModule,
+		modulesInManualChunks
+	};
 }
 
 function addStaticDependenciesToManualChunk(
@@ -261,6 +294,22 @@ function addStaticDependenciesToManualChunk(
 		for (const dependency of module.dependencies) {
 			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
 				modulesToHandle.add(dependency);
+			}
+		}
+	}
+}
+
+function traverseStaticDependencies(
+	entry: Module,
+	manualChunkModules: Set<Module>,
+	handleStaticDependency: (module: Module) => void
+): void {
+	const modulesToHandle = new Set([entry]);
+	for (const module of modulesToHandle) {
+		for (const dependency of module.dependencies) {
+			if (!(dependency instanceof ExternalModule || manualChunkModules.has(dependency))) {
+				modulesToHandle.add(dependency);
+				handleStaticDependency(dependency);
 			}
 		}
 	}
@@ -560,6 +609,37 @@ function removeUnnecessaryDependentEntries(
 			}
 		}
 		chunkMask <<= 1n;
+	}
+}
+
+function extractManualChunkStaticDependenciesFromEntryChunkAtoms(
+	chunkAtoms: ModulesWithDependentEntries[],
+	combinedManualChunkAliasMaskByModule: ReadonlyMap<Module, bigint>,
+	chunkDefinitions: ChunkDefinitions,
+	allEntries: readonly Module[]
+) {
+	const entries = new Set(allEntries);
+	for (const chunkAtom of chunkAtoms) {
+		const { modules } = chunkAtom;
+		const extractedModules = new Set<Module>();
+		const modulesByCombinedManualChunkAliasMask = new Map<bigint, Module[]>();
+		const isEntryChunkAtom = modules.find(module => entries.has(module));
+		if (!isEntryChunkAtom) continue;
+		for (const module of modules) {
+			const combinedAliasMask = combinedManualChunkAliasMaskByModule.get(module);
+			if (combinedAliasMask) {
+				getOrCreate(modulesByCombinedManualChunkAliasMask, combinedAliasMask, getNewArray).push(
+					module
+				);
+				extractedModules.add(module);
+			}
+		}
+		if (extractedModules.size > 0) {
+			chunkAtom.modules = chunkAtom.modules.filter(module => !extractedModules.has(module));
+		}
+		for (const [, modules] of modulesByCombinedManualChunkAliasMask) {
+			chunkDefinitions.push({ alias: null, modules });
+		}
 	}
 }
 
