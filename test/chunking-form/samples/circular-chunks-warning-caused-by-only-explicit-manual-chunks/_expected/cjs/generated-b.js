@@ -1,6 +1,8 @@
 'use strict';
 
 var ac = require('./generated-ac.js');
-require('./generated-b.js');
 
-console.log(ac.a);
+const b = 'b';
+console.log(b + ac.c);
+
+exports.b = b;

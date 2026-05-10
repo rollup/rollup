@@ -1,9 +1,4 @@
-import { c, a } from './generated-ac.js';
-import './main.js';
-
-const b = 'b';
-console.log(b + c);
+import { a } from './generated-ac.js';
+import './generated-b.js';
 
 console.log(a);
-
-export { b };

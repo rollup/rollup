@@ -1,4 +1,4 @@
-System.register(['./main.js'], (function (exports) {
+System.register(['./generated-b.js'], (function (exports) {
 	'use strict';
 	var b;
 	return {
