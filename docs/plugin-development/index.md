@@ -544,7 +544,7 @@ the source will be `"../bar.js"`.
 
 The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
 
-The `importerAttributes` are the import attributes of the importing module. When resolving entry points, importerAttributes will usually be `undefined`.
+The `importerAttributes` are the import attributes of the importing module. When resolving entry points, `importerAttributes` will usually be `undefined`.
 
 For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](#this-resolve) context function.
 

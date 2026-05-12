@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.60.3
+
+_2026-05-04_
+
+### Bug Fixes
+
+- Ensure nested "exports" variables are not renamed (#6360)
+
+### Pull Requests
+
+- [#6360](https://github.com/rollup/rollup/pull/6360): fix: do not rename nested "exports" bindings that do not conflict (@tariqrafique, @lukastaegert)
+- [#6364](https://github.com/rollup/rollup/pull/6364): chore(deps): update msys2/setup-msys2 digest to e989830 (@renovate[bot])
+- [#6365](https://github.com/rollup/rollup/pull/6365): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6366](https://github.com/rollup/rollup/pull/6366): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6367](https://github.com/rollup/rollup/pull/6367): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6368](https://github.com/rollup/rollup/pull/6368): docs: add missing backticks in `plugin-development` (@lumirlumir, @lukastaegert)
+
 ## 4.60.2
 
 _2026-04-18_

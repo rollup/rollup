@@ -4,18 +4,18 @@ const exports$1 = {
 console.log(exports$1);
 
 function nestedConflict() {
-	const exports$1 = {
+	const exports = {
 		x: 42
 	};
-	console.log(exports$1);
+	console.log(exports);
 	x++;
 }
 
 function nestedNoConflict() {
-	const exports$1 = {
+	const exports = {
 		x: 42
 	};
-	console.log(exports$1);
+	console.log(exports);
 }
 
 var x = 43;
