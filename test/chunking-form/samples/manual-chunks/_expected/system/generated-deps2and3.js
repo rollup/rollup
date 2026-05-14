@@ -8,8 +8,8 @@ System.register(['./generated-lib1.js'], (function (exports) {
     execute: (function () {
 
       exports({
-        a: fn$1,
-        f: fn
+        a: fn,
+        f: fn$1
       });
 
       function fn$2 () {

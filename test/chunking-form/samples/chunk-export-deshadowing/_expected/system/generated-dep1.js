@@ -4,8 +4,8 @@ System.register([], (function (exports) {
     execute: (function () {
 
       exports({
-        a: fn,
-        f: fn$1
+        a: fn$1,
+        f: fn
       });
 
       function fn$2 () {

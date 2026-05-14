@@ -8,13 +8,13 @@ System.register([], (function (exports) {
 			const dep = exports("d", 'dep');
 
 			console.log('dynamic', dep);
-			const dynamic = exports("b", 'dynamic');
+			const dynamic = exports("a", 'dynamic');
 
 			var dynamic$1 = /*#__PURE__*/Object.freeze({
 				__proto__: null,
 				dynamic: dynamic
 			});
-			exports("a", dynamic$1);
+			exports("b", dynamic$1);
 
 		})
 	};
