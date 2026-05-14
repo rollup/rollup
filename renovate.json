@@ -41,6 +41,13 @@
     },
     {
       "matchPackageNames": [
+        "wasm-pack"
+      ],
+      "allowedVersions": "!/^0\\.14\\.0$/",
+      "description": "wasm-pack 0.14.0 on npm references drager/wasm-pack (a fork) instead of wasm-bindgen/wasm-pack in its binary.js, causing a 404 when downloading the binary. Pin until fixed. See https://github.com/wasm-bindgen/wasm-pack/issues/1577"
+    },
+    {
+      "matchPackageNames": [
         "stacker"
       ],
       "allowedVersions": "<=0.1.23",
