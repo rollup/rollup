@@ -211,7 +211,7 @@
     "vue": "^3.5.33",
     "vue-eslint-parser": "^10.4.0",
     "vue-tsc": "^3.2.8",
-    "wasm-pack": "^0.14.0",
+    "wasm-pack": "^0.13.1",
     "yargs-parser": "^21.1.1"
   },
   "overrides": {

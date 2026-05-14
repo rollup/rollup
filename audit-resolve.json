@@ -2,48 +2,28 @@
   "decisions": {
     "1112706|mocha>diff": {
       "decision": "ignore",
-      "madeAt": 1775969901927,
-      "expiresAt": 1778561884409
+      "madeAt": 1778736367601,
+      "expiresAt": 1781328337045
     },
     "1113686|mocha>diff>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1775969896563,
-      "expiresAt": 1778561884409
+      "madeAt": 1778736362001,
+      "expiresAt": 1781328337045
     },
     "1113686|@rollup/plugin-terser>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1775969896563,
-      "expiresAt": 1778561884409
-    },
-    "1115519|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1774678997033,
-      "expiresAt": 1777270978460
-    },
-    "1115519|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1774678997033,
-      "expiresAt": 1777270978460
+      "madeAt": 1778736362001,
+      "expiresAt": 1781328337045
     },
     "1115723|@rollup/plugin-terser>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1777881312934,
-      "expiresAt": 1780473295252
+      "madeAt": 1778737445950,
+      "expiresAt": 1781329420005
     },
     "1115723|mocha>diff>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1777881312934,
-      "expiresAt": 1780473295252
-    },
-    "1116970|@mermaid-js/mermaid-cli>@mermaid-js/layout-elk>mermaid>uuid": {
-      "decision": "ignore",
-      "madeAt": 1777608910885,
-      "expiresAt": 1780200878843
-    },
-    "1116970|nyc>istanbul-lib-processinfo>uuid": {
-      "decision": "ignore",
-      "madeAt": 1777608910885,
-      "expiresAt": 1780200878843
+      "madeAt": 1778737445950,
+      "expiresAt": 1781329420005
     }
   },
   "rules": {},
