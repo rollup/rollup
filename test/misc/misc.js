@@ -229,6 +229,59 @@ describe('misc', () => {
 		);
 	});
 
+	it('produces consistent mangled export names regardless of the order in which chunks are emitted (#5902)', async () => {
+		// 'alpha' and 'amid' both start with 'a', so one gets mangled name 'a' and the other 'b'.
+		// Without a deterministic sort, which one gets 'a' depends on emitFile call order,
+		// which in turn depends on which resolveId hook completes first.
+		const FILES = {
+			'entry.js': "import 'mod-a.js'; import 'mod-b.js';",
+			'mod-a.js': 'export const x = 1;',
+			'mod-b.js': 'export const y = 2;',
+			'a-emit.js':
+				"import { alpha, amid } from 'shared.js'; export default String(alpha) + String(amid);",
+			'b-emit.js':
+				"import { alpha, amid } from 'shared.js'; export default String(amid) + String(alpha);",
+			'shared.js': 'export const alpha = 1; export const amid = 2;'
+		};
+
+		const buildBundle = async (delayA, delayB) => {
+			const bundle = await rollup.rollup({
+				input: 'entry.js',
+				plugins: [
+					{
+						name: 'delayed-loader',
+						async resolveId(source) {
+							if (source === 'mod-a.js') {
+								await new Promise(resolve => setTimeout(resolve, delayA));
+								this.emitFile({ type: 'chunk', id: 'a-emit.js' });
+							}
+							if (source === 'mod-b.js') {
+								await new Promise(resolve => setTimeout(resolve, delayB));
+								this.emitFile({ type: 'chunk', id: 'b-emit.js' });
+							}
+							return source;
+						},
+						load(id) {
+							return FILES[id];
+						}
+					}
+				]
+			});
+
+			return bundle.generate({
+				chunkFileNames: '[name].js',
+				minifyInternalExports: true,
+				format: 'cjs'
+			});
+		};
+
+		const { output: output1 } = await buildBundle(100, 50);
+		const { output: output2 } = await buildBundle(50, 100);
+
+		const getCode = output => Object.fromEntries(output.map(chunk => [chunk.fileName, chunk.code]));
+		assert.deepStrictEqual(getCode(output1), getCode(output2));
+	});
+
 	it('ignores falsy plugins', () =>
 		rollup.rollup({
 			input: 'x',
