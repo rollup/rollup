@@ -1,6 +1,6 @@
 import type Variable from '../ast/variables/Variable';
-import RESERVED_NAMES from './RESERVED_NAMES';
 import { toBase64 } from './base64';
+import RESERVED_NAMES from './RESERVED_NAMES';
 
 export function assignExportsToMangledNames(
 	exports: ReadonlySet<Variable>,
@@ -8,7 +8,9 @@ export function assignExportsToMangledNames(
 	exportNamesByVariable: Map<Variable, string[]>
 ): void {
 	let nameIndex = 0;
-	const sortedExports = [...exports].sort((a, b) => (a.name > b.name ? 1 : -1));
+	const sortedExports = [...exports].sort((a, b) =>
+		a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+	);
 	for (const variable of sortedExports) {
 		let [exportName] = variable.name;
 		if (exportsByName.has(exportName)) {
