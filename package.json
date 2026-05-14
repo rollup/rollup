@@ -146,7 +146,7 @@
     "@rollup/pluginutils": "^5.3.0",
     "@shikijs/vitepress-twoslash": "^4.0.2",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.40",
+    "@types/node": "^20.19.41",
     "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.7.1",
     "@types/yargs-parser": "^21.0.3",
