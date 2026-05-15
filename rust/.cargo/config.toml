@@ -1,0 +1,5 @@
+# GCC 16.1.0 in msys2 (ucrt64) no longer auto-links advapi32, which is needed
+# by libmimalloc-sys2 for OpenProcessToken and LookupPrivilegeValueA.
+# This explicitly adds the missing library for Windows GNU targets.
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-args=-ladvapi32"]
