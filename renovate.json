@@ -55,6 +55,13 @@
     },
     {
       "matchPackageNames": [
+        "lru-cache"
+      ],
+      "enabled": false,
+      "description": "this restriction should not be updated by renovate."
+    },
+    {
+      "matchPackageNames": [
         "@inquirer/prompts",
         "@rollup/plugin-terser",
         "@types/node",
