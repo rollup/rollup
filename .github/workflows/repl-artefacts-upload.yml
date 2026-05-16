@@ -20,71 +20,72 @@ jobs:
     runs-on: ubuntu-latest
     name: Upload
     steps:
-      - name: Check for artefact and get PR number
-        id: pr-number
+      - name: Check whether artefacts were produced
+        id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # List artifacts for this workflow run; exit early if none were produced (e.g. build job was skipped)
-          ARTIFACT_NAME=$(gh api /repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts \
-            --jq '.artifacts[0].name // ""')
-          if [[ -z "$ARTIFACT_NAME" ]]; then
-            echo "No artefacts found, skipping upload"
-            echo "pr-number=" >> "$GITHUB_OUTPUT"
-          else
-            # Artifact is named repl-artefacts-pr-<number>
-            echo "pr-number=${ARTIFACT_NAME#repl-artefacts-pr-}" >> "$GITHUB_OUTPUT"
-          fi
+          # The build job is skipped for untriggered fork PRs, leaving zero artifacts.
+          # In that case the workflow_run still completes with 'success', so we guard here.
+          ARTIFACT_COUNT=$(gh api /repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts \
+            --jq '.total_count')
+          echo "has-artefacts=$([[ "$ARTIFACT_COUNT" != "0" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - name: Download artefacts
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: repl-artefacts
+      - name: Read PR number from artefact
+        id: pr-number
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
+        run: |
+          PR_NUMBER=$(cat repl-artefacts/repl-artefacts-pr-number/pr-number.txt)
+          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
       - name: Remove 'x⁸ ⚙️ build repl artefacts' label
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         run: gh pr edit ${{ steps.pr-number.outputs.pr-number }} --remove-label 'x⁸ ⚙️ build repl artefacts'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure AWS credentials via OIDC
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Upload "${{ steps.pr-number.outputs.pr-number }}/rollup.browser.js" to bucket
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd # master
         with:
           args: --cache-control max-age=300,public
         env:
-          FILE: repl-artefacts/repl-artefacts-pr-${{ steps.pr-number.outputs.pr-number }}/rollup.browser.js
+          FILE: repl-artefacts/repl-artefacts/rollup.browser.js
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ steps.pr-number.outputs.pr-number }}/rollup.browser.js
       - name: Upload "${{ steps.pr-number.outputs.pr-number }}/rollup.browser.js.map" to bucket
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd # master
         with:
           args: --cache-control max-age=300,public
         env:
-          FILE: repl-artefacts/repl-artefacts-pr-${{ steps.pr-number.outputs.pr-number }}/rollup.browser.js.map
+          FILE: repl-artefacts/repl-artefacts/rollup.browser.js.map
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ steps.pr-number.outputs.pr-number }}/rollup.browser.js.map
       - name: Upload "${{ steps.pr-number.outputs.pr-number }}/bindings_wasm_bg.wasm" to bucket
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd # master
         with:
           args: --cache-control max-age=300,public
         env:
-          FILE: repl-artefacts/repl-artefacts-pr-${{ steps.pr-number.outputs.pr-number }}/bindings_wasm_bg.wasm
+          FILE: repl-artefacts/repl-artefacts/bindings_wasm_bg.wasm
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ steps.pr-number.outputs.pr-number }}/bindings_wasm_bg.wasm
       - name: Find Comment
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         id: findComment
         with:
@@ -92,7 +93,7 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: 'Thank you for your contribution!'
       - name: Create or update comment
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         id: createInitialComment
         with:
@@ -113,7 +114,7 @@ jobs:
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ steps.pr-number.outputs.pr-number }}
       - name: Find Vercel preview URL
-        if: ${{ steps.pr-number.outputs.pr-number != '' }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
         uses: patrickedqvist/wait-for-vercel-preview@d7982701e6fcd3ae073bff929e408e004404d38d # v1.3.3
         id: waitForVercel
         env:

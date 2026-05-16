@@ -53,13 +53,22 @@ jobs:
         run: >-
           npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' &&
           npm run build:copy-native && npm run build:bootstrap
+      - name: Write PR number
+        run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
       - name: Upload artefacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: repl-artefacts-pr-${{ github.event.pull_request.number }}
+          name: repl-artefacts
           path: |
             browser/dist/rollup.browser.js
             browser/dist/rollup.browser.js.map
             browser/dist/bindings_wasm_bg.wasm
+          if-no-files-found: error
+          retention-days: 1
+      - name: Upload PR number
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: repl-artefacts-pr-number
+          path: pr-number.txt
           if-no-files-found: error
           retention-days: 1
