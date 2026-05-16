@@ -40,15 +40,40 @@ jobs:
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: repl-artefacts
           path: repl-artefacts
-      - name: Read PR number from artefact
+      - name: Resolve PR number and label from trusted API
         id: pr-number
         if: ${{ steps.check.outputs.has-artefacts == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=$(cat repl-artefacts/repl-artefacts-pr-number/pr-number.txt)
+          HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          HEAD_REPO="${{ github.event.workflow_run.head_repository.full_name }}"
+
+          # For same-repo PRs the number is available directly in the workflow_run event.
+          # For fork PRs we look it up via the API using the head SHA and head repository.
+          PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
+          if [[ -z "$PR_NUMBER" ]]; then
+            PR_NUMBER=$(gh api "/repos/${{ github.repository }}/pulls" \
+              --jq ".[] | select(.head.sha == \"$HEAD_SHA\" and .head.repo.full_name == \"$HEAD_REPO\") | .number" \
+              -f state=open)
+          fi
+
+          if [[ -z "$PR_NUMBER" || ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Could not resolve a valid PR number" >&2
+            exit 1
+          fi
           echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          LABELED=$(cat repl-artefacts/repl-artefacts-pr-number/labeled.txt)
-          echo "labeled=$LABELED" >> "$GITHUB_OUTPUT"
+
+          # Check via API whether the label is currently present on the PR
+          LABEL=$(gh api "/repos/${{ github.repository }}/issues/$PR_NUMBER/labels" \
+            --jq '.[] | select(.name == "x⁸ ⚙️ build repl artefacts") | .name')
+          if [[ -n "$LABEL" ]]; then
+            echo "labeled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "labeled=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Remove 'x⁸ ⚙️ build repl artefacts' label
         if: ${{ steps.pr-number.outputs.labeled == 'true' }}
         run: gh pr edit ${{ steps.pr-number.outputs.pr-number }} --remove-label 'x⁸ ⚙️ build repl artefacts'
