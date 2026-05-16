@@ -47,8 +47,10 @@ jobs:
         run: |
           PR_NUMBER=$(cat repl-artefacts/repl-artefacts-pr-number/pr-number.txt)
           echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          LABELED=$(cat repl-artefacts/repl-artefacts-pr-number/labeled.txt)
+          echo "labeled=$LABELED" >> "$GITHUB_OUTPUT"
       - name: Remove 'x⁸ ⚙️ build repl artefacts' label
-        if: ${{ steps.check.outputs.has-artefacts == 'true' }}
+        if: ${{ steps.pr-number.outputs.labeled == 'true' }}
         run: gh pr edit ${{ steps.pr-number.outputs.pr-number }} --remove-label 'x⁸ ⚙️ build repl artefacts'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
