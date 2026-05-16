@@ -154,7 +154,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Update comment with Vercel preview URL
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
-        if: ${{ steps.waitForVercel.outputs.url }}
+        if: ${{ steps.check.outputs.has-artefacts == 'true' && steps.waitForVercel.outputs.url }}
         with:
           comment-id: ${{ steps.createInitialComment.outputs.comment-id }}
           issue-number: ${{ steps.pr-number.outputs.pr-number }}
