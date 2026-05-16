@@ -76,7 +76,7 @@ jobs:
           fi
       - name: Remove 'x⁸ ⚙️ build repl artefacts' label
         if: ${{ steps.pr-number.outputs.labeled == 'true' }}
-        run: gh pr edit ${{ steps.pr-number.outputs.pr-number }} --remove-label 'x⁸ ⚙️ build repl artefacts'
+        run: gh pr edit ${{ steps.pr-number.outputs.pr-number }} --repo ${{ github.repository }} --remove-label 'x⁸ ⚙️ build repl artefacts'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure AWS credentials via OIDC
