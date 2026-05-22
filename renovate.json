@@ -4,7 +4,7 @@
     "config:recommended"
   ],
   "constraints": {
-    "npm": "11.6.2"
+    "npm": "11.15.0"
   },
   "dependencyDashboard": true,
   "configMigration": true,
