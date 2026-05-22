@@ -254,9 +254,9 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "ctor"
-version = "1.0.5"
+version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "378f0974ae2468eaf63aa036dbe9c926b0dc7ea64c156f2ea618bc2f75b934f0"
+checksum = "6d765eb1c0bda10d31e0ea185f5ee15da532d60b0912d2bd1441783439e749c5"
 
 [[package]]
 name = "dashmap"
@@ -307,9 +307,9 @@ checksum = "fd8e701084c37e7ef62d3f9e453b618130cbc0ef3573847785952a3ac3f746bf"
 
 [[package]]
 name = "either"
-version = "1.15.0"
+version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
+checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
 
 [[package]]
 name = "equivalent"
@@ -1165,9 +1165,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
+checksum = "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9"
 dependencies = [
  "itoa",
  "memchr",
@@ -1384,9 +1384,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_codegen"
-version = "26.0.1"
+version = "26.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fafbcdd29cc03b0c04860bb0143e781e13a4e2dac03eb8747df520f602e0aa94"
+checksum = "39230b073d1d785ac7a905354161e21970d15956e348f46a85deb0da0d4d5132"
 dependencies = [
  "ascii",
  "compact_str",
@@ -1430,9 +1430,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_minifier"
-version = "53.0.0"
+version = "53.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76c9d429baf26f3e5efb0f98fd5f16425ae14becc2f82cd78e39512f1fd68a5e"
+checksum = "42b8a26a135d998592f2e73ba0b177a0faf3607c56c3b5584c88df4ef18ed03a"
 dependencies = [
  "arrayvec",
  "bitflags",
