@@ -1,4 +1,4 @@
-System.register(['./generated-allow-extension.js'], (function () {
+System.register(['./generated-false.js'], (function () {
 	'use strict';
 	var shared;
 	return {

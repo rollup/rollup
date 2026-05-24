@@ -1,7 +1,5 @@
 'use strict';
 
-var main1_js = require('./main1.js');
+var name = 'name';
 
-
-
-exports.name = main1_js.name;
+exports.name = name;

@@ -1,12 +1,9 @@
-System.register(['./main1.js'], (function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			exports("name", module.name);
-		}],
 		execute: (function () {
 
-
+			var name = exports("name", 'name');
 
 		})
 	};

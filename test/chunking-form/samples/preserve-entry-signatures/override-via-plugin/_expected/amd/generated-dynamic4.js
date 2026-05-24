@@ -1,5 +1,5 @@
-define(['./generated-not-specified'], (function (notSpecified) { 'use strict';
+define(['./generated-main'], (function (strict) { 'use strict';
 
-	console.log(notSpecified.shared);
+	console.log(strict.shared);
 
 }));
