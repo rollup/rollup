@@ -351,11 +351,12 @@ async function getOriginalAssetMode(
 }
 
 function isUnavailableFileError(error: unknown): boolean {
+	const unavailableFileErrorCodes = ['ENOENT', 'ENOTDIR', 'ERR_INVALID_ARG_VALUE', 'EINVAL'];
 	return (
 		typeof error === 'object' &&
 		error !== null &&
 		'code' in error &&
-		(error.code === 'ENOENT' || error.code === 'ENOTDIR')
+		unavailableFileErrorCodes.includes(error.code as string)
 	);
 }
 

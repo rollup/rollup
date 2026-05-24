@@ -127,6 +127,58 @@ describe('fs-override', () => {
 		}
 	});
 
+	it('ignores invalid original asset file paths when preserving permissions', async () => {
+		const originalFileName = 'virtual\0asset';
+		const vol = Volume.fromJSON(
+			{
+				'/input.js': ''
+			},
+			__dirname
+		);
+		const fs = new Proxy(vol.promises, {
+			get(target, property) {
+				if (property === 'stat') {
+					return async path => {
+						assert.strictEqual(path, originalFileName);
+						const error = new TypeError('invalid path');
+						error.code = 'ERR_INVALID_ARG_VALUE';
+						throw error;
+					};
+				}
+				return Reflect.get(target, property, target);
+			}
+		});
+
+		const bundle = await rollup.rollup({
+			input: '/input.js',
+			fs,
+			plugins: [
+				{
+					name: 'test-plugin',
+					buildStart() {
+						this.emitFile({
+							type: 'asset',
+							fileName: 'asset.txt',
+							originalFileName,
+							source: 'asset'
+						});
+					}
+				}
+			]
+		});
+
+		try {
+			await bundle.write({
+				dir: '/dist',
+				format: 'esm'
+			});
+
+			assert.strictEqual(vol.readFileSync('/dist/asset.txt', 'utf8'), 'asset');
+		} finally {
+			await bundle.close();
+		}
+	});
+
 	it('surfaces unexpected stat errors while reading original asset permissions', async () => {
 		const vol = Volume.fromJSON(
 			{
