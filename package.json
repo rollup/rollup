@@ -220,8 +220,8 @@
       "lru-cache": ">=11.0.0"
     },
     "readable-stream": "npm:@built-in/readable-stream@1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "semver": "^7.8.1",
     "tar": ">7.5.6",
     "vite": "$vite"
