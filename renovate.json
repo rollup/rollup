@@ -72,6 +72,8 @@
         "@inquirer/prompts",
         "@rollup/plugin-terser",
         "@types/node",
+        "react",
+        "react-dom",
         "typescript",
         "vite",
         "yargs-parser"
