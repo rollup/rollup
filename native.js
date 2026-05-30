@@ -58,6 +58,7 @@ const bindingsByPlatformAndArch = {
 	},
 	freebsd: {
 		arm64: { base: 'freebsd-arm64' },
+		ppc64: { base: 'freebsd-ppc64' },
 		x64: { base: 'freebsd-x64' }
 	},
 	linux: {
