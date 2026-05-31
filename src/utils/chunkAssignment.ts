@@ -629,7 +629,7 @@ function extractManualChunkStaticDependenciesFromEntryChunkAtoms(
 		const { modules } = chunkAtom;
 		const extractedModules = new Set<Module>();
 		const modulesByCombinedManualChunkAliasMask = new Map<bigint, Module[]>();
-		const isEntryChunkAtom = modules.find(module => entries.has(module));
+		const isEntryChunkAtom = modules.some(module => entries.has(module));
 		if (!isEntryChunkAtom) continue;
 		for (const module of modules) {
 			const combinedAliasMask = combinedManualChunkAliasMaskByModule.get(module);
