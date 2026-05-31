@@ -1321,7 +1321,7 @@ _2017-08-27_
 
 - Prevent plugin-provided external IDs being normalised ([#630](https://github.com/rollup/rollup/issues/630), [#633](https://github.com/rollup/rollup/issues/633))
 - Throw if module exports/re-exports the same name twice, or has multiple default exports ([#679](https://github.com/rollup/rollup/issues/679))
-- Warn about `eval` security issue ([#675](<(https://github.com/rollup/rollup/issues/675)>))
+- Warn about `eval` security issue ([#675](https://github.com/rollup/rollup/issues/675))
 
 ## 0.26.3
 

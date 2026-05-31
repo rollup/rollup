@@ -140,7 +140,7 @@ We also welcome financial contributions in full transparency on our [open collec
 
 ## Questions
 
-If you require technical assistance, [Stackoverflow](https://stackoverflow.com/questions/tagged/rollupjs) or [Discord](https://is.gd/rollup_chat) are usually the best places to start. You can also create an [issue](issue) ( protip: do a quick search first to see if someone else didn't ask the same question before!).
+If you require technical assistance, [Stackoverflow](https://stackoverflow.com/questions/tagged/rollupjs) or [Discord](https://is.gd/rollup_chat) are usually the best places to start. You can also create an [issue](https://github.com/rollup/rollup/issues/new/choose) ( protip: do a quick search first to see if someone else didn't ask the same question before!).
 
 ## Credits
 
