@@ -172,38 +172,31 @@ describe('misc', () => {
 		}
 	});
 
-	it('produces consistent chunk hash names regardless of the order in which chunks are emitted(#5902)', async () => {
+	it('produces consistent shared dependency chunk names regardless of the order in which chunks are emitted', async () => {
 		const FILES = {
-			'main.js': "export * from 'foo.js'; export * from 'bar.js';",
-			'foo.js': "export const foo = 'foo';",
-			'bar.js': "export const bar = 'bar';",
-			'foo-emit.js': "import { quz2 } from 'quz.js'; export const foo = 'foo' + quz2;",
-			'bar-emit.js': "import { quz } from 'quz.js'; export const bar = 'bar' + quz;",
-			'quz.js': "export const quz = 'quz'; export const quz2 = 'quz2';"
+			'entry.js': "import 'mod-a.js'; import 'mod-b.js';",
+			'mod-a.js': 'export const x = 1;',
+			'mod-b.js': 'export const y = 2;',
+			'a-emit.js': "import { quz1 } from 'quz1.js'; export default 'foo' + quz1;",
+			'b-emit.js': "import { quz2 } from 'quz2.js'; export default 'bar' + quz2;",
+			'quz1.js': "export const quz1 = 'quz1';",
+			'quz2.js': "export const quz2 = 'quz2';"
 		};
 
-		const buildBundle = async delays => {
+		const buildBundle = async (delayA, delayB) => {
 			const bundle = await rollup.rollup({
-				input: 'main.js',
+				input: 'entry.js',
 				plugins: [
 					{
 						name: 'delayed-loader',
 						async resolveId(source) {
-							const delay = delays[source] ?? 0;
-							if (delay) {
-								await new Promise(resolve => setTimeout(resolve, delay));
+							if (source === 'mod-a.js') {
+								await new Promise(resolve => setTimeout(resolve, delayA));
+								this.emitFile({ type: 'chunk', id: 'a-emit.js' });
 							}
-							if (source === 'foo.js') {
-								this.emitFile({
-									type: 'chunk',
-									id: 'foo-emit.js'
-								});
-							}
-							if (source === 'bar.js') {
-								this.emitFile({
-									type: 'chunk',
-									id: 'bar-emit.js'
-								});
+							if (source === 'mod-b.js') {
+								await new Promise(resolve => setTimeout(resolve, delayB));
+								this.emitFile({ type: 'chunk', id: 'b-emit.js' });
 							}
 							return source;
 						},
@@ -216,17 +209,17 @@ describe('misc', () => {
 
 			return bundle.generate({
 				chunkFileNames: '[name]-[hash].js',
-				format: 'es'
+				format: 'es',
+				manualChunks(id) {
+					if (id.includes('quz')) return 'quz';
+				}
 			});
 		};
+		const { output: output1 } = await buildBundle(100, 50);
+		const { output: output2 } = await buildBundle(50, 100);
 
-		const { output: output1 } = await buildBundle({ 'foo.js': 100, 'bar.js': 50, 'quz.js': 150 });
-		const { output: output2 } = await buildBundle({ 'foo.js': 50, 'bar.js': 100, 'quz.js': 150 });
-
-		assert.deepStrictEqual(
-			output1.map(chunk => chunk.fileName).sort(),
-			output2.map(chunk => chunk.fileName).sort()
-		);
+		const getCode = output => Object.fromEntries(output.map(chunk => [chunk.fileName, chunk.code]));
+		assert.deepStrictEqual(getCode(output1), getCode(output2));
 	});
 
 	it('produces consistent mangled export names regardless of the order in which chunks are emitted (#5902)', async () => {

@@ -1,5 +1,5 @@
 'use strict';
 
-var notSpecified = require('./generated-not-specified.js');
+var strict = require('./generated-main.js');
 
-console.log(notSpecified.shared);
+console.log(strict.shared);

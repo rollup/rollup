@@ -6,7 +6,7 @@ System.register([], (function (exports, module) {
 			const shared = exports("s", 'shared');
 
 			console.log(shared);
-			module.import('./generated-dynamic3.js');
+			module.import('./generated-dynamic2.js');
 
 		})
 	};

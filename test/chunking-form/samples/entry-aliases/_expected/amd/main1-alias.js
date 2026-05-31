@@ -1,7 +1,7 @@
-define(['exports', './main1'], (function (exports, main1_js) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
+	var name = 'name';
 
-
-	exports.name = main1_js.name;
+	exports.name = name;
 
 }));

@@ -1,5 +1,5 @@
 'use strict';
 
-var strict = require('./generated-main.js');
+var allowExtension = require('./generated-allow-extension.js');
 
-console.log(strict.shared);
+console.log(allowExtension.shared);
