@@ -1,5 +1,32 @@
 # rollup changelog
 
+## 4.61.0
+
+_2026-06-01_
+
+### Features
+
+- Sort entry modules to make chunk hashes deterministic (#6391)
+
+### Pull Requests
+
+- [#6376](https://github.com/rollup/rollup/pull/6376): Eliminate AWS credential exposure on fork PRs in REPL artefact workflow (@lukastaegert)
+- [#6378](https://github.com/rollup/rollup/pull/6378): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6379](https://github.com/rollup/rollup/pull/6379): chore(deps): update dependency lint-staged to v17 (@renovate[bot], @lukastaegert)
+- [#6380](https://github.com/rollup/rollup/pull/6380): chore(deps): update dependency lru-cache to v11 (@renovate[bot], @lukastaegert)
+- [#6381](https://github.com/rollup/rollup/pull/6381): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6382](https://github.com/rollup/rollup/pull/6382): chore(deps): update dependency @types/node to ^20.19.41 (@renovate[bot])
+- [#6386](https://github.com/rollup/rollup/pull/6386): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6387](https://github.com/rollup/rollup/pull/6387): chore(deps): update aws-actions/configure-aws-credentials action to v6 (@renovate[bot])
+- [#6388](https://github.com/rollup/rollup/pull/6388): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6389](https://github.com/rollup/rollup/pull/6389): chore(deps): lock file maintenance (@renovate[bot])
+- [#6391](https://github.com/rollup/rollup/pull/6391): Sort entry modules to make chunk hash names deterministic (@TrickyPi)
+- [#6394](https://github.com/rollup/rollup/pull/6394): fix(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6395](https://github.com/rollup/rollup/pull/6395): chore(deps): update react monorepo to v19 (@renovate[bot], @lukastaegert)
+- [#6396](https://github.com/rollup/rollup/pull/6396): fix(deps): update rust crate swc_compiler_base to v57 (@renovate[bot], @lukastaegert)
+- [#6397](https://github.com/rollup/rollup/pull/6397): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6400](https://github.com/rollup/rollup/pull/6400): docs: fix broken links (@jiyujie2006)
+
 ## 4.60.4
 
 _2026-05-14_
