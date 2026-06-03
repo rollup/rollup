@@ -471,7 +471,10 @@ console.log(x);
 		assert.strictEqual(bundle.closed, true);
 	});
 
-	it('sets process.report.excludeNetwork=true during getReport() and restores the original value', () => {
+	it('sets process.report.excludeNetwork=true during getReport() and restores the original value (non-Windows)', () => {
+		// On Windows, getReport() runs inside a spawnSync child process and cannot
+		// be intercepted by mocking process.report.getReport in the current process.
+		if (process.platform === 'win32') return;
 		if (!('excludeNetwork' in process.report)) return;
 
 		const original = process.report.getReport.bind(process.report);
