@@ -6,12 +6,18 @@ const { spawnSync } = require('node:child_process');
 const getReportHeader = () => {
 	try {
 		if (platform !== 'win32') {
-			return report.getReport().header;
+			// Avoid blocking reverse DNS (PTR) lookups on open TCP socket handles.
+			// See: https://github.com/nodejs/node/issues/55576
+			const previousExcludeNetwork = report.excludeNetwork;
+			report.excludeNetwork = true;
+			const header = report.getReport().header;
+			report.excludeNetwork = previousExcludeNetwork;
+			return header;
 		}
 
 		// This is needed because report.getReport() crashes the process on Windows sometimes.
 		const script =
-			"console.log(JSON.stringify(require('node:process').report.getReport().header));";
+			"const r=require('node:process').report;r.excludeNetwork=true;console.log(JSON.stringify(r.getReport().header));";
 		const child = spawnSync(process.execPath, ['-p', script], {
 			encoding: 'utf8',
 			timeout: 3000,
