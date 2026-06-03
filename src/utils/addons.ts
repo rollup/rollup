@@ -9,9 +9,8 @@ export interface Addons {
 	outro: string;
 }
 
-const concatSeparator = (out: string, next: string) => (next ? `${out}${out && '\n'}${next}` : out);
-const concatDblSeparator = (out: string, next: string) =>
-	next ? `${out}${out && '\n\n'}${next}` : out;
+const concatSeparator = (out: string, next: string) => [out, next].filter(Boolean).join('\n');
+const concatDblSeparator = (out: string, next: string) => [out, next].filter(Boolean).join('\n\n');
 
 export async function createAddons(
 	options: NormalizedOutputOptions,
