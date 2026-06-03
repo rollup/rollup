@@ -8,6 +8,14 @@ import { timeEnd, timeStart } from './timers';
 
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
+interface ModuleWithDependentEntries {
+	/**
+	 * The indices of the entries depending on this chunk
+	 */
+	dependentEntries: Set<number>;
+	module: Module;
+}
+
 interface ModulesWithDependentEntries {
 	/**
 	 * The indices of the entries depending on this chunk
@@ -493,10 +501,10 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 }
 
 function getChunksWithSameDependentEntries(
-	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>
+	moduleWithDependentEntries: Iterable<ModuleWithDependentEntries>
 ): ModulesWithDependentEntries[] {
 	const chunkModules: Record<string, ModulesWithDependentEntries> = Object.create(null);
-	for (const { dependentEntries, modules } of modulesWithDependentEntries) {
+	for (const { dependentEntries, module } of moduleWithDependentEntries) {
 		let chunkSignature = 0n;
 		for (const entryIndex of dependentEntries) {
 			chunkSignature |= 1n << BigInt(entryIndex);
@@ -504,7 +512,7 @@ function getChunksWithSameDependentEntries(
 		(chunkModules[String(chunkSignature)] ||= {
 			dependentEntries: new Set(dependentEntries),
 			modules: []
-		}).modules.push(...modules);
+		}).modules.push(module);
 	}
 	return Object.values(chunkModules);
 }
@@ -523,7 +531,7 @@ function* getModulesWithDependentEntriesAndHandleTLACycles(
 				});
 				continue;
 			}
-			yield { dependentEntries, modules: [module] };
+			yield { dependentEntries, module };
 		}
 	}
 }
