@@ -1,4 +1,3 @@
-
 // banner-pre-2
 // banner-string-pre-2
 // banner-pre-5
@@ -37,8 +36,6 @@
 
 console.log('main');
 
-
-
 // outro-pre-2
 
 // outro-string-pre-2
@@ -62,7 +59,6 @@ console.log('main');
 // outro-post-4
 
 // outro-string-post-4
-
 // footer-pre-2
 // footer-string-pre-2
 // footer-pre-5
