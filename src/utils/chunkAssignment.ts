@@ -21,10 +21,11 @@ interface ModulesWithDependentEntries {
 	 * The indices of the entries depending on this chunk
 	 */
 	dependentEntries: Set<number>;
+	hasEntryModule: boolean;
 	modules: Module[];
 }
 
-interface ChunkDescription extends ModulesWithDependentEntries {
+interface ChunkDescription {
 	/**
 	 * These are the atoms (=initial chunks) that are contained in this chunk
 	 */
@@ -37,6 +38,8 @@ interface ChunkDescription extends ModulesWithDependentEntries {
 	correlatedAtoms: bigint;
 	dependencies: Set<ChunkDescription>;
 	dependentChunks: Set<ChunkDescription>;
+	dependentEntries: Set<number>;
+	modules: Module[];
 	pure: boolean;
 	size: number;
 }
@@ -186,7 +189,8 @@ export function getChunkAssignments(
 			dependentEntriesByModule,
 			modulesInManualChunks,
 			chunkDefinitions
-		)
+		),
+		new Set(allEntries)
 	);
 	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(allEntries, chunkAtoms);
 	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
@@ -213,8 +217,7 @@ export function getChunkAssignments(
 		extractManualChunkStaticDependenciesFromEntryChunkAtoms(
 			chunkAtoms,
 			combinedManualChunkAliasMaskByModule,
-			chunkDefinitions,
-			allEntries
+			chunkDefinitions
 		);
 	}
 	const { chunks, sideEffectAtoms, sizeByAtom } =
@@ -501,7 +504,8 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 }
 
 function getChunksWithSameDependentEntries(
-	moduleWithDependentEntries: Iterable<ModuleWithDependentEntries>
+	moduleWithDependentEntries: Iterable<ModuleWithDependentEntries>,
+	allEntriesSet: Set<Module>
 ): ModulesWithDependentEntries[] {
 	const chunkModules: Record<string, ModulesWithDependentEntries> = Object.create(null);
 	for (const { dependentEntries, module } of moduleWithDependentEntries) {
@@ -509,10 +513,13 @@ function getChunksWithSameDependentEntries(
 		for (const entryIndex of dependentEntries) {
 			chunkSignature |= 1n << BigInt(entryIndex);
 		}
-		(chunkModules[String(chunkSignature)] ||= {
+		const atom = (chunkModules[String(chunkSignature)] ||= {
 			dependentEntries: new Set(dependentEntries),
+			hasEntryModule: false,
 			modules: []
-		}).modules.push(module);
+		});
+		atom.modules.push(module);
+		atom.hasEntryModule ||= allEntriesSet.has(module);
 	}
 	return Object.values(chunkModules);
 }
@@ -629,16 +636,13 @@ function removeUnnecessaryDependentEntries(
 function extractManualChunkStaticDependenciesFromEntryChunkAtoms(
 	chunkAtoms: ModulesWithDependentEntries[],
 	combinedManualChunkAliasMaskByModule: ReadonlyMap<Module, bigint>,
-	chunkDefinitions: ChunkDefinitions,
-	allEntries: readonly Module[]
+	chunkDefinitions: ChunkDefinitions
 ) {
-	const entries = new Set(allEntries);
 	for (const chunkAtom of chunkAtoms) {
-		const { modules } = chunkAtom;
+		const { modules, hasEntryModule } = chunkAtom;
+		if (!hasEntryModule) continue;
 		const extractedModules = new Set<Module>();
 		const modulesByCombinedManualChunkAliasMask = new Map<bigint, Module[]>();
-		const isEntryChunkAtom = modules.some(module => entries.has(module));
-		if (!isEntryChunkAtom) continue;
 		for (const module of modules) {
 			const combinedAliasMask = combinedManualChunkAliasMaskByModule.get(module);
 			if (combinedAliasMask) {
