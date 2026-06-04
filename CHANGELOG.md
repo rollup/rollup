@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.61.1
+
+_2026-06-04_
+
+### Bug Fixes
+
+- Avoid extraneous newlines when adding headers via plugins (#6403)
+- Fix a rare issue where starting Rollup would hang on Windows (#6404)
+
+### Pull Requests
+
+- [#6402](https://github.com/rollup/rollup/pull/6402): Improve documentation for manualPureFunctions (@lukastaegert)
+- [#6403](https://github.com/rollup/rollup/pull/6403): Does not add an extra leading line feed for addons (@TrickyPi)
+- [#6404](https://github.com/rollup/rollup/pull/6404): fix: set report.excludeNetwork=true before getReport() to avoid blocking PTR lookups (@jdz321, @lukastaegert)
+
 ## 4.61.0
 
 _2026-06-01_
