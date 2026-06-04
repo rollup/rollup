@@ -470,4 +470,45 @@ console.log(x);
 		await bundle[Symbol.asyncDispose]();
 		assert.strictEqual(bundle.closed, true);
 	});
+
+	it('sets process.report.excludeNetwork=true during getReport() and restores the original value (non-Windows)', () => {
+		// On Windows, getReport() runs inside a spawnSync child process and cannot
+		// be intercepted by mocking process.report.getReport in the current process.
+		if (process.platform === 'win32') return;
+		if (!('excludeNetwork' in process.report)) return;
+
+		const original = process.report.getReport.bind(process.report);
+		const snapshots = [];
+		process.report.getReport = () => {
+			snapshots.push(process.report.excludeNetwork);
+			return original();
+		};
+
+		try {
+			for (const initial of [false, true]) {
+				process.report.excludeNetwork = initial;
+				snapshots.length = 0;
+				delete require.cache[require.resolve('../../dist/native.js')];
+				try {
+					require('../../dist/native.js');
+				} catch {
+					/* ignore binary load errors */
+				}
+				assert.ok(snapshots.length > 0, 'getReport() should have been called');
+				assert.ok(
+					snapshots.every(v => v === true),
+					'excludeNetwork must be true during getReport()'
+				);
+				assert.strictEqual(
+					process.report.excludeNetwork,
+					initial,
+					'excludeNetwork must be restored afterwards'
+				);
+			}
+		} finally {
+			process.report.getReport = original;
+			process.report.excludeNetwork = false;
+			delete require.cache[require.resolve('../../dist/native.js')];
+		}
+	});
 });
