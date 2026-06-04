@@ -1,7 +1,6 @@
 import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { lowercaseBundleKeys } from './outputBundle';
-import { extname } from './path';
 import { isPathFragment } from './relativeId';
 
 export function renderNamePattern(
@@ -42,7 +41,7 @@ export function makeUnique(
 	{ [lowercaseBundleKeys]: reservedLowercaseBundleKeys }: OutputBundleWithPlaceholders
 ): string {
 	if (!reservedLowercaseBundleKeys.has(name.toLowerCase())) return name;
-	const extension = extname(name);
+	const extension = getFirstExtension(name);
 	name = name.slice(0, Math.max(0, name.length - extension.length));
 	let uniqueName: string,
 		uniqueIndex = 1;
@@ -50,4 +49,13 @@ export function makeUnique(
 		reservedLowercaseBundleKeys.has((uniqueName = name + ++uniqueIndex + extension).toLowerCase())
 	);
 	return uniqueName;
+}
+
+// Returns everything from the first dot onwards, treating files that start with
+// a dot (e.g. ".gitignore") as having no leading dot for extension purposes so
+// that ".env.local" yields ".local" rather than the full name.
+function getFirstExtension(name: string): string {
+	const startIndex = name.startsWith('.') ? 1 : 0;
+	const dotIndex = name.indexOf('.', startIndex);
+	return dotIndex === -1 ? '' : name.slice(dotIndex);
 }
