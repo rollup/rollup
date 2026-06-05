@@ -1,9 +1,5 @@
-define(['exports', './generated-manual'], (function (exports, manual) { 'use strict';
+define(['./generated-dep1', './generated-manual'], (function (dep1, manual) { 'use strict';
 
-	const dep1 = 'dep1';
-
-	console.log(dep1);
-
-	exports.dep1 = dep1;
+	console.log(dep1.dep1);
 
 }));

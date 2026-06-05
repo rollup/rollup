@@ -1,7 +1,7 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import type { LogHandler } from '../rollup/types';
-import { getNewArray, getNewSet, getOrCreate } from './getOrCreate';
+import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { logOptimizeChunkStatus } from './logs';
 import { timeEnd, timeStart } from './timers';
@@ -21,7 +21,6 @@ interface ModulesWithDependentEntries {
 	 * The indices of the entries depending on this chunk
 	 */
 	dependentEntries: Set<number>;
-	hasEntryModule: boolean;
 	modules: Module[];
 }
 
@@ -168,20 +167,19 @@ export function getChunkAssignments(
 	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
-	const { chunkDefinitions, combinedManualChunkAliasMaskByModule, modulesInManualChunks } =
-		getChunkDefinitionsFromManualChunks(
-			manualChunkAliasByEntry,
-			isManualChunksFunctionForm,
-			onlyExplicitManualChunks
-		);
+	const { chunkDefinitions, modulesInManualChunks } = getChunkDefinitionsFromManualChunks(
+		manualChunkAliasByEntry,
+		isManualChunksFunctionForm,
+		onlyExplicitManualChunks
+	);
 	const {
-		allEntries,
+		entriesAndManualChunksCount,
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByDynamicEntry,
 		dynamicImportsByEntry,
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry
-	} = analyzeModuleGraph(entries);
+	} = analyzeModuleGraph(entries, chunkDefinitions);
 
 	// Each chunk is identified by its position in this array
 	const chunkAtoms = getChunksWithSameDependentEntries(
@@ -189,23 +187,25 @@ export function getChunkAssignments(
 			dependentEntriesByModule,
 			modulesInManualChunks,
 			chunkDefinitions
-		),
-		new Set(allEntries)
+		)
 	);
-	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(allEntries, chunkAtoms);
+	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(
+		entriesAndManualChunksCount,
+		chunkAtoms
+	);
 	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
 	// If we no longer want this, we should make a copy here.
 	const alreadyLoadedAtomsByEntry = getAlreadyLoadedAtomsByEntry(
 		staticDependencyAtomsByEntry,
 		dynamicallyDependentEntriesByDynamicEntry,
 		dynamicImportsByEntry,
-		allEntries
+		entriesAndManualChunksCount
 	);
 	const awaitedAlreadyLoadedAtomsByEntry = getAlreadyLoadedAtomsByEntry(
 		staticDependencyAtomsByEntry,
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry,
-		allEntries
+		entriesAndManualChunksCount
 	);
 	// This mutates the dependentEntries in chunkAtoms
 	removeUnnecessaryDependentEntries(
@@ -213,13 +213,6 @@ export function getChunkAssignments(
 		alreadyLoadedAtomsByEntry,
 		awaitedAlreadyLoadedAtomsByEntry
 	);
-	if (combinedManualChunkAliasMaskByModule.size > 0) {
-		extractManualChunkStaticDependenciesFromEntryChunkAtoms(
-			chunkAtoms,
-			combinedManualChunkAliasMaskByModule,
-			chunkDefinitions
-		);
-	}
 	const { chunks, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
@@ -243,35 +236,15 @@ function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
-): {
-	chunkDefinitions: ChunkDefinitions;
-	combinedManualChunkAliasMaskByModule: ReadonlyMap<Module, bigint>;
-	modulesInManualChunks: Set<Module>;
-} {
+): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
-	const combinedManualChunkAliasMaskByModule = new Map<Module, bigint>();
 	const sortedEntriesWithAlias = [...manualChunkAliasByEntry].sort(
 		([entryA], [entryB]) => entryA.execIndex - entryB.execIndex
 	);
-	let nextAliasMask = 1n;
-	const maskByAlias = new Map<string, bigint>();
 	for (const [entry, alias] of sortedEntriesWithAlias) {
 		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
 			(manualChunkModulesByAlias[alias] ||= []).push(entry);
-			traverseStaticDependencies(entry, modulesInManualChunks, (module: Module) => {
-				let aliasMask = maskByAlias.get(alias);
-				if (!aliasMask) {
-					aliasMask = nextAliasMask;
-					maskByAlias.set(alias, aliasMask);
-					nextAliasMask <<= 1n;
-				}
-				const combinedAliasMask = combinedManualChunkAliasMaskByModule.get(module);
-				combinedManualChunkAliasMaskByModule.set(
-					module,
-					combinedAliasMask ? combinedAliasMask | aliasMask : aliasMask
-				);
-			});
 		} else {
 			addStaticDependenciesToManualChunk(
 				entry,
@@ -286,11 +259,7 @@ function getChunkDefinitionsFromManualChunks(
 	for (const [alias, modules] of manualChunks) {
 		chunkDefinitions[index++] = { alias, modules };
 	}
-	return {
-		chunkDefinitions,
-		combinedManualChunkAliasMaskByModule,
-		modulesInManualChunks
-	};
+	return { chunkDefinitions, modulesInManualChunks };
 }
 
 function addStaticDependenciesToManualChunk(
@@ -310,51 +279,39 @@ function addStaticDependenciesToManualChunk(
 	}
 }
 
-function traverseStaticDependencies(
-	entry: Module,
-	manualChunkModules: Set<Module>,
-	handleStaticDependency: (module: Module) => void
-): void {
-	const modulesToHandle = new Set([entry]);
-	for (const module of modulesToHandle) {
-		for (const dependency of module.dependencies) {
-			if (
-				!(
-					dependency instanceof ExternalModule ||
-					manualChunkModules.has(dependency) ||
-					modulesToHandle.has(dependency)
-				)
-			) {
-				modulesToHandle.add(dependency);
-				handleStaticDependency(dependency);
-			}
-		}
-	}
-}
-
-function analyzeModuleGraph(entries: Iterable<Module>): {
-	allEntries: readonly Module[];
+function analyzeModuleGraph(
+	entries: readonly Module[],
+	manualChunkDefinitions: ChunkDefinitions
+): {
+	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[];
 	dependentEntriesByModule: Map<Module, Set<number>>;
 	dynamicImportsByEntry: readonly ReadonlySet<number>[];
-	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>;
-	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[];
 	dynamicallyDependentEntriesByAwaitedDynamicEntry: Map<number, Set<number>>;
+	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>;
+	entriesAndManualChunksCount: number;
 } {
 	const dynamicEntryModules = new Set<Module>();
 	const awaitedDynamicEntryModules = new Set<Module>();
 	const dependentEntriesByModule = new Map<Module, Set<number>>();
-	const allEntriesSet = new Set(entries);
-	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesSet.size);
-	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesSet.size);
-	let entryIndex = 0;
-	for (const currentEntry of allEntriesSet) {
+	const allEntriesSet = new Set<Module>(entries);
+	// Each entry is defined by its position in this array
+	const allEntriesAndManualChunks = entries
+		.map(module => [module])
+		.concat(manualChunkDefinitions.map(({ modules }) => modules));
+	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesAndManualChunks.length);
+	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(
+		allEntriesAndManualChunks.length
+	);
+	let entryOrManualChunkIndex = 0;
+	for (const currentEntryModules of allEntriesAndManualChunks) {
 		const dynamicImportsForCurrentEntry = new Set<Module>();
 		const awaitedDynamicImportsForCurrentEntry = new Set<Module>();
-		dynamicImportModulesByEntry[entryIndex] = dynamicImportsForCurrentEntry;
-		awaitedDynamicImportModulesByEntry[entryIndex] = awaitedDynamicImportsForCurrentEntry;
-		const staticDependencies = new Set([currentEntry]);
+		dynamicImportModulesByEntry[entryOrManualChunkIndex] = dynamicImportsForCurrentEntry;
+		awaitedDynamicImportModulesByEntry[entryOrManualChunkIndex] =
+			awaitedDynamicImportsForCurrentEntry;
+		const staticDependencies = new Set(currentEntryModules);
 		for (const module of staticDependencies) {
-			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
+			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					staticDependencies.add(dependency);
@@ -370,6 +327,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 				) {
 					dynamicEntryModules.add(resolution);
 					allEntriesSet.add(resolution);
+					allEntriesAndManualChunks.push([resolution]);
 					dynamicImportsForCurrentEntry.add(resolution);
 					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
 						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
@@ -384,46 +342,46 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 				if (!allEntriesSet.has(dependency)) {
 					dynamicEntryModules.add(dependency);
 					allEntriesSet.add(dependency);
+					allEntriesAndManualChunks.push([dependency]);
 				}
 			}
 		}
-		entryIndex++;
+		entryOrManualChunkIndex++;
 	}
-	const allEntries = [...allEntriesSet];
 	const {
 		awaitedDynamicEntries,
 		awaitedDynamicImportsByEntry,
 		dynamicEntries,
 		dynamicImportsByEntry
 	} = getDynamicEntries(
-		allEntries,
+		allEntriesAndManualChunks,
 		dynamicEntryModules,
 		dynamicImportModulesByEntry,
 		awaitedDynamicEntryModules,
 		awaitedDynamicImportModulesByEntry
 	);
 	return {
-		allEntries,
 		awaitedDynamicImportsByEntry,
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByAwaitedDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
 			awaitedDynamicEntries,
-			allEntries,
+			allEntriesAndManualChunks,
 			dynamicEntry => dynamicEntry.includedTopLevelAwaitingDynamicImporters
 		),
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
 			dynamicEntries,
-			allEntries,
+			allEntriesAndManualChunks,
 			dynamicEntry => dynamicEntry.includedDynamicImporters
 		),
-		dynamicImportsByEntry
+		dynamicImportsByEntry,
+		entriesAndManualChunksCount: allEntriesAndManualChunks.length
 	};
 }
 
 function getDynamicEntries(
-	allEntries: Module[],
+	allEntriesAndManualChunks: Module[][],
 	dynamicEntryModules: Set<Module>,
 	dynamicImportModulesByEntry: Set<Module>[],
 	awaitedDynamicEntryModules: Set<Module>,
@@ -432,13 +390,15 @@ function getDynamicEntries(
 	const entryIndexByModule = new Map<Module, number>();
 	const dynamicEntries = new Set<number>();
 	const awaitedDynamicEntries = new Set<number>();
-	for (const [entryIndex, entry] of allEntries.entries()) {
-		entryIndexByModule.set(entry, entryIndex);
-		if (dynamicEntryModules.has(entry)) {
-			dynamicEntries.add(entryIndex);
-		}
-		if (awaitedDynamicEntryModules.has(entry)) {
-			awaitedDynamicEntries.add(entryIndex);
+	for (const [entryIndex, entryModules] of allEntriesAndManualChunks.entries()) {
+		for (const entryModule of entryModules) {
+			entryIndexByModule.set(entryModule, entryIndex);
+			if (dynamicEntryModules.has(entryModule)) {
+				dynamicEntries.add(entryIndex);
+			}
+			if (awaitedDynamicEntryModules.has(entryModule)) {
+				awaitedDynamicEntries.add(entryIndex);
+			}
 		}
 	}
 	const dynamicImportsByEntry = getDynamicImportsByEntry(
@@ -476,7 +436,7 @@ function getDynamicImportsByEntry(
 function getDynamicallyDependentEntriesByDynamicEntry(
 	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>,
 	dynamicEntries: ReadonlySet<number>,
-	allEntries: readonly Module[],
+	allEntriesAndManualChunks: readonly Module[][],
 	getDynamicImporters: (entry: Module) => Iterable<Module>
 ): Map<number, Set<number>> {
 	const dynamicallyDependentEntriesByDynamicEntry = new Map<number, Set<number>>();
@@ -486,17 +446,19 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 			dynamicEntryIndex,
 			getNewSet<number>
 		);
-		const dynamicEntry = allEntries[dynamicEntryIndex];
-		for (const importer of concatLazy([
-			getDynamicImporters(dynamicEntry),
-			dynamicEntry.implicitlyLoadedAfter
-		])) {
-			const importerEntries = dependentEntriesByModule.get(importer);
-			if (!importerEntries) {
-				continue;
-			}
-			for (const entry of importerEntries) {
-				dynamicallyDependentEntries.add(entry);
+		const dynamicEntryModules = allEntriesAndManualChunks[dynamicEntryIndex];
+		for (const dynamicEntryModule of dynamicEntryModules) {
+			for (const importer of concatLazy([
+				getDynamicImporters(dynamicEntryModule),
+				dynamicEntryModule.implicitlyLoadedAfter
+			])) {
+				const importerEntries = dependentEntriesByModule.get(importer);
+				if (!importerEntries) {
+					continue;
+				}
+				for (const entry of importerEntries) {
+					dynamicallyDependentEntries.add(entry);
+				}
 			}
 		}
 	}
@@ -504,8 +466,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 }
 
 function getChunksWithSameDependentEntries(
-	moduleWithDependentEntries: Iterable<ModuleWithDependentEntries>,
-	allEntriesSet: Set<Module>
+	moduleWithDependentEntries: Iterable<ModuleWithDependentEntries>
 ): ModulesWithDependentEntries[] {
 	const chunkModules: Record<string, ModulesWithDependentEntries> = Object.create(null);
 	for (const { dependentEntries, module } of moduleWithDependentEntries) {
@@ -513,13 +474,10 @@ function getChunksWithSameDependentEntries(
 		for (const entryIndex of dependentEntries) {
 			chunkSignature |= 1n << BigInt(entryIndex);
 		}
-		const atom = (chunkModules[String(chunkSignature)] ||= {
+		(chunkModules[String(chunkSignature)] ||= {
 			dependentEntries: new Set(dependentEntries),
-			hasEntryModule: false,
 			modules: []
-		});
-		atom.modules.push(module);
-		atom.hasEntryModule ||= allEntriesSet.has(module);
+		}).modules.push(module);
 	}
 	return Object.values(chunkModules);
 }
@@ -544,12 +502,12 @@ function* getModulesWithDependentEntriesAndHandleTLACycles(
 }
 
 function getStaticDependencyAtomsByEntry(
-	allEntries: readonly Module[],
+	entriesAndManualChunksCount: number,
 	chunkAtoms: ModulesWithDependentEntries[]
 ) {
 	// The indices correspond to the indices in allEntries. The atoms correspond
 	// to bits in the bigint values where chunk 0 is the lowest bit.
-	const staticDependencyAtomsByEntry: bigint[] = allEntries.map(() => 0n);
+	const staticDependencyAtomsByEntry: bigint[] = new Array(entriesAndManualChunksCount).fill(0n);
 
 	// This toggles the bits for each atom that is a dependency of an entry
 	let atomMask = 1n;
@@ -567,13 +525,14 @@ function getAlreadyLoadedAtomsByEntry(
 	staticDependencyAtomsByEntry: bigint[],
 	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>,
 	dynamicImportsByEntry: readonly ReadonlySet<number>[],
-	allEntries: readonly Module[]
+	allEntriesCount: number
 ) {
 	// Dynamic entries have all atoms as already loaded initially because we then
 	// intersect with the static dependency atoms of all dynamic importers.
 	// Static entries cannot have already loaded atoms.
-	const alreadyLoadedAtomsByEntry: bigint[] = allEntries.map((_entry, entryIndex) =>
-		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? -1n : 0n
+	const alreadyLoadedAtomsByEntry: bigint[] = Array.from(
+		{ length: allEntriesCount },
+		(_entry, entryIndex) => (dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? -1n : 0n)
 	);
 	for (const [
 		dynamicEntryIndex,
@@ -630,34 +589,6 @@ function removeUnnecessaryDependentEntries(
 			}
 		}
 		chunkMask <<= 1n;
-	}
-}
-
-function extractManualChunkStaticDependenciesFromEntryChunkAtoms(
-	chunkAtoms: ModulesWithDependentEntries[],
-	combinedManualChunkAliasMaskByModule: ReadonlyMap<Module, bigint>,
-	chunkDefinitions: ChunkDefinitions
-) {
-	for (const chunkAtom of chunkAtoms) {
-		const { modules, hasEntryModule } = chunkAtom;
-		if (!hasEntryModule) continue;
-		const extractedModules = new Set<Module>();
-		const modulesByCombinedManualChunkAliasMask = new Map<bigint, Module[]>();
-		for (const module of modules) {
-			const combinedAliasMask = combinedManualChunkAliasMaskByModule.get(module);
-			if (combinedAliasMask) {
-				getOrCreate(modulesByCombinedManualChunkAliasMask, combinedAliasMask, getNewArray).push(
-					module
-				);
-				extractedModules.add(module);
-			}
-		}
-		if (extractedModules.size > 0) {
-			chunkAtom.modules = chunkAtom.modules.filter(module => !extractedModules.has(module));
-		}
-		for (const [, modules] of modulesByCombinedManualChunkAliasMask) {
-			chunkDefinitions.push({ alias: null, modules });
-		}
 	}
 }
 

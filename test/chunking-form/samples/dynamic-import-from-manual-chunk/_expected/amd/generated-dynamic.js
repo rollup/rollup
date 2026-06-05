@@ -1,5 +1,5 @@
-define(['./main', './generated-manual'], (function (main, manual) { 'use strict';
+define(['./generated-dep1', './generated-manual'], (function (dep1, manual) { 'use strict';
 
-	console.log(main.dep1, manual.dep2);
+	console.log(dep1.dep1, manual.dep2);
 
 }));
