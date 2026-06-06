@@ -298,6 +298,12 @@ function analyzeModuleGraph(
 	const allEntriesAndManualChunks = entries
 		.map(module => [module])
 		.concat(manualChunkDefinitions.map(({ modules }) => modules));
+	const manualChunkMembersByModule = new Map<Module, Module[]>();
+	for (const { modules } of manualChunkDefinitions) {
+		for (const module of modules) {
+			manualChunkMembersByModule.set(module, modules);
+		}
+	}
 	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesAndManualChunks.length);
 	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(
 		allEntriesAndManualChunks.length
@@ -311,6 +317,12 @@ function analyzeModuleGraph(
 			awaitedDynamicImportsForCurrentEntry;
 		const staticDependencies = new Set(currentEntryModules);
 		for (const module of staticDependencies) {
+			const manualChunkMembers = manualChunkMembersByModule.get(module);
+			if (manualChunkMembers) {
+				for (const manualChunkMember of manualChunkMembers) {
+					staticDependencies.add(manualChunkMember);
+				}
+			}
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
