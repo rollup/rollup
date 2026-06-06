@@ -18,11 +18,11 @@ module.exports = defineTest({
 		assert.equal(
 			code,
 			'\n' +
-				`//→ entry1-F7XBegnP.js:\n` +
-				"console.log('main1');\n" +
-				'\n' +
 				`//→ Entry 2-DJUOC_be.js:\n` +
 				"console.log('main2');\n" +
+				'\n' +
+				`//→ entry1-F7XBegnP.js:\n` +
+				"console.log('main1');\n" +
 				'\n' +
 				`//→ main3-CcbE82tV.js:\n` +
 				"console.log('main3');\n"

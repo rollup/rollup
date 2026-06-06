@@ -1,5 +1,5 @@
 'use strict';
 
-var allowExtension = require('./generated-allow-extension.js');
+var _false = require('./generated-false.js');
 
-console.log(allowExtension.shared);
+console.log(_false.shared);

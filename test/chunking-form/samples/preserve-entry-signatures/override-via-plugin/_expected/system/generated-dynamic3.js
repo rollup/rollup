@@ -1,4 +1,4 @@
-System.register(['./generated-false.js'], (function () {
+System.register(['./generated-not-specified.js'], (function () {
 	'use strict';
 	var shared;
 	return {

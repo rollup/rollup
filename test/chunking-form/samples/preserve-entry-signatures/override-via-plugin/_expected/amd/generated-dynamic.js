@@ -1,5 +1,5 @@
-define(['./generated-main'], (function (strict) { 'use strict';
+define(['./generated-allow-extension'], (function (allowExtension) { 'use strict';
 
-	console.log(strict.shared);
+	console.log(allowExtension.shared);
 
 }));

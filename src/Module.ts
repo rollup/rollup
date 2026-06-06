@@ -225,7 +225,6 @@ export default class Module {
 	chunkNames: {
 		isUserDefined: boolean;
 		name: string;
-		priority: number;
 	}[] = [];
 	readonly cycles = new Set<symbol>();
 	readonly dependencies = new Set<Module | ExternalModule>();
