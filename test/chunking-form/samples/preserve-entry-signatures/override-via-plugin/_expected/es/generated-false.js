@@ -1,6 +1,6 @@
 const shared = 'shared';
 
 console.log(shared);
-import('./generated-dynamic3.js');
+import('./generated-dynamic2.js');
 
 export { shared as s };

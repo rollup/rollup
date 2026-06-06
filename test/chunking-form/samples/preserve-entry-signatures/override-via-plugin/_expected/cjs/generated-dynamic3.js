@@ -1,5 +1,5 @@
 'use strict';
 
-var _false = require('./generated-false.js');
+var notSpecified = require('./generated-not-specified.js');
 
-console.log(_false.shared);
+console.log(notSpecified.shared);

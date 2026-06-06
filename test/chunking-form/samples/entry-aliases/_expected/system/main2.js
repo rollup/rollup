@@ -1,4 +1,4 @@
-System.register(['./main1.js'], (function () {
+System.register(['./main1-alias.js'], (function () {
 	'use strict';
 	var name;
 	return {

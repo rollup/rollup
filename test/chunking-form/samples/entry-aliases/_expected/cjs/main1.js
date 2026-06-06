@@ -1,5 +1,7 @@
 'use strict';
 
-var name = 'name';
+var main1Alias_js = require('./main1-alias.js');
 
-exports.name = name;
+
+
+exports.name = main1Alias_js.name;

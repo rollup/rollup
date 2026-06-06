@@ -1,1 +1,3 @@
-export { name } from './main1.js';
+var name = 'name';
+
+export { name };

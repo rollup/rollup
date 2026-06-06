@@ -1,3 +1,3 @@
-import { s as shared } from './generated-not-specified.js';
+import { s as shared } from './generated-main.js';
 
 console.log(shared);

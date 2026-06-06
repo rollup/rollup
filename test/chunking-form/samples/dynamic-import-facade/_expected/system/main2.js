@@ -3,8 +3,8 @@ System.register(['./generated-dynamic.js'], (function () {
 	var dynamic, dep;
 	return {
 		setters: [function (module) {
-			dynamic = module.a;
-			dep = module.d;
+			dynamic = module.d;
+			dep = module.a;
 		}],
 		execute: (function () {
 

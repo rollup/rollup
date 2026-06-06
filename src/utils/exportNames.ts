@@ -8,10 +8,7 @@ export function assignExportsToMangledNames(
 	exportNamesByVariable: Map<Variable, string[]>
 ): void {
 	let nameIndex = 0;
-	const sortedExports = [...exports].sort((a, b) =>
-		a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-	);
-	for (const variable of sortedExports) {
+	for (const variable of exports) {
 		let [exportName] = variable.name;
 		if (exportsByName.has(exportName)) {
 			do {
