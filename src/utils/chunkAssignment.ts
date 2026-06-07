@@ -167,11 +167,12 @@ export function getChunkAssignments(
 	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
-	const { chunkDefinitions, modulesInManualChunks } = getChunkDefinitionsFromManualChunks(
-		manualChunkAliasByEntry,
-		isManualChunksFunctionForm,
-		onlyExplicitManualChunks
-	);
+	const { chunkDefinitions, manualChunkModules, manualChunkModulesByModule } =
+		getChunkDefinitionsFromManualChunks(
+			manualChunkAliasByEntry,
+			isManualChunksFunctionForm,
+			onlyExplicitManualChunks
+		);
 	const {
 		entriesAndManualChunksCount,
 		dependentEntriesByModule,
@@ -179,13 +180,13 @@ export function getChunkAssignments(
 		dynamicImportsByEntry,
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry
-	} = analyzeModuleGraph(entries, chunkDefinitions);
+	} = analyzeModuleGraph(entries, manualChunkModules, manualChunkModulesByModule);
 
 	// Each chunk is identified by its position in this array
 	const chunkAtoms = getChunksWithSameDependentEntries(
 		getModulesWithDependentEntriesAndHandleTLACycles(
 			dependentEntriesByModule,
-			modulesInManualChunks,
+			manualChunkModulesByModule,
 			chunkDefinitions
 		)
 	);
@@ -236,30 +237,38 @@ function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
-): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
+): {
+	chunkDefinitions: ChunkDefinitions;
+	manualChunkModules: Module[][];
+	manualChunkModulesByModule: Map<Module, Module[]>;
+} {
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	const sortedEntriesWithAlias = [...manualChunkAliasByEntry].sort(
 		([entryA], [entryB]) => entryA.execIndex - entryB.execIndex
 	);
 	for (const [entry, alias] of sortedEntriesWithAlias) {
+		const chunkModules = (manualChunkModulesByAlias[alias] ||= []);
 		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
-			(manualChunkModulesByAlias[alias] ||= []).push(entry);
+			chunkModules.push(entry);
 		} else {
-			addStaticDependenciesToManualChunk(
-				entry,
-				(manualChunkModulesByAlias[alias] ||= []),
-				modulesInManualChunks
-			);
+			addStaticDependenciesToManualChunk(entry, chunkModules, modulesInManualChunks);
 		}
 	}
 	const manualChunks = Object.entries(manualChunkModulesByAlias);
+	const manualChunkModules: Module[][] = new Array(manualChunks.length);
 	const chunkDefinitions: ChunkDefinitions = new Array(manualChunks.length);
+	const manualChunkModulesByModule = new Map<Module, Module[]>();
 	let index = 0;
 	for (const [alias, modules] of manualChunks) {
-		chunkDefinitions[index++] = { alias, modules };
+		chunkDefinitions[index] = { alias, modules };
+		manualChunkModules[index] = modules;
+		for (const module of modules) {
+			manualChunkModulesByModule.set(module, modules);
+		}
+		index++;
 	}
-	return { chunkDefinitions, modulesInManualChunks };
+	return { chunkDefinitions, manualChunkModules, manualChunkModulesByModule };
 }
 
 function addStaticDependenciesToManualChunk(
@@ -281,7 +290,8 @@ function addStaticDependenciesToManualChunk(
 
 function analyzeModuleGraph(
 	entries: readonly Module[],
-	manualChunkDefinitions: ChunkDefinitions
+	manualChunkModules: Module[][],
+	manualChunkModulesByModule: Map<Module, Module[]>
 ): {
 	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[];
 	dependentEntriesByModule: Map<Module, Set<number>>;
@@ -295,15 +305,8 @@ function analyzeModuleGraph(
 	const dependentEntriesByModule = new Map<Module, Set<number>>();
 	const allEntriesSet = new Set<Module>(entries);
 	// Each entry is defined by its position in this array
-	const allEntriesAndManualChunks = entries
-		.map(module => [module])
-		.concat(manualChunkDefinitions.map(({ modules }) => modules));
-	const manualChunkMembersByModule = new Map<Module, Module[]>();
-	for (const { modules } of manualChunkDefinitions) {
-		for (const module of modules) {
-			manualChunkMembersByModule.set(module, modules);
-		}
-	}
+	const allEntriesAndManualChunks = entries.map(module => [module]).concat(manualChunkModules);
+	// TODO Lukas add performance improvement for large module sets
 	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesAndManualChunks.length);
 	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(
 		allEntriesAndManualChunks.length
@@ -317,13 +320,13 @@ function analyzeModuleGraph(
 			awaitedDynamicImportsForCurrentEntry;
 		const staticDependencies = new Set(currentEntryModules);
 		for (const module of staticDependencies) {
-			const manualChunkMembers = manualChunkMembersByModule.get(module);
+			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
+			const manualChunkMembers = manualChunkModulesByModule.get(module);
 			if (manualChunkMembers) {
 				for (const manualChunkMember of manualChunkMembers) {
 					staticDependencies.add(manualChunkMember);
 				}
 			}
-			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					staticDependencies.add(dependency);
@@ -496,7 +499,7 @@ function getChunksWithSameDependentEntries(
 
 function* getModulesWithDependentEntriesAndHandleTLACycles(
 	dependentEntriesByModule: Map<Module, Set<number>>,
-	modulesInManualChunks: Set<Module>,
+	modulesInManualChunks: Map<Module, unknown>,
 	chunkDefinitions: ChunkDefinitions
 ) {
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
