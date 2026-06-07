@@ -306,7 +306,6 @@ function analyzeModuleGraph(
 	const allEntriesSet = new Set<Module>(entries);
 	// Each entry is defined by its position in this array
 	const allEntriesAndManualChunks = entries.map(module => [module]).concat(manualChunkModules);
-	// TODO Lukas add performance improvement for large module sets
 	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesAndManualChunks.length);
 	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(
 		allEntriesAndManualChunks.length
@@ -319,10 +318,13 @@ function analyzeModuleGraph(
 		awaitedDynamicImportModulesByEntry[entryOrManualChunkIndex] =
 			awaitedDynamicImportsForCurrentEntry;
 		const staticDependencies = new Set(currentEntryModules);
+		// If we have a very large manual chunk, tracking if it is already added to the dependencies will improve performance
+		const addedManualChunks = new Set<Module[]>();
 		for (const module of staticDependencies) {
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
 			const manualChunkMembers = manualChunkModulesByModule.get(module);
-			if (manualChunkMembers) {
+			if (manualChunkMembers && !addedManualChunks.has(manualChunkMembers)) {
+				addedManualChunks.add(manualChunkMembers);
 				for (const manualChunkMember of manualChunkMembers) {
 					staticDependencies.add(manualChunkMember);
 				}
