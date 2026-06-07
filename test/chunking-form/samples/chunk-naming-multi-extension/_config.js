@@ -1,5 +1,6 @@
 module.exports = defineTest({
-	description: 'conflict numbers are inserted before the first extension in multi-extension file names',
+	description:
+		'conflict numbers are inserted before the first extension in multi-extension file names',
 	options: {
 		input: {
 			entryA: 'main1.js',
