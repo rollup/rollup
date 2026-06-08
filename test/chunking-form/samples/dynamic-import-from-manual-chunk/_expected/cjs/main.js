@@ -1,9 +1,6 @@
 'use strict';
 
+var dep1 = require('./generated-dep1.js');
 require('./generated-manual.js');
 
-const dep1 = 'dep1';
-
-console.log(dep1);
-
-exports.dep1 = dep1;
+console.log(dep1.dep1);

@@ -1,4 +1,4 @@
-System.register(['./main.js', './generated-manual.js'], (function () {
+System.register(['./generated-dep1.js', './generated-manual.js'], (function () {
 	'use strict';
 	var dep1, dep2;
 	return {

@@ -1,7 +1,4 @@
+import { d as dep1 } from './generated-dep1.js';
 import './generated-manual.js';
 
-const dep1 = 'dep1';
-
 console.log(dep1);
-
-export { dep1 as d };

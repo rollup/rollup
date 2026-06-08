@@ -1,4 +1,4 @@
-import { b } from './main.js';
+import { b } from './generated-b.js';
 
 const c = 'c';
 console.log(c);

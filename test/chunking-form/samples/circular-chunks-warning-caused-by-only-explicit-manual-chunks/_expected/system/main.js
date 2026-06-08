@@ -1,15 +1,11 @@
-System.register(['./generated-ac.js', './main.js'], (function (exports) {
+System.register(['./generated-ac.js', './generated-b.js'], (function () {
 	'use strict';
-	var c, a;
+	var a;
 	return {
 		setters: [function (module) {
-			c = module.c;
 			a = module.a;
 		}, null],
 		execute: (function () {
-
-			const b = exports("b", 'b');
-			console.log(b + c);
 
 			console.log(a);
 
