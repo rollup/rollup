@@ -1,10 +1,11 @@
-System.register(['./generated-manual.js'], (function (exports) {
+System.register(['./generated-dep1.js', './generated-manual.js'], (function () {
 	'use strict';
+	var dep1;
 	return {
-		setters: [null],
+		setters: [function (module) {
+			dep1 = module.d;
+		}, null],
 		execute: (function () {
-
-			const dep1 = exports("d", 'dep1');
 
 			console.log(dep1);
 

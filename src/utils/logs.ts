@@ -314,7 +314,7 @@ export function logCircularChunk(cyclePath: string[], isManualChunkConflict: boo
 		message: `Circular chunk: ${cyclePath.join(' -> ')}. ${
 			isManualChunkConflict
 				? `Please adjust the manual chunk logic for these chunks.`
-				: `Consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes the static dependencies of the manual chunk "${cyclePath.at(-2)}" to be bundled into the chunk "${cyclePath.at(-1)}".`
+				: `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${cyclePath.at(-2)}" to be extracted into the separate chunk "${cyclePath.at(-1)}".`
 		}`
 	};
 }

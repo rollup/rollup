@@ -72,6 +72,7 @@
         "@inquirer/prompts",
         "@rollup/plugin-terser",
         "@types/node",
+        "concurrently",
         "react",
         "react-dom",
         "typescript",

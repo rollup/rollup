@@ -1,12 +1,12 @@
 'use strict';
 
-var main = require('./main.js');
+var b = require('./generated-b.js');
 
 const c = 'c';
 console.log(c);
 
 const a = 'a';
-console.log(a + main.b);
+console.log(a + b.b);
 
 exports.a = a;
 exports.c = c;

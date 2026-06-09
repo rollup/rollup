@@ -11,9 +11,9 @@ module.exports = defineTest({
 	expectedWarnings: ['CIRCULAR_CHUNK'],
 	logs: new Array(4).fill(null).map(() => ({
 		code: 'CIRCULAR_CHUNK',
-		ids: ['main', 'ac', 'main'],
+		ids: ['b', 'ac', 'b'],
 		level: 'warn',
 		message:
-			'Circular chunk: main -> ac -> main. Consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes the static dependencies of the manual chunk "ac" to be bundled into the chunk "main".'
+			'Circular chunk: b -> ac -> b. Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "ac" to be extracted into the separate chunk "b".'
 	}))
 });

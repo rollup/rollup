@@ -1,6 +1,6 @@
 'use strict';
 
-var main = require('./main.js');
+var dep1 = require('./generated-dep1.js');
 var manual = require('./generated-manual.js');
 
-console.log(main.dep1, manual.dep2);
+console.log(dep1.dep1, manual.dep2);
