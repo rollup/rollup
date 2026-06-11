@@ -10,11 +10,10 @@ const fred$1 = 1;
 
 var dynamicImported = () => fred$1;
 
-var dynamicImported$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var dynamicImported$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: dynamicImported,
 	fred: fred$1
-});
+}, null));
 
 function baz() {
 	return foo + external.value;

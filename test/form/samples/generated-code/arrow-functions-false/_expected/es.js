@@ -35,10 +35,9 @@ console.log(externalAuto);
 console.log(externalDefault);
 console.log(externalDefaultOnly);
 
-var main = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null,
+var main = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 	get a () { return a; },
 	foo: foo
-}, [defaultCompat]);
+}, null), [defaultCompat]);
 
 export { a };

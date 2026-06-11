@@ -9,11 +9,10 @@ System.register(['./one.js'], (function (exports) {
 
 			const __icon__ = {};
 
-			var icons = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var icons = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				one: __icon__$1,
 				two: __icon__
-			});
+			}, null));
 
 			const __component__ = exports("Component_one", { icons });
 

@@ -151,9 +151,7 @@ export default class NamespaceVariable extends Variable {
 
 				return [name, variable.getName(getPropertyAccess)];
 			});
-		members.unshift([null, `__proto__:${_}null`]);
-
-		let output = getObject(members, { lineBreakIndent: { base: '', t } });
+		let output = `/*#__PURE__*/Object.setPrototypeOf(${getObject(members, { lineBreakIndent: { base: '', t } })},${_}null)`;
 		if (this.mergedNamespaces.length > 0) {
 			const assignmentArguments = this.mergedNamespaces.map(variable =>
 				variable.getName(getPropertyAccess)
