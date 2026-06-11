@@ -28,6 +28,10 @@ export default class ExternalChunk {
 		this.suggestedVariableName = module.suggestedVariableName;
 	}
 
+	get moduleSideEffects(): boolean | 'no-treeshake' {
+		return this.moduleInfo.moduleSideEffects;
+	}
+
 	getFileName(): string {
 		if (this.fileName) {
 			return this.fileName;
