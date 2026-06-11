@@ -1245,10 +1245,26 @@ export default class Chunk {
 		const importSpecifiers = this.getImportSpecifiers();
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ChunkDependency>();
+		const skippedDependencies: ExternalChunk[] = [];
 		const fileName = this.getFileName();
 		for (const dependency of this.dependencies) {
 			const imports = importSpecifiers.get(dependency) || null;
 			const reexports = reexportSpecifiers.get(dependency) || null;
+			if (
+				imports === null &&
+				reexports === null &&
+				dependency instanceof ExternalChunk &&
+				!dependency.moduleSideEffects &&
+				this.outputOptions.hoistTransitiveImports === false
+			) {
+				// A side-effect-free external dependency without imported or
+				// re-exported bindings can only be present because chunk assignment
+				// placed otherwise unrelated modules into this chunk. When transitive
+				// import hoisting is disabled, rendering it would emit a spurious
+				// side effect import, see https://github.com/rollup/rollup/issues/6111
+				skippedDependencies.push(dependency);
+				continue;
+			}
 			const namedExportsMode =
 				dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
 			const importPath = dependency.getImportPath(fileName);
@@ -1280,6 +1296,10 @@ export default class Chunk {
 				reexports,
 				sourcePhaseImport: sourcePhaseImport?.local
 			});
+		}
+
+		for (const dependency of skippedDependencies) {
+			this.dependencies.delete(dependency);
 		}
 
 		return (this.renderedDependencies = renderedDependencies);
