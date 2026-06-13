@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.62.0
+
+_2026-06-13_
+
+### Features
+
+- Ensure that shared dependencies between manual chunks and entry points receive a serparate chunk (#6374)
+
+### Pull Requests
+
+- [#6374](https://github.com/rollup/rollup/pull/6374): Extract the static dependencies imported by manual chunks into separate chunks (@TrickyPi, @lukastaegert)
+- [#6405](https://github.com/rollup/rollup/pull/6405): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6406](https://github.com/rollup/rollup/pull/6406): chore(deps): pin dependency concurrently to v9 (@renovate[bot], @lukastaegert)
+- [#6407](https://github.com/rollup/rollup/pull/6407): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6409](https://github.com/rollup/rollup/pull/6409): chore(deps): update minor/patch updates to v6.2.0 (@renovate[bot])
+- [#6410](https://github.com/rollup/rollup/pull/6410): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#6412](https://github.com/rollup/rollup/pull/6412): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6413](https://github.com/rollup/rollup/pull/6413): chore(deps): update dependency eslint-plugin-unicorn to v65 (@renovate[bot])
+- [#6414](https://github.com/rollup/rollup/pull/6414): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.61.1
 
 _2026-06-04_
