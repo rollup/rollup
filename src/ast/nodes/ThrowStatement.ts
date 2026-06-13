@@ -10,6 +10,7 @@ export default class ThrowStatement extends StatementBase {
 	declare type: NodeType.tThrowStatement;
 
 	hasEffects(): boolean {
+		// TODO: context.brokenFlow? (see haltsCodeFlow below)
 		return true;
 	}
 
@@ -31,5 +32,12 @@ export default class ThrowStatement extends StatementBase {
 		if (this.argument.start === this.start + 5 /* 'throw'.length */) {
 			code.prependLeft(this.start + 5, ' ');
 		}
+	}
+
+	haltsCodeFlow(): boolean {
+		// TODO: consider throw to actually halt the execution, but that
+		// - also makes a function call be marked as halting execution
+		// - is neutralized by TryStatement
+		return false;
 	}
 }
