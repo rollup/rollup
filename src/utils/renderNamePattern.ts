@@ -1,7 +1,6 @@
 import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { lowercaseBundleKeys } from './outputBundle';
-import { extname } from './path';
 import { isPathFragment } from './relativeId';
 
 export function renderNamePattern(
@@ -42,12 +41,13 @@ export function makeUnique(
 	{ [lowercaseBundleKeys]: reservedLowercaseBundleKeys }: OutputBundleWithPlaceholders
 ): string {
 	if (!reservedLowercaseBundleKeys.has(name.toLowerCase())) return name;
-	const extension = extname(name);
-	name = name.slice(0, Math.max(0, name.length - extension.length));
+	const dotIndex = name.indexOf('.', 1);
+	const base = dotIndex === -1 ? name : name.slice(0, dotIndex);
+	const extension = dotIndex === -1 ? '' : name.slice(dotIndex);
 	let uniqueName: string,
 		uniqueIndex = 1;
 	while (
-		reservedLowercaseBundleKeys.has((uniqueName = name + ++uniqueIndex + extension).toLowerCase())
+		reservedLowercaseBundleKeys.has((uniqueName = base + ++uniqueIndex + extension).toLowerCase())
 	);
 	return uniqueName;
 }
