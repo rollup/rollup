@@ -1160,6 +1160,8 @@ export interface RollupFsModule {
 
 	copyFile(source: string, destination: string, mode?: string | number): Promise<void>;
 
+	chmod?(path: string, mode: string | number): Promise<void>;
+
 	mkdir(path: string, options?: { recursive?: boolean; mode?: string | number }): Promise<void>;
 
 	mkdtemp(prefix: string): Promise<string>;
