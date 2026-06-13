@@ -6,15 +6,14 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const childNodeKeysFile = new URL('../src/ast/childNodeKeys.ts', import.meta.url);
 
-/** @type {Record<string, Set<string>>} */
-const childNodeKeysByAstType = {};
+const childNodeKeysByAstType: Record<string, Set<string>> = {};
 for (const [name, node] of Object.entries(AST_NODES)) {
 	const astType = node.astType || name;
 	const keySet = (childNodeKeysByAstType[astType] ||= new Set());
-	for (const [fieldName, fieldType] of (node.hasSameFieldsAs
+	for (const { name: fieldName, type: fieldType } of (node.hasSameFieldsAs
 		? AST_NODES[node.hasSameFieldsAs].fields
 		: node.fields) || []) {
-		if (['NodeList', 'Node', 'OptionalNode'].includes(fieldType)) {
+		if (['NodeList', 'Node'].includes(fieldType)) {
 			keySet.add(fieldName);
 		}
 	}

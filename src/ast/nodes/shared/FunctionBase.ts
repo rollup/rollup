@@ -11,35 +11,34 @@ import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../../values';
-import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
-import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
+import type Identifier from '../Identifier';
+import type * as nodes from '../node-unions';
 import * as NodeType from '../NodeType';
-import RestElement from '../RestElement';
-import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import { UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
-	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
-import type { DeclarationPatternNode } from './Pattern';
 
 export default abstract class FunctionBase extends NodeBase {
-	declare body: BlockStatement | ExpressionNode;
-	declare params: DeclarationPatternNode[];
+	declare parent:
+		| nodes.FunctionExpressionParent
+		| nodes.FunctionDeclarationParent
+		| nodes.ArrowFunctionExpressionParent;
+	declare body: BlockStatement | nodes.Expression;
+	declare params: nodes.Parameter[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 
 	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
-	declare annotationNoSideEffects?: boolean;
+	annotationNoSideEffects?: boolean;
 
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
@@ -187,11 +186,11 @@ export default abstract class FunctionBase extends NodeBase {
 	 */
 	protected onlyFunctionCallUsed(): boolean {
 		let variable: Variable | null = null;
-		if (this.parent.type === NodeType.VariableDeclarator) {
-			variable = (this.parent as VariableDeclarator).id.variable ?? null;
-		}
-		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
-			variable = (this.parent as ExportDefaultDeclaration).variable;
+		const { parent } = this;
+		if (parent.type === NodeType.VariableDeclarator) {
+			variable = (parent.id as Identifier).variable ?? null;
+		} else if (parent.type === NodeType.ExportDefaultDeclaration) {
+			variable = parent.variable;
 		}
 		return variable?.getOnlyFunctionCallUsed() ?? false;
 	}
@@ -227,30 +226,6 @@ export default abstract class FunctionBase extends NodeBase {
 				comment => comment.type === 'noSideEffects'
 			);
 		}
-	}
-
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		const { body, params } = esTreeNode;
-		const { scope } = this;
-		const { bodyScope, context } = scope;
-		// We need to ensure that parameters are declared before the body is parsed
-		// so that the scope already knows all parameters and can detect conflicts
-		// when parsing the body.
-		const parameters: typeof this.params = (this.params = params.map(
-			(parameter: GenericEsTreeNode) =>
-				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
-					parameter
-				) as unknown as DeclarationPatternNode
-		));
-		scope.addParameterVariables(
-			parameters.map(
-				parameter =>
-					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
-			),
-			parameters[parameters.length - 1] instanceof RestElement
-		);
-		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body);
-		return super.parseNode(esTreeNode);
 	}
 
 	protected abstract getObjectEntity(): ObjectEntity;

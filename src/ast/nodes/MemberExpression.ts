@@ -38,6 +38,7 @@ import type { PromiseHandler } from '../variables/PromiseHandler';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -50,7 +51,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import type { ChainElement, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
@@ -61,7 +62,9 @@ function getResolvablePropertyKey(memberExpression: MemberExpression): string | 
 		: (memberExpression.property as Identifier).name;
 }
 
-function getResolvableComputedPropertyKey(propertyKey: ExpressionNode): string | null {
+function getResolvableComputedPropertyKey(
+	propertyKey: nodes.Expression | PrivateIdentifier
+): string | null {
 	if (propertyKey instanceof Literal) {
 		return String(propertyKey.value);
 	}
@@ -102,8 +105,9 @@ export default class MemberExpression
 	extends NodeBase
 	implements DeoptimizableEntity, ChainElement, PatternNode
 {
-	declare object: ExpressionNode | Super;
-	declare property: ExpressionNode | PrivateIdentifier;
+	declare parent: nodes.MemberExpressionParent;
+	declare object: nodes.Expression | Super;
+	declare property: nodes.Expression | PrivateIdentifier;
 	declare propertyKey: ObjectPathKey;
 	declare type: NodeType.tMemberExpression;
 	promiseHandler: PromiseHandler | null = null;
@@ -307,7 +311,7 @@ export default class MemberExpression
 		if (this.variable || this.isUndefined) return this.hasEffects(context);
 		const objectHasEffects =
 			'hasEffectsAsChainElement' in this.object
-				? (this.object as ChainElement).hasEffectsAsChainElement(context)
+				? this.object.hasEffectsAsChainElement(context)
 				: this.object.hasEffects(context);
 		if (objectHasEffects === IS_SKIPPED_CHAIN) return IS_SKIPPED_CHAIN;
 		if (
