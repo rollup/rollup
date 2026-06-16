@@ -47,6 +47,15 @@ impl AstConverter<'_> {
     );
   }
 
+  /// Writes a 4-byte property kind into the internal buffer at the given position.
+  /// # Panics
+  /// Panics if the computed range (`kind_position..kind_position + 4`) is out of bounds.
+  fn write_buffer_kind(&mut self, end_position: usize) {
+    let kind_position = end_position + PROPERTY_KIND_OFFSET;
+
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+  }
+
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
     let end_position = self.add_type_and_start(
       &TYPE_PROPERTY,
@@ -66,8 +75,7 @@ impl AstConverter<'_> {
       computed => matches!(property_name, PropName::Computed(_))
     );
     // kind
-    let kind_position = end_position + PROPERTY_KIND_OFFSET;
-    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+    self.write_buffer_kind(end_position);
     // value
     self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
     match value {
@@ -146,8 +154,7 @@ impl AstConverter<'_> {
       computed => matches!(&method_property.key, PropName::Computed(_))
     );
     // kind
-    let kind_position = end_position + PROPERTY_KIND_OFFSET;
-    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+    self.write_buffer_kind(end_position);
     // value
     self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
     let function = &method_property.function;
@@ -203,8 +210,7 @@ impl AstConverter<'_> {
       computed => false
     );
     // kind
-    let kind_position = end_position + PROPERTY_KIND_OFFSET;
-    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+    self.write_buffer_kind(end_position);
     // end
     self.add_end(end_position, span);
   }
