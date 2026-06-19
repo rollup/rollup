@@ -50,6 +50,7 @@ impl AstConverter<'_> {
   /// Writes a 4-byte property kind into the internal buffer at the given position.
   /// # Panics
   /// Panics if the computed range (`kind_position..kind_position + 4`) is out of bounds.
+  #[inline]
   fn write_buffer_kind(&mut self, end_position: usize) {
     let kind_position = end_position + PROPERTY_KIND_OFFSET;
 
