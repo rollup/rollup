@@ -41,9 +41,13 @@ export function makeUnique(
 	{ [lowercaseBundleKeys]: reservedLowercaseBundleKeys }: OutputBundleWithPlaceholders
 ): string {
 	if (!reservedLowercaseBundleKeys.has(name.toLowerCase())) return name;
-	const dotIndex = name.indexOf('.', 1);
-	const base = dotIndex === -1 ? name : name.slice(0, dotIndex);
-	const extension = dotIndex === -1 ? '' : name.slice(dotIndex);
+	const slashIndex = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+	// This will also handle -1 correctly
+	const directory = name.slice(0, slashIndex + 1);
+	const fileName = name.slice(slashIndex + 1);
+	const dotIndex = fileName.indexOf('.', 1);
+	const base = directory + (dotIndex === -1 ? fileName : fileName.slice(0, dotIndex));
+	const extension = dotIndex === -1 ? '' : fileName.slice(dotIndex);
 	let uniqueName: string,
 		uniqueIndex = 1;
 	while (
