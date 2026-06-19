@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.62.1
+
+_2026-06-19_
+
+### Bug Fixes
+
+- Preserve multipart file extensions when deconflicting output chunks (#6408)
+- Fix an issue where getLogFilter would match additional logs (#6415)
+
+### Pull Requests
+
+- [#6393](https://github.com/rollup/rollup/pull/6393): Use import attributes for importing JSON (@selfisekai, @lukastaegert)
+- [#6408](https://github.com/rollup/rollup/pull/6408): fix: insert conflict numbers before first extension in multi-extension filenames (@LeSingh1, @lukastaegert)
+- [#6415](https://github.com/rollup/rollup/pull/6415): fix: advance value past wildcard prefix before suffix check in getLogFilter (@JSap0914, @lukastaegert)
+- [#6417](https://github.com/rollup/rollup/pull/6417): chore(deps): update msys2/setup-msys2 digest to 66cd2cc (@renovate[bot])
+- [#6418](https://github.com/rollup/rollup/pull/6418): fix(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6419](https://github.com/rollup/rollup/pull/6419): chore(deps): update dependency eslint-plugin-unicorn to v66 (@renovate[bot])
+- [#6420](https://github.com/rollup/rollup/pull/6420): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.62.0
 
 _2026-06-13_

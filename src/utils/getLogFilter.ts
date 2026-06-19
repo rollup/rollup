@@ -44,6 +44,8 @@ const testFilter = (log: RollupLog, key: string[], parts: string[]): boolean => 
 	if (!value.startsWith(parts[0])) {
 		return false;
 	}
+	value = value.slice(parts[0].length);
+
 	const lastPartIndex = parts.length - 1;
 	for (let index = 1; index < lastPartIndex; index++) {
 		const part = parts[index];

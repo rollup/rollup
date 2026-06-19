@@ -1,5 +1,5 @@
 import replace from '@rollup/plugin-replace';
-import package_ from './package.json';
+import package_ from './package.json' with { type: 'json' };
 
 module.exports = {
 	input: 'main.js',
