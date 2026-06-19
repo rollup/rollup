@@ -2,6 +2,25 @@ const assert = require('node:assert');
 const { getLogFilter } = require('../../dist/getLogFilter');
 
 describe('getLogFilter', () => {
+	it('does not match when wildcard prefix and suffix overlap', () => {
+		const filter = getLogFilter(['code:foo*foo']);
+		assert.strictEqual(
+			filter({ code: 'foo' }),
+			false,
+			'value equal to prefix=suffix should not match'
+		);
+		assert.strictEqual(
+			filter({ code: 'foofoo' }),
+			true,
+			'minimum valid match where * matches empty string'
+		);
+		assert.strictEqual(
+			filter({ code: 'fooXfoo' }),
+			true,
+			'valid match with content between prefix and suffix'
+		);
+	});
+
 	it('does not filter when there are no filters', () => {
 		const filter = getLogFilter([]);
 		assert.strictEqual(filter({ code: 'FIRST' }), true);
