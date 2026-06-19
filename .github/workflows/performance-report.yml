@@ -37,7 +37,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         with:
-          toolchain: nightly-2026-06-16
+          toolchain: nightly-2025-07-25
           components: rust-src
       - name: Restore Cargo cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -79,7 +79,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         with:
-          toolchain: nightly-2026-06-16
+          toolchain: nightly-2025-07-25
           components: rust-src
       - name: Restore Cargo cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
