@@ -25,3 +25,5 @@ target
 /wasm/*
 !/wasm/*.d.ts
 /wasm-node/
+mise.toml
+.opencode
