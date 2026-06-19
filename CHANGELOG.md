@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.62.2
+
+_2026-06-19_
+
+### Bug Fixes
+
+- Do not add spurious side-effect-free external imports to chunks when using minChunkSize (#6411)
+
+### Pull Requests
+
+- [#6411](https://github.com/rollup/rollup/pull/6411): Skip side-effect-free external imports when hoisting is disabled (@morgan-coded, @lukastaegert)
+- [#6416](https://github.com/rollup/rollup/pull/6416): refactor(rust/parser_ast): extract property AstConverter write buffer kind logic to new method (@fabianbernhart, @lukastaegert)
+
 ## 4.62.1
 
 _2026-06-19_
