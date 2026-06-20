@@ -478,9 +478,9 @@ await parseAndWalk('const x = 1; function foo() { return x + 1; }', {
 // Found identifier: x
 ```
 
-The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `jsx`). When using TypeScript, you get full type support for each AST node type based on the visitor key.
+The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `jsx`), plus an additional `collectScopes` option: when set to `true`, each visitor receives a `scope` object on its `api` argument that can determine whether a name is declared in the current scope chain. When using TypeScript, you get full type support for each AST node type based on the visitor key.
 
-For detailed information about visitor handlers, controlling child node traversal, and usage within plugins, see [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) in the plugin development documentation.
+For detailed information about visitor handlers, controlling child node traversal, scope collection, and usage within plugins, see [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) in the plugin development documentation.
 
 ## AST serialization
 

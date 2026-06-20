@@ -1930,6 +1930,7 @@ Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](h
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	collectScopes?: boolean;
 	jsx?: boolean;
 }
 
@@ -1939,9 +1940,17 @@ interface ParseOptions {
 type Visitors = {
 	[NodeType: string]: (
 		node: AstNode,
-		api: { parseChildren: () => void; skipChildren: () => void }
+		api: {
+			parseChildren: () => void;
+			skipChildren: () => void;
+			scope?: ParseAndWalkScope;
+		}
 	) => void | Promise<void>;
 };
+
+interface ParseAndWalkScope {
+	contains(name: string): boolean;
+}
 ```
 
 Efficiently walk specific types of AST nodes without traversing the entire tree. This method parses the code and only visits the node types specified in the `visitors` object, providing significant performance benefits when you don't need the full AST.
@@ -1951,6 +1960,7 @@ Each visitor function receives:
 - `node`: The AST node with full type information based on the visitor key
 - `api.parseChildren()`: Parse and visit all children of the current node
 - `api.skipChildren()`: Skip parsing children of the current node
+- `api.scope`: The scope the node lives in (only present when `collectScopes: true` is passed)
 
 ```js
 this.parseAndWalk(code, {
@@ -1990,6 +2000,31 @@ Unknown node type "InvalidType" when calling "parseAndWalk" in plugin "plugin-na
 ```
 
 Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. A full list of supported type names can be found at [src/ast/nodeTypeStrings.ts](https://github.com/rollup/rollup/blob/main/src/ast/nodeTypeStrings.ts). See also [Working with ASTs](#working-with-asts) for details about the AST structure.
+
+#### Scope collection
+
+By default, `parseAndWalk` does not track variable scopes. When you pass `{ collectScopes: true }`, each visitor receives an additional `api.scope` object describing the scope the visited node lives in. `api.scope` always refers to the **surrounding** scope (the scope the node was placed in), not the scope the node itself may create — `Program` is the only exception, since it has no parent and receives its own module scope.
+
+```js
+this.parseAndWalk(
+	code,
+	{
+		Identifier(node, { scope, parseChildren }) {
+			// `scope.contains` returns true for names declared in the current
+			// scope or any parent scope, and false for globals.
+			if (!scope.contains(node.name)) {
+				console.log(`${node.name} is a global`);
+			}
+			parseChildren();
+		}
+	},
+	{ collectScopes: true }
+);
+```
+
+Scope collection is opt-in because it adds a small overhead; when not requested, `api.scope` is simply absent. This is intended as a modern, more efficient replacement for the `attachScopes` helper from `@rollup/pluginutils`.
+
+Scope collection implements JavaScript's standard lexical scoping rules, including `var` hoisting: a `var` declaration is recorded in the nearest enclosing function or module scope, not the block it appears in. Because scope information is collected during AST construction in Rust, `scope.contains` returns the correct answer even for `var` declarations that appear later in the source than the reference being checked.
 
 To use this functionality outside a plugin context, import the standalone [`parseAndWalk`](../javascript-api/index.md#walking-the-ast-efficiently) helper from `rollup/parseAst`.
 
