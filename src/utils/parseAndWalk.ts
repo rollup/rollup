@@ -7,9 +7,9 @@ import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 
 const IDENTIFIER_NAME_OFFSET = 3;
-const SCOPE_PARENT_OFFSET = 1;
-const SCOPE_DECLARATION_COUNT_OFFSET = 2;
-const SCOPE_DECLARATIONS_OFFSET = 3;
+const SCOPE_PARENT_OFFSET = 0;
+const SCOPE_DECLARATION_COUNT_OFFSET = 1;
+const SCOPE_DECLARATIONS_OFFSET = 2;
 
 export async function parseAndWalk(
 	input: string,
