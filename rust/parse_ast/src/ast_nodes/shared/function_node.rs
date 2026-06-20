@@ -4,10 +4,10 @@ use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   FUNCTION_DECLARATION_ANNOTATIONS_OFFSET, FUNCTION_DECLARATION_BODY_OFFSET,
   FUNCTION_DECLARATION_ID_OFFSET, FUNCTION_DECLARATION_PARAMS_OFFSET,
-  FUNCTION_DECLARATION_RESERVED_BYTES, NODE_TYPE_ID_FUNCTION_DECLARATION,
-  NODE_TYPE_ID_FUNCTION_EXPRESSION, TYPE_FUNCTION_DECLARATION,
+  FUNCTION_DECLARATION_RESERVED_BYTES, FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+  NODE_TYPE_ID_FUNCTION_DECLARATION, NODE_TYPE_ID_FUNCTION_EXPRESSION, TYPE_FUNCTION_DECLARATION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::{convert_annotation, AstConverter, DeclarationKind, ScopeType};
 use crate::store_function_declaration_flags;
 
 impl AstConverter<'_> {
@@ -76,24 +76,44 @@ impl AstConverter<'_> {
       }
     }
     // id
-    if let Some(ident) = identifier {
+    // A FunctionDeclaration name binds in the parent/current lexical scope
+    // (not the function's own scope), so it is recorded before the FunctionScope
+    // is pushed. A FunctionExpression name, by contrast, binds in the function's
+    // own scope and is handled after the scope is pushed below.
+    if let (true, Some(ident)) = (is_declaration, identifier) {
       self.update_reference_position(end_position + FUNCTION_DECLARATION_ID_OFFSET);
-      self.convert_identifier(ident);
+      self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+        ast_converter.convert_identifier(ident);
+      });
+    }
+    self.push_scope(
+      ScopeType::Function,
+      end_position + FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+    );
+    // A FunctionExpression name binds in the function's own FunctionScope.
+    if let (false, Some(ident)) = (is_declaration, identifier) {
+      self.update_reference_position(end_position + FUNCTION_DECLARATION_ID_OFFSET);
+      self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+        ast_converter.convert_identifier(ident);
+      });
     }
     // params
-    self.convert_item_list(
-      parameters,
-      end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
-      |ast_converter, param| {
-        ast_converter.convert_pattern(param);
-        true
-      },
-    );
+    self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+      ast_converter.convert_item_list(
+        parameters,
+        end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
+        |ast_converter, param| {
+          ast_converter.convert_pattern(param);
+          true
+        },
+      );
+    });
     // body
     self.update_reference_position(end_position + FUNCTION_DECLARATION_BODY_OFFSET);
-    self.store_block_statement(body, true);
+    self.store_block_statement(body, true, true);
     // end
     self.add_explicit_end(end_position, end);
+    self.pop_scope();
     self.on_node_exit(walk_entry);
   }
 }

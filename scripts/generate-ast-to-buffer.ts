@@ -119,6 +119,9 @@ function getNodeSerializerBody({
 				);
 				break;
 			}
+			case 'ScopeOffset': {
+				break;
+			}
 			default: {
 				throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 			}

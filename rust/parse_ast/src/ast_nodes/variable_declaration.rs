@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::string_constants::{
   STRING_AWAIT_USING, STRING_CONST, STRING_LET, STRING_USING, STRING_VAR,
 };
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::{AstConverter, DeclarationKind};
 
 impl AstConverter<'_> {
   pub(crate) fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
@@ -41,12 +41,21 @@ impl AstConverter<'_> {
       kind == &STRING_CONST,
     );
     // declarations
-    self.convert_item_list(
-      decls,
-      end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
-      |ast_converter, variable_declarator| {
-        ast_converter.store_variable_declarator(variable_declarator);
-        true
+    self.with_declaration_kind(
+      if kind == &STRING_VAR {
+        DeclarationKind::Var
+      } else {
+        DeclarationKind::Lexical
+      },
+      |ast_converter| {
+        ast_converter.convert_item_list(
+          decls,
+          end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
+          |ast_converter, variable_declarator| {
+            ast_converter.store_variable_declarator(variable_declarator);
+            true
+          },
+        );
       },
     );
     // kind

@@ -57,7 +57,9 @@ impl AstConverter<'_> {
     );
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
-    self.convert_property_name(property_name);
+    self.without_declaration_kind(|ast_converter| {
+      ast_converter.convert_property_name(property_name);
+    });
     // flags
     store_property_flags!(
       self,
@@ -93,7 +95,9 @@ impl AstConverter<'_> {
       self.add_type_and_start(&TYPE_PROPERTY, span, PROPERTY_RESERVED_BYTES, false);
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
-    self.convert_property_name(key);
+    self.without_declaration_kind(|ast_converter| {
+      ast_converter.convert_property_name(key);
+    });
     let key_end = key.span().hi.0 - 1;
     // flags
     store_property_flags!(

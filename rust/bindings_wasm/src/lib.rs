@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn parse(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
   console_error_panic_hook::set_once();
-  parse_ast(code, allow_return_outside_function, jsx, None)
+  parse_ast(code, allow_return_outside_function, jsx, None, false)
 }
 
 #[wasm_bindgen(js_name=parseAndWalkSync)]
@@ -14,6 +14,7 @@ pub fn parse_and_walk_sync(
   allow_return_outside_function: bool,
   jsx: bool,
   walked_nodes_bitset: BigUint64Array,
+  collect_scopes: bool,
 ) -> Vec<u8> {
   console_error_panic_hook::set_once();
   parse_ast(
@@ -21,6 +22,7 @@ pub fn parse_and_walk_sync(
     allow_return_outside_function,
     jsx,
     Some(&walked_nodes_bitset.to_vec()),
+    collect_scopes,
   )
 }
 

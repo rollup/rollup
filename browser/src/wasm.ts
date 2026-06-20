@@ -16,7 +16,8 @@ export async function parseAndWalk(
 	allowReturnOutsideFunction: boolean,
 	jsx: boolean,
 	walkedNodesBitset: BigUint64Array,
+	collectScopes: boolean,
 	_signal?: AbortSignal | undefined | null
 ) {
-	return parseAndWalkSync(code, allowReturnOutsideFunction, jsx, walkedNodesBitset);
+	return parseAndWalkSync(code, allowReturnOutsideFunction, jsx, walkedNodesBitset, collectScopes);
 }

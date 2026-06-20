@@ -32,7 +32,7 @@ impl AstConverter<'_> {
     }
     // right
     self.update_reference_position(end_position + ASSIGNMENT_PATTERN_RIGHT_OFFSET);
-    self.convert_expression(right);
+    self.without_declaration_kind(|ast_converter| ast_converter.convert_expression(right));
     // end
     self.add_end(end_position, span);
     self.on_node_exit(walk_entry);

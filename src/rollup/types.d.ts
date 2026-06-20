@@ -241,6 +241,18 @@ export interface ParseAndWalkApi {
 	 * Call this function to skip parsing the children of the current node.
 	 */
 	skipChildren: () => void;
+	/**
+	 * The scope the current node lives in. Only present when parseAndWalk is
+	 * called with `{ collectScopes: true }`.
+	 */
+	scope?: ParseAndWalkScope;
+}
+
+export interface ParseAndWalkScope {
+	/**
+	 * Returns true if the name is declared in this scope or any parent scope.
+	 */
+	contains: (name: string) => boolean;
 }
 
 export type ParseAndWalkHandler<T extends ast.AstNode = ast.AstNode> = (
@@ -255,7 +267,7 @@ export type ParseAndWalkVisitors = {
 export type ParseAndWalk = (
 	input: string,
 	visitors: ParseAndWalkVisitors,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+	options?: { allowReturnOutsideFunction?: boolean; collectScopes?: boolean; jsx?: boolean }
 ) => Promise<void>;
 
 export interface PluginContext extends MinimalPluginContext {
