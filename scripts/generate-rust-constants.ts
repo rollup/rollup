@@ -42,6 +42,17 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 					fieldName
 				)}_OFFSET: usize = ${reservedBytes};`
 			);
+			if (
+				fieldType !== 'ScopeOffset' &&
+				fieldType !== 'Float' &&
+				fieldType !== 'Node' &&
+				fieldType !== 'NodeList' &&
+				fieldType !== 'String' &&
+				fieldType !== 'FixedString' &&
+				fieldType !== 'Annotations'
+			) {
+				throw new Error(`Unhandled field type ${fieldType}`);
+			}
 			reservedBytes += fieldType === 'Float' ? 8 : BYTES_PER_U32;
 		}
 		lines.unshift(

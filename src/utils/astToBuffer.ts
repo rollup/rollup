@@ -82,7 +82,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ArrowFunctionExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(7);
+		buffer = buffer.reserve(8);
 		buffer[nodePosition] = 4;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -136,7 +136,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	BlockStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(4);
+		buffer = buffer.reserve(5);
 		buffer[nodePosition] = 9;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -172,7 +172,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	CatchClause: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(5);
+		buffer = buffer.reserve(6);
 		buffer[nodePosition] = 12;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -206,7 +206,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ClassDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(7);
+		buffer = buffer.reserve(8);
 		buffer[nodePosition] = 15;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -225,7 +225,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ClassExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(7);
+		buffer = buffer.reserve(8);
 		buffer[nodePosition] = 16;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -372,7 +372,7 @@ const nodeSerializers: NodeSerializers = {
 	ExpressionStatement: serializeExpressionStatementNode,
 	ForInStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(6);
+		buffer = buffer.reserve(7);
 		buffer[nodePosition] = 29;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -383,7 +383,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ForOfStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(7);
+		buffer = buffer.reserve(8);
 		buffer[nodePosition] = 30;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -395,7 +395,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	ForStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(7);
+		buffer = buffer.reserve(8);
 		buffer[nodePosition] = 31;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -415,7 +415,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	FunctionDeclaration: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(8);
+		buffer = buffer.reserve(9);
 		buffer[nodePosition] = 32;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -429,7 +429,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	FunctionExpression: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(8);
+		buffer = buffer.reserve(9);
 		buffer[nodePosition] = 33;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -812,7 +812,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	Program: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(5);
+		buffer = buffer.reserve(6);
 		buffer[nodePosition] = 72;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -896,7 +896,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	StaticBlock: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(4);
+		buffer = buffer.reserve(5);
 		buffer[nodePosition] = 79;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;
@@ -924,7 +924,7 @@ const nodeSerializers: NodeSerializers = {
 	},
 	SwitchStatement: (node, buffer) => {
 		const nodePosition = buffer.position;
-		buffer = buffer.reserve(5);
+		buffer = buffer.reserve(6);
 		buffer[nodePosition] = 82;
 		buffer[nodePosition + 1] = node.start;
 		buffer[nodePosition + 2] = node.end;

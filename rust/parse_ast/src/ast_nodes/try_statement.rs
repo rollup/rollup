@@ -17,7 +17,7 @@ impl AstConverter<'_> {
     );
     // block
     self.update_reference_position(end_position + TRY_STATEMENT_BLOCK_OFFSET);
-    self.store_block_statement(&try_statement.block, false);
+    self.store_block_statement(&try_statement.block, false, false);
     // handler
     if let Some(catch_clause) = try_statement.handler.as_ref() {
       self.update_reference_position(end_position + TRY_STATEMENT_HANDLER_OFFSET);
@@ -26,7 +26,7 @@ impl AstConverter<'_> {
     // finalizer
     if let Some(block_statement) = try_statement.finalizer.as_ref() {
       self.update_reference_position(end_position + TRY_STATEMENT_FINALIZER_OFFSET);
-      self.store_block_statement(block_statement, false);
+      self.store_block_statement(block_statement, false, false);
     }
     // end
     self.add_end(end_position, &try_statement.span);

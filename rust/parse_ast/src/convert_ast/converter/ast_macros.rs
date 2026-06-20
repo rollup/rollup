@@ -202,85 +202,6 @@ macro_rules! store_expression_statement {
 }
 
 #[macro_export]
-macro_rules! store_for_in_statement {
-  ($self:expr, span => $span:expr, left => [$left_value:expr, $left_converter:ident], right => [$right_value:expr, $right_converter:ident], body => [$body_value:expr, $body_converter:ident]) => {
-    let _: &mut AstConverter = $self;
-    let walk_entry = $self.on_node_enter::<29>();
-    let end_position = $self.add_type_and_start(&29u32.to_ne_bytes(), &$span, 16, false);
-    // left
-    $self.update_reference_position(end_position + 4);
-    $self.$left_converter(&$left_value);
-    // right
-    $self.update_reference_position(end_position + 8);
-    $self.$right_converter(&$right_value);
-    // body
-    $self.update_reference_position(end_position + 12);
-    $self.$body_converter(&$body_value);
-    // end
-    $self.add_end(end_position, &$span);
-    $self.on_node_exit(walk_entry);
-  };
-}
-
-#[macro_export]
-macro_rules! store_for_of_statement {
-  ($self:expr, span => $span:expr, await => $await_value:expr, left => [$left_value:expr, $left_converter:ident], right => [$right_value:expr, $right_converter:ident], body => [$body_value:expr, $body_converter:ident]) => {
-    let _: &mut AstConverter = $self;
-    let walk_entry = $self.on_node_enter::<30>();
-    let end_position = $self.add_type_and_start(
-      &30u32.to_ne_bytes(),
-      &$span,
-      20,
-      false,
-    );
-    // flags
-    store_for_of_statement_flags!($self, end_position, await => $await_value);
-    // left
-    $self.update_reference_position(end_position + 8);
-    $self.$left_converter(&$left_value);
-    // right
-    $self.update_reference_position(end_position + 12);
-    $self.$right_converter(&$right_value);
-    // body
-    $self.update_reference_position(end_position + 16);
-    $self.$body_converter(&$body_value);
-    // end
-    $self.add_end(end_position, &$span);
-    $self.on_node_exit(walk_entry);
-  };
-}
-
-#[macro_export]
-macro_rules! store_for_statement {
-  ($self:expr, span => $span:expr, init => [$init_value:expr, $init_converter:ident], test => [$test_value:expr, $test_converter:ident], update => [$update_value:expr, $update_converter:ident], body => [$body_value:expr, $body_converter:ident]) => {
-    let _: &mut AstConverter = $self;
-    let walk_entry = $self.on_node_enter::<31>();
-    let end_position = $self.add_type_and_start(&31u32.to_ne_bytes(), &$span, 20, false);
-    // init
-    if let Some(value) = $init_value.as_ref() {
-      $self.update_reference_position(end_position + 4);
-      $self.$init_converter(value);
-    }
-    // test
-    if let Some(value) = $test_value.as_ref() {
-      $self.update_reference_position(end_position + 8);
-      $self.$test_converter(value);
-    }
-    // update
-    if let Some(value) = $update_value.as_ref() {
-      $self.update_reference_position(end_position + 12);
-      $self.$update_converter(value);
-    }
-    // body
-    $self.update_reference_position(end_position + 16);
-    $self.$body_converter(&$body_value);
-    // end
-    $self.add_end(end_position, &$span);
-    $self.on_node_exit(walk_entry);
-  };
-}
-
-#[macro_export]
 macro_rules! store_if_statement {
   ($self:expr, span => $span:expr, test => [$test_value:expr, $test_converter:ident], consequent => [$consequent_value:expr, $consequent_converter:ident], alternate => [$alternate_value:expr, $alternate_converter:ident]) => {
     let _: &mut AstConverter = $self;
@@ -718,23 +639,6 @@ macro_rules! store_sequence_expression {
 }
 
 #[macro_export]
-macro_rules! store_static_block {
-  ($self:expr, span => $span:expr, body => [$body_value:expr, $body_converter:ident]) => {
-    let _: &mut AstConverter = $self;
-    let walk_entry = $self.on_node_enter::<79>();
-    let end_position = $self.add_type_and_start(&79u32.to_ne_bytes(), &$span, 8, false);
-    // body
-    $self.convert_item_list(&$body_value, end_position + 4, |ast_converter, node| {
-      ast_converter.$body_converter(node);
-      true
-    });
-    // end
-    $self.add_end(end_position, &$span);
-    $self.on_node_exit(walk_entry);
-  };
-}
-
-#[macro_export]
 macro_rules! store_super {
   ($self:expr, span => $span:expr) => {
     let _: &mut AstConverter = $self;
@@ -766,26 +670,6 @@ macro_rules! store_switch_case {
         true
       },
     );
-    // end
-    $self.add_end(end_position, &$span);
-    $self.on_node_exit(walk_entry);
-  };
-}
-
-#[macro_export]
-macro_rules! store_switch_statement {
-  ($self:expr, span => $span:expr, discriminant => [$discriminant_value:expr, $discriminant_converter:ident], cases => [$cases_value:expr, $cases_converter:ident]) => {
-    let _: &mut AstConverter = $self;
-    let walk_entry = $self.on_node_enter::<82>();
-    let end_position = $self.add_type_and_start(&82u32.to_ne_bytes(), &$span, 12, false);
-    // discriminant
-    $self.update_reference_position(end_position + 4);
-    $self.$discriminant_converter(&$discriminant_value);
-    // cases
-    $self.convert_item_list(&$cases_value, end_position + 8, |ast_converter, node| {
-      ast_converter.$cases_converter(node);
-      true
-    });
     // end
     $self.add_end(end_position, &$span);
     $self.on_node_exit(walk_entry);

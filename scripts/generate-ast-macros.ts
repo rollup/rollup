@@ -87,6 +87,9 @@ const astMacros = astNodeNamesWithFieldOrder
     $self.convert_string($${field.name}_value, end_position + ${reservedBytes});`;
 					break;
 				}
+				case 'ScopeOffset': {
+					break;
+				}
 				default: {
 					throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 				}

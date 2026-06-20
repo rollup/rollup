@@ -32,6 +32,8 @@ function getFieldType(field: FieldDescription, node: NodeDescription): string {
 			return 'readonly Annotation[]';
 		case 'Float':
 			return 'number';
+		case 'ScopeOffset':
+			return 'never';
 		case 'FixedString':
 			return field.values.map(value => `'${value}'`).join(' | ');
 		default:
@@ -43,8 +45,12 @@ function isOptional(field: FieldDescription): boolean {
 	switch (field.type) {
 		case 'Node':
 		case 'NodeList':
-		case 'Float':
+		case 'Float': {
 			return false;
+		}
+		case 'ScopeOffset': {
+			return false;
+		}
 		case 'FixedString':
 		case 'String':
 			return !!field.optional;

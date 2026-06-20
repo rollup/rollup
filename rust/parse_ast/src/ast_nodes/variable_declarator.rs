@@ -37,7 +37,7 @@ impl AstConverter<'_> {
     }
     if let Some(init) = variable_declarator.init.as_ref() {
       self.update_reference_position(end_position + VARIABLE_DECLARATOR_INIT_OFFSET);
-      self.convert_expression(init);
+      self.without_declaration_kind(|ast_converter| ast_converter.convert_expression(init));
     }
     // end
     self.add_end(end_position, &variable_declarator.span);

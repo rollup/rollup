@@ -4,9 +4,10 @@ use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET, ARROW_FUNCTION_EXPRESSION_BODY_OFFSET,
   ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET, ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
-  NODE_TYPE_ID_ARROW_FUNCTION_EXPRESSION, TYPE_ARROW_FUNCTION_EXPRESSION,
+  ARROW_FUNCTION_EXPRESSION_SCOPE_OFFSET_OFFSET, NODE_TYPE_ID_ARROW_FUNCTION_EXPRESSION,
+  TYPE_ARROW_FUNCTION_EXPRESSION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::{convert_annotation, AstConverter, DeclarationKind, ScopeType};
 use crate::store_arrow_function_expression_flags;
 
 impl AstConverter<'_> {
@@ -17,6 +18,10 @@ impl AstConverter<'_> {
       &arrow_expression.span,
       ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
       false,
+    );
+    self.push_scope(
+      ScopeType::Function,
+      end_position + ARROW_FUNCTION_EXPRESSION_SCOPE_OFFSET_OFFSET,
     );
     // annotations
     let annotations = self
@@ -41,19 +46,21 @@ impl AstConverter<'_> {
       generator => arrow_expression.is_generator
     );
     // params
-    self.convert_item_list(
-      &arrow_expression.params,
-      end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET,
-      |ast_converter, param| {
-        ast_converter.convert_pattern(param);
-        true
-      },
-    );
+    self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+      ast_converter.convert_item_list(
+        &arrow_expression.params,
+        end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET,
+        |ast_converter, param| {
+          ast_converter.convert_pattern(param);
+          true
+        },
+      );
+    });
     // body
     self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_BODY_OFFSET);
     match &*arrow_expression.body {
       BlockStmtOrExpr::BlockStmt(block_statement) => {
-        self.store_block_statement(block_statement, true)
+        self.store_block_statement(block_statement, true, true)
       }
       BlockStmtOrExpr::Expr(expression) => {
         self.convert_expression(expression);
@@ -61,6 +68,7 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, &arrow_expression.span);
+    self.pop_scope();
     self.on_node_exit(walk_entry);
   }
 }

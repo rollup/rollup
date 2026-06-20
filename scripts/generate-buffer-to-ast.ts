@@ -59,7 +59,8 @@ function getFieldDefinition(field: FieldDescription, offset: number): string {
 	const dataStart = `buffer[${position}]`;
 	switch (field.type) {
 		case 'NodeList':
-		case 'Float': {
+		case 'Float':
+		case 'ScopeOffset': {
 			return '';
 		}
 		case 'Node': {
@@ -91,6 +92,9 @@ function getFieldProperty(
 		return field.name;
 	}
 	switch (field.type) {
+		case 'ScopeOffset': {
+			return '';
+		}
 		case 'Annotations': {
 			return `...(${field.name}.length > 0 ? { ${field.name} } : {})`;
 		}
@@ -131,6 +135,9 @@ function getFieldPropertyBase(
 		}
 		case 'Float': {
 			return `new DataView(buffer.buffer).getFloat64(${position} << 2, true)`;
+		}
+		case 'ScopeOffset': {
+			return '';
 		}
 		default: {
 			throw new Error(`Unhandled field type ${(field as { type: string }).type}`);

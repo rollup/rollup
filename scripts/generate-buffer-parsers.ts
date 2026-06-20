@@ -162,6 +162,12 @@ function getFieldDefinition(
 				needsScope: false
 			};
 		}
+		case 'ScopeOffset': {
+			return {
+				definition: '',
+				needsScope: false
+			};
+		}
 		default: {
 			throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 		}
