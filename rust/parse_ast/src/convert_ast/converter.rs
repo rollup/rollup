@@ -42,18 +42,6 @@ pub(crate) enum ScopeType {
   Class,
 }
 
-impl ScopeType {
-  fn node_type(self) -> u32 {
-    match self {
-      ScopeType::Module => 95,
-      ScopeType::Function => 96,
-      ScopeType::Block => 97,
-      ScopeType::Catch => 98,
-      ScopeType::Class => 99,
-    }
-  }
-}
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum DeclarationKind {
   Lexical,
@@ -194,9 +182,11 @@ impl<'a> AstConverter<'a> {
     let record = self.scope_stack.pop().unwrap();
     let scope_node_position = (self.buffer.len() as u32) >> 2;
 
-    self
-      .buffer
-      .extend_from_slice(&record.scope_type.node_type().to_ne_bytes());
+    // Scope node layout (no type discriminant — the scope type is only needed
+    // in Rust for var-hoisting logic and is never read back from the buffer):
+    //   parentScopeOffset (u32)
+    //   declarationCount  (u32)
+    //   declaration[0..n] (u32 each)
     let parent_scope_ref_position = self.buffer.len();
     self.buffer.extend_from_slice(&0u32.to_ne_bytes());
     self
