@@ -1,14 +1,23 @@
 use swc_ecma_ast::{Expr, Lit, ModuleItem, Program, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-  PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET, PROGRAM_RESERVED_BYTES, TYPE_PROGRAM,
+  NODE_TYPE_ID_PROGRAM, PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET,
+  PROGRAM_RESERVED_BYTES, PROGRAM_SCOPE_OFFSET_OFFSET, TYPE_PROGRAM,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::{convert_annotation, AstConverter, ScopeType};
 
 impl AstConverter<'_> {
   pub(crate) fn store_program(&mut self, body: ModuleItemsOrStatements) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROGRAM>();
     let end_position =
       self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);
+    self.push_scope(
+      ScopeType::Module,
+      end_position + PROGRAM_SCOPE_OFFSET_OFFSET,
+    );
+    // Program is a special case: it must be associated with its own ModuleScope
+    // rather than the (non-existent) parent scope, so top-level lookups work.
+    self.register_walk_entry_with_current_scope(walk_entry);
     // body
     let mut keep_checking_directives = true;
     match body {
@@ -71,6 +80,8 @@ impl AstConverter<'_> {
         },
       );
     }
+    self.pop_scope();
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_program(&mut self, node: &Program) {

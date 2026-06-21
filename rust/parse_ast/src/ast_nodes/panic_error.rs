@@ -3,14 +3,13 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::{convert_string, update_reference_position};
 
-pub(crate) fn get_panic_error_buffer(message: &str) -> Vec<u8> {
+pub(crate) fn write_panic_error(buffer: &mut Vec<u8>, message: &str) {
   // type
-  let mut buffer = TYPE_PANIC_ERROR.to_vec();
+  buffer.extend_from_slice(&TYPE_PANIC_ERROR);
   // reserve for start and end even though they are unused
   let end_position = buffer.len() + 4;
   buffer.resize(end_position + PANIC_ERROR_RESERVED_BYTES, 0);
   // message
-  update_reference_position(&mut buffer, end_position + PANIC_ERROR_MESSAGE_OFFSET);
-  convert_string(&mut buffer, message);
-  buffer
+  update_reference_position(buffer, end_position + PANIC_ERROR_MESSAGE_OFFSET);
+  convert_string(buffer, message);
 }
