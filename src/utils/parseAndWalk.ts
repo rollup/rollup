@@ -100,6 +100,7 @@ function walkAstBuffer(
 	}
 
 	function getScope(scopePosition: number) {
+		/* istanbul ignore next */
 		if (scopePosition === 0) {
 			throw new Error('Internal Error: Missing scope information in parseAndWalk.');
 		}
