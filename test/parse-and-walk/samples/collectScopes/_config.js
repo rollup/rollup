@@ -7,46 +7,7 @@ module.exports = defineTest({
 	parseOptions: { collectScopes: true },
 	walk: {
 		Identifier(node, { scope }) {
-			if (
-				[
-					'imported',
-					'renamed',
-					'top',
-					'param',
-					'block',
-					'blockFunction',
-					'hoisted',
-					'globalValue',
-					'error',
-					'globalInCatch',
-					'index',
-					'loopBody',
-					'inner',
-					'namedParameter',
-					'outer',
-					'Declaration',
-					'expression',
-					'NamedExpression',
-					'staticBlockLocal',
-					'fnExpression',
-					'namedFn',
-					'hoistingHost',
-					'readsHoisted',
-					'hoistedVar',
-					'loopHoistingHost',
-					'loopVar',
-					'key',
-					'binding',
-					'untouched',
-					'rest',
-					'source',
-					'assigned',
-					'discriminant',
-					'caseLocal'
-				].includes(node.name)
-			) {
-				checks.push([node.name, node.start, scope.contains(node.name)]);
-			}
+			checks.push([node.name, node.start, scope.contains(node.name)]);
 		}
 	},
 	assertions() {
@@ -54,6 +15,7 @@ module.exports = defineTest({
 			// import locals are declared in the module scope; the imported name
 			// ("named") is not a local declaration.
 			['imported', 7, true],
+			['named', 19, false],
 			['renamed', 28, true],
 			// top-level declaration
 			['top', 62, true],
@@ -101,6 +63,8 @@ module.exports = defineTest({
 			// class expression: the name is visible inside the class body...
 			['expression', 547, true],
 			['NamedExpression', 566, true],
+			// method name is a property key, not a declaration
+			['method', 585, false],
 			['NamedExpression', 605, true],
 			// ...but not outside it.
 			['NamedExpression', 703, false],
@@ -120,6 +84,9 @@ module.exports = defineTest({
 			// var in a for-loop body is hoisted past the loop's BlockScope to the
 			// enclosing function scope and is visible after the loop.
 			['loopHoistingHost', 1277, true],
+			['i', 1308, true],
+			['i', 1315, true],
+			['i', 1322, true],
 			['loopVar', 1335, true],
 			['loopVar', 1355, true],
 			// destructuring: only binding identifiers are recorded, not the

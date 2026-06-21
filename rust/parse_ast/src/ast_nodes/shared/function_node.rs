@@ -76,26 +76,27 @@ impl AstConverter<'_> {
       }
     }
     // id
-    // A FunctionDeclaration name binds in the parent/current lexical scope
-    // (not the function's own scope), so it is recorded before the FunctionScope
-    // is pushed. A FunctionExpression name, by contrast, binds in the function's
-    // own scope and is handled after the scope is pushed below.
-    if let (true, Some(ident)) = (is_declaration, identifier) {
+    // A FunctionDeclaration name binds in the parent/current lexical scope, so
+    // the FunctionScope is pushed only after the id is recorded. A
+    // FunctionExpression name binds in the function's own FunctionScope, so the
+    // scope is pushed first.
+    if !is_declaration {
+      self.push_scope(
+        ScopeType::Function,
+        end_position + FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
+    }
+    if let Some(ident) = identifier {
       self.update_reference_position(end_position + FUNCTION_DECLARATION_ID_OFFSET);
       self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
         ast_converter.convert_identifier(ident);
       });
     }
-    self.push_scope(
-      ScopeType::Function,
-      end_position + FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
-    );
-    // A FunctionExpression name binds in the function's own FunctionScope.
-    if let (false, Some(ident)) = (is_declaration, identifier) {
-      self.update_reference_position(end_position + FUNCTION_DECLARATION_ID_OFFSET);
-      self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
-        ast_converter.convert_identifier(ident);
-      });
+    if is_declaration {
+      self.push_scope(
+        ScopeType::Function,
+        end_position + FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
     }
     // params
     self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
