@@ -138,6 +138,14 @@ const SCOPE_CREATING_NODES = new Set<AstNodeName>([
 	'SwitchStatement'
 ]);
 
+// Layout of a scope node as written by Rust's `pop_scope` and read by the
+// JS `contains()` walker.
+export const SCOPE_NODE_FIELDS = [
+	{ name: 'parent' },
+	{ name: 'declarationCount' },
+	{ name: 'declarations' }
+] as const;
+
 export type AstUnionName =
 	| 'BindingPattern'
 	| 'DestructuringPattern'

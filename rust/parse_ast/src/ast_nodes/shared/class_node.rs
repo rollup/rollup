@@ -3,10 +3,10 @@ use swc_ecma_ast::{Class, Ident};
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-  CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
-  CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
-  CLASS_DECLARATION_SUPER_CLASS_OFFSET, NODE_TYPE_ID_CLASS_DECLARATION,
-  NODE_TYPE_ID_CLASS_EXPRESSION, TYPE_CLASS_DECLARATION,
+    CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
+    CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
+    CLASS_DECLARATION_SUPER_CLASS_OFFSET, NODE_TYPE_ID_CLASS_DECLARATION,
+    NODE_TYPE_ID_CLASS_EXPRESSION, TYPE_CLASS_DECLARATION,
 };
 use crate::convert_ast::converter::{AstConverter, DeclarationKind, ScopeType};
 
@@ -53,28 +53,27 @@ impl AstConverter<'_> {
       body_start_search = class.decorators.last().unwrap().span.hi.0 - 1;
     }
     // id
-    // A ClassDeclaration name binds in the parent/current lexical scope (not the
-    // class's own scope), so it is recorded before the ClassScope is pushed. A
-    // ClassExpression name, by contrast, binds in the class's own ClassScope
-    // and is handled after the scope is pushed below.
-    if let (true, Some(identifier)) = (is_declaration, identifier) {
-      self.update_reference_position(end_position + CLASS_DECLARATION_ID_OFFSET);
-      self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
-        ast_converter.convert_identifier(identifier);
-      });
-      body_start_search = identifier.span.hi.0 - 1;
+    // A ClassDeclaration name binds in the parent/current lexical scope, so the
+    // ClassScope is pushed only after the id is recorded. A ClassExpression name
+    // binds in the class's own ClassScope, so the scope is pushed first.
+    if !is_declaration {
+      self.push_scope(
+        ScopeType::Class,
+        end_position + CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
     }
-    self.push_scope(
-      ScopeType::Class,
-      end_position + CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
-    );
-    // A ClassExpression name binds in the class's own ClassScope.
-    if let (false, Some(identifier)) = (is_declaration, identifier) {
+    if let Some(class_name) = identifier {
       self.update_reference_position(end_position + CLASS_DECLARATION_ID_OFFSET);
       self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
-        ast_converter.convert_identifier(identifier);
+        ast_converter.convert_identifier(class_name);
       });
-      body_start_search = identifier.span.hi.0 - 1;
+      body_start_search = class_name.span.hi.0 - 1;
+    }
+    if is_declaration {
+      self.push_scope(
+        ScopeType::Class,
+        end_position + CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
     }
     // super_class
     if let Some(super_class) = class.super_class.as_ref() {

@@ -5,11 +5,13 @@ import type { ParseAndWalkApi, ParseAndWalkVisitors } from '../rollup/types';
 import { deserializeLazyAstBuffer } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
+import {
+	SCOPE_DECLARATION_COUNT_OFFSET,
+	SCOPE_DECLARATIONS_OFFSET,
+	SCOPE_PARENT_OFFSET
+} from './scopeConstants';
 
 const IDENTIFIER_NAME_OFFSET = 3;
-const SCOPE_PARENT_OFFSET = 0;
-const SCOPE_DECLARATION_COUNT_OFFSET = 1;
-const SCOPE_DECLARATIONS_OFFSET = 2;
 
 export async function parseAndWalk(
 	input: string,

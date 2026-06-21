@@ -1,31 +1,31 @@
-use swc_common::Span;
-use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
-  ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
-  JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
-  ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
-  PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
-};
-
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+    TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
 };
 use crate::convert_ast::converter::string_constants::{
-  STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
+    STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
 use crate::convert_ast::converter::utf16_positions::{
-  ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
+    ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
+};
+use scope_constants::SCOPE_PARENT_OFFSET;
+use swc_common::Span;
+use swc_ecma_ast::{
+    AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
+    ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
+    JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
+    ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
+    PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 pub(crate) mod analyze_code;
-pub(crate) mod string_constants;
-mod utf16_positions;
-
 pub(crate) mod ast_constants;
 mod ast_macros;
+pub(crate) mod scope_constants;
+pub(crate) mod string_constants;
+mod utf16_positions;
 
 pub(crate) struct WalkEntry {
   pub(crate) node_buffer_position: u32,
@@ -180,14 +180,13 @@ impl<'a> AstConverter<'a> {
     }
 
     let record = self.scope_stack.pop().unwrap();
-    let scope_node_position = (self.buffer.len() as u32) >> 2;
+    let scope_node_start = self.buffer.len();
 
-    // Scope node layout (no type discriminant — the scope type is only needed
-    // in Rust for var-hoisting logic and is never read back from the buffer):
-    //   parentScopeOffset (u32)
-    //   declarationCount  (u32)
-    //   declaration[0..n] (u32 each)
-    let parent_scope_ref_position = self.buffer.len();
+    // Scope node layout (constants generated from SCOPE_NODE_FIELDS):
+    //   parent (u32)          — patched by the parent scope on its exit
+    //   declarationCount (u32)
+    //   declaration[0..n] (u32 each) — buffer positions of Identifier nodes
+    let parent_scope_ref_position = scope_node_start + SCOPE_PARENT_OFFSET;
     self.buffer.extend_from_slice(&0u32.to_ne_bytes());
     self
       .buffer
@@ -195,6 +194,8 @@ impl<'a> AstConverter<'a> {
     for declaration in record.declarations {
       self.buffer.extend_from_slice(&declaration.to_ne_bytes());
     }
+
+    let scope_node_position = (scope_node_start as u32) >> 2;
 
     self.buffer[record.scope_offset_position..record.scope_offset_position + 4]
       .copy_from_slice(&scope_node_position.to_ne_bytes());

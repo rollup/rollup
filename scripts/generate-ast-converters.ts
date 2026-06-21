@@ -12,6 +12,7 @@ import './generate-node-type-strings.js';
 import './generate-node-types.js';
 import './generate-node-unions.js';
 import './generate-rust-constants.js';
+import './generate-scope-constants.js';
 import './generate-string-constants.js';
 
 // Check if we have sufficient test coverage if new nodes are added
