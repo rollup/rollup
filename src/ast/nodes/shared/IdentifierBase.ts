@@ -177,13 +177,13 @@ export default class IdentifierBase extends NodeBase {
 			return (this.isTDZAccess = false);
 		}
 
-		let decl_id;
+		let declaration_id;
 		if (
 			this.variable.declarations &&
 			this.variable.declarations.length === 1 &&
-			(decl_id = this.variable.declarations[0] as any) &&
-			this.start < decl_id.start &&
-			closestParentFunctionOrProgram(this) === closestParentFunctionOrProgram(decl_id)
+			(declaration_id = this.variable.declarations[0] as any) &&
+			this.start < declaration_id.start &&
+			closestParentFunctionOrProgram(this) === closestParentFunctionOrProgram(declaration_id)
 		) {
 			// a variable accessed before its declaration
 			// in the same function or at top level of module

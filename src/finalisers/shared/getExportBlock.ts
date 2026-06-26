@@ -38,7 +38,7 @@ export function getExportBlock(
 			importPath,
 			isChunk,
 			name,
-			namedExportsMode: depNamedExportsMode,
+			namedExportsMode: dependencyNamedExportsMode,
 			namespaceVariableName,
 			reexports
 		} of dependencies) {
@@ -51,7 +51,7 @@ export function getExportBlock(
 					const importName = getReexportedImportName(
 						name,
 						specifier.imported,
-						depNamedExportsMode,
+						dependencyNamedExportsMode,
 						isChunk,
 						defaultVariableName!,
 						namespaceVariableName!,
@@ -157,7 +157,7 @@ function getSingleDefaultExport(
 			importPath,
 			isChunk,
 			name,
-			namedExportsMode: depNamedExportsMode,
+			namedExportsMode: dependencyNamedExportsMode,
 			namespaceVariableName,
 			reexports
 		} of dependencies) {
@@ -165,7 +165,7 @@ function getSingleDefaultExport(
 				return getReexportedImportName(
 					name,
 					reexports[0].imported,
-					depNamedExportsMode,
+					dependencyNamedExportsMode,
 					isChunk,
 					defaultVariableName!,
 					namespaceVariableName!,
@@ -182,7 +182,7 @@ function getSingleDefaultExport(
 function getReexportedImportName(
 	moduleVariableName: string,
 	imported: string,
-	depNamedExportsMode: boolean,
+	dependencyNamedExportsMode: boolean,
 	isChunk: boolean,
 	defaultVariableName: string,
 	namespaceVariableName: string,
@@ -201,13 +201,15 @@ function getReexportedImportName(
 				? `${variableName}${getPropertyAccess('default')}`
 				: variableName;
 		}
-		return depNamedExportsMode
+		return dependencyNamedExportsMode
 			? `${moduleVariableName}${getPropertyAccess('default')}`
 			: moduleVariableName;
 	}
 	if (imported === '*') {
 		return (
-			isChunk ? !depNamedExportsMode : namespaceInteropHelpersByInteropType[interop(moduleId)]
+			isChunk
+				? !dependencyNamedExportsMode
+				: namespaceInteropHelpersByInteropType[interop(moduleId)]
 		)
 			? namespaceVariableName
 			: moduleVariableName;

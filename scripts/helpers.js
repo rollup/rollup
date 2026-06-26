@@ -19,16 +19,16 @@ export function runWithEcho(command, parameters, options) {
 	nextColorIndex = (nextColorIndex + 1) % colors.length;
 	return /** @type {Promise<void>} */ (
 		new Promise((resolve, reject) => {
-			const cmdString = formatCommand(command, parameters);
-			console.error(bold(`\n${color('Run>')} ${cmdString}`));
+			const commandString = formatCommand(command, parameters);
+			console.error(bold(`\n${color('Run>')} ${commandString}`));
 
 			const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
 
 			childProcess.on('close', code => {
 				if (code) {
-					reject(new Error(`"${cmdString}" exited with code ${code}.`));
+					reject(new Error(`"${commandString}" exited with code ${code}.`));
 				} else {
-					console.error(bold(`${color('Finished>')} ${cmdString}\n`));
+					console.error(bold(`${color('Finished>')} ${commandString}\n`));
 					resolve();
 				}
 			});

@@ -19,9 +19,9 @@ module.exports = defineTest({
 function enforceTheAnswer(ast, magicString) {
 	for (const node of ast.body) {
 		if (node.type === 'VariableDeclaration') {
-			for (const decl of node.declarations) {
-				if (decl.id.name === 'answer') {
-					magicString.overwrite(decl.init.start, decl.init.end, '42');
+			for (const declaration of node.declarations) {
+				if (declaration.id.name === 'answer') {
+					magicString.overwrite(declaration.init.start, declaration.init.end, '42');
 				}
 			}
 		}

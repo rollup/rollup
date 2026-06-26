@@ -694,8 +694,8 @@ export default class Chunk {
 		// for static and dynamic entry points, add transitive dependencies to this
 		// chunk's dependencies to avoid loading latency
 		if (hoistTransitiveImports && !preserveModules && facadeModule !== null) {
-			for (const dep of dependencies) {
-				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
+			for (const dependency of dependencies) {
+				if (dependency instanceof Chunk) this.inlineChunkDependencies(dependency);
 			}
 		}
 	}
@@ -909,11 +909,11 @@ export default class Chunk {
 						if (!chunk || format !== 'es') {
 							continue;
 						}
-						const chunkDep = this.renderedDependencies!.get(chunk)!;
-						if (!chunkDep) {
+						const chunkDependency = this.renderedDependencies!.get(chunk)!;
+						if (!chunkDependency) {
 							continue;
 						}
-						const { imports, reexports } = chunkDep;
+						const { imports, reexports } = chunkDependency;
 						const importedByReexported = reexports?.find(
 							({ reexported }) => reexported === exportName
 						);
@@ -1297,11 +1297,11 @@ export default class Chunk {
 	}
 
 	private inlineChunkDependencies(chunk: Chunk): void {
-		for (const dep of chunk.dependencies) {
-			if (this.dependencies.has(dep)) continue;
-			this.dependencies.add(dep);
-			if (dep instanceof Chunk) {
-				this.inlineChunkDependencies(dep);
+		for (const dependency of chunk.dependencies) {
+			if (this.dependencies.has(dependency)) continue;
+			this.dependencies.add(dependency);
+			if (dependency instanceof Chunk) {
+				this.inlineChunkDependencies(dependency);
 			}
 		}
 	}

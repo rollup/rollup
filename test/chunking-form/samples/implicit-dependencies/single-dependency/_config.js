@@ -190,11 +190,11 @@ module.exports = defineTest({
 				assert.strictEqual(main.isEntry, true, 'main.isEntry');
 				assert.strictEqual(main.isDynamicEntry, false, 'main.isDynamicEntry');
 				assert.strictEqual(main.isImplicitEntry, false, 'main.isImplicitEntry');
-				const dep = bundle['generated-dep.js'];
-				assert.deepStrictEqual(dep.implicitlyLoadedBefore, [], 'dep.implicitlyLoadedBefore');
-				assert.strictEqual(dep.isEntry, false, 'dep.isEntry');
-				assert.strictEqual(dep.isDynamicEntry, false, 'dep.isDynamicEntry');
-				assert.strictEqual(dep.isImplicitEntry, true, 'dep.isImplicitEntry');
+				const dependency = bundle['generated-dep.js'];
+				assert.deepStrictEqual(dependency.implicitlyLoadedBefore, [], 'dep.implicitlyLoadedBefore');
+				assert.strictEqual(dependency.isEntry, false, 'dep.isEntry');
+				assert.strictEqual(dependency.isDynamicEntry, false, 'dep.isDynamicEntry');
+				assert.strictEqual(dependency.isImplicitEntry, true, 'dep.isImplicitEntry');
 			}
 		}
 	}

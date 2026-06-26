@@ -1,4 +1,4 @@
-import package_ from '../../package.json' with { type: 'json' };
+import pkg from '../../package.json' with { type: 'json' };
 import type {
 	LoggingFunction,
 	LogHandler,
@@ -7,13 +7,14 @@ import type {
 	Plugin,
 	RollupLog
 } from '../rollup/types';
-import { getSortedValidatedPlugins } from './PluginDriver';
 import { EMPTY_SET } from './blank';
 import { doNothing } from './doNothing';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN, logLevelPriority } from './logging';
 import { augmentLogMessage, error } from './logs';
 import { normalizeLog } from './options/options';
-const rollupVersion = package_.version;
+import { getSortedValidatedPlugins } from './PluginDriver';
+
+const rollupVersion = pkg.version;
 
 export function getLogger(
 	plugins: Plugin[],

@@ -20,8 +20,8 @@ declare module 'github-api' {
 	export default class GitHub {
 		constructor(options: { token: string });
 
-		getRepo(organization: string, repository: string): Repo;
+		getRepo(organization: string, repo: string): Repo;
 
-		getIssues(organization: string, repository: string): Issues;
+		getIssues(organization: string, repo: string): Issues;
 	}
 }

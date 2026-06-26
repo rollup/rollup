@@ -311,18 +311,18 @@ export default class ImportExpression extends NodeBase {
 					if (targetChunk === null) return null;
 					const chunkInfos: DynamicImportTargetChunk[] = [];
 					const importerPath = ownChunk.getFileName();
-					for (const dep of targetChunk.dependencies) {
-						const resolvedImportPath = `'${dep.getImportPath(importerPath)}'`;
-						if (dep instanceof ExternalChunk) {
+					for (const dependency of targetChunk.dependencies) {
+						const resolvedImportPath = `'${dependency.getImportPath(importerPath)}'`;
+						if (dependency instanceof ExternalChunk) {
 							chunkInfos.push({
-								fileName: dep.getFileName(),
+								fileName: dependency.getFileName(),
 								resolvedImportPath,
 								type: 'external'
 							});
 						} else {
 							chunkInfos.push({
-								chunk: dep.getPreRenderedChunkInfo(),
-								fileName: dep.getFileName(),
+								chunk: dependency.getPreRenderedChunkInfo(),
+								fileName: dependency.getFileName(),
 								resolvedImportPath,
 								type: 'internal'
 							});
