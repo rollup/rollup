@@ -1813,7 +1813,7 @@ Forward slashes `/` can be used to place files in sub-directories. When using a 
 | --: | :-- |
 | Type: | `boolean \| (relativeSourcePath: string, sourcemapPath: string) => boolean` |
 
-A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/articles/x-google-ignore-list/). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
+A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/docs/devtools/x-google-ignore-list). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
 ```js twoslash
 import path from 'node:path';
