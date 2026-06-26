@@ -61,11 +61,11 @@
       "description": "this restriction should not be updated by renovate."
     },
     {
-      "matchManagers": [
-        "rust-toolchain"
+      "matchDatasources": [
+        "rust-version"
       ],
       "enabled": false,
-      "description": "rust-toolchain.toml is managed manually."
+      "description": "Rust toolchain is managed manually."
     },
     {
       "matchPackageNames": [
