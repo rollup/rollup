@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
@@ -18,6 +19,7 @@ import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import type { InclusionOptions } from './shared/Expression';
@@ -27,13 +29,14 @@ import {
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
-import type { VariableDeclarationKind } from './shared/VariableKinds';
 import type VariableDeclarator from './VariableDeclarator';
 
 export default class VariableDeclaration extends NodeBase {
+	declare parent: nodes.VariableDeclarationParent;
 	declare declarations: readonly VariableDeclarator[];
-	declare kind: VariableDeclarationKind;
+	declare kind: ast.VariableDeclaration['kind'];
 	declare type: NodeType.tVariableDeclaration;
+	declare isUsingDeclaration: boolean;
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
@@ -185,7 +188,7 @@ export default class VariableDeclaration extends NodeBase {
 				}
 				isInDeclaration = false;
 			} else {
-				if (singleSystemExport && singleSystemExport === node.id.variable) {
+				if (singleSystemExport && singleSystemExport === (node.id as Identifier).variable) {
 					const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
 					renderSystemExportExpression(
 						singleSystemExport,

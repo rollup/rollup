@@ -1,9 +1,9 @@
-import { a } from 'a' assert { type: 'changed', extra: 'changed' };
-import * as b from 'b' assert { type: 'changed' };
-export { c } from 'c' assert { type: 'changed' };
-export * from 'd' assert { type: 'changed' };
+import { a } from 'a' with { type: 'changed', extra: 'changed' };
+import * as b from 'b' with { type: 'changed' };
+export { c } from 'c' with { type: 'changed' };
+export * from 'd' with { type: 'changed' };
 import 'e';
 
 console.log(a, b, d);
-import('f', { assert: { type: 'changed' } });
+import('f', { with: { type: 'changed' } });
 import('g');

@@ -1,3 +1,4 @@
+import type { ast } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -13,6 +14,7 @@ import {
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
+import type * as nodes from '../node-unions';
 import type PrivateIdentifier from '../PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import {
@@ -20,18 +22,12 @@ import {
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION
 } from './Expression';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	NodeBase,
-	onlyIncludeSelfNoDeoptimize
-} from './Node';
-import type { DeclarationPatternNode } from './Pattern';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './Node';
 
-export default class MethodBase extends NodeBase implements DeoptimizableEntity {
-	declare key: ExpressionNode | PrivateIdentifier;
-	declare kind: 'constructor' | 'method' | 'init' | 'get' | 'set';
-	declare value: ExpressionNode | (ExpressionNode & DeclarationPatternNode);
+export default class PropertyBase extends NodeBase implements DeoptimizableEntity {
+	declare key: nodes.Expression | PrivateIdentifier;
+	declare kind: ast.MethodDefinition['kind'] | ast.Property['kind'];
+	declare value: nodes.Expression | nodes.DestructuringPattern;
 
 	get computed(): boolean {
 		return isFlagSet(this.flags, Flag.computed);
@@ -122,7 +118,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 					args: interaction.args,
 					type: INTERACTION_CALLED,
 					withNew: false
-				},
+				} as NodeInteractionCalled,
 				context
 			);
 		}
@@ -159,5 +155,5 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	}
 }
 
-MethodBase.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
-MethodBase.prototype.applyDeoptimizations = doNotDeoptimize;
+PropertyBase.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
+PropertyBase.prototype.applyDeoptimizations = doNotDeoptimize;

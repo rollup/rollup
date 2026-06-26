@@ -1,19 +1,21 @@
 import MagicString, { SourceMap } from 'magic-string';
+import { parseAsync } from '../../native';
 import type Module from '../Module';
 import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingRawSourceMap,
 	LoggingFunctionWithPosition,
+	ModuleSource,
 	NormalizedInputOptions,
 	Plugin,
 	PluginContext,
 	RollupError,
 	SourceDescription,
-	TransformModuleJSON,
 	TransformPluginContext,
 	TransformResult
 } from '../rollup/types';
+import { serializeAst } from './astToBuffer';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { LOGLEVEL_WARN } from './logging';
@@ -35,7 +37,7 @@ export default async function transform(
 	module: Module,
 	pluginDriver: PluginDriver,
 	options: NormalizedInputOptions
-): Promise<TransformModuleJSON> {
+): Promise<ModuleSource> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
@@ -182,11 +184,13 @@ export default async function transform(
 	if (
 		!customTransformCache && // files emitted by a transform hook need to be emitted again if the hook is skipped
 		emittedFiles.length > 0
-	)
+	) {
 		module.transformFiles = emittedFiles;
+	}
+	const astBuffer = ast ? serializeAst(ast) : await parseAsync(code, false, options.jsx !== false);
 
 	return {
-		ast,
+		astBuffer,
 		code,
 		customTransformCache,
 		originalCode,
