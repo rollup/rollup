@@ -1,5 +1,6 @@
 import type { NodeInteractionCalled } from '../NodeInteractions';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import { type ExpressionEntity } from '../nodes/shared/Expression';
+import { MultiExpression } from '../nodes/shared/MultiExpression';
 import SpreadElement from '../nodes/SpreadElement';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
@@ -50,8 +51,14 @@ export default class ReturnValueScope extends ParameterScope {
 	}
 
 	getReturnExpression(): ExpressionEntity {
-		if (this.returnExpression === null) this.updateReturnExpression();
-		return this.returnExpression!;
+		if (!this.returnExpression) {
+			this.returnExpression =
+				this.returnExpressions.length === 1
+					? this.returnExpressions[0]
+					: new MultiExpression(this.returnExpressions);
+		}
+
+		return this.returnExpression;
 	}
 
 	deoptimizeAllParameters() {
@@ -72,15 +79,4 @@ export default class ReturnValueScope extends ParameterScope {
 	}
 
 	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}
-
-	private updateReturnExpression() {
-		if (this.returnExpressions.length === 1) {
-			this.returnExpression = this.returnExpressions[0];
-		} else {
-			this.returnExpression = UNKNOWN_EXPRESSION;
-			for (const expression of this.returnExpressions) {
-				expression.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
-	}
 }

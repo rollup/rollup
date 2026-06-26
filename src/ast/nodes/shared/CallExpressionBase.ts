@@ -55,17 +55,15 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	}
 
 	deoptimizeCache(): void {
-		if (this.returnExpression?.[0] !== UNKNOWN_EXPRESSION) {
-			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
-			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
-			this.expressionsToBeDeoptimized = EMPTY_SET;
-			this.deoptimizableDependentExpressions = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-			for (const expression of deoptimizableDependentExpressions) {
-				expression.deoptimizeCache();
-			}
-			for (const expression of expressionsToBeDeoptimized) {
-				expression.deoptimizePath(UNKNOWN_PATH);
-			}
+		this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
+		const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
+		this.expressionsToBeDeoptimized = EMPTY_SET;
+		this.deoptimizableDependentExpressions = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+		for (const expression of deoptimizableDependentExpressions) {
+			expression.deoptimizeCache();
+		}
+		for (const expression of expressionsToBeDeoptimized) {
+			expression.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
@@ -96,7 +94,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 			returnExpression,
 			() => {
 				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+				return returnExpression.getLiteralValueAtPath(path, recursionTracker, this);
 			},
 			UnknownValue
 		);
