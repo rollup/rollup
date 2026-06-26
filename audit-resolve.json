@@ -27,13 +27,13 @@
     },
     "1119440|@rollup/plugin-terser>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1779422100990,
-      "expiresAt": 1782014081308
+      "madeAt": 1782446946760,
+      "expiresAt": 1785038919323
     },
     "1119440|mocha>diff>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1779422100990,
-      "expiresAt": 1782014081308
+      "madeAt": 1782446946760,
+      "expiresAt": 1785038919323
     },
     "1119441|nyc>istanbul-lib-processinfo>uuid": {
       "decision": "ignore",
