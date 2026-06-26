@@ -58,7 +58,7 @@ export default function iife(
 	warnOnBuiltins(log, dependencies);
 
 	const external = trimEmptyImports(dependencies);
-	const deps = external.map(dep => dep.globalName || 'null');
+	const deps = external.map(dependency => dependency.globalName || 'null');
 	const parameters = external.map(m => m.name);
 
 	if (hasExports && !name) {

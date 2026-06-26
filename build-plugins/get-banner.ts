@@ -32,5 +32,5 @@ export default function getBanner(): Promise<string> {
 				return 'unknown';
 			}),
 		readFile(new URL('../package.json', import.meta.url), 'utf8')
-	]).then(([commit, package_]) => generateBanner(commit, JSON.parse(package_).version)));
+	]).then(([commit, pkg]) => generateBanner(commit, JSON.parse(pkg).version)));
 }

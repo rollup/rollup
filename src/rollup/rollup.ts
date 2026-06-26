@@ -1,4 +1,4 @@
-import package_ from '../../package.json' with { type: 'json' };
+import pkg from '../../package.json' with { type: 'json' };
 import Bundle from '../Bundle';
 import Graph from '../Graph';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
@@ -37,7 +37,8 @@ import type {
 	RollupOutput,
 	RollupWatcher
 } from './types';
-const rollupVersion = package_.version;
+
+const rollupVersion = pkg.version;
 
 // @ts-expect-error TS2540: the polyfill of `asyncDispose`.
 Symbol.asyncDispose ??= Symbol('Symbol.asyncDispose');

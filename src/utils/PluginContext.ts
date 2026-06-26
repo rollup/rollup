@@ -1,4 +1,4 @@
-import package_ from '../../package.json' with { type: 'json' };
+import pkg from '../../package.json' with { type: 'json' };
 import type Graph from '../Graph';
 import type {
 	NormalizedInputOptions,
@@ -16,7 +16,8 @@ import { normalizeLog } from './options/options';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginNames';
-const rollupVersion = package_.version;
+
+const rollupVersion = pkg.version;
 
 export function getPluginContext(
 	plugin: Plugin,

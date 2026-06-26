@@ -77,13 +77,13 @@ export default function umd(
 	throwOnPhase('umd', id, dependencies);
 	warnOnBuiltins(log, dependencies);
 
-	const amdDeps = dependencies.map(
+	const amdDependencies = dependencies.map(
 		m => `'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`
 	);
-	const cjsDeps = dependencies.map(m => `require('${m.importPath}')`);
+	const cjsDependencies = dependencies.map(m => `require('${m.importPath}')`);
 
 	const trimmedImports = trimEmptyImports(dependencies);
-	const globalDeps = trimmedImports.map(module =>
+	const globalDependencies = trimmedImports.map(module =>
 		globalProperty(module.globalName, globalVariable, getPropertyAccess)
 	);
 	const factoryParameters = trimmedImports.map(m => m.name);
@@ -92,9 +92,9 @@ export default function umd(
 		(hasExports || noConflict) &&
 		(namedExportsMode || (hasExports && exports[0]?.local === 'exports.default'))
 	) {
-		amdDeps.unshift(`'exports'`);
-		cjsDeps.unshift(`exports`);
-		globalDeps.unshift(
+		amdDependencies.unshift(`'exports'`);
+		cjsDependencies.unshift(`exports`);
+		globalDependencies.unshift(
 			assignToDeepVariable(
 				name!,
 				globalVariable,
@@ -113,7 +113,7 @@ export default function umd(
 	const completeAmdId = getCompleteAmdId(amd, id);
 	const amdParameters =
 		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
-		(amdDeps.length > 0 ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
+		(amdDependencies.length > 0 ? `[${amdDependencies.join(`,${_}`)}],${_}` : ``);
 
 	const define = amd.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
@@ -130,15 +130,15 @@ export default function umd(
 				name!,
 				globalVariable,
 				globals,
-				`${factoryVariable}(${globalDeps.join(`,${_}`)})`,
+				`${factoryVariable}(${globalDependencies.join(`,${_}`)})`,
 				snippets,
 				log
 			)};`;
 		} else {
-			const module = globalDeps.shift();
+			const module = globalDependencies.shift();
 			factory =
 				`${cnst} ${noConflictExportsVariable}${_}=${_}${module};${n}` +
-				`${t}${t}${factoryVariable}(${[noConflictExportsVariable, ...globalDeps].join(`,${_}`)});`;
+				`${t}${t}${factoryVariable}(${[noConflictExportsVariable, ...globalDependencies].join(`,${_}`)});`;
 		}
 		iifeExport =
 			`(${getFunctionIntro([], { isAsync: false, name: null })}{${n}` +
@@ -155,13 +155,14 @@ export default function umd(
 			)}${_}=${_}current;${_}return ${noConflictExportsVariable}${s}${_}};${n}` +
 			`${t}})()`;
 	} else {
-		iifeExport = `${factoryVariable}(${globalDeps.join(`,${_}`)})`;
+		iifeExport = `${factoryVariable}(${globalDependencies.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
 			iifeExport = assignToDeepVariable(name!, globalVariable, globals, iifeExport, snippets, log);
 		}
 	}
 
-	const iifeNeedsGlobal = hasExports || (noConflict && namedExportsMode) || globalDeps.length > 0;
+	const iifeNeedsGlobal =
+		hasExports || (noConflict && namedExportsMode) || globalDependencies.length > 0;
 	const wrapperParameters: string[] = [factoryVariable];
 	if (iifeNeedsGlobal) {
 		wrapperParameters.unshift(globalVariable);
@@ -173,7 +174,7 @@ export default function umd(
 	const iifeEnd = iifeNeedsGlobal ? ')' : '';
 	const cjsIntro = iifeNeedsGlobal
 		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
-			`${_}${cjsExport}${factoryVariable}(${cjsDeps.join(`,${_}`)})${_}:${n}`
+			`${_}${cjsExport}${factoryVariable}(${cjsDependencies.join(`,${_}`)})${_}:${n}`
 		: '';
 
 	const wrapperIntro =

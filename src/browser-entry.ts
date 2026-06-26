@@ -1,4 +1,4 @@
-import package_ from '../package.json' with { type: 'json' };
+import pkg from '../package.json' with { type: 'json' };
 
-export const VERSION = package_.version;
+export const VERSION = pkg.version;
 export { defineConfig, default as rollup } from './rollup/rollup';

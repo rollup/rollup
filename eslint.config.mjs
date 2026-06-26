@@ -107,6 +107,18 @@ export default tseslint.config(
 			],
 			'unicorn/consistent-destructuring': 'off',
 			'unicorn/filename-case': 'off',
+			'unicorn/name-replacements': [
+				'error',
+				{
+					replacements: {
+						cmd: false,
+						deps: false,
+						dir: false,
+						pkg: false,
+						proto: false
+					}
+				}
+			],
 			'unicorn/no-array-callback-reference': 'off',
 			'unicorn/no-array-reduce': 'off',
 			'unicorn/no-await-expression-member': 'off',
@@ -124,15 +136,7 @@ export default tseslint.config(
 			'unicorn/prefer-string-raw': 'off',
 			'unicorn/prefer-string-replace-all': 'off',
 			'unicorn/prefer-structured-clone': 'off',
-			'unicorn/prefer-top-level-await': 'off',
-			'unicorn/prevent-abbreviations': [
-				'error',
-				{
-					replacements: {
-						dir: false
-					}
-				}
-			]
+			'unicorn/prefer-top-level-await': 'off'
 		}
 	},
 	{
@@ -171,6 +175,7 @@ export default tseslint.config(
 		files: ['docs/repl/examples/**/*.js'],
 		rules: {
 			'no-undef': 'off',
+			'unicorn/name-replacements': 'off',
 			'unicorn/prevent-abbreviations': 'off'
 		}
 	},

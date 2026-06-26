@@ -251,8 +251,8 @@ export class Task {
 			this.watchFile(id);
 		}
 		for (const module of this.cache.modules) {
-			for (const depId of module.transformDependencies) {
-				this.watchFile(depId, true);
+			for (const dependencyId of module.transformDependencies) {
+				this.watchFile(dependencyId, true);
 			}
 		}
 		for (const id of previouslyWatched) {
