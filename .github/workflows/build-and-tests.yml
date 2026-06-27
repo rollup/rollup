@@ -203,6 +203,10 @@ jobs:
             target: aarch64-unknown-freebsd
             cross: cross
             build-std: true
+          - host: ubuntu-latest
+            target: powerpc64le-unknown-freebsd
+            cross: cross
+            build-std: true
 
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
