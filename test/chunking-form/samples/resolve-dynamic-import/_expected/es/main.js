@@ -12,9 +12,7 @@ import('to-indirect-absolute-external');
 
 console.log('existing');
 
-var existing = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var existing = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 //main
 Promise.resolve().then(function () { return existing; });
