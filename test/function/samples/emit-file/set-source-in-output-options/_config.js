@@ -20,6 +20,7 @@ module.exports = defineTest({
 		hook: 'outputOptions',
 		message:
 			'[plugin at position 1] Cannot emit files or set asset sources in the "outputOptions" hook, use the "renderStart" hook instead.',
+		originalMessage: 'Cannot emit files or set asset sources in the "outputOptions" hook, use the "renderStart" hook instead.',
 		plugin: 'at position 1',
 		pluginCode: 'CANNOT_EMIT_FROM_OPTIONS_HOOK'
 	}

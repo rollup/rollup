@@ -49,12 +49,66 @@ module.exports = defineTest({
 	},
 	after() {
 		assert.deepEqual(logs, [
-			['second', 'info', { message: '[plugin first] first', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['first', 'info', { message: '[plugin first] first', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['second', 'info', { message: '[plugin first] second', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['second', 'info', { message: '[plugin first] third', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['first', 'info', { message: '[plugin first] third', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['third', 'info', { message: '[plugin first] third', code: 'PLUGIN_LOG', plugin: 'first' }]
+			[
+				'second',
+				'info',
+				{
+					message: '[plugin first] first',
+					originalMessage: 'first',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
+			],
+			[
+				'first',
+				'info',
+				{
+					message: '[plugin first] first',
+					originalMessage: 'first',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
+			],
+			[
+				'second',
+				'info',
+				{
+					message: '[plugin first] second',
+					originalMessage: 'second',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
+			],
+			[
+				'second',
+				'info',
+				{
+					message: '[plugin first] third',
+					originalMessage: 'third',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
+			],
+			[
+				'first',
+				'info',
+				{
+					message: '[plugin first] third',
+					originalMessage: 'third',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
+			],
+			[
+				'third',
+				'info',
+				{
+					message: '[plugin first] third',
+					originalMessage: 'third',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
+			]
 		]);
 	},
 	logs: []

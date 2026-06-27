@@ -6,6 +6,7 @@ module.exports = defineTest({
 	error: {
 		code: 'DUPLICATE_ARGUMENT_NAME',
 		message: 'main.js (1:15): Duplicate argument name "a"',
+		originalMessage: 'Duplicate argument name "a"',
 		id: ID_MAIN,
 		pos: 15,
 		watchFiles: [ID_MAIN],

@@ -17,6 +17,7 @@ module.exports = defineTest({
 				line: 2
 			},
 			message: 'main.js (2:0): Cannot reassign a variable declared with `const`',
+			originalMessage: 'Cannot reassign a variable declared with `const`',
 			pos: 15
 		}
 	],

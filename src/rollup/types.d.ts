@@ -48,6 +48,7 @@ export interface RollupLog {
 		line: number;
 	};
 	message: string;
+	originalMessage?: string | undefined;
 	meta?: any | undefined;
 	names?: string[] | undefined;
 	plugin?: string | undefined;

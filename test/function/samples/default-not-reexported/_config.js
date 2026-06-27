@@ -10,6 +10,7 @@ module.exports = defineTest({
 		code: 'MISSING_EXPORT',
 		exporter: ID_FOO,
 		message: 'main.js (1:7): "default" is not exported by "foo.js", imported by "main.js".',
+		originalMessage: '"default" is not exported by "foo.js", imported by "main.js".',
 		id: ID_MAIN,
 		pos: 7,
 		watchFiles: [ID_BAR, ID_FOO, ID_MAIN],

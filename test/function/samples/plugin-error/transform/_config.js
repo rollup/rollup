@@ -16,6 +16,7 @@ module.exports = defineTest({
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
 		message: '[plugin test] main.js (1:22): nope',
+		originalMessage: 'nope',
 		hook: 'transform',
 		id: path.join(__dirname, 'main.js'),
 		watchFiles: [path.join(__dirname, 'main.js')],

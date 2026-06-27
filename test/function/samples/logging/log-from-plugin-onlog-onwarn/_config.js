@@ -17,6 +17,7 @@ module.exports = defineTest({
 				'warn',
 				{
 					message: '[plugin test] warnLog',
+					originalMessage: 'warnLog',
 					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
 					meta: { test: 'foo' },
@@ -29,6 +30,7 @@ module.exports = defineTest({
 				'warn',
 				{
 					message: '[plugin test] warnLog',
+					originalMessage: 'warnLog',
 					code: 'PLUGIN_WARNING',
 					pluginCode: 'PLUGIN_CODE',
 					plugin: 'test'
@@ -39,6 +41,7 @@ module.exports = defineTest({
 				'warn',
 				{
 					message: '[plugin test] warnLog',
+					originalMessage: 'warnLog',
 					code: 'PLUGIN_WARNING',
 					pluginCode: 'THE_CODE',
 					plugin: 'test'
@@ -47,18 +50,29 @@ module.exports = defineTest({
 			[
 				'onLog',
 				'warn',
-				{ message: '[plugin test] warnLog', code: 'PLUGIN_WARNING', plugin: 'test' }
+				{
+					message: '[plugin test] warnLog',
+					originalMessage: 'warnLog',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
 			],
 			[
 				'onLog',
 				'warn',
-				{ message: '[plugin test] warnString', code: 'PLUGIN_WARNING', plugin: 'test' }
+				{
+					message: '[plugin test] warnString',
+					originalMessage: 'warnString',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
 			],
 			[
 				'onLog',
 				'info',
 				{
 					message: '[plugin test] infoLog',
+					originalMessage: 'infoLog',
 					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
 					code: 'PLUGIN_LOG',
@@ -68,13 +82,19 @@ module.exports = defineTest({
 			[
 				'onLog',
 				'info',
-				{ message: '[plugin test] infoString', code: 'PLUGIN_LOG', plugin: 'test' }
+				{
+					message: '[plugin test] infoString',
+					originalMessage: 'infoString',
+					code: 'PLUGIN_LOG',
+					plugin: 'test'
+				}
 			],
 			[
 				'onLog',
 				'debug',
 				{
 					message: '[plugin test] debugLog',
+					originalMessage: 'debugLog',
 					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
 					code: 'PLUGIN_LOG',
@@ -84,7 +104,12 @@ module.exports = defineTest({
 			[
 				'onLog',
 				'debug',
-				{ message: '[plugin test] debugString', code: 'PLUGIN_LOG', plugin: 'test' }
+				{
+					message: '[plugin test] debugString',
+					originalMessage: 'debugString',
+					code: 'PLUGIN_LOG',
+					plugin: 'test'
+				}
 			]
 		]);
 	},

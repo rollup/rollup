@@ -21,12 +21,41 @@ module.exports = defineTest({
 			['console-info', 'onLogOption-info'],
 			['console-warn', 'onLogOption-warn'],
 			['warn', { message: 'onLog-warn' }],
-			['info', { message: '[plugin test] options-info', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['warn', { message: '[plugin test] options-warn', code: 'PLUGIN_WARNING', plugin: 'test' }],
-			['info', { message: '[plugin test] buildStart-info', code: 'PLUGIN_LOG', plugin: 'test' }],
+			[
+				'info',
+				{
+					message: '[plugin test] options-info',
+					originalMessage: 'options-info',
+					code: 'PLUGIN_LOG',
+					plugin: 'test'
+				}
+			],
 			[
 				'warn',
-				{ message: '[plugin test] buildStart-warn', code: 'PLUGIN_WARNING', plugin: 'test' }
+				{
+					message: '[plugin test] options-warn',
+					originalMessage: 'options-warn',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
+			],
+			[
+				'info',
+				{
+					message: '[plugin test] buildStart-info',
+					originalMessage: 'buildStart-info',
+					code: 'PLUGIN_LOG',
+					plugin: 'test'
+				}
+			],
+			[
+				'warn',
+				{
+					message: '[plugin test] buildStart-warn',
+					originalMessage: 'buildStart-warn',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
 			],
 			['info', { message: 'buildStart-options-info' }],
 			['warn', { message: 'buildStart-options-warn' }],
@@ -34,6 +63,7 @@ module.exports = defineTest({
 				'info',
 				{
 					message: '[plugin test] main.js: transform-info',
+					originalMessage: 'transform-info',
 					id: ID_MAIN,
 					hook: 'transform',
 					code: 'PLUGIN_LOG',
@@ -44,6 +74,7 @@ module.exports = defineTest({
 				'warn',
 				{
 					message: '[plugin test] main.js: transform-warn',
+					originalMessage: 'transform-warn',
 					id: ID_MAIN,
 					hook: 'transform',
 					code: 'PLUGIN_WARNING',
@@ -57,6 +88,8 @@ module.exports = defineTest({
 					id: ID_MAIN,
 					message:
 						'main.js (1:0): Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+					originalMessage:
+						'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
 					url: 'https://rollupjs.org/troubleshooting/#avoiding-eval',
 					pos: 0,
 					loc: {

@@ -19,16 +19,30 @@ module.exports = defineTest({
 		assert.deepEqual(logs, [
 			['warn', { message: 'onLog-warn' }],
 			['console-warn', 'onLogOption-warn'],
-			['warn', { message: '[plugin test] options-warn', code: 'PLUGIN_WARNING', plugin: 'test' }],
 			[
 				'warn',
-				{ message: '[plugin test] buildStart-warn', code: 'PLUGIN_WARNING', plugin: 'test' }
+				{
+					message: '[plugin test] options-warn',
+					originalMessage: 'options-warn',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
+			],
+			[
+				'warn',
+				{
+					message: '[plugin test] buildStart-warn',
+					originalMessage: 'buildStart-warn',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
 			],
 			['warn', { message: 'buildStart-options-warn' }],
 			[
 				'warn',
 				{
 					message: '[plugin test] main.js: transform-warn',
+					originalMessage: 'transform-warn',
 					id: ID_MAIN,
 					hook: 'transform',
 					code: 'PLUGIN_WARNING',
@@ -42,6 +56,8 @@ module.exports = defineTest({
 					id: ID_MAIN,
 					message:
 						'main.js (1:0): Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+					originalMessage:
+						'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
 					url: 'https://rollupjs.org/troubleshooting/#avoiding-eval',
 					pos: 0,
 					loc: {

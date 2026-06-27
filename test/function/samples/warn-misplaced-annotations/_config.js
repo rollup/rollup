@@ -9,6 +9,7 @@ module.exports = defineTest({
 			id: ID_MAIN,
 			message:
 				'main.js (2:0): A comment\n\n"/*@__NO_SIDE_EFFECTS__*/"\n\nin "main.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.',
+			originalMessage: 'A comment\n\n"/*@__NO_SIDE_EFFECTS__*/"\n\nin "main.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.',
 			url: 'https://rollupjs.org/configuration-options/#no-side-effects',
 			pos: 45,
 			loc: {
@@ -28,6 +29,7 @@ module.exports = defineTest({
 			id: ID_MAIN,
 			message:
 				'main.js (4:0): A comment\n\n"/*@__NO_SIDE_EFFECTS__*/"\n\nin "main.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.',
+			originalMessage: 'A comment\n\n"/*@__NO_SIDE_EFFECTS__*/"\n\nin "main.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.',
 			url: 'https://rollupjs.org/configuration-options/#no-side-effects',
 			pos: 113,
 			loc: {
@@ -46,6 +48,7 @@ module.exports = defineTest({
 			id: ID_MAIN,
 			message:
 				'main.js (1:0): A comment\n\n"/*@__PURE__*/"\n\nin "main.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.',
+			originalMessage: 'A comment\n\n"/*@__PURE__*/"\n\nin "main.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.',
 			url: 'https://rollupjs.org/configuration-options/#pure',
 			pos: 0,
 			loc: {

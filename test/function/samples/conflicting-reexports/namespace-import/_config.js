@@ -21,6 +21,7 @@ module.exports = defineTest({
 			exporter: ID_REEXPORT,
 			id: ID_MAIN,
 			message: 'main.js (4:22): "foo" is not exported by "reexport.js", imported by "main.js".',
+			originalMessage: '"foo" is not exported by "reexport.js", imported by "main.js".',
 			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module',
 			pos: 125,
 			loc: {

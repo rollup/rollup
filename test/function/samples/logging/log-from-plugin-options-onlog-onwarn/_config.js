@@ -20,6 +20,7 @@ module.exports = defineTest({
 				'warn',
 				{
 					message: '[plugin fooPlugin] fooFile (1:2): warnLog',
+					originalMessage: 'warnLog',
 					plugin: 'fooPlugin',
 					loc: { file: 'fooFile', line: 1, column: 2 }
 				}
@@ -28,6 +29,7 @@ module.exports = defineTest({
 				'onwarn',
 				{
 					message: '[plugin fooPlugin] fooFile (1:2): warnLog',
+					originalMessage: 'warnLog',
 					plugin: 'fooPlugin',
 					loc: { file: 'fooFile', line: 1, column: 2 }
 				}

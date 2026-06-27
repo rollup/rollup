@@ -17,6 +17,7 @@ module.exports = defineTest({
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
 		message: '[plugin test] test log',
+		originalMessage: 'test log',
 		plugin: 'test',
 		pluginCode: 'THE_CODE'
 	}

@@ -35,6 +35,7 @@ module.exports = defineTest({
 			},
 			message:
 				"main.js (1:0): The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
+			originalMessage: "The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 			pos: 15,
 			url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined'
 		}

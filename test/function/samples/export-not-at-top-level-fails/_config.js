@@ -24,6 +24,7 @@ module.exports = defineTest({
 			3: }
 		`,
 		watchFiles: [ID_MAIN],
-		message: "main.js (2:2): 'import', and 'export' cannot be used outside of module code"
+		message: "main.js (2:2): 'import', and 'export' cannot be used outside of module code",
+		originalMessage: "'import', and 'export' cannot be used outside of module code",
 	}
 });

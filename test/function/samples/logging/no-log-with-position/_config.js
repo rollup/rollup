@@ -57,18 +57,44 @@ module.exports = defineTest({
 		{
 			level: 'warn',
 			message: '[plugin test] log-message1',
+			originalMessage: 'log-message1',
 			code: 'PLUGIN_WARNING',
 			plugin: 'test'
 		},
 		{
 			level: 'warn',
 			message: '[plugin test] log-message1',
+			originalMessage: 'log-message1',
 			code: 'PLUGIN_WARNING',
 			plugin: 'test'
 		},
-		{ level: 'info', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
-		{ level: 'info', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
-		{ level: 'debug', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
-		{ level: 'debug', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' }
+		{
+			level: 'info',
+			message: '[plugin test] log-message1',
+			originalMessage: 'log-message1',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		},
+		{
+			level: 'info',
+			message: '[plugin test] log-message1',
+			originalMessage: 'log-message1',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		},
+		{
+			level: 'debug',
+			message: '[plugin test] log-message1',
+			originalMessage: 'log-message1',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		},
+		{
+			level: 'debug',
+			message: '[plugin test] log-message1',
+			originalMessage: 'log-message1',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		}
 	]
 });

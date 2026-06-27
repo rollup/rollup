@@ -7,6 +7,7 @@ module.exports = defineTest({
 	error: {
 		code: 'DUPLICATE_EXPORT',
 		message: 'foo.js (3:9): Duplicate export "foo"',
+		originalMessage: 'Duplicate export "foo"',
 		id: ID_FOO,
 		pos: 38,
 		watchFiles: [ID_FOO, ID_MAIN],

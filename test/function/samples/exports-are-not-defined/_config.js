@@ -24,7 +24,8 @@ module.exports = defineTest({
 		`,
 		watchFiles: [ID_MAIN, ID_MODULE],
 		message:
-			'main.js (1:9): Exported variable "foo" is not defined in "module.js", but it is imported by "main.js".'
+			'main.js (1:9): Exported variable "foo" is not defined in "module.js", but it is imported by "main.js".',
+		originalMessage: 'Exported variable "foo" is not defined in "module.js", but it is imported by "main.js".',
 	},
 	verifyAst: false
 });

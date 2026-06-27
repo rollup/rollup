@@ -20,6 +20,7 @@ module.exports = defineTest({
 			1: export { foo as bar } from './empty.js';
 			            ^`,
 		watchFiles: [ID_EMPTY, ID_MAIN],
-		message: 'main.js (1:9): "foo" is not exported by "empty.js", imported by "main.js".'
+		message: 'main.js (1:9): "foo" is not exported by "empty.js", imported by "main.js".',
+		originalMessage: '"foo" is not exported by "empty.js", imported by "main.js".',
 	}
 });

@@ -12,6 +12,7 @@ module.exports = defineTest({
 		hook: 'outputOptions',
 		message:
 			'[plugin at position 1] Error running plugin hook "outputOptions" for plugin "at position 1", expected a function hook or an object with a "handler" function.',
+		originalMessage: 'Error running plugin hook "outputOptions" for plugin "at position 1", expected a function hook or an object with a "handler" function.',
 		plugin: 'at position 1'
 	}
 });

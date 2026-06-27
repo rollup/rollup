@@ -9,6 +9,7 @@ module.exports = defineTest({
 			id: ID_MAIN,
 			message:
 				'main.js (1:0): Module level directives cause errors when bundled, "use asm" in "main.js" was ignored.',
+			originalMessage: 'Module level directives cause errors when bundled, "use asm" in "main.js" was ignored.',
 			pos: 0,
 			loc: {
 				column: 0,

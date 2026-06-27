@@ -14,6 +14,7 @@ module.exports = defineTest({
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
 		message: '[plugin test] nope',
+		originalMessage: 'nope',
 		hook: 'buildEnd'
 	}
 });

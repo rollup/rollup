@@ -26,6 +26,7 @@ module.exports = defineTest({
 		},
 		message:
 			'main.js (2:12): Export "jsx" is not defined in module "react-jsx.js" even though it is needed in "main.js" to provide JSX syntax. Please check your "jsx" option.',
+		originalMessage: 'Export "jsx" is not defined in module "react-jsx.js" even though it is needed in "main.js" to provide JSX syntax. Please check your "jsx" option.',
 		names: ['jsx'],
 		pos: 34,
 		url: 'https://rollupjs.org/configuration-options/#jsx',

@@ -62,12 +62,22 @@ module.exports = defineTest({
 			[
 				'first',
 				'info',
-				{ message: '[plugin first] passed to both plugins', code: 'PLUGIN_LOG', plugin: 'first' }
+				{
+					message: '[plugin first] passed to both plugins',
+					originalMessage: 'passed to both plugins',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
 			],
 			[
 				'second',
 				'info',
-				{ message: '[plugin first] passed to both plugins', code: 'PLUGIN_LOG', plugin: 'first' }
+				{
+					message: '[plugin first] passed to both plugins',
+					originalMessage: 'passed to both plugins',
+					code: 'PLUGIN_LOG',
+					plugin: 'first'
+				}
 			],
 			[
 				'first',
@@ -76,6 +86,8 @@ module.exports = defineTest({
 					code: 'THIS_IS_UNDEFINED',
 					message:
 						"main.js (2:5): The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
+					originalMessage:
+						"The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 					url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined',
 					id: ID_MAIN,
 					pos: 24,
@@ -94,6 +106,8 @@ module.exports = defineTest({
 					code: 'THIS_IS_UNDEFINED',
 					message:
 						"main.js (2:5): The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
+					originalMessage:
+						"The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 					url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined',
 					id: ID_MAIN,
 					pos: 24,
@@ -149,6 +163,8 @@ module.exports = defineTest({
 					id: ID_MAIN,
 					message:
 						'main.js (2:0): Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+					originalMessage:
+						'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
 					url: 'https://rollupjs.org/troubleshooting/#avoiding-eval',
 					pos: 19,
 					loc: {
@@ -194,6 +210,8 @@ module.exports = defineTest({
 			code: 'THIS_IS_UNDEFINED',
 			message:
 				"main.js (2:5): The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
+			originalMessage:
+				"The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 			url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined',
 			id: ID_MAIN,
 			pos: 24,
@@ -210,6 +228,7 @@ module.exports = defineTest({
 		{
 			level: 'info',
 			message: '[plugin first] passed to both plugins',
+			originalMessage: 'passed to both plugins',
 			code: 'PLUGIN_LOG',
 			plugin: 'first'
 		}

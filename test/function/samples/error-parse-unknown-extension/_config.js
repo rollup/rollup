@@ -27,6 +27,7 @@ module.exports = defineTest({
 		`,
 		watchFiles: [ID_CSS, ID_MAIN],
 		message:
-			'file.css (1:0): Expression expected (Note that you need plugins to import files that are not JavaScript)'
+			'file.css (1:0): Expression expected (Note that you need plugins to import files that are not JavaScript)',
+		originalMessage: 'Expression expected (Note that you need plugins to import files that are not JavaScript)',
 	}
 });

@@ -28,6 +28,7 @@ module.exports = defineTest({
 			},
 			message:
 				'main.js (12:15): "NON_EXISTENT" is not exported by "constants.js", imported by "main.js".',
+			originalMessage: '"NON_EXISTENT" is not exported by "constants.js", imported by "main.js".',
 			pos: 111,
 			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module'
 		}

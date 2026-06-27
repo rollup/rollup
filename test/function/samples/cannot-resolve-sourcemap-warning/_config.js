@@ -27,6 +27,7 @@ module.exports = defineTest({
 			},
 			message:
 				"main.js (1:15): Error when using sourcemap for reporting an error: Can't resolve original location of error.",
+			originalMessage: "Error when using sourcemap for reporting an error: Can't resolve original location of error.",
 			pos: 15
 		},
 		{
@@ -43,6 +44,7 @@ module.exports = defineTest({
 			},
 			message:
 				"main.js (1:15): The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
+			originalMessage: "The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 			pos: 15,
 			url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined'
 		}

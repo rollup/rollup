@@ -96,6 +96,7 @@ export function augmentLogMessage(log: AugmentedRollupLog): void {
 		prefix += `${relativeId(id)}${position}: `;
 	}
 	const oldMessage = log.message;
+	log.originalMessage ??= log.message;
 	log.message = prefix + log.message;
 	tweakStackMessage(log, oldMessage);
 }

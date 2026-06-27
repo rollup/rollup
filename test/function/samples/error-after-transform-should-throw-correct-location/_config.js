@@ -39,6 +39,7 @@ module.exports = defineTest({
 			3: Object.assign({}, a);
 		`,
 		watchFiles: [ID_EMPTY, ID_MAIN],
-		message: 'main.js (1:7): "default" is not exported by "empty.js", imported by "main.js".'
+		message: 'main.js (1:7): "default" is not exported by "empty.js", imported by "main.js".',
+		originalMessage: '"default" is not exported by "empty.js", imported by "main.js".',
 	}
 });
