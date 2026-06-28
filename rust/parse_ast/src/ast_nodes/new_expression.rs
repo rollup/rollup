@@ -4,12 +4,13 @@ use swc_ecma_ast::NewExpr;
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   NEW_EXPRESSION_ANNOTATIONS_OFFSET, NEW_EXPRESSION_ARGUMENTS_OFFSET, NEW_EXPRESSION_CALLEE_OFFSET,
-  NEW_EXPRESSION_RESERVED_BYTES, TYPE_NEW_EXPRESSION,
+  NEW_EXPRESSION_RESERVED_BYTES, NODE_TYPE_ID_NEW_EXPRESSION, TYPE_NEW_EXPRESSION,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
 impl AstConverter<'_> {
   pub(crate) fn store_new_expression(&mut self, new_expression: &NewExpr) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_NEW_EXPRESSION>();
     let end_position = self.add_type_and_start(
       &TYPE_NEW_EXPRESSION,
       &new_expression.span,
@@ -48,5 +49,6 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, &new_expression.span);
+    self.on_node_exit(walk_entry);
   }
 }
