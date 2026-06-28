@@ -4,7 +4,8 @@ use swc_ecma_ast::{Expr, ExprOrSpread, OptCall, Super};
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   CALL_EXPRESSION_ANNOTATIONS_OFFSET, CALL_EXPRESSION_ARGUMENTS_OFFSET,
-  CALL_EXPRESSION_CALLEE_OFFSET, CALL_EXPRESSION_RESERVED_BYTES, TYPE_CALL_EXPRESSION,
+  CALL_EXPRESSION_CALLEE_OFFSET, CALL_EXPRESSION_RESERVED_BYTES, NODE_TYPE_ID_CALL_EXPRESSION,
+  TYPE_CALL_EXPRESSION,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_call_expression_flags;
@@ -18,6 +19,7 @@ impl AstConverter<'_> {
     arguments: &[ExprOrSpread],
     is_chained: bool,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_CALL_EXPRESSION>();
     let end_position = self.add_type_and_start(
       &TYPE_CALL_EXPRESSION,
       span,
@@ -68,6 +70,7 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_optional_call(

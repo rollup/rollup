@@ -3,13 +3,14 @@ use swc_ecma_ast::JSXOpeningElement;
 
 use crate::convert_ast::converter::ast_constants::{
   JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET, JSX_OPENING_ELEMENT_NAME_OFFSET,
-  JSX_OPENING_ELEMENT_RESERVED_BYTES, TYPE_JSX_OPENING_ELEMENT,
+  JSX_OPENING_ELEMENT_RESERVED_BYTES, NODE_TYPE_ID_JSX_OPENING_ELEMENT, TYPE_JSX_OPENING_ELEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_jsx_opening_element_flags;
 
 impl AstConverter<'_> {
   pub(crate) fn store_jsx_opening_element(&mut self, jsx_opening_element: &JSXOpeningElement) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_JSX_OPENING_ELEMENT>();
     let end_position = self.add_type_and_start(
       &TYPE_JSX_OPENING_ELEMENT,
       &jsx_opening_element.span,
@@ -39,5 +40,6 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, &jsx_opening_element.span);
+    self.on_node_exit(walk_entry);
   }
 }
