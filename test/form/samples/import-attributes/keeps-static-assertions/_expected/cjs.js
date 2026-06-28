@@ -1,6 +1,6 @@
 'use strict';
 
-var a_type_a_extra_extra = require('a');
+var a_extra_extra_type_a = require('a');
 var b = require('b');
 var c_type_c = require('c');
 var d_type_d = require('d');
@@ -25,7 +25,7 @@ function _interopNamespaceDefault(e) {
 
 var b__namespace = /*#__PURE__*/_interopNamespaceDefault(b);
 
-console.log(a_type_a_extra_extra.a, b__namespace, d);
+console.log(a_extra_extra_type_a.a, b__namespace, d);
 
 Object.defineProperty(exports, "c", {
 	enumerable: true,
