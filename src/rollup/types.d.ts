@@ -5,7 +5,7 @@ export type { ast };
 export const VERSION: string;
 
 // utils
-type NullValue = null | undefined | void;
+export type NullValue = null | undefined | void;
 export type MaybeArray<T> = T | T[];
 type MaybePromise<T> = T | Promise<T>;
 
@@ -93,8 +93,9 @@ export interface SourceMap {
 
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
+export type UniqueModuleId = string | { rawId: string; attributes: Record<string, string> };
+
 export interface ModuleOptions {
-	attributes: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
@@ -121,8 +122,10 @@ export interface ModuleSource {
 }
 
 export interface CachedModule extends ModuleSource, ModuleOptions {
+	attributes: Record<string, string>;
 	dependencies: string[];
 	id: string;
+	rawId: string;
 	resolvedIds: ResolvedIdMap;
 }
 
@@ -155,8 +158,9 @@ export interface EmittedAsset {
 export interface EmittedChunk {
 	fileName?: string | undefined;
 	id: string;
-	implicitlyLoadedAfterOneOf?: string[] | undefined;
-	importer?: string | undefined;
+	attributes?: Record<string, string>;
+	implicitlyLoadedAfterOneOf?: UniqueModuleId[] | undefined;
+	importer?: UniqueModuleId | undefined;
 	name?: string | undefined;
 	preserveSignature?: PreserveEntrySignaturesOption | undefined;
 	type: 'chunk';
@@ -176,6 +180,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 export interface ModuleInfo extends ModuleOptions {
+	attributes: Record<string, string>;
 	ast: ast.Program | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
@@ -194,9 +199,10 @@ export interface ModuleInfo extends ModuleOptions {
 	isEntry: boolean;
 	isExternal: boolean;
 	isIncluded: boolean | null;
+	rawId: string;
 }
 
-export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
+export type GetModuleInfo = (moduleId: UniqueModuleId) => ModuleInfo | null;
 
 // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- this is an interface so that it can be extended by plugins
 export interface CustomPluginOptions {
@@ -281,15 +287,17 @@ export interface PluginContext extends MinimalPluginContext {
 	getWatchFiles: () => string[];
 	info: LoggingFunction;
 	load: (
-		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+		options: {
+			id: UniqueModuleId;
+			resolveDependencies?: boolean;
+		} & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
 	parse: ParseAst;
 	parseAndWalk: ParseAndWalk;
 	resolve: (
 		source: string,
-		importer?: string,
+		importer?: UniqueModuleId,
 		options?: {
-			importerAttributes?: Record<string, string>;
 			attributes?: Record<string, string>;
 			custom?: CustomPluginOptions;
 			isEntry?: boolean;
@@ -322,12 +330,14 @@ export interface HookFilter {
 export interface ResolvedId extends ModuleOptions {
 	external: boolean | 'absolute';
 	id: string;
+	attributes: Record<string, string>;
 	resolvedBy: string;
 }
 
-export type ResolvedIdMap = Record<string, ResolvedId>;
+export type ResolvedIdMap = Record<string, ResolvedId & { rawId: string }>;
 
 export interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
+	attributes?: Record<string, string>;
 	external?: boolean | 'absolute' | 'relative' | undefined;
 	id: string;
 	resolvedBy?: string | undefined;
@@ -343,6 +353,7 @@ export type ResolveIdHook = (
 		attributes: Record<string, string>;
 		custom?: CustomPluginOptions;
 		importerAttributes?: Record<string, string> | undefined;
+		importerRawId?: string;
 		isEntry: boolean;
 	}
 ) => ResolveIdResult;
@@ -354,6 +365,7 @@ export type ShouldTransformCachedModuleHook = (
 		attributes: Record<string, string>;
 		code: string;
 		id: string;
+		rawId: string;
 		meta: CustomPluginOptions;
 		moduleSideEffects: boolean | 'no-treeshake';
 		resolvedSources: ResolvedIdMap;
@@ -364,7 +376,12 @@ export type ShouldTransformCachedModuleHook = (
 export type IsExternal = (
 	source: string,
 	importer: string | undefined,
-	isResolved: boolean
+	isResolved: boolean,
+	options: {
+		attributes?: Record<string, string>;
+		importerRawId?: string;
+		importerAttributes?: Record<string, string>;
+	}
 ) => boolean;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
@@ -377,6 +394,7 @@ export type LoadHook = (
 	// temporarily marked as optional for better Vite type-compatibility
 	options?:
 		| {
+				rawId: string;
 				// unused, temporarily added for better Vite type-compatibility
 				ssr?: boolean | undefined;
 				// temporarily marked as optional for better Vite type-compatibility
@@ -402,6 +420,7 @@ export type TransformHook = (
 	// temporarily marked as optional for better Vite type-compatibility
 	options?:
 		| {
+				rawId: string;
 				// unused, temporarily added for better Vite type-compatibility
 				ssr?: boolean | undefined;
 				// temporarily marked as optional for better Vite type-compatibility
@@ -424,28 +443,34 @@ export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ast.Expression,
 	importer: string,
-	options: { attributes: Record<string, string>; importerAttributes: Record<string, string> }
+	options: {
+		attributes: Record<string, string>;
+		importerRawId: string;
+		importerAttributes: Record<string, string>;
+	}
 ) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,
 	property: string | null,
 	options: {
-		attributes: Record<string, string>;
 		chunkId: string;
 		format: InternalModuleFormat;
 		moduleId: string;
+		moduleRawId: string;
+		moduleAttributes: Record<string, string>;
 	}
 ) => string | NullValue;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
-		attributes: Record<string, string>;
 		chunkId: string;
 		fileName: string;
 		format: InternalModuleFormat;
 		moduleId: string;
+		moduleRawId: string;
+		moduleAttributes: Record<string, string>;
 		referenceId: string;
 		relativePath: string;
 	}
@@ -519,11 +544,14 @@ export interface FunctionPluginHooks {
 			customResolution: string | null;
 			format: InternalModuleFormat;
 			moduleId: string;
+			moduleRawId: string;
+			moduleAttributes: Record<string, string>;
 			targetModuleId: string | null;
+			targetModuleRawId: string | null;
+			targetModuleAttributes: Record<string, string>;
 			chunk: PreRenderedChunkWithFileName;
 			targetChunk: PreRenderedChunkWithFileName | null;
 			getTargetChunkImports: () => DynamicImportTargetChunk[] | null;
-			targetModuleAttributes: Record<string, string>;
 		}
 	) => { left: string; right: string } | NullValue;
 	renderError: (this: PluginContext, error?: Error) => void;
@@ -696,9 +724,11 @@ export type ExternalOption =
 	| (string | RegExp)[]
 	| string
 	| RegExp
-	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | NullValue);
+	| ((...parameters: Parameters<IsExternal>) => boolean | NullValue);
 
-export type GlobalsOption = Record<string, string> | ((name: string) => string);
+export type GlobalsOption =
+	| Record<string, string>
+	| ((name: string, options: { attributes: Record<string, string> }) => string);
 
 export type InputOption = string | string[] | Record<string, string>;
 
@@ -801,7 +831,9 @@ interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
 	preset?: GeneratedCodePreset | undefined;
 }
 
-export type OptionsPaths = Record<string, string> | ((id: string) => string);
+export type OptionsPaths =
+	| Record<string, string>
+	| ((id: string, options: { attributes: Record<string, string> }) => string);
 
 export type InteropType = 'compat' | 'auto' | 'esModule' | 'default' | 'defaultOnly';
 
@@ -992,11 +1024,15 @@ export interface RenderedModule {
 	removedExports: string[];
 	renderedExports: string[];
 	renderedLength: number;
+	rawId: string;
+	attributes: Record<string, string>;
 }
 
 export interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;
+	facadeModuleRawId: string | null;
+	facadeModuleAttributes: Record<string, string>;
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
