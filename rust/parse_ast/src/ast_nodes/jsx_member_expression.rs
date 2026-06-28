@@ -2,12 +2,14 @@ use swc_ecma_ast::JSXMemberExpr;
 
 use crate::convert_ast::converter::ast_constants::{
   JSX_MEMBER_EXPRESSION_OBJECT_OFFSET, JSX_MEMBER_EXPRESSION_PROPERTY_OFFSET,
-  JSX_MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_JSX_MEMBER_EXPRESSION,
+  JSX_MEMBER_EXPRESSION_RESERVED_BYTES, NODE_TYPE_ID_JSX_MEMBER_EXPRESSION,
+  TYPE_JSX_MEMBER_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_jsx_member_expression(&mut self, jsx_member_expression: &JSXMemberExpr) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_JSX_MEMBER_EXPRESSION>();
     let end_position = self.add_type_and_start(
       &TYPE_JSX_MEMBER_EXPRESSION,
       &jsx_member_expression.span,
@@ -25,5 +27,6 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, &jsx_member_expression.span);
+    self.on_node_exit(walk_entry);
   }
 }
