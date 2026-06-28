@@ -570,9 +570,10 @@ jobs:
           source <(cd rust && cargo llvm-cov show-env --sh)
           (cd rust && cargo llvm-cov clean --workspace)
           npm run build:napi
-          npm run build:copy-native
       - name: Build JavaScript
         run: npm run build:cjs
+      - name: Copy native module to dist
+        run: npm run build:copy-native
       - name: Prepare Rust coverage output directory
         run: mkdir -p coverage/profraw
       - name: Run tests with coverage

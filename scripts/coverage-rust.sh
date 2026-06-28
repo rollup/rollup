@@ -12,6 +12,7 @@ mkdir -p coverage/profraw
 
 npm run build:napi:coverage
 npm run build:cjs
+npm run build:copy-native
 # On Linux, the LLVM profiler runtime's atexit handler does not fire for
 # dlopen'd shared libraries, so scripts/coverage-flush.js manually calls
 # flushLlvmCoverage() on process exit.
