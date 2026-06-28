@@ -577,8 +577,9 @@ jobs:
         run: mkdir -p coverage/profraw
       - name: Run tests with coverage
         run: |
-          # Run JS tests with nyc (JS coverage) — the instrumented .node collects Rust coverage
-          npx nyc --reporter lcovonly mocha test/test.js
+          # Run JS tests with nyc (JS coverage) — the instrumented .node collects Rust coverage.
+          # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE when nyc instruments config loading.
+          NODE_OPTIONS=--no-experimental-require-module npx nyc --reporter lcovonly mocha test/test.js
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
