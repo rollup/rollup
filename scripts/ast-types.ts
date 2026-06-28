@@ -122,6 +122,30 @@ export type AstNodeName =
 	| 'WhileStatement'
 	| 'YieldExpression';
 
+const SCOPE_CREATING_NODES = new Set<AstNodeName>([
+	'ArrowFunctionExpression',
+	'BlockStatement',
+	'CatchClause',
+	'ClassDeclaration',
+	'ClassExpression',
+	'ForInStatement',
+	'ForOfStatement',
+	'ForStatement',
+	'FunctionDeclaration',
+	'FunctionExpression',
+	'Program',
+	'StaticBlock',
+	'SwitchStatement'
+]);
+
+// Layout of a scope node as written by Rust's `pop_scope` and read by the
+// JS `contains()` walker.
+export const SCOPE_NODE_FIELDS = [
+	{ name: 'parent' },
+	{ name: 'declarationCount' },
+	{ name: 'declarations' }
+] as const;
+
 export type AstUnionName =
 	| 'BindingPattern'
 	| 'DestructuringPattern'
@@ -505,7 +529,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ name: 'left', nodeTypes: ['VariableDeclaration', 'DestructuringPattern'], type: 'Node' },
 			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' },
 			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
-		]
+		],
+		useMacro: false
 	},
 	ForOfStatement: {
 		fields: [
@@ -513,7 +538,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' },
 			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
 		],
-		flags: ['await']
+		flags: ['await'],
+		useMacro: false
 	},
 	ForStatement: {
 		fields: [
@@ -526,7 +552,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ allowNull: true, name: 'test', nodeTypes: ['Expression'], type: 'Node' },
 			{ allowNull: true, name: 'update', nodeTypes: ['Expression'], type: 'Node' },
 			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
-		]
+		],
+		useMacro: false
 	},
 	FunctionDeclaration: {
 		fields: [
@@ -892,7 +919,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		useMacro: false
 	},
 	StaticBlock: {
-		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }]
+		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }],
+		useMacro: false
 	},
 	Super: {
 		converterFunction: 'superElement'
@@ -910,7 +938,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		],
 		scopes: {
 			discriminant: 'node.parentScope'
-		}
+		},
+		useMacro: false
 	},
 	TaggedTemplateExpression: {
 		fields: [
@@ -1040,13 +1069,19 @@ interface AnnotationFieldDescription {
 	valid: boolean;
 }
 
+interface ScopeOffsetFieldDescription {
+	type: 'ScopeOffset';
+	name: 'scopeOffset';
+}
+
 export type FieldDescription =
 	| NodeFieldDescription
 	| NodeListFieldDescription
 	| StringFieldDescription
 	| FixedStringFieldDescription
 	| FloatFieldDescription
-	| AnnotationFieldDescription;
+	| AnnotationFieldDescription
+	| ScopeOffsetFieldDescription;
 
 export interface NodeDescription {
 	astType?: AstTypeName; // If several converters produce the same type, specify the actual type here
@@ -1080,6 +1115,16 @@ export const astNodeNamesWithFieldOrder: {
 			const override = originalNode.hasSameFieldsOverrides?.[field.name];
 			return override || field;
 		});
+	}
+	if (SCOPE_CREATING_NODES.has(name as AstNodeName)) {
+		fields = [...fields, { name: 'scopeOffset', type: 'ScopeOffset' }];
+		node = {
+			...node,
+			serializeHiddenFields: {
+				...node.serializeHiddenFields,
+				scopeOffset: 'scopeOffset'
+			}
+		};
 	}
 	return {
 		fields,

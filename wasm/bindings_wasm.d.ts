@@ -1,7 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export function parse(code: string, allow_return_outside_function: boolean, jsx: boolean, swap_byte_order: boolean): Uint8Array;
+export function parse(code: string, allow_return_outside_function: boolean, jsx: boolean): Uint8Array;
+
+export function parseAndWalkSync(code: string, allow_return_outside_function: boolean, jsx: boolean, walked_nodes_bitset: BigUint64Array, collect_scopes: boolean): Uint8Array;
 
 export function xxhashBase16(input: Uint8Array): string;
 
@@ -13,7 +15,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly parse: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+    readonly parse: (a: number, b: number, c: number, d: number, e: number) => void;
+    readonly parseAndWalkSync: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
     readonly xxhashBase16: (a: number, b: number) => void;
     readonly xxhashBase36: (a: number, b: number) => void;
     readonly xxhashBase64Url: (a: number, b: number) => void;
