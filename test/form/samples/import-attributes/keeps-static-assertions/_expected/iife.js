@@ -1,4 +1,4 @@
-var bundle = (function (exports, a_type_a_extra_extra, b, c_type_c, d_type_d) {
+var bundle = (function (exports, a_extra_extra_type_a, b, c_type_c, d_type_d) {
 	'use strict';
 
 	function _interopNamespaceDefault(e) {
@@ -20,7 +20,7 @@ var bundle = (function (exports, a_type_a_extra_extra, b, c_type_c, d_type_d) {
 
 	var b__namespace = /*#__PURE__*/_interopNamespaceDefault(b);
 
-	console.log(a_type_a_extra_extra.a, b__namespace, d);
+	console.log(a_extra_extra_type_a.a, b__namespace, d);
 
 	Object.defineProperty(exports, "c", {
 		enumerable: true,

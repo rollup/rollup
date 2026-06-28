@@ -4,7 +4,9 @@ export function generateIdByRawIdAndAttributes(
 	rawId: string,
 	attributes?: Record<string, string>
 ): string {
-	const attributesString = new URLSearchParams(attributes).toString();
+	const searchParameters = new URLSearchParams(attributes);
+	searchParameters.sort();
+	const attributesString = searchParameters.toString();
 	if (!attributesString) {
 		return rawId;
 	}
