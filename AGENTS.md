@@ -70,7 +70,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Rust changes only**: `npm run update:napi` then `npm run test:only`
 - **JavaScript changes only**: `npm run update:js` then `npm run test:only`
-- **AST schema changes**: `npm run build:ast-converters`, then `update:napi` and `update:js`
+- **AST schema changes**: Modify `scripts/ast-types.ts`, run `npm run build:ast-converters` to regenerate TypeScript and Rust files, then `update:napi` and `update:js`
 - **Single-test loop**: see `test/AGENTS.md`
 - **Full check**: `npm test` - builds everything (including WASM), then runs all test suites
 

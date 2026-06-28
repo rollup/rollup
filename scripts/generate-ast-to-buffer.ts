@@ -100,7 +100,7 @@ function getNodeSerializerBody({
 			}
 			case 'Float': {
 				fieldSerializers.push(
-					`new DataView(buffer.buffer).setFloat64((nodePosition + ${nextPosition}) << 2, node.${fieldName}, true);`
+					`buffer.writeFloat64(node.${fieldName}, nodePosition + ${nextPosition});`
 				);
 				nextPosition += 1; // Float64 takes 8 bytes
 				break;
@@ -117,6 +117,9 @@ function getNodeSerializerBody({
 				fieldSerializers.push(
 					`buffer = serializeAnnotations(node.${fieldName}, buffer, nodePosition + ${nextPosition});`
 				);
+				break;
+			}
+			case 'ScopeOffset': {
 				break;
 			}
 			default: {
@@ -235,13 +238,10 @@ function serializeAnnotations(
   buffer: AstBufferForWriting,
   referencePosition: number
 ): AstBufferForWriting {
-  if (annotations == null) {
+  if (!annotations?.length) {
     return buffer;
   }
   const { length } = annotations;
-  if (length === 0) {
-    return buffer;
-  }
   let insertPosition = buffer.position;
   buffer = buffer.reserve(length + 1);
   buffer[referencePosition] = insertPosition;

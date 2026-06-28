@@ -4,7 +4,7 @@ use swc_ecma_ast::SpreadElement;
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
   JSX_SPREAD_ATTRIBUTE_ARGUMENT_OFFSET, JSX_SPREAD_ATTRIBUTE_RESERVED_BYTES,
-  TYPE_JSX_SPREAD_ATTRIBUTE,
+  NODE_TYPE_ID_JSX_SPREAD_ATTRIBUTE, TYPE_JSX_SPREAD_ATTRIBUTE,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -14,6 +14,7 @@ impl AstConverter<'_> {
     spread_element: &SpreadElement,
     previous_element_end: u32,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_JSX_SPREAD_ATTRIBUTE>();
     let end_position = self.add_type_and_explicit_start(
       &TYPE_JSX_SPREAD_ATTRIBUTE,
       find_first_occurrence_outside_comment(self.code, b'{', previous_element_end),
@@ -28,5 +29,6 @@ impl AstConverter<'_> {
       find_first_occurrence_outside_comment(self.code, b'}', spread_element.expr.span().hi.0 - 1)
         + 1,
     );
+    self.on_node_exit(walk_entry);
   }
 }
