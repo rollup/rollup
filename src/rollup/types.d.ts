@@ -354,7 +354,7 @@ export type ResolveIdHook = (
 	options: {
 		attributes: Record<string, string>;
 		custom?: CustomPluginOptions;
-		importerAttributes?: Record<string, string> | undefined;
+		importerAttributes: Record<string, string>;
 		importerRawId?: string;
 		isEntry: boolean;
 	}
@@ -380,9 +380,9 @@ export type IsExternal = (
 	importer: string | undefined,
 	isResolved: boolean,
 	options: {
-		attributes?: Record<string, string>;
+		attributes: Record<string, string>;
+		importerAttributes: Record<string, string>;
 		importerRawId?: string;
-		importerAttributes?: Record<string, string>;
 	}
 ) => boolean;
 
