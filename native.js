@@ -127,9 +127,11 @@ const requireWithFriendlyError = id => {
 	}
 };
 
-const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = requireWithFriendlyError(
+const nativeModule = requireWithFriendlyError(
 	existsSync(path.join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
+
+const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = nativeModule;
 
 function getPackageBase() {
 	const imported = bindingsByPlatformAndArch[platform]?.[arch];
@@ -165,3 +167,10 @@ module.exports.parseAsync = parseAsync;
 module.exports.xxhashBase64Url = xxhashBase64Url;
 module.exports.xxhashBase36 = xxhashBase36;
 module.exports.xxhashBase16 = xxhashBase16;
+
+// Only present in coverage builds (cfg(coverage) — set by cargo-llvm-cov show-env).
+// Used by scripts/coverage-flush.js to manually flush LLVM profile data on Linux,
+// where the atexit handler does not fire for dlopen'd shared libraries.
+if (typeof nativeModule.flushLlvmCoverage === 'function') {
+	module.exports.flushLlvmCoverage = nativeModule.flushLlvmCoverage;
+}
