@@ -17,6 +17,7 @@ pub struct ParseTask {
   pub code: String,
   pub allow_return_outside_function: bool,
   pub jsx: bool,
+  pub collect_scopes: bool,
 }
 
 #[napi]
@@ -29,6 +30,36 @@ impl<'task> ScopedTask<'task> for ParseTask {
       mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
+      None,
+      self.collect_scopes,
+    ))
+  }
+
+  fn resolve(&mut self, env: &'task Env, output: Self::Output) -> Result<Self::JsValue> {
+    BufferSlice::from_data(env, output)
+  }
+}
+
+pub struct ParseAndWalkTask {
+  pub code: String,
+  pub allow_return_outside_function: bool,
+  pub jsx: bool,
+  pub walked_nodes_bitset: BigUint64Array,
+  pub collect_scopes: bool,
+}
+
+#[napi]
+impl<'task> ScopedTask<'task> for ParseAndWalkTask {
+  type Output = Vec<u8>;
+  type JsValue = BufferSlice<'task>;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    Ok(parse_ast(
+      mem::take(&mut self.code),
+      self.allow_return_outside_function,
+      self.jsx,
+      Some(self.walked_nodes_bitset.as_ref()),
+      self.collect_scopes,
     ))
   }
 
@@ -44,7 +75,10 @@ pub fn parse<'env>(
   allow_return_outside_function: bool,
   jsx: bool,
 ) -> Result<BufferSlice<'env>> {
-  BufferSlice::from_data(env, parse_ast(code, allow_return_outside_function, jsx))
+  BufferSlice::from_data(
+    env,
+    parse_ast(code, allow_return_outside_function, jsx, None, false),
+  )
 }
 
 #[napi]
@@ -59,6 +93,28 @@ pub fn parse_async(
       code,
       allow_return_outside_function,
       jsx,
+      collect_scopes: false,
+    },
+    signal,
+  )
+}
+
+#[napi]
+pub fn parse_and_walk(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  walked_nodes_bitset: BigUint64Array,
+  collect_scopes: bool,
+  signal: Option<AbortSignal>,
+) -> AsyncTask<ParseAndWalkTask> {
+  AsyncTask::with_optional_signal(
+    ParseAndWalkTask {
+      code,
+      allow_return_outside_function,
+      jsx,
+      walked_nodes_bitset,
+      collect_scopes,
     },
     signal,
   )

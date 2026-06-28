@@ -1,5 +1,4 @@
 const assert = require('node:assert');
-// @ts-expect-error not included in types
 const { replaceDirectoryInStringifiedObject } = require('../../../testHelpers');
 const assertChunkData = chunk =>
 	assert.strictEqual(

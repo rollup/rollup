@@ -131,7 +131,7 @@ const nativeModule = requireWithFriendlyError(
 	existsSync(path.join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
 
-const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = nativeModule;
+const { parse, parseAsync, parseAndWalk, xxhashBase64Url, xxhashBase36, xxhashBase16 } = nativeModule;
 
 function getPackageBase() {
 	const imported = bindingsByPlatformAndArch[platform]?.[arch];
@@ -164,6 +164,7 @@ If this is important to you, please consider supporting Rollup to make a native 
 
 module.exports.parse = parse;
 module.exports.parseAsync = parseAsync;
+module.exports.parseAndWalk = parseAndWalk;
 module.exports.xxhashBase64Url = xxhashBase64Url;
 module.exports.xxhashBase36 = xxhashBase36;
 module.exports.xxhashBase16 = xxhashBase16;
