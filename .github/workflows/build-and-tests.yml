@@ -588,8 +588,12 @@ jobs:
           # nyc is not used here yet — we first verify Rust profraw is produced.
           # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
           NODE_OPTIONS=--no-experimental-require-module npx mocha test/test.js
-          echo "--- profraw files ---"
+          echo "--- profraw files in coverage/profraw/ ---"
           ls -la coverage/profraw/ || echo "No profraw directory"
+          echo "--- profraw files in rust/target/ ---"
+          find rust/target -name "*.profraw" -type f 2>/dev/null || echo "No profraw in rust/target"
+          echo "--- profraw files anywhere in repo ---"
+          find . -name "*.profraw" -type f 2>/dev/null | head -20 || echo "No profraw files found anywhere"
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
