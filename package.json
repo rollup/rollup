@@ -42,7 +42,7 @@
   "scripts": {
     "build": "concurrently -c green,blue \"npm run build:wasm\" \"npm:build:ast-converters\" && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
-    "build:napi": "napi build --cwd rust/bindings_napi --platform --dts ../../native.d.ts --no-js --output-dir ../.. --package-json-path ../../package.json",
+    "build:napi": "napi build --cwd rust/bindings_napi --platform --dts native.d.ts --no-js --output-dir ../.. --package-json-path ../../package.json",
     "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
     "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && shx rm wasm-node/.gitignore",
     "update:napi": "npm run build:napi && npm run build:copy-native",
@@ -91,8 +91,9 @@
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
     "test:only:coverage": "node scripts/run-with-coverage-environment.js nyc --reporter lcovonly --reporter html mocha test/test.js",
-    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
+    "test:typescript": "scripts/check-typescript.sh",
     "test:browser": "mocha test/browser/index.js",
+    "test:ast": "mocha test/parse-and-walk/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
   "repository": {

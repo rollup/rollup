@@ -1,11 +1,17 @@
 import { parse, parseAsync } from '../../native';
-import type { ast, ParseAst, ParseAstAsync } from '../rollup/types';
-import { deserializeAst } from './bufferToAst';
-import { deserializeLazyAst } from './bufferToLazyAst';
+import type { ast, DeserializeAst, ParseAst, ParseAstAsync } from '../rollup/types';
+import { deserializeAstBuffer } from './bufferToAst';
+import { deserializeLazyAstBuffer } from './bufferToLazyAst';
+import { getAstBuffer } from './getAstBuffer';
 
 export { serializeAst } from './astToBuffer';
-export { deserializeAst } from './bufferToAst';
-export { deserializeLazyAst } from './bufferToLazyAst';
+export { parseAndWalk } from './parseAndWalk';
+
+export const deserializeAst: DeserializeAst = (buffer, position = 0) =>
+	deserializeAstBuffer(getAstBuffer(buffer), position);
+
+export const deserializeLazyAst: DeserializeAst = (buffer, position = 0) =>
+	deserializeLazyAstBuffer(getAstBuffer(buffer), position);
 
 export const parseAst: ParseAst = (
 	input,
@@ -14,9 +20,8 @@ export const parseAst: ParseAst = (
 
 export const parseAstAsync: ParseAstAsync = async (
 	input,
-	{ allowReturnOutsideFunction = false, jsx = false, signal } = {}
-) =>
-	deserializeAst(await parseAsync(input, allowReturnOutsideFunction, jsx, signal)) as ast.Program;
+	{ allowReturnOutsideFunction = false, jsx = false } = {}
+) => deserializeAst(await parseAsync(input, allowReturnOutsideFunction, jsx)) as ast.Program;
 
 export const parseLazyAst: ParseAst = (
 	input,
@@ -25,8 +30,5 @@ export const parseLazyAst: ParseAst = (
 
 export const parseLazyAstAsync: ParseAstAsync = async (
 	input,
-	{ allowReturnOutsideFunction = false, jsx = false, signal } = {}
-) =>
-	deserializeLazyAst(
-		await parseAsync(input, allowReturnOutsideFunction, jsx, signal)
-	) as ast.Program;
+	{ allowReturnOutsideFunction = false, jsx = false } = {}
+) => deserializeLazyAst(await parseAsync(input, allowReturnOutsideFunction, jsx)) as ast.Program;
