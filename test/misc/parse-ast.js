@@ -75,7 +75,7 @@ describe('parseAst', () => {
 			name: 'RollupError',
 			message: 'Expression expected',
 			code: 'PARSE_ERROR',
-			pos: 0
+			pos: 2
 		});
 	});
 
