@@ -129,7 +129,7 @@ export default class Property extends PropertyBase implements DeclarationPattern
 	}
 
 	setAssignedValue(value: ExpressionEntity): void {
-		(this.value as PatternNode).setAssignedValue(value);
+		this.value.setAssignedValue(value);
 	}
 
 	private getPathInProperty(destructuredInitPath: ObjectPath): ObjectPath {
