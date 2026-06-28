@@ -14,11 +14,15 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
-				async resolveId(source, importer, options) {
+				async resolveId(
+					source,
+					importer,
+					{ importerAttributes, importerRawId, ...resolveOptions }
+				) {
 					if (!importer || importer.endsWith('?proxy')) {
 						return null;
 					}
-					const resolution = await this.resolve(source, importer, options);
+					const resolution = await this.resolve(source, importer, resolveOptions);
 					if (resolution && !resolution.external) {
 						const moduleInfo = await this.load(resolution);
 						if (moduleInfo.code.includes('/* use proxy */')) {

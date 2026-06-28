@@ -11,13 +11,14 @@ import { BLANK, EMPTY_OBJECT } from './blank';
 import type { FileEmitter } from './FileEmitter';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
-import { error, logPluginError } from './logs';
+import { error, logPluginError, warnDeprecation } from './logs';
 import { normalizeModuleIdToObject } from './moduleId';
 import { normalizeLog } from './options/options';
 import { parseAndWalk } from './parseAndWalk';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginNames';
+import { URL_THIS_RESOLVE } from './urls';
 
 const rollupVersion = pkg.version;
 
@@ -83,16 +84,54 @@ export function getPluginContext(
 		},
 		parse: parseAst,
 		parseAndWalk,
-		resolve(source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) {
+		resolve(
+			source,
+			importer,
+			{
+				attributes,
+				custom,
+				importerAttributes: deprecatedImporterAttributes,
+				isEntry,
+				skipSelf
+			} = BLANK
+		) {
 			skipSelf ??= true;
 			let importerId: string | undefined;
 			let importerAttributes: Record<string, string> | undefined;
 			let importerRawId: string | undefined;
 			if (importer) {
-				const { id, rawId, attributes } = normalizeModuleIdToObject(importer);
-				importerAttributes = attributes;
-				importerRawId = rawId;
-				importerId = id;
+				if (typeof importer === 'object' && deprecatedImporterAttributes) {
+					return error(
+						logPluginError(
+							normalizeLog(
+								'The "importerAttributes" option cannot be used together with an object importer in this.resolve().'
+							),
+							plugin.name
+						)
+					);
+				}
+				if (typeof importer === 'string' && deprecatedImporterAttributes) {
+					importerId = normalizeModuleIdToObject({
+						attributes: deprecatedImporterAttributes,
+						rawId: importer
+					}).id;
+					importerAttributes = deprecatedImporterAttributes;
+					importerRawId = importer;
+				} else {
+					const normalizedImporter = normalizeModuleIdToObject(importer);
+					importerAttributes = normalizedImporter.attributes;
+					importerRawId = normalizedImporter.rawId;
+					importerId = normalizedImporter.id;
+				}
+			}
+			if (deprecatedImporterAttributes) {
+				warnDeprecation(
+					'The "importerAttributes" option is deprecated. Provide a UniqueModuleId for "importer" instead.',
+					URL_THIS_RESOLVE,
+					true,
+					options,
+					plugin.name
+				);
 			}
 			return graph.moduleLoader.resolveId(
 				source,
