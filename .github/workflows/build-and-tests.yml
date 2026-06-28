@@ -578,7 +578,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           # Run JS tests with nyc (JS coverage) — the instrumented .node collects Rust coverage
-          nyc --reporter lcovonly mocha test/test.js
+          npx nyc --reporter lcovonly mocha test/test.js
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
