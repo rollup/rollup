@@ -2,8 +2,8 @@ use swc_ecma_ast::{BinExpr, BinaryOp};
 
 use crate::convert_ast::converter::ast_constants::{
   BINARY_EXPRESSION_LEFT_OFFSET, BINARY_EXPRESSION_OPERATOR_OFFSET,
-  BINARY_EXPRESSION_RESERVED_BYTES, BINARY_EXPRESSION_RIGHT_OFFSET, TYPE_BINARY_EXPRESSION,
-  TYPE_LOGICAL_EXPRESSION,
+  BINARY_EXPRESSION_RESERVED_BYTES, BINARY_EXPRESSION_RIGHT_OFFSET, NODE_TYPE_ID_BINARY_EXPRESSION,
+  NODE_TYPE_ID_LOGICAL_EXPRESSION, TYPE_BINARY_EXPRESSION, TYPE_LOGICAL_EXPRESSION,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_BITAND, STRING_BITOR, STRING_BITXOR, STRING_DIVIDE, STRING_EQEQ, STRING_EQEQEQ,
@@ -16,12 +16,20 @@ use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_binary_expression(&mut self, binary_expression: &BinExpr) {
+    let is_logical = matches!(
+      binary_expression.op,
+      BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing
+    );
+    let walk_entry = if is_logical {
+      self.on_node_enter::<NODE_TYPE_ID_LOGICAL_EXPRESSION>()
+    } else {
+      self.on_node_enter::<NODE_TYPE_ID_BINARY_EXPRESSION>()
+    };
     let end_position = self.add_type_and_start(
-      match binary_expression.op {
-        BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {
-          &TYPE_LOGICAL_EXPRESSION
-        }
-        _ => &TYPE_BINARY_EXPRESSION,
+      if is_logical {
+        &TYPE_LOGICAL_EXPRESSION
+      } else {
+        &TYPE_BINARY_EXPRESSION
       },
       &binary_expression.span,
       BINARY_EXPRESSION_RESERVED_BYTES,
@@ -66,5 +74,6 @@ impl AstConverter<'_> {
     self.convert_expression(&binary_expression.right);
     // end
     self.add_end(end_position, &binary_expression.span);
+    self.on_node_exit(walk_entry);
   }
 }

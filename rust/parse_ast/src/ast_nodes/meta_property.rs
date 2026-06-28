@@ -2,12 +2,13 @@ use swc_ecma_ast::{MetaPropExpr, MetaPropKind};
 
 use crate::convert_ast::converter::ast_constants::{
   META_PROPERTY_META_OFFSET, META_PROPERTY_PROPERTY_OFFSET, META_PROPERTY_RESERVED_BYTES,
-  TYPE_META_PROPERTY,
+  NODE_TYPE_ID_META_PROPERTY, TYPE_META_PROPERTY,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_meta_property(&mut self, meta_property_expression: &MetaPropExpr) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_META_PROPERTY>();
     let end_position = self.add_type_and_start(
       &TYPE_META_PROPERTY,
       &meta_property_expression.span,
@@ -50,5 +51,6 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, &meta_property_expression.span);
+    self.on_node_exit(walk_entry);
   }
 }

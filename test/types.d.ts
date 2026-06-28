@@ -1,5 +1,13 @@
 import type { SourceMap } from 'magic-string';
-import type { RollupBuild, RollupError, RollupLog, RollupOptions } from '../src/rollup/types';
+import type {
+	ast,
+	ParseAndWalk,
+	ParseAndWalkVisitors,
+	RollupBuild,
+	RollupError,
+	RollupLog,
+	RollupOptions
+} from '../src/rollup/types';
 
 export interface TestConfigBase {
 	/**
@@ -278,4 +286,26 @@ export interface TestConfigSourcemap extends TestConfigBase {
 	 * List expected warnings.
 	 */
 	warnings?: RollupError[];
+}
+
+export interface TestConfigParseAndWalk extends TestConfigBase {
+	/**
+	 * Run assertions after parseAndWalk completes.
+	 */
+	assertions?: () => void | Promise<void>;
+	/**
+	 * Expected error when parsing or walking the AST. If specified, the test
+	 * expects an error to be thrown.
+	 */
+	expectedAst?: ast.AstNode;
+	internalError?: RollupError;
+	error?: RollupError;
+	/**
+	 * Parse options to pass to parseAndWalk.
+	 */
+	parseOptions?: Parameters<ParseAndWalk>[2];
+	/**
+	 * Visitors object to pass to parseAndWalk.
+	 */
+	walk: ParseAndWalkVisitors;
 }
