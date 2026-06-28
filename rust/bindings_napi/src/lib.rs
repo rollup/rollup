@@ -1,3 +1,10 @@
+// The #[napi] macro generates #[no_mangle] extern "C" thunks whose coverage
+// is not tracked by rustc when the cdylib is loaded via dlopen (as Node loads
+// .node addons). Disabling coverage on the #[napi] items avoids misleading
+// "uncovered" noise for lines that are definitely called. The feature gate
+// ensures this only affects coverage builds.
+#![cfg_attr(coverage, feature(coverage_attribute))]
+
 use napi::{bindgen_prelude::*, ScopedTask};
 use napi_derive::napi;
 use parse_ast::parse_ast;
@@ -19,6 +26,7 @@ pub struct ParseTask {
   pub jsx: bool,
 }
 
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 impl<'task> ScopedTask<'task> for ParseTask {
   type Output = Vec<u8>;
@@ -37,6 +45,7 @@ impl<'task> ScopedTask<'task> for ParseTask {
   }
 }
 
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 pub fn parse<'env>(
   env: &'env Env,
@@ -47,6 +56,7 @@ pub fn parse<'env>(
   BufferSlice::from_data(env, parse_ast(code, allow_return_outside_function, jsx))
 }
 
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 pub fn parse_async(
   code: String,
@@ -64,16 +74,19 @@ pub fn parse_async(
   )
 }
 
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 pub fn xxhash_base64_url(input: &[u8]) -> String {
   xxhash::xxhash_base64_url(input)
 }
 
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 pub fn xxhash_base36(input: &[u8]) -> String {
   xxhash::xxhash_base36(input)
 }
 
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 pub fn xxhash_base16(input: &[u8]) -> String {
   xxhash::xxhash_base16(input)
@@ -91,6 +104,7 @@ pub fn xxhash_base16(input: &[u8]) -> String {
 /// Only compiled when `cfg(coverage)` is active (set by `cargo-llvm-cov
 /// show-env`), so it has zero impact on production builds.
 #[cfg(coverage)]
+#[cfg_attr(coverage, coverage(off))]
 #[napi]
 pub fn flush_llvm_coverage() {
   extern "C" {
