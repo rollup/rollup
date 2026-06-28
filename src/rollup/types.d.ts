@@ -302,6 +302,8 @@ export interface PluginContext extends MinimalPluginContext {
 		options?: {
 			attributes?: Record<string, string>;
 			custom?: CustomPluginOptions;
+			/** @deprecated Provide a UniqueModuleId for importer instead. */
+			importerAttributes?: Record<string, string>;
 			isEntry?: boolean;
 			skipSelf?: boolean;
 		}

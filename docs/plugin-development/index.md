@@ -2067,6 +2067,8 @@ type Resolve = (
 		skipSelf?: boolean;
 		isEntry?: boolean;
 		attributes?: Record<string, string>;
+		/** @deprecated Provide a UniqueModuleId for importer instead. */
+		importerAttributes?: Record<string, string>;
 		custom?: { [plugin: string]: any };
 	}
 ) => Promise<ResolvedId | null>;
@@ -2087,6 +2089,8 @@ You can also pass an object of plugin-specific options via the `custom` option, 
 The value for `isEntry` you pass here will be passed along to the [`resolveId`](#resolveid) hooks handling this call, otherwise `false` will be passed if there is an importer and `true` if there is not.
 
 If `importer` is an object with `rawId` and `attributes`, Rollup will use those values to identify the importing module and pass them to [`resolveId`](#resolveid) as `importerRawId` and `importerAttributes`.
+
+For backwards compatibility, you can provide a string `importer` together with the deprecated `importerAttributes` option. In this case, Rollup will interpret the string as the raw id of the importing module. This option cannot be combined with an object `importer`.
 
 If you pass an object for `attributes`, it will simulate resolving an import with an assertion, e.g. `attributes: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
