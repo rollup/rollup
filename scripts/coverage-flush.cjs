@@ -6,10 +6,9 @@
 
 process.on('exit', () => {
 	try {
-		const native = require('../native');
-		if (typeof native.flushLlvmCoverage === 'function') {
-			native.flushLlvmCoverage();
-		}
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const native = /** @type {{ flushLlvmCoverage?: () => void }} */ (require('../native'));
+		native.flushLlvmCoverage?.();
 	} catch {
 		// Native module not loaded or flush not available — nothing to do.
 	}
