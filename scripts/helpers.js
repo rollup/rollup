@@ -86,8 +86,10 @@ export async function lintTsFile(file) {
 	const results = await eslint.lintFiles([fileURLToPath(file)]);
 	await ESLint.outputFixes(results);
 	const formatter = await eslint.loadFormatter('stylish');
-	const resultText = formatter.format(results);
-	console.log(resultText);
+	const resultText = await formatter.format(results);
+	if (resultText.trim().length > 0) {
+		console.log(resultText);
+	}
 }
 
 /**
