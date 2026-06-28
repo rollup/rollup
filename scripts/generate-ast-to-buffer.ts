@@ -119,6 +119,9 @@ function getNodeSerializerBody({
 				);
 				break;
 			}
+			case 'ScopeOffset': {
+				break;
+			}
 			default: {
 				throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 			}
@@ -235,13 +238,10 @@ function serializeAnnotations(
   buffer: AstBufferForWriting,
   referencePosition: number
 ): AstBufferForWriting {
-  if (annotations == null) {
+  if (!annotations?.length) {
     return buffer;
   }
   const { length } = annotations;
-  if (length === 0) {
-    return buffer;
-  }
   let insertPosition = buffer.position;
   buffer = buffer.reserve(length + 1);
   buffer[referencePosition] = insertPosition;

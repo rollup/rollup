@@ -4,7 +4,8 @@ use swc_ecma_ast::{Decl, ExportDecl, ExportSpecifier, ObjectLit, Str, VarDeclKin
 use crate::convert_ast::converter::ast_constants::{
   EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET, EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET,
   EXPORT_NAMED_DECLARATION_RESERVED_BYTES, EXPORT_NAMED_DECLARATION_SOURCE_OFFSET,
-  EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET, TYPE_EXPORT_NAMED_DECLARATION,
+  EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET, NODE_TYPE_ID_EXPORT_NAMED_DECLARATION,
+  TYPE_EXPORT_NAMED_DECLARATION,
 };
 
 use crate::convert_ast::converter::{get_outside_class_span_decorators_info, AstConverter};
@@ -42,6 +43,7 @@ impl AstConverter<'_> {
       }
     }
 
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_EXPORT_NAMED_DECLARATION>();
     let end_position = self.add_type_and_start(
       &TYPE_EXPORT_NAMED_DECLARATION,
       span,
@@ -86,6 +88,7 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_export_declaration(

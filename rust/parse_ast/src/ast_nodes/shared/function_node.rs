@@ -4,9 +4,10 @@ use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   FUNCTION_DECLARATION_ANNOTATIONS_OFFSET, FUNCTION_DECLARATION_BODY_OFFSET,
   FUNCTION_DECLARATION_ID_OFFSET, FUNCTION_DECLARATION_PARAMS_OFFSET,
-  FUNCTION_DECLARATION_RESERVED_BYTES,
+  FUNCTION_DECLARATION_RESERVED_BYTES, FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+  NODE_TYPE_ID_FUNCTION_DECLARATION, NODE_TYPE_ID_FUNCTION_EXPRESSION, TYPE_FUNCTION_DECLARATION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::{convert_annotation, AstConverter, DeclarationKind, ScopeType};
 use crate::store_function_declaration_flags;
 
 impl AstConverter<'_> {
@@ -43,6 +44,12 @@ impl AstConverter<'_> {
     body: &BlockStmt,
     observe_annotations: bool,
   ) {
+    let is_declaration = node_type == &TYPE_FUNCTION_DECLARATION;
+    let walk_entry = if is_declaration {
+      self.on_node_enter::<NODE_TYPE_ID_FUNCTION_DECLARATION>()
+    } else {
+      self.on_node_enter::<NODE_TYPE_ID_FUNCTION_EXPRESSION>()
+    };
     let end_position =
       self.add_type_and_explicit_start(node_type, start, FUNCTION_DECLARATION_RESERVED_BYTES);
     // flags
@@ -69,23 +76,45 @@ impl AstConverter<'_> {
       }
     }
     // id
+    // A FunctionDeclaration name binds in the parent/current lexical scope, so
+    // the FunctionScope is pushed only after the id is recorded. A
+    // FunctionExpression name binds in the function's own FunctionScope, so the
+    // scope is pushed first.
+    if !is_declaration {
+      self.push_scope(
+        ScopeType::Function,
+        end_position + FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
+    }
     if let Some(ident) = identifier {
       self.update_reference_position(end_position + FUNCTION_DECLARATION_ID_OFFSET);
-      self.convert_identifier(ident);
+      self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+        ast_converter.convert_identifier(ident);
+      });
+    }
+    if is_declaration {
+      self.push_scope(
+        ScopeType::Function,
+        end_position + FUNCTION_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
     }
     // params
-    self.convert_item_list(
-      parameters,
-      end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
-      |ast_converter, param| {
-        ast_converter.convert_pattern(param);
-        true
-      },
-    );
+    self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+      ast_converter.convert_item_list(
+        parameters,
+        end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
+        |ast_converter, param| {
+          ast_converter.convert_pattern(param);
+          true
+        },
+      );
+    });
     // body
     self.update_reference_position(end_position + FUNCTION_DECLARATION_BODY_OFFSET);
-    self.store_block_statement(body, true);
+    self.store_block_statement(body, true, true);
     // end
     self.add_explicit_end(end_position, end);
+    self.pop_scope();
+    self.on_node_exit(walk_entry);
   }
 }
