@@ -571,6 +571,13 @@ jobs:
           (cd rust && cargo llvm-cov clean --workspace)
           npm run build:napi
           npm run build:copy-native
+      - name: Verify instrumentation
+        run: |
+          NODE_FILE="$(ls dist/rollup.*.node)"
+          echo "Checking $NODE_FILE for LLVM profile sections..."
+          nm "$NODE_FILE" 2>/dev/null | grep -c "__llvm_prf" || echo "No __llvm_prf symbols found"
+          echo "LLVM_PROFILE_FILE=$LLVM_PROFILE_FILE"
+          echo "RUSTC_WRAPPER=$RUSTC_WRAPPER"
       - name: Build JavaScript
         run: npm run build:cjs
       - name: Prepare Rust coverage output directory
@@ -579,7 +586,9 @@ jobs:
         run: |
           # Run JS tests with nyc (JS coverage) — the instrumented .node collects Rust coverage.
           # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE when nyc instruments config loading.
-          NODE_OPTIONS=--no-experimental-require-module npx nyc --reporter lcovonly mocha test/test.js
+          # nyc is run in --spawn mode so the child process exits cleanly and the LLVM runtime in the
+          # instrumented .node can flush its profraw via atexit.
+          NODE_OPTIONS=--no-experimental-require-module npx nyc --spawn --reporter lcovonly mocha test/test.js
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
