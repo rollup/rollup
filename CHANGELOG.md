@@ -2,7 +2,7 @@
 
 ## 5.0.0
 
-_2026-02-20_
+_2026-06-28_
 
 ### BREAKING CHANGES
 
@@ -19,6 +19,7 @@ _2026-02-20_
 - The `ast` passed to the `shouldTransformCachedModule` hook is now a lazy AST as well (#6257)
 - ASTs returned from the `load` or `transform` hooks are now serialized into a binary buffer before Rollup uses them; this carries a performance penalty, should be avoided and might be deprecated in the future; it also discards extra properties of AST nodes and throws a `CANNOT_SERIALIZE_AST` error for node types that are not known to Rollup instead of supporting custom AST nodes (#6257)
 - The TypeScript types of the Node build now reference Node's `Buffer` type in the AST buffer helpers, which requires `@types/node` to be installed; the types of the browser build use `Uint8Array` instead (#6257)
+- The `signal` option of `parseAstAsync` has been removed as it could not abort an ongoing parsing but at best prevent a not-yet-started parsing, which made its effect unpredictable (#6271)
 
 #### Cache Changes
 
@@ -44,6 +45,12 @@ _2026-02-20_
 - TypeScript types for all ASTs exposed by Rollup are now generated from Rollup's own AST definitions and exported via the `ast` namespace; being discriminated unions, they allow type narrowing via `node.type` and always match the syntax Rollup supports; they try to follow the [ESTree specification](https://github.com/estree/estree) if possible (#5730)
 - The ASTs exposed via `moduleInfo.ast` and the `shouldTransformCachedModule` hook are now generated lazily from binary buffers, which significantly reduces processing time and memory when only some AST nodes are needed (#6257)
 - The new helpers `parseLazyAst`, `parseLazyAstAsync`, `deserializeAst`, `deserializeLazyAst` and `serializeAst` are exported from `rollup/parseAst` for working with binary AST buffers (#6257)
+- The new `this.parseAndWalk` plugin hook and the `parseAndWalk` helper exported from `rollup/parseAst` provide an efficient way to walk the AST of a piece of code: the AST is traversed on the Rust side and only the visited nodes are materialized, and visitor handlers can use `parseChildren` and `skipChildren` to control which children are traversed (#6271)
+- When `collectScopes: true` is passed to `this.parseAndWalk` or `parseAndWalk`, the scopes of the visited nodes are collected so that visitor handlers can check via `api.scope.contains(name)` whether an identifier is contained in the current scope, which replaces the need for `attachScopes` from `@rollup/pluginutils` (#6271)
+
+### Bug Fixes
+
+- Rollup no longer panics when parsing JSX that contains namespaced element names like `<a:b />` (#6271)
 
 ### Pull Requests
 
@@ -51,6 +58,7 @@ _2026-02-20_
 - [#5730](https://github.com/rollup/rollup/pull/5730): [v5.0] Make Rollup generate its own AST types (@lukastaegert)
 - [#6248](https://github.com/rollup/rollup/pull/6248): [v5.0] Use "with" as the keyword of import attributes by default (@TrickyPi)
 - [#6257](https://github.com/rollup/rollup/pull/6257): [v5.0] Put binary AST buffers into cache (@lukastaegert)
+- [#6271](https://github.com/rollup/rollup/pull/6271): [v5.0] Implement efficient AST walking API (@lukastaegert)
 
 For previous changelogs, see
 
