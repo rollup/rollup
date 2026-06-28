@@ -583,7 +583,7 @@ jobs:
           # so scripts/coverage-flush.js manually calls flushLlvmCoverage() on
           # process exit.
           # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
-          NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.js" \
+          NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs" \
             npx nyc --reporter lcovonly mocha test/test.js
       - name: Merge Rust coverage data
         run: |
