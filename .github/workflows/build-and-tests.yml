@@ -571,29 +571,20 @@ jobs:
           (cd rust && cargo llvm-cov clean --workspace)
           npm run build:napi
           npm run build:copy-native
-      - name: Verify instrumentation
-        run: |
-          NODE_FILE="$(ls dist/rollup.*.node)"
-          echo "Checking $NODE_FILE for LLVM profile sections..."
-          nm "$NODE_FILE" 2>/dev/null | grep -c "__llvm_prf" || echo "No __llvm_prf symbols found"
-          echo "LLVM_PROFILE_FILE=$LLVM_PROFILE_FILE"
-          echo "RUSTC_WRAPPER=$RUSTC_WRAPPER"
       - name: Build JavaScript
         run: npm run build:cjs
       - name: Prepare Rust coverage output directory
         run: mkdir -p coverage/profraw
       - name: Run tests with coverage
         run: |
-          # Run JS tests. The instrumented .node collects Rust coverage via LLVM_PROFILE_FILE.
-          # nyc is not used here yet — we first verify Rust profraw is produced.
+          # Run JS tests with nyc (JS coverage). The instrumented .node collects
+          # Rust coverage via LLVM_PROFILE_FILE. On Linux, the LLVM profiler
+          # runtime's atexit handler does not fire for dlopen'd shared libraries,
+          # so scripts/coverage-flush.js manually calls flushLlvmCoverage() on
+          # process exit.
           # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
-          NODE_OPTIONS=--no-experimental-require-module npx mocha test/test.js
-          echo "--- profraw files in coverage/profraw/ ---"
-          ls -la coverage/profraw/ || echo "No profraw directory"
-          echo "--- profraw files in rust/target/ ---"
-          find rust/target -name "*.profraw" -type f 2>/dev/null || echo "No profraw in rust/target"
-          echo "--- profraw files anywhere in repo ---"
-          find . -name "*.profraw" -type f 2>/dev/null | head -20 || echo "No profraw files found anywhere"
+          NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.js" \
+            npx nyc --reporter lcovonly mocha test/test.js
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
