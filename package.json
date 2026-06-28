@@ -62,6 +62,8 @@
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
     "ci:test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan 'npm:test:only' 'npm:test:typescript' 'npm:test:leak' 'npm:test:browser'",
     "ci:coverage": "NODE_OPTIONS=--no-experimental-require-module nyc --reporter lcovonly mocha",
+    "build:napi:coverage": "bash -c 'source <(cd rust && cargo llvm-cov show-env --sh) && (cd rust && cargo llvm-cov clean --workspace) && npm run build:napi && npm run build:copy-native'",
+    "test:coverage:rust": "bash scripts/coverage-rust.sh",
     "lint": "concurrently -c red,yellow,green,blue 'npm:lint:js' 'npm:lint:native-js' 'npm:lint:markdown' 'npm:lint:rust'",
     "lint:js": "eslint . --fix --cache --concurrency auto",
     "lint:js:nofix": "eslint . --cache --concurrency auto",

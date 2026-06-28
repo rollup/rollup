@@ -487,14 +487,6 @@ jobs:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
               package: linux-x64-gnu
-            node: 24
-            command: 'ci:coverage'
-            additionalName: ' with Coverage'
-            coverage: true
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-              package: linux-x64-gnu
             node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
@@ -535,13 +527,96 @@ jobs:
         run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
         env:
           CI: true
-      - name: Upload coverage
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LLVM_PROFILE_FILE: ${{ github.workspace }}/coverage/profraw/rollup-%p-%12m.profraw
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: nightly-2025-07-25
+          components: llvm-tools-preview
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: coverage-cargo-ubuntu-latest
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@9e1e5806d4a4822de933115878265be9aaa786d9 # v2.82.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-llvm-cov
+      - name: Build instrumented NAPI module
+        run: |
+          source <(cd rust && cargo llvm-cov show-env --sh)
+          (cd rust && cargo llvm-cov clean --workspace)
+          npm run build:napi
+          npm run build:copy-native
+      - name: Build JavaScript
+        run: npm run build:cjs
+      - name: Prepare Rust coverage output directory
+        run: mkdir -p coverage/profraw
+      - name: Run tests with coverage
+        run: |
+          # Run JS tests with nyc (JS coverage) — the instrumented .node collects Rust coverage
+          nyc --reporter lcovonly mocha test/test.js
+      - name: Merge Rust coverage data
+        run: |
+          LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
+          "$LLVM_PROFDATA" merge -sparse coverage/profraw/*.profraw -o coverage/rust.profdata
+      - name: Export Rust LCOV report
+        run: |
+          LLVM_COV="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-cov"
+          NODE_FILE="$(ls dist/rollup.*.node)"
+          "$LLVM_COV" export \
+            -instr-profile=coverage/rust.profdata \
+            -object "$NODE_FILE" \
+            -ignore-filename-regex='/.cargo/registry|/rustc/[0-9a-f]+|rust/target' \
+            -format=lcov > coverage/rust.lcov
+      - name: Save Cargo cache
+        if: github.ref == 'refs/heads/master'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+      - name: Upload Rust coverage
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        if: matrix.coverage
         with:
           fail_ci_if_error: true
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/rust.lcov
+      - name: Upload JS coverage
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
 
   publish:
     permissions:
@@ -556,6 +631,7 @@ jobs:
       - lint
       - test
       - smoke-test
+      - coverage
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
