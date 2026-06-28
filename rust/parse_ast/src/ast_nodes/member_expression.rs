@@ -6,7 +6,7 @@ use swc_ecma_ast::{
 
 use crate::convert_ast::converter::ast_constants::{
   MEMBER_EXPRESSION_OBJECT_OFFSET, MEMBER_EXPRESSION_PROPERTY_OFFSET,
-  MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_MEMBER_EXPRESSION,
+  MEMBER_EXPRESSION_RESERVED_BYTES, NODE_TYPE_ID_MEMBER_EXPRESSION, TYPE_MEMBER_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_member_expression_flags;
@@ -20,6 +20,7 @@ impl AstConverter<'_> {
     property: MemberOrSuperProp,
     is_chained: bool,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_MEMBER_EXPRESSION>();
     let end_position = self.add_type_and_start(
       &TYPE_MEMBER_EXPRESSION,
       span,
@@ -61,6 +62,7 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_member_expression(

@@ -10,7 +10,6 @@ const bufferParsersFile = new URL('../src/ast/bufferParsers.ts', import.meta.url
 const nodeTypes = astNodeNamesWithFieldOrder.map(({ name, node }) => node.astType || name);
 
 const nodeTypeImports = nodeTypes.map(name => `import ${name} from './nodes/${name}';`);
-const nodeTypeStrings = nodeTypes.map(name => `\t'${name}'`);
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
 	const definitions: string[] = [];
@@ -159,7 +158,13 @@ function getFieldDefinition(
 		}
 		case 'Float': {
 			return {
-				definition: `${assignmentLeftHand}new DataView(buffer.buffer).getFloat64((${getPosition}) << 2, true);`,
+				definition: `${assignmentLeftHand}buffer.convertFloat64(${getPosition});`,
+				needsScope: false
+			};
+		}
+		case 'ScopeOffset': {
+			return {
+				definition: '',
 				needsScope: false
 			};
 		}
@@ -183,6 +188,7 @@ import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
 import type ModuleScope from './scopes/ModuleScope';
 import TrackingScope from './scopes/TrackingScope';
+import { nodeTypeStrings } from './nodeTypeStrings';
 import { EMPTY_PATH } from './utils/PathTracker';
 import type ParameterVariable from './variables/ParameterVariable';
 
@@ -194,9 +200,6 @@ export function convertProgram(
   return convertNode(parent, parentScope, 0, getAstBuffer(buffer));
 }
 
-const nodeTypeStrings = [
-  ${nodeTypeStrings.join(',\n')}
-] as const;
 
 const nodeConstructors = [
   ${nodeTypes.join(',\n')}

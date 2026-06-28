@@ -2,9 +2,10 @@ use swc_common::Span;
 use swc_ecma_ast::{BlockStmt, Expr, FunctionBody, Lit, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, TYPE_BLOCK_STATEMENT,
+  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, BLOCK_STATEMENT_SCOPE_OFFSET_OFFSET,
+  NODE_TYPE_ID_BLOCK_STATEMENT, TYPE_BLOCK_STATEMENT,
 };
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::{AstConverter, ScopeType};
 
 /// Provides the parts shared by the SWC types that rollup represents as a
 /// single ESTree `BlockStatement` node: real block statements (`BlockStmt`)
@@ -38,7 +39,9 @@ impl AstConverter<'_> {
     &mut self,
     block_statement: &T,
     check_directive: bool,
+    prevent_child_block_scope: bool,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_BLOCK_STATEMENT>();
     let span = block_statement.span();
     let stmts = block_statement.stmts();
     let end_position = self.add_type_and_start(
@@ -47,6 +50,12 @@ impl AstConverter<'_> {
       BLOCK_STATEMENT_RESERVED_BYTES,
       false,
     );
+    if !prevent_child_block_scope {
+      self.push_scope(
+        ScopeType::Block,
+        end_position + BLOCK_STATEMENT_SCOPE_OFFSET_OFFSET,
+      );
+    }
     // body
     let mut keep_checking_directives = check_directive;
     self.convert_item_list_with_state(
@@ -69,5 +78,9 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, span);
+    if !prevent_child_block_scope {
+      self.pop_scope();
+    }
+    self.on_node_exit(walk_entry);
   }
 }

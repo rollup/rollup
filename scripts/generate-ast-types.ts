@@ -32,6 +32,8 @@ function getFieldType(field: FieldDescription, node: NodeDescription): string {
 			return 'readonly Annotation[]';
 		case 'Float':
 			return 'number';
+		case 'ScopeOffset':
+			return 'never';
 		case 'FixedString':
 			return field.values.map(value => `'${value}'`).join(' | ');
 		default:
@@ -43,8 +45,12 @@ function isOptional(field: FieldDescription): boolean {
 	switch (field.type) {
 		case 'Node':
 		case 'NodeList':
-		case 'Float':
+		case 'Float': {
 			return false;
+		}
+		case 'ScopeOffset': {
+			return false;
+		}
 		case 'FixedString':
 		case 'String':
 			return !!field.optional;
@@ -89,6 +95,21 @@ ${Object.entries(NODE_UNION_TYPES)
 	.join('\n\n')}
 
 export type AstNode = ${astNodeNamesWithFieldOrder.map(({ name }) => `${name}`).join(' | ')};
+
+export interface AstNodeTypeMap {${(() => {
+	const typeMap = new Map<string, string[]>();
+	for (const { name, node } of astNodeNamesWithFieldOrder) {
+		const astType = node.astType || name;
+		if (!typeMap.has(astType)) {
+			typeMap.set(astType, []);
+		}
+		typeMap.get(astType)!.push(name);
+	}
+	return Array.from(typeMap.entries())
+		.map(([astType, names]) => `\n\t'${astType}': ${names.join(' | ')};`)
+		.join('');
+})()}
+}
 `;
 
 await writeFile(astTypesFile, astTypes);
