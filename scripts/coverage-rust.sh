@@ -26,7 +26,7 @@ NODE_FILE="$(ls dist/rollup.*.node)"
 "$LLVM_COV" export \
   -instr-profile=coverage/rust.profdata \
   -object "$NODE_FILE" \
-  -ignore-filename-regex='/.cargo/registry|/rustc/[0-9a-f]+|rust/target' \
+  -ignore-filename-regex='/.cargo/registry|/rustc/[0-9a-f]+|rust/target|bindings_napi/src/lib\.rs' \
   -format=lcov > coverage/rust.lcov
 
 echo "Rust coverage report written to coverage/rust.lcov"
