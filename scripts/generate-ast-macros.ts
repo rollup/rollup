@@ -46,8 +46,12 @@ const astMacros = astNodeNamesWithFieldOrder
 					valuesInput += `, ${field.name} => $${field.name}_value:expr`;
 					fieldConverters += `
     let ${field.name}_position = end_position + ${reservedBytes};
-    $self.buffer[${field.name}_position..${field.name}_position + ${2 * BYTES_PER_U32}].copy_from_slice(&$${field.name}_value.to_le_bytes());
-    $self.add_unswapped_byte_range(${field.name}_position, ${field.name}_position + ${2 * BYTES_PER_U32});`;
+    let ${field.name}_bits = $${field.name}_value.to_bits();
+    // The two u32 words are written in native byte order, low word first
+    $self.buffer[${field.name}_position..${field.name}_position + 4]
+      .copy_from_slice(&(${field.name}_bits as u32).to_ne_bytes());
+    $self.buffer[${field.name}_position + 4..${field.name}_position + 8]
+      .copy_from_slice(&((${field.name}_bits >> 32) as u32).to_ne_bytes());`;
 					reservedBytes += BYTES_PER_U32;
 					break;
 				}
@@ -88,6 +92,9 @@ const astMacros = astNodeNamesWithFieldOrder
     $self.convert_string($${field.name}_value, end_position + ${reservedBytes});`;
 					break;
 				}
+				case 'ScopeOffset': {
+					break;
+				}
 				default: {
 					throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 				}
@@ -98,6 +105,7 @@ const astMacros = astNodeNamesWithFieldOrder
 macro_rules! store_${toSnakeCase(name)} {
   ($self:expr, span => $span:expr${valuesInput}) => {
     let _: &mut AstConverter = $self;
+    let walk_entry = $self.on_node_enter::<${nodeIndex}>();
     let end_position = $self.add_type_and_start(
       &${nodeIndex}u32.to_ne_bytes(),
       &$span,
@@ -106,6 +114,7 @@ macro_rules! store_${toSnakeCase(name)} {
     );${flagConverter}${fieldConverters}
     // end
     $self.add_end(end_position, &$span);
+    $self.on_node_exit(walk_entry);
   };
 }
 
