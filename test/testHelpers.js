@@ -26,6 +26,7 @@ const { importAssertions } = require('acorn-import-assertions');
 const importPhases = require('acorn-import-phases');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
+const { serializeAst, deserializeLazyAst } = require('../dist/parseAst');
 
 if (!globalThis.defineTest) {
 	globalThis.defineTest = config => config;
@@ -96,6 +97,23 @@ exports.compareError = function compareError(actual, expected) {
 	if (actual.stack) {
 		assert.ok(actual.stack.includes(expected.message));
 	}
+};
+
+/**
+ * @param {{ (): unknown; }} testFunction
+ * @param {RollupError} expectedError
+ */
+exports.expectError = async function (testFunction, expectedError) {
+	let caughtError = null;
+	try {
+		await testFunction();
+	} catch (error) {
+		caughtError = error;
+	}
+	if (!caughtError) {
+		throw new Error('Expected an error but none was thrown');
+	}
+	exports.compareError(caughtError, expectedError);
 };
 
 /**
@@ -476,6 +494,7 @@ exports.verifyAstPlugin = {
 			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
 		);
+		assert.deepStrictEqual(deserializeLazyAst(serializeAst(ast)), ast);
 	}
 };
 
@@ -510,6 +529,13 @@ const replaceStringifyValues = (key, value) => {
 			const { options, ...nonOptionsProperties } = value;
 			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
 		}
+		case 'TemplateElement': {
+			const {
+				value: { cooked, raw },
+				...rest
+			} = value;
+			return cooked != null ? value : { value: { raw }, ...rest };
+		}
 		case 'ClassDeclaration':
 		case 'ClassExpression':
 		case 'PropertyDefinition':
@@ -524,7 +550,7 @@ const replaceStringifyValues = (key, value) => {
 		}
 	}
 
-	return key[0] === '_'
+	return key.endsWith('nnotations')
 		? undefined
 		: typeof value == 'bigint'
 			? `~BigInt${value.toString()}`

@@ -352,14 +352,20 @@ type LoadResult = string | null | SourceDescription;
 interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
-	ast?: ESTree.Program;
+	ast?: ast.Program;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
 }
 ```
 
-Defines a custom loader. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See the section on [source code transformations](#source-code-transformations).
+Defines a custom loader. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
+
+::: warning CHANGED RECOMMENDATION In contrast to previous versions of Rollup, **it is no longer recommended to return an AST** from this hook even if you have already generated one. Rollup needs to convert the AST into its internal binary format before it can be used. This carries a significant performance cost. Instead, you should only return the code and let Rollup handle parsing internally. :::
+
+While this hook can optionally return an `ast` property, this should only be done in exceptional cases where you need a hand-crafted AST. Note also that it will only be considered if there are no `transform` hooks changing the code afterward. An `ast` must be a standard ESTree AST with `start` and `end` properties for each node. See [Working with ASTs](#working-with-asts) for important details about returning ASTs.
+
+If the code is the result of a previous transformation that created a sourcemap, you can return it in the `map` property. In that case, it will become part of the sourcemap chain of the module and will allow debugging tools to map locations in the generated code to the original code. See the section on [source code transformations](#source-code-transformations).
 
 If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `true`. The `transform` hook can override this.
 
@@ -380,7 +386,7 @@ You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous
 
 This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](#this-getmoduleinfo) for what information is passed to this hook.
 
-In contrast to the [`transform`](#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`.
+In contrast to the [`transform`](#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`. See [Working with ASTs](#working-with-asts) for important details about how Rollup generates and provides ASTs.
 
 This hook will wait until all imports are resolved so that the information in `moduleInfo.importedIds`, `moduleInfo.dynamicallyImportedIds`, `moduleInfo.importedIdResolutions`, and `moduleInfo.dynamicallyImportedIdResolutions` is complete and accurate. Note however that information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](#buildend) hook.
 
@@ -469,7 +475,7 @@ Like the [`onLog`](#onlog) hook, this hook does not have access to most [plugin 
 
 ```typescript
 type ResolveDynamicImportHook = (
-	specifier: string | AstNode,
+	specifier: string | ast.Expression,
 	importer: string,
 	options: {
 		attributes: Record<string, string>;
@@ -675,7 +681,7 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 ```typescript
 type ShouldTransformCachedModuleHook = (options: {
-	ast: AstNode;
+	ast: ast.Program;
 	attributes: Record<string, string>;
 	code: string;
 	id: string;
@@ -710,14 +716,20 @@ type TransformResult = string | null | Partial<SourceDescription>;
 interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
-	ast?: ESTree.Program;
+	ast?: ast.Program;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
 }
 ```
 
-Can be used to transform individual modules. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import. To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
+Can be used to transform individual modules. `options.attributes` contain the import attributes that were used when this module was imported, which is determined by the first `resolveId` hook that resolved this module or the attributes present in the first import.
+
+::: warning CHANGED RECOMMENDATION In contrast to previous versions of Rollup, **it is no longer recommended to return an AST** from this hook even if you have already generated one. Rollup needs to convert the AST into its internal binary format before it can be used. This carries a significant performance cost. Instead, you should only return the code and let Rollup handle parsing internally. :::
+
+While this hook can optionally return an `ast` property, this should only be done in exceptional cases where you need a hand-crafted AST. Note also that it will only be considered if there are no other `transform` hooks changing the code afterward. An `ast` must be a standard ESTree AST with `start` and `end` properties for each node. See [Working with ASTs](#working-with-asts) for important details about returning ASTs.
+
+If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See the section on [source code transformations](#source-code-transformations).
 
 Note that in watch mode or when using the cache explicitly, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` or `this.emitFile` the last time the hook was triggered for this module.
 
@@ -1660,7 +1672,7 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 interface ModuleInfo {
 	id: string; // the id of the module, for convenience
 	code: string | null; // the source code of the module, `null` if external or not yet available
-	ast: ESTree.Program; // the parsed abstract syntax tree if available
+	ast: ast.Program; // the parsed abstract syntax tree if available
 	hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
 	isEntry: boolean; // is this a user- or plugin-defined entry point
 	isExternal: boolean; // for external modules that are referenced but not included in the graph
@@ -1692,7 +1704,7 @@ interface ResolvedId {
 }
 ```
 
-Returns additional information about the module in question.
+Returns additional information about the module in question. See [Working with ASTs](#working-with-asts) for important details about the `ast` property.
 
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](#buildend) hook:
 
@@ -1893,19 +1905,128 @@ An object containing potentially useful Rollup metadata:
 
 ### this.parse
 
-|       |                                                            |
-| ----: | :--------------------------------------------------------- |
-| Type: | `(code: string, options?: ParseOptions) => ESTree.Program` |
+|       |                                                         |
+| ----: | :------------------------------------------------------ |
+| Type: | `(code: string, options?: ParseOptions) => ast.Program` |
 
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	jsx?: boolean;
 }
 ```
 
-Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST.
+Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST. The returned AST is a fully materialized plain JavaScript object.
 
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
+- `jsx`: When `true`, JSX syntax is supported in the parsed code.
+
+### this.parseAndWalk
+
+|  |  |
+| --: | :-- |
+| Type: | `(code: string, visitors: Visitors, options?: ParseOptions) => Promise<void>` |
+
+```typescript
+interface ParseOptions {
+	allowReturnOutsideFunction?: boolean;
+	collectScopes?: boolean;
+	jsx?: boolean;
+}
+
+// NodeType is any ESTree-compatible node type name known to Rollup,
+// e.g. "Identifier", "CallExpression", etc.
+// `node` will be typed accordingly based on the visitor key
+type Visitors = {
+	[NodeType: string]: (
+		node: AstNode,
+		api: {
+			parseChildren: () => void;
+			skipChildren: () => void;
+			scope?: ParseAndWalkScope;
+		}
+	) => void | Promise<void>;
+};
+
+interface ParseAndWalkScope {
+	contains(name: string): boolean;
+}
+```
+
+Efficiently walk specific types of AST nodes without traversing the entire tree. This method parses the code and only visits the node types specified in the `visitors` object, providing significant performance benefits when you don't need the full AST.
+
+Each visitor function receives:
+
+- `node`: The AST node with full type information based on the visitor key
+- `api.parseChildren()`: Parse and visit all children of the current node
+- `api.skipChildren()`: Skip parsing children of the current node
+- `api.scope`: The scope the node lives in (only present when `collectScopes: true` is passed)
+
+```js
+this.parseAndWalk(code, {
+	async Identifier(node, { parseChildren, skipChildren }) {
+		// node is typed as Identifier
+		console.log('Found identifier:', node.name);
+	},
+	async CallExpression(node, { parseChildren, skipChildren }) {
+		// node is typed as CallExpression
+		if (
+			node.callee.type === 'Identifier' &&
+			node.callee.name === 'require'
+		) {
+			// Process require() calls
+			parseChildren(); // Visit arguments
+			// Now perform any logic that relies on the arguments being visited
+			// ...
+		} else {
+			skipChildren(); // Do not visit arguments for other calls
+		}
+	}
+});
+```
+
+**Performance characteristics:**
+
+- Only parses nodes matching the specified types (filtering happens in Rust)
+- Significantly faster than `this.parse()` followed by manual traversal for selective operations
+- Nodes are visited in source order (depth-first traversal)
+
+**Type safety:** When using TypeScript, each visitor function is automatically typed based on its key, so `node` has the correct type for that AST node type (e.g., `Identifier`, `CallExpression`, etc.).
+
+**Error handling:** If you specify an invalid node type name, the method throws an error:
+
+```
+Unknown node type "InvalidType" when calling "parseAndWalk" in plugin "plugin-name".
+```
+
+Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. A full list of supported type names can be found at [src/ast/nodeTypeStrings.ts](https://github.com/rollup/rollup/blob/main/src/ast/nodeTypeStrings.ts). See also [Working with ASTs](#working-with-asts) for details about the AST structure.
+
+#### Scope collection
+
+By default, `parseAndWalk` does not track variable scopes. When you pass `{ collectScopes: true }`, each visitor receives an additional `api.scope` object describing the scope the visited node lives in. `api.scope` always refers to the **surrounding** scope (the scope the node was placed in), not the scope the node itself may create — `Program` is the only exception, since it has no parent and receives its own module scope.
+
+```js
+this.parseAndWalk(
+	code,
+	{
+		Identifier(node, { scope, parseChildren }) {
+			// `scope.contains` returns true for names declared in the current
+			// scope or any parent scope, and false for globals.
+			if (!scope.contains(node.name)) {
+				console.log(`${node.name} is a global`);
+			}
+			parseChildren();
+		}
+	},
+	{ collectScopes: true }
+);
+```
+
+Scope collection is opt-in because it adds a small overhead; when not requested, `api.scope` is simply absent. This is intended as a modern, more efficient replacement for the `attachScopes` helper from `@rollup/pluginutils`.
+
+Scope collection implements JavaScript's standard lexical scoping rules, including `var` hoisting: a `var` declaration is recorded in the nearest enclosing function or module scope, not the block it appears in. Because scope information is collected during AST construction in Rust, `scope.contains` returns the correct answer even for `var` declarations that appear later in the source than the reference being checked.
+
+To use this functionality outside a plugin context, import the standalone [`parseAndWalk`](../javascript-api/index.md#walking-the-ast-efficiently) helper from `rollup/parseAst`.
 
 ### this.resolve
 
@@ -2155,7 +2276,7 @@ const urlObject = import.meta.ROLLUP_FILE_URL_OBJ_referenceId;
 
 Transformer plugins (i.e. those that return a `transform` function for e.g. transpiling non-JS files) should support `options.include` and `options.exclude`, both of which can be a minimatch pattern or an array of minimatch patterns. If `options.include` is omitted or of zero length, files should be included by default; otherwise they should only be included if the ID matches one of the patterns.
 
-The `transform` hook, if returning an object, can also include an `ast` property. Only use this feature if you know what you're doing. Note that only the last AST in a chain of transforms will be used (and if there are transforms, any ASTs generated by the `load` hook will be discarded for the transformed modules.)
+The `transform` hook, if returning an object, can also include an `ast` property. Only use this feature if you know what you're doing. See [Working with ASTs](#working-with-asts) for details about when and how to return ASTs. Note that only the last AST in a chain of transforms will be used (and if there are transforms, any ASTs generated by the `load` hook will be discarded for the transformed modules.)
 
 ### Example Transformer
 
@@ -2208,6 +2329,60 @@ return {
 ```
 
 If you create a plugin that you think would be useful to others, please publish it to NPM and add submit it to [github.com/rollup/awesome](https://github.com/rollup/awesome)!
+
+## Working with ASTs
+
+Rollup uses Abstract Syntax Trees (ASTs) to parse and analyze JavaScript code.
+
+### Lazy AST Generation
+
+For performance reasons, some ASTs returned by Rollup are generated lazily. This means that all non-primitive properties of AST nodes are getters that replace themselves with the actual node values on first access. When you access a node property for the first time, the getter computes the value and replaces itself with a regular property containing the actual node.
+
+This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. The lazy getter implementation is transparent to most use cases—you can access AST properties normally without worrying about the underlying mechanism.
+
+[`this.parse`](#this-parse) and the standalone [`parseAst`](../javascript-api/index.md#accessing-the-parser) / [`parseAstAsync`](../javascript-api/index.md#accessing-the-parser) helpers return fully materialized plain JavaScript objects (eager ASTs). If you need a lazy AST from code, use [`parseLazyAst` or `parseLazyAstAsync`](../javascript-api/index.md#accessing-the-parser) instead.
+
+### Accessing ASTs from Module Info
+
+When you access the `ast` property of a module via [`this.getModuleInfo`](#this-getmoduleinfo) or in the [`moduleParsed`](#moduleparsed) hook, you always receive a fresh "lazy" AST. This means:
+
+```js twoslash
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+function examplePlugin() {
+	return {
+		name: 'example',
+		moduleParsed(moduleInfo) {
+			// This is a fresh lazy AST
+			const ast1 = moduleInfo.ast;
+
+			// Getting the AST again returns another fresh lazy AST
+			const ast2 = this.getModuleInfo(moduleInfo.id).ast;
+
+			// ast1 and ast2 are different objects
+			console.log(ast1 === ast2); // false
+
+			// If you need to use the AST later, store a reference
+			this.astCache = this.astCache || new Map();
+			this.astCache.set(moduleInfo.id, ast1);
+		}
+	};
+}
+```
+
+### Known AST nodes and TypeScript support
+
+When using TypeScript, all Rollup ASTs will be fully typed. Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. See [src/rollup/ast-types.d.ts](https://github.com/rollup/rollup/blob/main/src/rollup/ast-types.d.ts) for a full list of all nodes types and interfaces currently supported by Rollup.
+
+### Returning ASTs from Hooks
+
+::: warning CHANGED RECOMMENDATION In contrast to previous versions of Rollup, where it was recommended to return an AST if you had already generated one to avoid double parsing, **this recommendation has been reversed**. You should now avoid returning ASTs from the [`load`](#load) and [`transform`](#transform) hooks even if you have already generated one, as Rollup must serialize the AST into its internal binary format before it can be used, which carries significant overhead. :::
+
+The [`load`](#load) and [`transform`](#transform) hooks allow you to return an `ast` property alongside the transformed code. However, **this should only be done in exceptional cases** where you need a hand-crafted AST to e.g. make Rollup consume otherwise unparseable code.
+
+- **Additional properties** on AST nodes that are unknown to Rollup will not be serialized and will be lost
+- **Missing properties** that Rollup expects are only acceptable if they are optional in Rollup's AST format, or if they are arrays, in which case Rollup will treat them as empty.
 
 ## Synthetic named exports
 

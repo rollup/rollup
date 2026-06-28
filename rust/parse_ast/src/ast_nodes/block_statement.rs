@@ -1,22 +1,31 @@
 use swc_ecma_ast::{BlockStmt, Expr, Lit, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, TYPE_BLOCK_STATEMENT,
+  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, BLOCK_STATEMENT_SCOPE_OFFSET_OFFSET,
+  NODE_TYPE_ID_BLOCK_STATEMENT, TYPE_BLOCK_STATEMENT,
 };
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::{AstConverter, ScopeType};
 
 impl AstConverter<'_> {
   pub(crate) fn store_block_statement(
     &mut self,
     block_statement: &BlockStmt,
     check_directive: bool,
+    prevent_child_block_scope: bool,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_BLOCK_STATEMENT>();
     let end_position = self.add_type_and_start(
       &TYPE_BLOCK_STATEMENT,
       &block_statement.span,
       BLOCK_STATEMENT_RESERVED_BYTES,
       false,
     );
+    if !prevent_child_block_scope {
+      self.push_scope(
+        ScopeType::Block,
+        end_position + BLOCK_STATEMENT_SCOPE_OFFSET_OFFSET,
+      );
+    }
     // body
     let mut keep_checking_directives = check_directive;
     self.convert_item_list_with_state(
@@ -39,5 +48,9 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, &block_statement.span);
+    if !prevent_child_block_scope {
+      self.pop_scope();
+    }
+    self.on_node_exit(walk_entry);
   }
 }

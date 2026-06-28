@@ -17,19 +17,15 @@ import {
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
-import type { DeclarationPatternNode } from './shared/Pattern';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class VariableDeclarator extends NodeBase {
-	declare id: DeclarationPatternNode;
-	declare init: ExpressionNode | null;
+	declare parent: nodes.VariableDeclaratorParent;
+	declare id: nodes.BindingPattern;
+	declare init: nodes.Expression | null;
 	declare type: NodeType.tVariableDeclarator;
 	declare isUsingDeclaration: boolean;
 	declare isAsyncUsingDeclaration: boolean;

@@ -424,7 +424,7 @@ assert.deepEqual(
 );
 ```
 
-There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup:
+There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup. This is recommended:
 
 ```js twoslash
 import { parseAstAsync } from 'rollup/parseAst';
@@ -454,3 +454,69 @@ assert.deepEqual(
 	}
 );
 ```
+
+Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you want a lazy AST instead—where non-primitive properties are getters that replace themselves on first access—use `parseLazyAst` and `parseLazyAstAsync`, which have the same signatures. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation.
+
+## Walking the AST efficiently
+
+When you only need to visit specific types of AST nodes, `parseAndWalk` provides a far more efficient alternative to parsing the entire tree. It accepts visitor functions for selected node types and only walks those nodes:
+
+```js twoslash
+import { parseAndWalk } from 'rollup/parseAst';
+
+await parseAndWalk('const x = 1; function foo() { return x + 1; }', {
+	Identifier(node) {
+		console.log('Found identifier:', node.name);
+	},
+	FunctionDeclaration(node) {
+		console.log('Found function:', node.id.name);
+	}
+});
+// Logs:
+// Found identifier: x
+// Found function: foo
+// Found identifier: x
+```
+
+The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `jsx`), plus an additional `collectScopes` option: when set to `true`, each visitor receives a `scope` object on its `api` argument that can determine whether a name is declared in the current scope chain. When using TypeScript, you get full type support for each AST node type based on the visitor key.
+
+For detailed information about visitor handlers, controlling child node traversal, scope collection, and usage within plugins, see [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) in the plugin development documentation.
+
+## AST serialization
+
+For edge case scenarios where you need to serialize ESTree ASTs to buffers or deserialize them back, Rollup exposes `serializeAst`, `deserializeLazyAst`, and `deserializeAst` helpers. These functions can handle complete AST trees as well as AST fragments that start with any top-level node.
+
+The `serializeAst` function converts an ESTree AST node into Rollup's internal binary format. `deserializeLazyAst` converts it back to a lazy AST, while `deserializeAst` produces a fully materialized plain JavaScript object:
+
+```js twoslash
+import {
+	serializeAst,
+	deserializeLazyAst,
+	deserializeAst
+} from 'rollup/parseAst';
+
+const ast = {
+	type: 'Literal',
+	value: 42,
+	raw: '42'
+};
+
+const buffer = serializeAst(ast);
+// buffer is a Buffer/Uint8Array containing the serialized AST
+
+const lazyAst = deserializeLazyAst(buffer);
+// lazyAst is a lazy AST with the same structure as the original
+console.log(lazyAst.type); // 'Literal'
+console.log(lazyAst.value); // 42
+
+const eagerAst = deserializeAst(buffer);
+// eagerAst is a fully materialized plain JavaScript object
+console.log(eagerAst.type); // 'Literal'
+console.log(eagerAst.value); // 42
+```
+
+These helpers are useful when you need to:
+
+- Cache parsed ASTs in a binary format for performance
+- Transmit AST data between processes or over the network
+- Work with Rollup's internal AST representation directly
