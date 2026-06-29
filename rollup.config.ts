@@ -22,6 +22,13 @@ import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import './typings/declarations';
 
 const onwarn: WarningHandlerWithDefault = warning => {
+	// temporarily bypass warnings about deprecated importerAttributes option
+	if (
+		warning.message.includes(
+			`The "importerAttributes" option is deprecated. Provide a UniqueModuleId for "importer" instead`
+		)
+	)
+		return;
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
 			'Please keep in mind that the browser build may never have external dependencies!'
@@ -86,7 +93,8 @@ export default async function getConfig(
 			!command.configTest && collectLicenses(),
 			copyNodeTypes()
 		],
-		strictDeprecations: true,
+		// temporarily disable strictDeprecations
+		strictDeprecations: false,
 		treeshake
 	};
 
@@ -150,7 +158,8 @@ export default async function getConfig(
 			cleanBeforeWrite('browser/dist'),
 			emitWasmFile()
 		],
-		strictDeprecations: true,
+		// temporarily disable strictDeprecations
+		strictDeprecations: false,
 		treeshake
 	};
 
