@@ -4,6 +4,7 @@ const commonjs = require('@rollup/plugin-commonjs');
 module.exports = defineTest({
 	description: 'the content of c.js is complete',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			commonjs(),
 			{
@@ -17,5 +18,6 @@ module.exports = defineTest({
 				}
 			}
 		]
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 });

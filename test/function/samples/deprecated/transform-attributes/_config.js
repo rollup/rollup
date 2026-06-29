@@ -5,7 +5,6 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'does not allow returning attributes from the "transform" hook',
 	options: {
-		strictDeprecations: true,
 		plugins: [
 			{
 				resolveId(source) {
@@ -16,14 +15,14 @@ module.exports = defineTest({
 					}
 				},
 				load(id) {
-					if (id.endsWith('.json')) {
+					if (id.includes('.json')) {
 						return {
 							code: 'export default {a:1}'
 						};
 					}
 				},
 				transform(code, id) {
-					if (id.endsWith('.json')) {
+					if (id.includes('.json')) {
 						return { code, attributes: {} };
 					}
 				}
@@ -33,7 +32,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'transform',
-		id: './foo.json',
+		id: './foo.json?type=json',
 		message: 'Returning attributes from the "transform" hook is forbidden.',
 		plugin: 'at position 1',
 		pluginCode: 'DEPRECATED_FEATURE',
