@@ -1162,7 +1162,7 @@ export default class Chunk {
 			? sanitizedId.slice(0, -extensionName.length)
 			: sanitizedId;
 		if (isAbsolute(idWithoutExtension)) {
-			if (preserveModulesRoot && resolve(idWithoutExtension).startsWith(preserveModulesRoot)) {
+			if (preserveModulesRoot && isModuleInRoot(resolve(idWithoutExtension), preserveModulesRoot)) {
 				return idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '');
 			} else {
 				// handle edge case in Windows
@@ -1606,6 +1606,18 @@ function getPredefinedChunkNameFromModule(module: Module): string {
 	return (
 		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ?? module.chunkNames[0]?.name
 	);
+}
+
+// Checks that `resolvedId` is the `root` directory itself or a path inside
+// it, as opposed to e.g. a sibling directory that merely shares `root` as a
+// string prefix (e.g. "/project/src-other" is not inside "/project/src").
+function isModuleInRoot(resolvedId: string, root: string): boolean {
+	if (!resolvedId.startsWith(root)) return false;
+	// A root that already ends in a separator is a filesystem root itself
+	// (e.g. "/" or "C:\\"), so anything starting with it is already inside.
+	if (root.endsWith('/') || root.endsWith('\\')) return true;
+	const nextChar = resolvedId[root.length];
+	return nextChar === undefined || nextChar === '/' || nextChar === '\\';
 }
 
 function getImportedBindingsPerDependency(
