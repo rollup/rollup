@@ -1157,6 +1157,10 @@ export default class Chunk {
 		if (predefinedChunkName) return predefinedChunkName;
 		const { preserveModulesRoot, sanitizeFileName } = this.outputOptions;
 		const sanitizedId = sanitizeFileName(normalize(module.id.split(QUERY_HASH_REGEX, 1)[0]));
+		// The module id was sanitized, so the base must be sanitized as well before
+		// comparing paths; otherwise ids containing sanitized characters escape the
+		// base via "../" and trip the placeholder validation (#5446).
+		const sanitizedBase = sanitizeFileName(this.inputBase);
 		const extensionName = extname(sanitizedId);
 		const idWithoutExtension = NON_ASSET_EXTENSIONS.has(extensionName)
 			? sanitizedId.slice(0, -extensionName.length)
@@ -1166,10 +1170,10 @@ export default class Chunk {
 				return idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '');
 			} else {
 				// handle edge case in Windows
-				if (this.inputBase === '/' && idWithoutExtension[0] !== '/') {
-					return relative(this.inputBase, idWithoutExtension.replace(/^[a-zA-Z]:[/\\]/, '/'));
+				if (sanitizedBase === '/' && idWithoutExtension[0] !== '/') {
+					return relative(sanitizedBase, idWithoutExtension.replace(/^[a-zA-Z]:[/\\]/, '/'));
 				}
-				return relative(this.inputBase, idWithoutExtension);
+				return relative(sanitizedBase, idWithoutExtension);
 			}
 		} else {
 			return (
