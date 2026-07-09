@@ -395,6 +395,39 @@ describe('incremental', () => {
 		assert.strictEqual(moduleParsedCalls, 4); // should not be cached
 	});
 
+	it('makes cached module meta available after this.load in shouldTransformCachedModule', async () => {
+		modules = {
+			entry: `import foo from 'foo'; export default foo;`,
+			foo: `export default 42`
+		};
+		let shouldTransformCachedModuleCalls = 0;
+
+		const metaPlugin = {
+			resolveId: id => id,
+			load: id => ({ code: modules[id] }),
+			shouldTransformCachedModule({ id }) {
+				shouldTransformCachedModuleCalls++;
+				this.load({ id });
+				assert.deepStrictEqual(this.getModuleInfo(id).meta, { transform: { id } });
+				return false;
+			},
+			transform: (code, id) => ({ code, meta: { transform: { id } } })
+		};
+
+		const cache = await rollup.rollup({
+			input: 'entry',
+			plugins: [metaPlugin]
+		});
+
+		await rollup.rollup({
+			input: 'entry',
+			plugins: [metaPlugin],
+			cache
+		});
+
+		assert.strictEqual(shouldTransformCachedModuleCalls, 2);
+	});
+
 	it('runs shouldTransformCachedModule when using a cached module', async () => {
 		modules = {
 			entry: `import foo from 'foo'; export default foo;`,
