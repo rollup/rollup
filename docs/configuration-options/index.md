@@ -2449,10 +2449,7 @@ interface TreeshakingOptions {
 }
 
 type ModuleSideEffectsOption =
-	| boolean
-	| 'no-external'
-	| string[]
-	| HasModuleSideEffects;
+	boolean | 'no-external' | string[] | HasModuleSideEffects;
 type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 ```
 

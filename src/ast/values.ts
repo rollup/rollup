@@ -22,8 +22,7 @@ import {
 
 export interface MemberDescription {
 	hasEffectsWhenCalled:
-		| ((interaction: NodeInteractionCalled, context: HasEffectsContext) => boolean)
-		| null;
+		((interaction: NodeInteractionCalled, context: HasEffectsContext) => boolean) | null;
 	returns: ExpressionEntity;
 }
 
