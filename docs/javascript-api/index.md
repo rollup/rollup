@@ -250,9 +250,7 @@ const rollup = require('rollup');
 // ---cut-start---
 /** @type {import('rollup').RollupWatchOptions} */
 // ---cut-end---
-const watchOptions = {
-	/*...*/
-};
+const watchOptions = {/*...*/};
 const watcher = rollup.watch(watchOptions);
 
 watcher.on('event', event => {

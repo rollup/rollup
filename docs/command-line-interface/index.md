@@ -239,9 +239,7 @@ export default commandLineArgs => {
 	delete commandLineArgs.input;
 	return {
 		input: 'src/entries/' + inputBase,
-		output: {
-			/* ... */
-		}
+		output: {/* ... */}
 	};
 };
 ```
@@ -255,9 +253,7 @@ Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellis
 /**
  * @type {import('rollup').RollupOptions}
  */
-const config = {
-	/* your config */
-};
+const config = {/* your config */};
 export default config;
 ```
 
@@ -267,9 +263,7 @@ Alternatively you can use the `defineConfig` helper, which should provide Intell
 // rollup.config.js
 import { defineConfig } from 'rollup';
 
-export default defineConfig({
-	/* your config */
-});
+export default defineConfig({/* your config */});
 ```
 
 Besides `RollupOptions` and the `defineConfig` helper that encapsulates this type, the following types can prove useful as well:
@@ -283,9 +277,7 @@ You can also directly write your config in TypeScript via the [`--configPlugin`]
 ```typescript twoslash
 import type { RollupOptions } from 'rollup';
 
-const config: RollupOptions = {
-	/* your config */
-};
+const config: RollupOptions = {/* your config */};
 export default config;
 ```
 
