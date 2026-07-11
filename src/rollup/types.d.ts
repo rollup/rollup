@@ -62,9 +62,7 @@ export type LogLevel = 'warn' | 'info' | 'debug';
 export type LogLevelOption = LogLevel | 'silent';
 
 export type SourceMapSegment =
-	| [number]
-	| [number, number, number, number]
-	| [number, number, number, number, number];
+	[number] | [number, number, number, number] | [number, number, number, number, number];
 
 export interface ExistingDecodedSourceMap {
 	file?: string | undefined;
@@ -613,9 +611,7 @@ export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 export type JsxPreset = 'react' | 'react-jsx' | 'preserve' | 'preserve-react';
 
 export type NormalizedJsxOptions =
-	| NormalizedJsxPreserveOptions
-	| NormalizedJsxClassicOptions
-	| NormalizedJsxAutomaticOptions;
+	NormalizedJsxPreserveOptions | NormalizedJsxClassicOptions | NormalizedJsxAutomaticOptions;
 
 interface NormalizedJsxPreserveOptions {
 	factory: string | null;
@@ -1132,12 +1128,7 @@ interface AstNodeLocation {
 }
 
 type OmittedEstreeKeys =
-	| 'loc'
-	| 'range'
-	| 'leadingComments'
-	| 'trailingComments'
-	| 'innerComments'
-	| 'comments';
+	'loc' | 'range' | 'leadingComments' | 'trailingComments' | 'innerComments' | 'comments';
 type RollupAstNode<T> = Omit<T, OmittedEstreeKeys> & AstNodeLocation;
 
 type ProgramNode = RollupAstNode<estree.Program>;
@@ -1196,15 +1187,7 @@ export interface RollupFsModule {
 }
 
 export type BufferEncoding =
-	| 'ascii'
-	| 'utf8'
-	| 'utf16le'
-	| 'ucs2'
-	| 'base64'
-	| 'base64url'
-	| 'latin1'
-	| 'binary'
-	| 'hex';
+	'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'base64url' | 'latin1' | 'binary' | 'hex';
 
 export interface RollupDirectoryEntry {
 	isFile(): boolean;

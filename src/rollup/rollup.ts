@@ -285,8 +285,7 @@ function createOutput(outputBundle: OutputBundle): RollupOutput {
 	return {
 		output: (
 			Object.values(outputBundle).filter(outputFile => Object.keys(outputFile).length > 0) as (
-				| OutputChunk
-				| OutputAsset
+				OutputChunk | OutputAsset
 			)[]
 		).sort(
 			(outputFileA, outputFileB) =>

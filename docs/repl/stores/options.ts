@@ -35,10 +35,7 @@ interface OptionTypeNumber extends BaseOptionType<number> {
 }
 
 type OptionType =
-	| OptionTypeSelect<unknown>
-	| OptionTypeString
-	| OptionTypeStringMapping
-	| OptionTypeNumber;
+	OptionTypeSelect<unknown> | OptionTypeString | OptionTypeStringMapping | OptionTypeNumber;
 
 const mapOptions = {
 	number({ defaultValue, name, placeholder, required, value }: OptionTypeNumber) {
