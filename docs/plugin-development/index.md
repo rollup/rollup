@@ -1115,8 +1115,7 @@ type renderDynamicImportHook = (options: {
 type PreRenderedChunkWithFileName = PreRenderedChunk & { fileName: string };
 
 type DynamicImportTargetChunk =
-	| ImportedInternalChunk
-	| ImportedExternalChunk;
+	ImportedInternalChunk | ImportedExternalChunk;
 
 interface ImportedInternalChunk {
 	type: 'internal';

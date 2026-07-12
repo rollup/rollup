@@ -334,14 +334,12 @@ export default class Chunk {
 		}
 		// Additionally, we need to expose namespaces of dynamic entries that are not the facade module and exports from other entry modules
 		for (const exposedVariable of exposedVariables) {
-			if (
-				!(
-					exposedVariable.module === module ||
-					moduleExportNamesByVariable.has(exposedVariable) ||
-					(exposedVariable instanceof SyntheticNamedExportVariable &&
-						moduleExportNamesByVariable.has(exposedVariable.getBaseVariable()))
-				)
-			) {
+			if (!(
+				exposedVariable.module === module ||
+				moduleExportNamesByVariable.has(exposedVariable) ||
+				(exposedVariable instanceof SyntheticNamedExportVariable &&
+					moduleExportNamesByVariable.has(exposedVariable.getBaseVariable()))
+			)) {
 				return false;
 			}
 		}
