@@ -2623,6 +2623,8 @@ lib.nested.forEach(() => console.log('effect')); // will also be removed
 
 If `false`, assume modules and external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
 
+Rollup itself does not read a package's `sideEffects` field. When packages are resolved with [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve), the plugin can read `sideEffects` from `package.json` and set the per-module [`moduleSideEffects`](../plugin-development/index.md#resolveid) flag for modules in that package. You can achieve the same kind of package-aware behavior in Rollup core by making `treeshake.moduleSideEffects` a function. Be careful when setting this option to `false` globally, because it can remove setup modules, polyfills or styles that rely on import side effects.
+
 ```javascript
 // input file
 import { unused } from 'external-a';
