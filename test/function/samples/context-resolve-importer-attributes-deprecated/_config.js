@@ -17,7 +17,7 @@ module.exports = defineTest({
 				name: 'resolver',
 				resolveId(source, importer, { importerAttributes, importerRawId }) {
 					if (source === 'legacy-target') {
-						assert.equal(importer, 'importer?type=legacy');
+						assert.equal(importer, 'importer?attributes=%7B%22type%22%3A%22legacy%22%7D');
 						assert.equal(importerRawId, 'importer');
 						assert.deepEqual(importerAttributes, { type: 'legacy' });
 						return { external: true, id: source };

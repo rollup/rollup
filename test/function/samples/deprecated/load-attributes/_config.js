@@ -28,7 +28,7 @@ module.exports = defineTest({
 	error: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'Could not load ./foo.json?type=json (imported by main.js): Returning attributes from the "load" hook is forbidden.',
+			'Could not load ./foo.json?attributes=%7B%22type%22%3A%22json%22%7D (imported by main.js): Returning attributes from the "load" hook is forbidden.',
 		url: 'https://rollupjs.org/plugin-development/#load',
 		watchFiles: [ID_MAIN]
 	}

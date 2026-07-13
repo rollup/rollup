@@ -4,13 +4,17 @@ export function generateIdByRawIdAndAttributes(
 	rawId: string,
 	attributes?: Record<string, string>
 ): string {
-	const searchParameters = new URLSearchParams(attributes);
-	searchParameters.sort();
-	const attributesString = searchParameters.toString();
-	if (!attributesString) {
+	if (!attributes || Object.keys(attributes).length === 0) {
 		return rawId;
 	}
-	return `${rawId}?${attributesString}`;
+	const sortedAttributes = Object.fromEntries(
+		Object.entries(attributes).sort(([firstKey], [secondKey]) =>
+			firstKey < secondKey ? -1 : firstKey > secondKey ? 1 : 0
+		)
+	);
+	return `${rawId}${rawId.includes('?') ? '&' : '?'}attributes=${encodeURIComponent(
+		JSON.stringify(sortedAttributes)
+	)}`;
 }
 
 export function normalizeModuleId(moduleId: UniqueModuleId): string {
@@ -41,11 +45,23 @@ function getRawIdAndAttributes(id: string): {
 	rawId: string;
 	attributes?: Record<string, string>;
 } {
-	const [rawId, attributesString] = id.split('?');
+	const lastQuestionMarkIndex = id.lastIndexOf('?');
+	if (lastQuestionMarkIndex === -1) {
+		return { rawId: id };
+	}
+	const attributesAtStart = id.startsWith('attributes=', lastQuestionMarkIndex + 1);
+	const attributesMarker = '&attributes=';
+	const attributesMarkerIndex = attributesAtStart
+		? lastQuestionMarkIndex
+		: id.indexOf(attributesMarker, lastQuestionMarkIndex + 1);
+	if (attributesMarkerIndex === -1) {
+		return { rawId: id };
+	}
+	const attributesValueStart =
+		attributesMarkerIndex + (attributesAtStart ? '?attributes='.length : attributesMarker.length);
+	const attributesString = decodeURIComponent(id.slice(attributesValueStart));
 	return {
-		attributes: attributesString
-			? Object.fromEntries(new URLSearchParams(attributesString))
-			: undefined,
-		rawId
+		attributes: attributesString ? JSON.parse(attributesString) : undefined,
+		rawId: id.slice(0, attributesMarkerIndex)
 	};
 }

@@ -32,7 +32,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'transform',
-		id: './foo.json?type=json',
+		id: './foo.json?attributes=%7B%22type%22%3A%22json%22%7D',
 		message: 'Returning attributes from the "transform" hook is forbidden.',
 		plugin: 'at position 1',
 		pluginCode: 'DEPRECATED_FEATURE',
