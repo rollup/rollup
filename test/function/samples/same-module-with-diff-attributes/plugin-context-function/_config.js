@@ -51,12 +51,12 @@ module.exports = defineTest({
 							type: 'changed'
 						}
 					});
-					assert.equal(moduleInfo.id, './foo.js?type=changed');
+					assert.equal(moduleInfo.id, './foo.js?attributes=%7B%22type%22%3A%22changed%22%7D');
 				}
 			},
 			{
 				resolveId(id, importer) {
-					assert.ok(importer.endsWith('main'));
+					assert.ok(importer.endsWith('main.js?attributes=%7B%22type%22%3A%22main%22%7D'));
 					return id;
 				}
 			}
