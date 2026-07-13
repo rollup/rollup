@@ -31,7 +31,11 @@ export default class ExternalModule {
 		public readonly renormalizeRenderPath: boolean,
 		attributes: Record<string, string>
 	) {
-		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
+		const nameAttributes = new URLSearchParams(attributes);
+		nameAttributes.sort();
+		const attributesString = nameAttributes.toString();
+		const attributesSuffix = attributesString ? `?${attributesString}` : '';
+		this.suggestedVariableName = makeLegal(`${rawId.split(/[/\\]/).pop()!}${attributesSuffix}`);
 
 		const { importers, dynamicImporters } = this;
 		this.info = {
