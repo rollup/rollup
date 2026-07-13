@@ -1,8 +1,5 @@
 module.exports = defineTest({
 	description: 'allows plugins to read and write import attributes in resolveId',
-	// This is an artifact of how we check for attribute conflicts with
-	// dynamic dependencies and caching
-	expectedWarnings: ['INCONSISTENT_IMPORT_ATTRIBUTES'],
 	options: {
 		output: { name: 'bundle' },
 		plugins: [
