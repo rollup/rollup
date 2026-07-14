@@ -257,10 +257,6 @@ export default abstract class FunctionBase extends NodeBase {
 		return super.parseNode(esTreeNode);
 	}
 
-	isLocallyReachable(): boolean {
-		return true;
-	}
-
 	protected abstract getObjectEntity(): ObjectEntity;
 }
 

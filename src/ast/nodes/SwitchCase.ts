@@ -55,14 +55,6 @@ export default class SwitchCase extends NodeBase {
 			renderStatementList(this.consequent, code, consequentStart, nodeRenderOptions!.end!, options);
 		}
 	}
-
-	haltsCodeFlow(allowOptimizations?: boolean): boolean {
-		for (const node of this.consequent) {
-			if (node.haltsCodeFlow(allowOptimizations)) return true;
-		}
-
-		return false;
-	}
 }
 
 SwitchCase.prototype.needsBoundaries = true;

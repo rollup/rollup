@@ -8,11 +8,7 @@ import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBool
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import {
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UnknownValue
-} from './shared/Expression';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -125,28 +121,6 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			}
 		}
 		this.renderHoistedDeclarations(hoistedDeclarations, code, getPropertyAccess);
-	}
-
-	haltsCodeFlow(allowOptimizations?: boolean): boolean {
-		if (allowOptimizations) {
-			const value = this.getTestValue();
-			if (value === true) return this.consequent.haltsCodeFlow();
-			if (value === false) return !!this.alternate?.haltsCodeFlow();
-		}
-
-		return this.consequent.haltsCodeFlow() && !!this.alternate?.haltsCodeFlow();
-	}
-
-	isChildLocallyReachable(node: ExpressionEntity): boolean {
-		if (!this.isLocallyReachable()) return false;
-
-		const value = this.getTestValue();
-
-		if (this.consequent === (node as unknown)) return value !== false;
-		if (this.alternate === (node as unknown)) return value !== true;
-
-		/* istanbul ignore next: should never happen if isChildLocallyReachable is used properly */
-		return false;
 	}
 
 	private getTestValue(): LiteralValueOrUnknown {

@@ -105,10 +105,6 @@ export default class SwitchStatement extends StatementBase {
 			renderStatementList(this.cases, code, this.cases[0].start, this.end - 1, options);
 		}
 	}
-
-	haltsCodeFlow(): boolean {
-		return this.defaultCase !== null && this.cases.every(c => c.haltsCodeFlow());
-	}
 }
 
 SwitchStatement.prototype.includeNode = onlyIncludeSelfNoDeoptimize;

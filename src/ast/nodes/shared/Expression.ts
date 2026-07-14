@@ -110,27 +110,6 @@ export class ExpressionEntity implements WritableEntity {
 	shouldBeIncluded(_context: InclusionContext): boolean {
 		return true;
 	}
-
-	/**
-	 * Whether the node is reachable within the current function scope. Optimizations are taken into account.
-	 * Useful when treeshaking status is queried prior of being fully computed.
-	 */
-	isLocallyReachable(): boolean {
-		if (this.included) return true;
-
-		return 'parent' in this && this.parent instanceof ExpressionEntity
-			? this.parent.isChildLocallyReachable(this)
-			: true;
-	}
-
-	/**
-	 * Whether a node's children is reachable within the current function scope. Optimizations are taken into account.
-	 * Useful when treeshaking status is queried prior of being fully computed.
-	 * @param node The child to check the reachability of.
-	 */
-	isChildLocallyReachable(_node: ExpressionEntity): boolean {
-		return this.isLocallyReachable();
-	}
 }
 
 export class LiteralExpression extends ExpressionEntity {

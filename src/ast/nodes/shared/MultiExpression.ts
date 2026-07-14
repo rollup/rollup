@@ -74,18 +74,16 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		let value: LiteralValueOrUnknown = UnknownValue;
-		for (const expr of this.expressions) {
-			if (!expr.isLocallyReachable()) continue;
-
-			const exprValue = expr.getLiteralValueAtPath(path, recursionTracker, origin);
-			if (exprValue === UnknownValue) return UnknownValue;
+		for (const expression of this.expressions) {
+			const expressionValue = expression.getLiteralValueAtPath(path, recursionTracker, origin);
+			if (expressionValue === UnknownValue) return UnknownValue;
 
 			if (value === UnknownValue) {
-				value = exprValue;
+				value = expressionValue;
 				continue;
 			}
 
-			value = mergeValues(value, exprValue);
+			value = mergeValues(value, expressionValue);
 			if (value === UnknownValue) return UnknownValue;
 		}
 
@@ -98,15 +96,15 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const returnExpressions = this.expressions
-			.filter(expr => expr.isLocallyReachable())
-			.map(expression =>
-				expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-			);
+		const returnExpressions = this.expressions.map(expression =>
+			expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
+		);
 
 		let pure = true;
 		return [
-			new MultiExpression(returnExpressions.map(expr => ((pure &&= expr[1]), expr[0]))),
+			new MultiExpression(
+				returnExpressions.map(expression => ((pure &&= expression[1]), expression[0]))
+			),
 			pure
 		];
 	}
@@ -117,11 +115,7 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		context: HasEffectsContext
 	): boolean {
 		for (const expression of this.expressions) {
-			if (
-				expression.isLocallyReachable() &&
-				expression.hasEffectsOnInteractionAtPath(path, interaction, context)
-			)
-				return true;
+			if (expression.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
 		}
 		return false;
 	}

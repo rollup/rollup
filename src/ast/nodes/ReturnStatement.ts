@@ -45,10 +45,6 @@ export default class ReturnStatement extends StatementBase {
 			}
 		}
 	}
-
-	haltsCodeFlow(): boolean {
-		return true;
-	}
 }
 
 ReturnStatement.prototype.applyDeoptimizations = doNotDeoptimize;

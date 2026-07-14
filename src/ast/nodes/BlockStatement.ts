@@ -1,12 +1,12 @@
 import type MagicString from 'magic-string';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import { UNDEFINED_EXPRESSION } from '../values';
 import ExpressionStatement from './ExpressionStatement';
-import type * as NodeType from './NodeType';
+import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { type ExpressionEntity, LiteralExpression } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -19,8 +19,6 @@ import {
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
 	declare type: NodeType.tBlockStatement;
-
-	private implicitReturnExpression: ExpressionEntity | null = null;
 
 	private get deoptimizeBody(): boolean {
 		return isFlagSet(this.flags, Flag.deoptimizeBody);
@@ -36,13 +34,10 @@ export default class BlockStatement extends StatementBase {
 		this.flags = setFlag(this.flags, Flag.directlyIncluded, value);
 	}
 
-	private blockEndReached = false;
-	private lastReachableBlock = Infinity;
-
 	addImplicitReturnExpressionToScope(): void {
-		if (!this.blockEndReached) {
-			this.implicitReturnExpression = new LiteralExpression(undefined, this);
-			this.scope.addReturnExpression(this.implicitReturnExpression);
+		const lastStatement = this.body[this.body.length - 1];
+		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
+			this.scope.addReturnExpression(UNDEFINED_EXPRESSION);
 		}
 	}
 
@@ -82,46 +77,12 @@ export default class BlockStatement extends StatementBase {
 			firstBodyStatement.directive === 'use asm';
 	}
 
-	bind(): void {
-		for (let index = 0; index < this.body.length; index++) {
-			const node = this.body[index];
-			node.bind();
-			if (!this.blockEndReached && node.haltsCodeFlow()) {
-				this.blockEndReached = true;
-				this.lastReachableBlock = index;
-			}
-		}
-	}
-
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.body.length > 0) {
 			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {
 			super.render(code, options);
 		}
-	}
-
-	haltsCodeFlow(allowOptimizations?: boolean): boolean {
-		for (const node of this.body) {
-			if (node.haltsCodeFlow(allowOptimizations)) return true;
-		}
-		return false;
-	}
-
-	isChildLocallyReachable(node: ExpressionEntity): boolean {
-		if (!this.isLocallyReachable()) return false;
-
-		const blockIndex =
-			node === this.implicitReturnExpression ? this.body.length : this.body.indexOf(node as any);
-		if (blockIndex < 0 || blockIndex > this.lastReachableBlock) return false;
-
-		for (let index = 0; index < blockIndex; index++) {
-			if (this.body[index].haltsCodeFlow(true)) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 }
 
