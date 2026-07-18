@@ -2,53 +2,28 @@
   "decisions": {
     "1112706|mocha>diff": {
       "decision": "ignore",
-      "madeAt": 1781330012106,
-      "expiresAt": 1783921936247
+      "madeAt": 1784352037175,
+      "expiresAt": 1786944185207
     },
     "1113686|mocha>diff>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1781329994282,
-      "expiresAt": 1783921936247
+      "madeAt": 1784352029507,
+      "expiresAt": 1788000000000
     },
     "1113686|@rollup/plugin-terser>serialize-javascript": {
       "decision": "ignore",
-      "madeAt": 1781329994282,
-      "expiresAt": 1783921936247
-    },
-    "1115723|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1778737445950,
-      "expiresAt": 1781329420005
-    },
-    "1115723|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1778737445950,
-      "expiresAt": 1781329420005
+      "madeAt": 1784352029507,
+      "expiresAt": 1788000000000
     },
     "1119440|@rollup/plugin-terser>serialize-javascript": {
       "decision": "ignore",
       "madeAt": 1782446946760,
-      "expiresAt": 1785038919323
+      "expiresAt": 1788000000000
     },
     "1119440|mocha>diff>serialize-javascript": {
       "decision": "ignore",
       "madeAt": 1782446946760,
-      "expiresAt": 1785038919323
-    },
-    "1119441|nyc>istanbul-lib-processinfo>uuid": {
-      "decision": "ignore",
-      "madeAt": 1779422109125,
-      "expiresAt": 1782014081308
-    },
-    "1120422|concurrently>shell-quote": {
-      "decision": "ignore",
-      "madeAt": 1781330008448,
-      "expiresAt": 1783921936247
-    },
-    "1120792|nyc>@istanbuljs/load-nyc-config>js-yaml": {
-      "decision": "ignore",
-      "madeAt": 1781843217245,
-      "expiresAt": 1784435194759
+      "expiresAt": 1788000000000
     }
   },
   "rules": {},
