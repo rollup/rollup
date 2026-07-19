@@ -214,6 +214,11 @@ export default abstract class FunctionBase extends NodeBase {
 
 	initialise(): void {
 		super.initialise();
+		if (this.body instanceof BlockStatement) {
+			this.body.addImplicitReturnExpressionToScope();
+		} else {
+			this.scope.addReturnExpression(this.body);
+		}
 		if (
 			this.annotations &&
 			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
@@ -221,15 +226,6 @@ export default abstract class FunctionBase extends NodeBase {
 			this.annotationNoSideEffects = this.annotations.some(
 				comment => comment.type === 'noSideEffects'
 			);
-		}
-	}
-
-	bind() {
-		super.bind();
-		if (this.body instanceof BlockStatement) {
-			this.body.addImplicitReturnExpressionToScope();
-		} else {
-			this.scope.addReturnExpression(this.body);
 		}
 	}
 

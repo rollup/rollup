@@ -32,9 +32,9 @@ export default class ReturnStatement extends StatementBase {
 		this.argument?.includePath(UNKNOWN_PATH, context);
 	}
 
-	bind(): void {
+	initialise(): void {
+		super.initialise();
 		this.scope.addReturnExpression(this.argument || UNDEFINED_EXPRESSION);
-		super.bind();
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
