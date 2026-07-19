@@ -14,18 +14,22 @@ import {
 	renderSystemExportFunction,
 	renderSystemExportSequenceAfterExpression
 } from '../../utils/systemJsRendering';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import {
 	createHasEffectsContext,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../NodeInteractions';
+import type { EntityPathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { UNKNOWN_RETURN_EXPRESSION, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
@@ -74,6 +78,27 @@ export default class AssignmentExpression extends NodeBase {
 			(interaction.type === INTERACTION_ASSIGNED && this.left.included) ||
 			this.right.hasEffectsOnInteractionAtPath(path, interaction, context)
 		);
+	}
+
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		return this.operator === '='
+			? this.right.getLiteralValueAtPath(path, recursionTracker, origin)
+			: UnknownValue;
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): [expression: ExpressionEntity, isPure: boolean] {
+		return this.operator === '='
+			? this.right.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
+			: UNKNOWN_RETURN_EXPRESSION;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
