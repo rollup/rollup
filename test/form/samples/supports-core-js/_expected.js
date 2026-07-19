@@ -3911,36 +3911,15 @@ var hasRequiredArrayCopyWithin;
 function requireArrayCopyWithin () {
 	if (hasRequiredArrayCopyWithin) return arrayCopyWithin;
 	hasRequiredArrayCopyWithin = 1;
-	var toObject = requireToObject();
-	var toAbsoluteIndex = requireToAbsoluteIndex();
-	var lengthOfArrayLike = requireLengthOfArrayLike();
-	var deletePropertyOrThrow = requireDeletePropertyOrThrow();
-
-	var min = Math.min;
+	requireToObject();
+	requireToAbsoluteIndex();
+	requireLengthOfArrayLike();
+	requireDeletePropertyOrThrow();
 
 	// `Array.prototype.copyWithin` method implementation
 	// https://tc39.es/ecma262/#sec-array.prototype.copywithin
 	// eslint-disable-next-line es/no-array-prototype-copywithin -- safe
-	arrayCopyWithin = [].copyWithin || function copyWithin(target /* = 0 */, start /* = 0, end = @length */) {
-	  var O = toObject(this);
-	  var len = lengthOfArrayLike(O);
-	  var to = toAbsoluteIndex(target, len);
-	  var from = toAbsoluteIndex(start, len);
-	  var end = arguments.length > 2 ? arguments[2] : undefined;
-	  var count = min((end === undefined ? len : toAbsoluteIndex(end, len)) - from, len - to);
-	  var inc = 1;
-	  if (from < to && to < from + count) {
-	    inc = -1;
-	    from += count - 1;
-	    to += count - 1;
-	  }
-	  while (count-- > 0) {
-	    if (from in O) O[to] = O[from];
-	    else deletePropertyOrThrow(O, to);
-	    to += inc;
-	    from += inc;
-	  } return O;
-	};
+	arrayCopyWithin = [].copyWithin;
 	return arrayCopyWithin;
 }
 
@@ -4618,7 +4597,7 @@ function requireIteratorsCore () {
 	var IteratorPrototype, PrototypeOfArrayIteratorPrototype, arrayIterator;
 
 	/* eslint-disable es/no-array-prototype-keys -- safe */
-	if ([].keys) {
+	{
 	  arrayIterator = [].keys();
 	  // Safari 8 has buggy iterators w/o `next`
 	  if (!('next' in arrayIterator)) BUGGY_SAFARI_ITERATORS = true;
@@ -4915,7 +4894,7 @@ function requireArrayLastIndexOf () {
 
 	var min = Math.min;
 	var $lastIndexOf = [].lastIndexOf;
-	var NEGATIVE_ZERO = !!$lastIndexOf && 1 / [1].lastIndexOf(1, -0) < 0;
+	var NEGATIVE_ZERO = 1 / [1].lastIndexOf(1, -0) < 0;
 	var STRICT_METHOD = arrayMethodIsStrict('lastIndexOf');
 	var FORCED = NEGATIVE_ZERO || !STRICT_METHOD;
 
