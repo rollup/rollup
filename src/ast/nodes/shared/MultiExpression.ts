@@ -1,4 +1,5 @@
 import { EMPTY_SET } from '../../../utils/blank';
+import UNASSIGNED from '../../../utils/unassigned';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -30,10 +31,8 @@ function mergeValues(a: Value, b: Value): LiteralValueOrUnknown {
 	return UnknownValue;
 }
 
-const UNSET = Symbol('unset');
-
 export class MultiExpression extends ExpressionEntity implements DeoptimizableEntity {
-	private literalValue: LiteralValueOrUnknown | typeof UNSET = UNSET;
+	private literalValue: LiteralValueOrUnknown | typeof UNASSIGNED = UNASSIGNED;
 	private dependantEntities = new Set<DeoptimizableEntity>();
 	constructor(private expressions: readonly ExpressionEntity[]) {
 		super();
@@ -59,7 +58,7 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		if (path.length === 0) {
 			if (this.literalValue !== UnknownValue) this.dependantEntities.add(origin);
 
-			if (this.literalValue === UNSET)
+			if (this.literalValue === UNASSIGNED)
 				this.literalValue = this.doGetLiteralValueAtPath(path, recursionTracker, this);
 
 			return this.literalValue;
