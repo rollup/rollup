@@ -3,8 +3,8 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
+import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
@@ -14,6 +14,7 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
+import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import SyntheticNamedExportVariable from '../variables/SyntheticNamedExportVariable';
@@ -92,7 +93,21 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	declare operator: keyof typeof binaryOperators;
 	declare right: ExpressionNode;
 	declare type: NodeType.tBinaryExpression;
-	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
+
+	declare private interaction: NodeInteractionCalled;
+
+	private renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
+
+	initialise(): void {
+		super.initialise();
+		if (this.operator === 'instanceof') {
+			this.interaction = {
+				args: [null, this.left],
+				type: INTERACTION_CALLED,
+				withNew: false
+			};
+		}
+	}
 
 	deoptimizeCache(): void {
 		this.renderedLiteralValue = UnknownValue;
@@ -104,6 +119,19 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
+
+		if (this.operator === 'instanceof') {
+			const [returnValue] = this.right.getReturnExpressionWhenCalledAtPath(
+				INSTANCEOF_PATH,
+				this.interaction,
+				recursionTracker,
+				origin
+			);
+
+			const result = returnValue.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
+			return tryCastLiteralValueToBoolean(result);
+		}
+
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (typeof leftValue === 'symbol') return UnknownValue;
 
@@ -145,7 +173,19 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		) {
 			return true;
 		}
-		return super.hasEffects(context);
+
+		if (this.left.hasEffects(context) || this.right.hasEffects(context)) {
+			return true;
+		}
+
+		if (
+			this.operator === 'instanceof' &&
+			this.right.hasEffectsOnInteractionAtPath(INSTANCEOF_PATH, this.interaction, context)
+		) {
+			return true;
+		}
+
+		return false;
 	}
 
 	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {

@@ -10,6 +10,7 @@ import {
 	isAnyWellKnown,
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER,
+	SymbolHasInstance,
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
@@ -19,7 +20,8 @@ import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { isStaticBlock } from '../StaticBlock';
-import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
+import { createDefaultHasInstance, type OptimizedMethod } from './MethodTypes';
 import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
@@ -31,6 +33,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare superClass: ExpressionNode | null;
 	declare decorators: Decorator[];
 	declare private classConstructor: MethodDefinition | null;
+	declare private defaultHasInstance: OptimizedMethod;
 	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {
@@ -42,6 +45,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
+		this.defaultHasInstance.deoptimizeCache();
 		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
 			path,
@@ -50,10 +54,12 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	deoptimizeCache(): void {
+		this.defaultHasInstance.deoptimizeCache();
 		this.getObjectEntity().deoptimizeAllProperties();
 	}
 
 	deoptimizePath(path: ObjectPath): void {
+		this.defaultHasInstance.deoptimizeCache();
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
@@ -113,6 +119,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	initialise(): void {
 		super.initialise();
+		this.defaultHasInstance = createDefaultHasInstance(this);
 		this.id?.declare('class', EMPTY_PATH, this);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
@@ -178,14 +185,24 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			}
 			properties.push({ key, kind, property: definition });
 		}
-		staticProperties.unshift({
-			key: 'prototype',
-			kind: 'init',
-			property: new ObjectEntity(
-				dynamicMethods,
-				this.superClass ? new ObjectMember(this.superClass, ['prototype']) : OBJECT_PROTOTYPE
-			)
-		});
+		staticProperties.unshift(
+			{
+				key: 'prototype',
+				kind: 'init',
+				property: new ObjectEntity(
+					dynamicMethods,
+					this.superClass ? new ObjectMember(this.superClass, ['prototype']) : OBJECT_PROTOTYPE
+				)
+			},
+			// Because this is added at the start of the array,
+			// it'll be overwritten by the class's own if it declares it.
+			{
+				key: SymbolHasInstance,
+				kind: 'init',
+				property: this.defaultHasInstance
+			}
+		);
+
 		return (this.objectEntity = new ObjectEntity(
 			staticProperties,
 			this.superClass || OBJECT_PROTOTYPE

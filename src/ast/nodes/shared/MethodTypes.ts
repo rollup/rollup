@@ -1,3 +1,5 @@
+import { EMPTY_ARRAY } from '../../../utils/blank';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
@@ -6,20 +8,25 @@ import {
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
-import {
-	EMPTY_PATH,
-	type ObjectPath,
-	UNKNOWN_INTEGER_PATH,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_INTEGER_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
 	UNKNOWN_LITERAL_NUMBER,
 	UNKNOWN_LITERAL_STRING
 } from '../../values';
-import { ExpressionEntity, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import { Flag, isFlagSet, setFlag } from './BitFlags';
+import type { LiteralValueOrUnknown } from './Expression';
+import {
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownTruthyValue,
+	UnknownValue
+} from './Expression';
 
 type MethodDescription = {
+	virtual?: boolean;
 	callsArgs: number[] | null;
 	mutatesSelfAsArray: boolean | 'deopt-only';
 	mutatesArgs: boolean;
@@ -35,7 +42,7 @@ type MethodDescription = {
 );
 
 export class Method extends ExpressionEntity {
-	constructor(private readonly description: MethodDescription) {
+	constructor(protected readonly description: MethodDescription) {
 		super();
 	}
 
@@ -52,9 +59,20 @@ export class Method extends ExpressionEntity {
 		}
 	}
 
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		_recursionTracker: EntityPathTracker,
+		_origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (path.length) return UnknownValue;
+		return this.description.virtual ? undefined : UnknownTruthyValue;
+	}
+
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		{ args }: NodeInteractionCalled
+		{ args }: NodeInteractionCalled,
+		_recursionTracker: EntityPathTracker,
+		_origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return UNKNOWN_RETURN_EXPRESSION;
@@ -105,6 +123,63 @@ export class Method extends ExpressionEntity {
 	}
 }
 
+export class OptimizedMethod extends Method implements DeoptimizableEntity {
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+
+	private get hasDeoptimizedCache(): boolean {
+		return isFlagSet(this.flags, Flag.hasDeoptimizedCache);
+	}
+	private set hasDeoptimizedCache(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasDeoptimizedCache, value);
+	}
+
+	deoptimizeCache(): void {
+		this.hasDeoptimizedCache = true;
+		const { expressionsToBeDeoptimized } = this;
+		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+		if (expressionsToBeDeoptimized.length) {
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): [expression: ExpressionEntity, isPure: boolean] {
+		if (this.hasDeoptimizedCache) return UNKNOWN_RETURN_EXPRESSION;
+
+		const result = super.getReturnExpressionWhenCalledAtPath(
+			path,
+			interaction,
+			recursionTracker,
+			origin
+		);
+
+		// Don't bother tracking deopt if unnecessary to avoid unnecessdary treeshaking passes.
+		if (result[0] === UNKNOWN_EXPRESSION) return result;
+
+		this.expressionsToBeDeoptimized.push(origin);
+		return [result[0], true];
+	}
+
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		if (
+			!this.hasDeoptimizedCache &&
+			path.length <= (interaction.type === INTERACTION_ACCESSED ? 1 : 0)
+		)
+			return false;
+		return super.hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+}
+
 export const METHOD_RETURNS_BOOLEAN = [
 	new Method({
 		callsArgs: null,
@@ -144,3 +219,25 @@ export const METHOD_RETURNS_UNKNOWN = [
 		returnsPrimitive: UNKNOWN_EXPRESSION
 	})
 ];
+
+export function createDefaultHasInstance(owner: ExpressionEntity) {
+	return new OptimizedMethod({
+		callsArgs: null,
+		mutatesArgs: false,
+		mutatesSelfAsArray: false,
+		returns: () =>
+			owner.included
+				? UNKNOWN_LITERAL_BOOLEAN
+				: new (class extends ExpressionEntity {
+						getLiteralValueAtPath(
+							path: ObjectPath,
+							_recursionTracker: EntityPathTracker,
+							_origin: DeoptimizableEntity
+						): LiteralValueOrUnknown {
+							return !path.length ? false : UnknownValue;
+						}
+					})(),
+		returnsPrimitive: null,
+		virtual: true
+	});
+}
