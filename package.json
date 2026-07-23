@@ -177,7 +177,7 @@
     "is-reference": "^3.0.3",
     "lint-staged": "^17.1.0",
     "locate-character": "^3.0.0",
-    "magic-string": "^0.30.21",
+    "magic-string": "^1.0.0",
     "memfs": "^4.64.0",
     "mocha": "11.7.6",
     "nodemon": "^3.1.14",
