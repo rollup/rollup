@@ -112,8 +112,20 @@ export class ExpressionEntity implements WritableEntity {
 	}
 }
 
-export const UNKNOWN_EXPRESSION: ExpressionEntity =
-	new (class UnknownExpression extends ExpressionEntity {})();
+export class LiteralExpression extends ExpressionEntity {
+	constructor(
+		private value: LiteralValueOrUnknown,
+		public parent?: ExpressionEntity
+	) {
+		super();
+	}
+
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		return path.length > 0 ? UnknownValue : this.value;
+	}
+}
+
+export const UNKNOWN_EXPRESSION: ExpressionEntity = new LiteralExpression(UnknownValue);
 
 export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: boolean] = [
 	UNKNOWN_EXPRESSION,

@@ -42,6 +42,6 @@ true || /* @__PURE__ */(function(){y})() ? foo() : bar();
 false && /* @__PURE__ */(function(){y})() ? foo() : bar();
 /* @__PURE__ */(function(){x})() + "foo" ? bar() : baz();
 "foo" + /* @__PURE__ */(function(){y})() ? bar() : baz();
-/* @__PURE__ */(function(){x})() ? foo() : foo();
+/* @__PURE__ */(function(){x})() ? foo() : baz();
 [/* @__PURE__ */(function(){x})()] ? foo() : bar();
 !{ foo: /* @__PURE__ */(function(){x})() } ? bar() : baz();

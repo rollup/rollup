@@ -3,10 +3,10 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import { UNDEFINED_EXPRESSION } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -37,7 +37,7 @@ export default class BlockStatement extends StatementBase {
 	addImplicitReturnExpressionToScope(): void {
 		const lastStatement = this.body[this.body.length - 1];
 		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
-			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
+			this.scope.addReturnExpression(UNDEFINED_EXPRESSION);
 		}
 	}
 
