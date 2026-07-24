@@ -180,6 +180,7 @@ export default defineConfig({
 			},
 			examplesPlugin(),
 			alias(moduleAliases)
-		]
+		],
+		ssr: { noExternal: ['pinia'] }
 	}
 });

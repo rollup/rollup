@@ -46,6 +46,4 @@ export const NODE_INTERACTION_UNKNOWN_CALL: NodeInteractionCalled = {
 
 // For tracking, interactions are uniquely determined by their .args
 export type NodeInteraction =
-	| NodeInteractionAccessed
-	| NodeInteractionAssigned
-	| NodeInteractionCalled;
+	NodeInteractionAccessed | NodeInteractionAssigned | NodeInteractionCalled;

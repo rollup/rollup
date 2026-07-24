@@ -66,9 +66,7 @@ export default class ImportExpression extends NodeBase {
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
 	private localResolution:
-		| null
-		| { resolution: Module; tracked: false }
-		| { resolution: Module; tracked: true } = null;
+		null | { resolution: Module; tracked: false } | { resolution: Module; tracked: true } = null;
 	private resolutionString: string | null = null;
 
 	get shouldIncludeDynamicAttributes() {
