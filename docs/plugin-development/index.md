@@ -494,7 +494,7 @@ The return type **ResolveIdResult** is the same as that of the [`resolveId`](#re
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
-`attributes` tells you which import attributes were present in the import. I.e. `import("foo", {assert: {type: "json"}})` will pass along `attributes: {type: "json"}`.
+`attributes` tells you which import attributes were present in the import. I.e. `import("foo", { with: { type: "json" } })` will pass along `attributes: {type: "json"}`.
 
 `importerRawId` and `importerAttributes` are the raw id and import attributes of the importing module.
 
@@ -551,7 +551,7 @@ import { foo } from '../bar.js';
 
 the source will be `"../bar.js"`.
 
-The `importer` is the id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
+The `importer` is the id of the importing module. When the importing module was itself imported with import attributes, this id is the composite id (see [Module identity](#module-identity)) and may contain an `?attributes=` suffix; in that case, use the `importerRawId` option below if you need the id without attributes. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
 
 The `importerAttributes` are the import attributes of the importing module. The `importerRawId` is the id of the importing module without its own import attributes. When resolving entry points, `importerRawId` will usually be `undefined` and `importerAttributes` will be an empty object.
 
@@ -632,7 +632,7 @@ function injectPolyfillPlugin() {
 }
 ```
 
-`attributes` tells you which import attributes were present in the import. I.e. `import "foo" assert {type: "json"}` will pass along `attributes: {type: "json"}`.
+`attributes` tells you which import attributes were present in the import. I.e. `import "foo" with { type: "json" }` will pass along `attributes: {type: "json"}`.
 
 Returning `null` defers to other `resolveId` functions and eventually the default resolution behavior. Returning `false` signals that `source` should be treated as an external module and not included in the bundle. If this happens for a relative import, the id will be renormalized the same way as when the `external` option is used.
 
@@ -661,7 +661,7 @@ If `false` is returned for `moduleSideEffects` in the first hook that resolves a
 
 `resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](#this-resolve).
 
-If you return a value for `attributes` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, attributes: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `attributes` input parameter will be used. Pass an empty object to remove any attributes. For bundled modules, attributes are part of the module identity: importing the same resolved raw id with different attributes will create distinct modules with distinct module ids.
+If you return a value for `attributes` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, attributes: {type: "json"}}` will cause imports of this module appear as `import "foo" with { type: "json" }`. If you do not pass a value, the value of the `attributes` input parameter will be used. Pass an empty object to remove any attributes. For bundled modules, attributes are part of the module identity: importing the same resolved raw id with different attributes will create distinct modules with distinct module ids.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will default to `false`. The `load` and `transform` hooks can override this.
 
@@ -2090,7 +2090,7 @@ If `importer` is an object with `rawId` and `attributes`, Rollup will use those 
 
 For backwards compatibility, you can provide a string `importer` together with the deprecated `importerAttributes` option. In this case, Rollup will interpret the string as the raw id of the importing module. This option cannot be combined with an object `importer`.
 
-If you pass an object for `attributes`, it will simulate resolving an import with an assertion, e.g. `attributes: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
+If you pass an object for `attributes`, it will simulate resolving an import with an assertion, e.g. `attributes: {type: "json"}` simulates resolving `import "foo" with { type: "json" }`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
 When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry`, `custom` and `attributes` options.
 

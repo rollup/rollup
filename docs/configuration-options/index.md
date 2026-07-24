@@ -97,6 +97,8 @@ The conversion back to a relative import is done as if `output.file` or `output.
 
 The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](#output-file) option is used, generated chunk names will follow the [`output.entryFileNames`](#output-entryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
 
+Note that entry points specified here cannot carry import attributes. If you need an entry point that is imported with specific attributes (e.g. a JSON module imported with `{ type: 'json' }`), emit it from a plugin via [`this.emitFile`](../plugin-development/index.md#this-emitfile) with the `attributes` option instead.
+
 Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
 ```js twoslash
@@ -948,7 +950,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 |     CLI: | `--externalImportAttributes`/`--no-externalImportAttributes` |
 | Default: | `true`                                                       |
 
-Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes when resolving external modules. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
+Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes when resolving external modules. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
 
 ### output.generatedCode
 
@@ -3150,7 +3152,7 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 |     CLI: | `--externalImportAssertions`/`--no-externalImportAssertions` |
 | Default: | `true`                                                       |
 
-Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, import attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
+Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, import attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
 
 ### output.onlyExplicitManualChunks
 
