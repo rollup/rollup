@@ -1,9 +1,9 @@
-import { EMPTY_SET } from '../../../utils/blank';
 import UNASSIGNED from '../../../utils/unassigned';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import ReturnStatement from '../ReturnStatement';
 import {
 	ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -39,9 +39,14 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 	}
 
 	deoptimizeCache(): void {
-		this.literalValue = UnknownValue;
-		this.dependantEntities.forEach(v => v.deoptimizeCache());
-		this.dependantEntities = EMPTY_SET;
+		if (this.literalValue !== UNASSIGNED) {
+			const { dependantEntities } = this;
+			this.literalValue = UNASSIGNED;
+			this.dependantEntities = new Set();
+			for (const entity of dependantEntities) {
+				entity.deoptimizeCache();
+			}
+		}
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -56,11 +61,10 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
-			if (this.literalValue !== UnknownValue) this.dependantEntities.add(origin);
-
 			if (this.literalValue === UNASSIGNED)
 				this.literalValue = this.doGetLiteralValueAtPath(path, recursionTracker, this);
 
+			this.dependantEntities.add(origin);
 			return this.literalValue;
 		}
 
@@ -74,6 +78,8 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 	): LiteralValueOrUnknown {
 		let value: LiteralValueOrUnknown = UnknownValue;
 		for (const expression of this.expressions) {
+			if (this.isTreeshaken(expression)) continue;
+
 			const expressionValue = expression.getLiteralValueAtPath(path, recursionTracker, origin);
 			if (expressionValue === UnknownValue) return UnknownValue;
 
@@ -114,8 +120,20 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		context: HasEffectsContext
 	): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+			if (
+				!this.isTreeshaken(expression) &&
+				expression.hasEffectsOnInteractionAtPath(path, interaction, context)
+			)
+				return true;
 		}
+		return false;
+	}
+
+	private isTreeshaken(expression: ExpressionEntity): boolean {
+		if ('parent' in expression && expression.parent instanceof ReturnStatement) {
+			return !expression.parent.checkReached(this);
+		}
+
 		return false;
 	}
 }

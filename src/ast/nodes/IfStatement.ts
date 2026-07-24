@@ -9,7 +9,7 @@ import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBool
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import type { LiteralValueOrUnknown } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -31,7 +31,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private testValue: LiteralValueOrUnknown | typeof UNASSIGNED = UNASSIGNED;
 
 	deoptimizeCache(): void {
-		this.testValue = UnknownValue;
+		this.testValue = UNASSIGNED;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

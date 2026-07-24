@@ -19,7 +19,7 @@ import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
-import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
+import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN, onlyIncludeSelf } from './shared/Node';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 
@@ -124,11 +124,6 @@ export default class CallExpression
 		}
 	}
 
-	includeNode(_context: InclusionContext) {
-		this.included = true;
-		if (!this.deoptimized) this.applyDeoptimizations();
-	}
-
 	initialise() {
 		super.initialise();
 		if (
@@ -187,3 +182,5 @@ export default class CallExpression
 		return this.returnExpression;
 	}
 }
+
+CallExpression.prototype.includeNode = onlyIncludeSelf;

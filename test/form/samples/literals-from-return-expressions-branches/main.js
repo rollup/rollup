@@ -1,41 +1,28 @@
-/*
-A bunch of cases in this file are actually broken.
-See https://github.com/rollup/rollup/issues/5063 and https://github.com/rollup/rollup/pull/6065
-*/
-
-// Known broken: DCE gets rid of the `return false`, but too late for it to be considered during constant folding (#5063)
 function returnTrueWithDeadBranch() {
 	if (false) return false;
 	return true;
 }
 
-// Known broken: DCE gets rid of the `return false`, but too late for it to be considered during constant folding (#5063)
 function returnFalseWithDeadBranch() {
 	if (true) return false;
 	return true;
 }
 
-// Known broken: DCE gets rid of the `return false`, but too late for it to be considered during constant folding (#5063)
-// Also broken because the last statement isn't a return, so a virtual `return undefined` is added (which makes the result unknown)
 function returnTrueWithDeadBranchAlt() {
 	if (false) return false;
 	else return true;
 }
 
-// Known broken: DCE gets rid of the `return false`, but too late for it to be considered during constant folding (#5063)
-// Also working by accident because the last statement isn't a return, so a virtual `return undefined` is added (which is still falsy)
 function returnFalseWithDeadBranchAlt() {
 	if (true) return false;
 	else return true;
 }
 
-// Known broken: DCE gets rid of the `return false`, but too late for it to be considered during constant folding (#5063)
 function returnTrueWithBrokenFlow() {
 	return true;
 	return false;
 }
 
-// Works by accident: the final virtual return is `undefined`, which is falsy (#5063)
 function returnFalseOnAllBranches() {
 	switch (Math.random() * 1000) { // * 1k because advanced type analysis would flag all branches except default as dead ;)
 		case 1: return false;
@@ -51,6 +38,8 @@ function returnFalseOnAllBranches() {
 		case 144: return false;
 		default: return false;
 	}
+
+	return true;
 }
 
 // Not implemented yet; needs both dead switch branch detection and #5063
@@ -78,6 +67,9 @@ function returnMixedTruthy() {
 		// Known broken; c.f. ObjectEntity -- case 3: return [0];
 		// Known broken; c.f. ObjectEntity -- case 4: return {x:1};
 		case 5: return 1337;
+		// Known broken; c.f. ObjectEntity -- case 6: () => {}
+		// Known broken; c.f. ObjectEntity -- case 7: function() {}
+		// Known broken; c.f. ObjectEntity -- case 8: class {}
 	}
 
 	return ~0;
