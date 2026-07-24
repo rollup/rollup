@@ -1,12 +1,22 @@
-let effect = false;
+let effect1 = false;
+let effect2 = false;
 
 class Foo {}
+function Bar() {}
 
-function checkInstance(instance) {
+function checkInstanceFoo(instance) {
 	if (instance instanceof Foo) {
-		effect = true;
+		effect1 = true;
 	}
 }
 
-checkInstance(new Foo());
-assert.ok(effect);
+function checkInstanceBar(instance) {
+	if (instance instanceof Bar) {
+		effect2 = true;
+	}
+}
+
+checkInstanceFoo(new Foo());
+checkInstanceBar(new Bar());
+assert.ok(effect1);
+assert.ok(effect2);

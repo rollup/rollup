@@ -7,12 +7,14 @@ import {
 	EMPTY_PATH,
 	type EntityPathTracker,
 	type ObjectPath,
+	SymbolHasInstance,
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
+import { createDefaultHasInstance, type OptimizedMethod } from './MethodTypes';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
@@ -26,10 +28,11 @@ export default class FunctionNode extends FunctionBase {
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;
 	declare private constructedEntity: ObjectEntity;
+	declare private defaultHasInstance: OptimizedMethod;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new FunctionScope(parentScope, this);
-		this.constructedEntity = new ObjectEntity(new Map(), OBJECT_PROTOTYPE);
+		this.constructedEntity = new ObjectEntity([], OBJECT_PROTOTYPE);
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.
 		this.scope.thisVariable.addArgumentForDeoptimization(this.constructedEntity);
@@ -40,6 +43,7 @@ export default class FunctionNode extends FunctionBase {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
+		this.defaultHasInstance.deoptimizeCache();
 		super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.args[0]) {
 			// args[0] is the "this" argument
@@ -60,6 +64,7 @@ export default class FunctionNode extends FunctionBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		this.defaultHasInstance.deoptimizeCache();
 		if (
 			this.annotationNoSideEffects &&
 			path.length === 0 &&
@@ -123,6 +128,7 @@ export default class FunctionNode extends FunctionBase {
 
 	initialise(): void {
 		super.initialise();
+		this.defaultHasInstance = createDefaultHasInstance(this);
 		this.id?.declare('function', EMPTY_PATH, this);
 	}
 
@@ -136,6 +142,11 @@ export default class FunctionNode extends FunctionBase {
 					key: 'prototype',
 					kind: 'init',
 					property: new ObjectEntity([], OBJECT_PROTOTYPE)
+				},
+				{
+					key: SymbolHasInstance,
+					kind: 'init',
+					property: this.defaultHasInstance
 				}
 			],
 			OBJECT_PROTOTYPE
