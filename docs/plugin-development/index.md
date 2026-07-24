@@ -669,6 +669,10 @@ See [custom module meta-data](#custom-module-meta-data) for how to use the `meta
 
 Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, `id` and `attributes` together determine which module is loaded. Values for `external`, `meta`, `moduleSideEffects` or `syntheticNamedExports` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](#load) and [`transform`](#transform) hooks for that module that may override these values and should take precedence if they do so.
 
+::: warning Do not use `?attributes=` in the returned id
+
+Since Rollup encodes import attributes as an `attributes` query parameter, ids returned from this hook must not contain an `attributes=`, `?attributes=`, or `&attributes=` segment, as Rollup would interpret it as part of the module identity and strip it from the `rawId`. See [Module identity](#module-identity) for details. :::
+
 When triggering this hook from a plugin via [`this.resolve`](#this-resolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](#custom-resolver-options).
 
 In watch mode or when using the cache explicitly, the resolved imports of a cached module are also taken from the cache and not determined via the `resolveId` hook again. To prevent this, you can return `true` from the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook for that module. This will remove the module and its import resolutions from cache and call `transform` and `resolveId` again.
