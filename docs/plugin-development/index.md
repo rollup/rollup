@@ -2455,7 +2455,21 @@ import('./utils.js').then(utils => utils.process(data));
 
 Rollup provides access to these attributes in plugin hooks, allowing plugins to handle modules differently based on their import attributes.
 
+### Module identity
+
 Import attributes are part of a module's identity. If the same resolved raw id is imported with different attributes, Rollup creates separate modules with separate module ids. Internally, the generated `id` is based on the `rawId` with the attributes appended as a single `attributes` URL search parameter containing the URI-encoded JSON representation of the sorted attributes, e.g. a raw id of `./logo.png` with `{ size: '100' }` becomes `./logo.png?attributes=%7B%22size%22%3A%22100%22%7D`.
+
+Internally, Rollup tracks three different identifiers for each module:
+
+- **`rawId`**: the resolved module id without import attributes, returned by [`resolveId`](#resolveid) and corresponding to the file or virtual module on disk. It is what [`load`](#load) uses to read from the file system, what Rollup adds to its watch list, and what is exposed as [`moduleInfo.rawId`](#this-getmoduleinfo) and `RenderedModule.rawId` (the values of `modules` on the output chunk, see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)). Function-form [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) receive the `rawId` together with the `attributes` so they can key on either. For modules without import attributes, `rawId` and `id` (below) are identical.
+- **`attributes`**: the import attributes (`Record<string, string>`) that were applied to this module, where an empty object means "no import attributes". Exposed on [`moduleInfo.attributes`](#this-getmoduleinfo), `RenderedModule.attributes`, and `facadeModuleAttributes` on the `PreRenderedChunk` / `RenderedChunk` types (see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)).
+- **`id`**: the composite module identifier Rollup uses internally, derived from `rawId` and `attributes` as described above, so importing the same `rawId` with different `attributes` yields different `id` values and thus different modules. It appears in [`moduleInfo.id`](#this-getmoduleinfo), `moduleInfo.importers` and `moduleInfo.dynamicImporters`, `importedIds` / `dynamicallyImportedIds`, `moduleIds` on the output chunk (see [`generateBundle`](#generatebundle)), and in error and warning messages. It is also what the `importer` parameter of the [`resolveId`](#resolveid) and [`resolveDynamicImport`](#resolvedynamicimport) hooks receives for modules that were themselves imported with attributes.
+
+Because the `importer` parameter may contain the `?attributes=` suffix, plugins that compare, parse, or pattern-match the importer should prefer the `importerRawId` option (which is always the id without attributes) when they need the underlying file or virtual id. Use `importerAttributes` to get the importing module's own import attributes.
+
+::: warning Do not use `?attributes=` in your own module ids
+
+Since Rollup encodes import attributes as a single `attributes` query parameter, module ids you produce in a plugin (e.g. virtual modules returned from [`resolveId`](#resolveid), or ids passed to [`this.load`](#this-load) / [`this.emitFile`](#this-emitfile)) must not contain an `attributes=`, `?attributes=`, or `&attributes=` segment. Such ids would be mistaken for a composite id and Rollup would try to split off the attributes, producing unexpected `rawId` values. If you need to attach plugin-specific metadata to an id, use a different query parameter name (e.g. `?my-plugin=...`) or a different encoding. :::
 
 ### Accessing import attributes in plugins
 
