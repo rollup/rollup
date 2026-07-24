@@ -1,6 +1,7 @@
 import RESERVED_NAMES from './RESERVED_NAMES';
 
 const illegalCharacters = /[^\w$]/g;
+const illegalCharacter = /[^\w$]/;
 
 const startsWithDigit = (value: string): boolean => /\d/.test(value[0]);
 
@@ -11,7 +12,7 @@ export function isLegal(value: string): boolean {
 	if (needsEscape(value)) {
 		return false;
 	}
-	return !illegalCharacters.test(value);
+	return !illegalCharacter.test(value);
 }
 
 export function makeLegal(value: string): string {
