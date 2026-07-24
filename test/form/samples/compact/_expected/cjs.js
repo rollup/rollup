@@ -1,4 +1,4 @@
-'use strict';var x=require('external');var self=/*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({__proto__:null,get default(){return foo}},Symbol.toStringTag,{value:'Module'}));console.log(self);
+'use strict';var x=require('external');var self=/*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty(/*#__PURE__*/Object.setPrototypeOf({get default(){return foo}},null),Symbol.toStringTag,{value:'Module'}));console.log(self);
 function foo () {
 	console.log( x );
 }

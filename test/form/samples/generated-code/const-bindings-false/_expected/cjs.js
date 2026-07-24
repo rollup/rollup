@@ -28,11 +28,10 @@ var _missingExportShim = void 0;
 
 const foo = 'bar';
 
-var other = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var other = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	foo: foo,
 	missing: _missingExportShim
-});
+}, null));
 
 var synthetic = { bar: 'baz'};
 
