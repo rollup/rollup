@@ -1,5 +1,5 @@
 const path = require('node:path');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_MAPPED = path.join(__dirname, 'dep-mapped.js');

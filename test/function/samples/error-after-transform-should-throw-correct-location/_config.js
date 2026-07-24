@@ -1,5 +1,5 @@
 const path = require('node:path');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
