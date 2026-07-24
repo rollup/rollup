@@ -100,17 +100,24 @@ export function getPluginContext(
 			let importerAttributes: Record<string, string> | undefined;
 			let importerRawId: string | undefined;
 			if (importer) {
-				if (typeof importer === 'object' && deprecatedImporterAttributes) {
-					return error(
-						logPluginError(
-							normalizeLog(
-								'The "importerAttributes" option cannot be used together with an object importer in this.resolve().'
-							),
-							plugin.name
-						)
+				if (deprecatedImporterAttributes) {
+					if (typeof importer === 'object') {
+						return error(
+							logPluginError(
+								normalizeLog(
+									'The "importerAttributes" option cannot be used together with an object importer in this.resolve().'
+								),
+								plugin.name
+							)
+						);
+					}
+					warnDeprecation(
+						'The "importerAttributes" option is deprecated. Provide a UniqueModuleId for "importer" instead.',
+						URL_THIS_RESOLVE,
+						true,
+						options,
+						plugin.name
 					);
-				}
-				if (typeof importer === 'string' && deprecatedImporterAttributes) {
 					importerId = normalizeModuleIdToObject({
 						attributes: deprecatedImporterAttributes,
 						rawId: importer
@@ -123,15 +130,6 @@ export function getPluginContext(
 					importerRawId = normalizedImporter.rawId;
 					importerId = normalizedImporter.id;
 				}
-			}
-			if (deprecatedImporterAttributes) {
-				warnDeprecation(
-					'The "importerAttributes" option is deprecated. Provide a UniqueModuleId for "importer" instead.',
-					URL_THIS_RESOLVE,
-					true,
-					options,
-					plugin.name
-				);
 			}
 			return graph.moduleLoader.resolveId(
 				source,
