@@ -1,12 +1,11 @@
-const MagicString = require('magic-string');
-
 module.exports = defineTest({
 	description: 'plugin transform hooks can use `this.parse(code, options)`',
 	options: {
 		plugins: [
 			{
 				name: 'test',
-				transform(code) {
+				async transform(code) {
+					const { default: MagicString } = await import('magic-string');
 					const magicString = new MagicString(code);
 					enforceTheAnswer(this.parse(code), magicString);
 					return magicString.toString();

@@ -1,6 +1,5 @@
 const assert = require('node:assert');
 const { encode } = require('@jridgewell/sourcemap-codec');
-const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
@@ -27,7 +26,8 @@ module.exports = defineTest({
 			},
 			{
 				name: 'test-plugin2',
-				transform(code) {
+				async transform(code) {
+					const { default: MagicString } = await import('magic-string');
 					const s = new MagicString(code);
 					s.prepend("console.log('second');\n");
 

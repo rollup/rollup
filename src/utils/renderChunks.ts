@@ -353,7 +353,7 @@ function addChunksToBundle(
 			finalSourcemapFileName = sourcemapFileName
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
 				: `${finalFileName}.map`;
-			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
+			map.file = replacePlaceholders(map.file ?? '', hashesByPlaceholder);
 			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
 		}
 		bundle[finalFileName] = chunk.finalizeChunk(

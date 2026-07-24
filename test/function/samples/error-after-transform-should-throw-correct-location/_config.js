@@ -1,5 +1,4 @@
 const path = require('node:path');
-const MagicString = require('magic-string');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
@@ -8,7 +7,8 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
-				transform(source) {
+				async transform(source) {
+					const { default: MagicString } = await import('magic-string');
 					const s = new MagicString(source);
 					s.prepend("import _assign from 'object-assign';\n");
 
