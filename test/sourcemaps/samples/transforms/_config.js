@@ -1,6 +1,5 @@
 const assert = require('node:assert');
 const buble = require('buble');
-const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
@@ -19,7 +18,8 @@ module.exports = defineTest({
 
 			{
 				name: 'test-plugin2',
-				transform(source) {
+				async transform(source) {
+					const { default: MagicString } = await import('magic-string');
 					const s = new MagicString(source);
 					s.append('\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );');
 

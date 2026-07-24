@@ -1,5 +1,4 @@
 const path = require('node:path');
-const MagicString = require('magic-string');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_MAPPED = path.join(__dirname, 'dep-mapped.js');
@@ -11,8 +10,9 @@ module.exports = defineTest({
 		plugins: [
 			{
 				name: 'insert-lines',
-				transform(code, id) {
+				async transform(code, id) {
 					if (id.endsWith('mapped.js')) {
+						const { default: MagicString } = await import('magic-string');
 						const magicString = new MagicString(code);
 						magicString.prepend('const removed = true;\nconst alsoRemoved = true; ');
 						return {
