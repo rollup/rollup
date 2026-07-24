@@ -1,3 +1,4 @@
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
@@ -6,6 +7,7 @@ import {
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
+import type { EntityPathTracker } from '../../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -17,7 +19,14 @@ import {
 	UNKNOWN_LITERAL_NUMBER,
 	UNKNOWN_LITERAL_STRING
 } from '../../values';
-import { ExpressionEntity, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import type { LiteralValueOrUnknown } from './Expression';
+import {
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownTruthyValue,
+	UnknownValue
+} from './Expression';
 
 type MethodDescription = {
 	callsArgs: number[] | null;
@@ -50,6 +59,14 @@ export class Method extends ExpressionEntity {
 				}
 			}
 		}
+	}
+
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		_recursionTracker: EntityPathTracker,
+		_origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		return path.length ? UnknownValue : UnknownTruthyValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
