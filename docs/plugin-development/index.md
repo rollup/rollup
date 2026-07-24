@@ -2455,7 +2455,7 @@ import('./utils.js').then(utils => utils.process(data));
 
 Rollup provides access to these attributes in plugin hooks, allowing plugins to handle modules differently based on their import attributes.
 
-Import attributes are part of a module's identity. If the same resolved raw id is imported with different attributes, Rollup creates separate modules with separate module ids. Internally, the generated `id` is based on the `rawId` and the attributes encoded as URL search parameters, e.g. a raw id of `./logo.png` with `{ size: '100' }` can become `./logo.png?size=100`.
+Import attributes are part of a module's identity. If the same resolved raw id is imported with different attributes, Rollup creates separate modules with separate module ids. Internally, the generated `id` is based on the `rawId` with the attributes appended as a single `attributes` URL search parameter containing the URI-encoded JSON representation of the sorted attributes, e.g. a raw id of `./logo.png` with `{ size: '100' }` becomes `./logo.png?attributes=%7B%22size%22%3A%22100%22%7D`.
 
 ### Accessing import attributes in plugins
 
