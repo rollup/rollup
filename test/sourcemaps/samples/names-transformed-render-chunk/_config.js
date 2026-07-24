@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const terser = require('terser');
 const getLocation = require('../../getLocation');

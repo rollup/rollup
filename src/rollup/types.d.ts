@@ -94,11 +94,11 @@ export type DecodedSourceMapOrMissing =
 	| (ExistingDecodedSourceMap & { missing?: false | undefined });
 
 export interface SourceMap {
-	file: string;
+	file?: string | undefined;
 	mappings: string;
 	names: string[];
 	sources: string[];
-	sourcesContent?: string[] | undefined;
+	sourcesContent?: (string | null)[] | undefined;
 	version: number;
 	debugId?: string | undefined;
 	toString(): string;

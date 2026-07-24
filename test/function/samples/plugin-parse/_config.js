@@ -1,4 +1,4 @@
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 
 module.exports = defineTest({
 	description: 'plugin transform hooks can use `this.parse(code, options)`',
