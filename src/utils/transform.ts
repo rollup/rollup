@@ -163,7 +163,6 @@ export default async function transform(
 						}
 						return new SourceMap({
 							...combinedMap,
-							file: null as never,
 							sourcesContent: combinedMap.sourcesContent!
 						});
 					},
