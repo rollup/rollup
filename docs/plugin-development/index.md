@@ -1688,8 +1688,7 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 
 ```typescript
 type UniqueModuleId =
-	| string
-	| { rawId: string; attributes: Record<string, string> };
+	string | { rawId: string; attributes: Record<string, string> };
 
 interface ModuleInfo {
 	id: string; // the id of the module, for convenience
