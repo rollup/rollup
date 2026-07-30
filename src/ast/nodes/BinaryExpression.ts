@@ -2,7 +2,11 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	createHasEffectsContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../NodeInteractions';
 import {
@@ -125,7 +129,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 				INSTANCEOF_PATH,
 				this.interaction,
 				recursionTracker,
-				origin
+				this
 			);
 
 			const result = returnValue.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
@@ -153,8 +157,12 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	}
 
 	getRenderedLiteralValue() {
-		// Only optimize `'export' in ns`
-		if (this.operator !== 'in' || !(this.right.variable instanceof NamespaceVariable)) {
+		// Only overwrite `'export' in ns` and side-effect free `instanceof`.
+		// Reason to optimise the latter is that it risks referencing a symbol that has been treeshaken away.
+		if (
+			(this.operator !== 'in' || !(this.right.variable instanceof NamespaceVariable)) &&
+			(this.operator !== 'instanceof' || this.hasEffects(createHasEffectsContext()))
+		) {
 			return UnknownValue;
 		}
 
