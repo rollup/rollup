@@ -21,7 +21,7 @@ import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { isStaticBlock } from '../StaticBlock';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { createDefaultHasInstance, type OptimizedMethod } from './MethodTypes';
+import { HasInstanceDefaultImplementation } from './FunctionNode';
 import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
@@ -33,7 +33,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare superClass: ExpressionNode | null;
 	declare decorators: Decorator[];
 	declare private classConstructor: MethodDefinition | null;
-	declare private defaultHasInstance: OptimizedMethod;
+	declare private defaultHasInstance: HasInstanceDefaultImplementation;
 	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {
@@ -119,7 +119,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	initialise(): void {
 		super.initialise();
-		this.defaultHasInstance = createDefaultHasInstance(this);
+		this.defaultHasInstance = new HasInstanceDefaultImplementation(this, this.scope);
 		this.id?.declare('class', EMPTY_PATH, this);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
