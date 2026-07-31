@@ -5,20 +5,52 @@ import type {
 	Plugin,
 	PluginCache,
 	PluginContext,
-	SerializablePluginCache
+	SerializablePluginCache,
+	UniqueModuleId
 } from '../rollup/types';
 import { BLANK, EMPTY_OBJECT } from './blank';
 import type { FileEmitter } from './FileEmitter';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { getLogHandler } from './logHandler';
-import { error, logPluginError } from './logs';
+import { error, logPluginError, warnDeprecation } from './logs';
+import { type NormalizedModuleId, normalizeModuleIdToObject } from './moduleId';
 import { normalizeLog } from './options/options';
 import { parseAndWalk } from './parseAndWalk';
 import { parseAst } from './parseAst';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginNames';
+import { URL_THIS_RESOLVE } from './urls';
 
 const rollupVersion = pkg.version;
+
+export function getNormalizedImporter(
+	importer: UniqueModuleId,
+	deprecatedImporterAttributes: Record<string, string> | undefined,
+	pluginName: string,
+	options: NormalizedInputOptions
+): NormalizedModuleId {
+	const normalizedImporter = normalizeModuleIdToObject(importer);
+	const hasDeprecatedImporterAttributes =
+		!!deprecatedImporterAttributes && Object.keys(deprecatedImporterAttributes).length > 0;
+	if (
+		typeof importer === 'string' &&
+		!normalizedImporter.attributes &&
+		hasDeprecatedImporterAttributes
+	) {
+		warnDeprecation(
+			'The "importerAttributes" option is deprecated. Provide a UniqueModuleId for "importer" instead.',
+			URL_THIS_RESOLVE,
+			true,
+			options,
+			pluginName
+		);
+		return normalizeModuleIdToObject({
+			attributes: deprecatedImporterAttributes,
+			rawId: importer
+		});
+	}
+	return normalizedImporter;
+}
 
 export function getPluginContext(
 	plugin: Plugin,
@@ -71,7 +103,10 @@ export function getPluginContext(
 		getWatchFiles: () => Object.keys(graph.watchFiles),
 		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		load(resolvedId) {
-			return graph.moduleLoader.preloadModule(resolvedId);
+			return graph.moduleLoader.preloadModule({
+				...resolvedId,
+				...normalizeModuleIdToObject(resolvedId.id)
+			});
 		},
 		meta: {
 			rollupVersion,
@@ -82,17 +117,31 @@ export function getPluginContext(
 		resolve(
 			source,
 			importer,
-			{ attributes, custom, isEntry, skipSelf, importerAttributes } = BLANK
+			{
+				attributes,
+				custom,
+				importerAttributes: deprecatedImporterAttributes,
+				isEntry,
+				skipSelf
+			} = BLANK
 		) {
 			skipSelf ??= true;
+			const {
+				id: importerId,
+				attributes: importerAttributes,
+				rawId: importerRawId
+			} = importer
+				? getNormalizedImporter(importer, deprecatedImporterAttributes, plugin.name, options)
+				: BLANK;
 			return graph.moduleLoader.resolveId(
 				source,
-				importer,
+				importerId,
 				custom,
 				isEntry,
 				attributes || EMPTY_OBJECT,
-				importerAttributes,
-				skipSelf ? [{ importer, plugin, source }] : null
+				importerAttributes || EMPTY_OBJECT,
+				importerRawId,
+				skipSelf ? [{ importer: importerId, plugin, source }] : null
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,
