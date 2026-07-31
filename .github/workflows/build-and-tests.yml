@@ -287,6 +287,35 @@ jobs:
         run: npm run build:napi -- --release --target ${{ matrix.settings.target }} ${{ matrix.settings.cross == 'zig' && '-x' || matrix.settings.cross == 'napi' && '--use-napi-cross' || matrix.settings.cross == 'cross' && '--use-cross' || '' }} -- ${{ matrix.settings.build-std && '-Zbuild-std=std,core,alloc,panic_unwind -Zbuild-std-features=panic-unwind' || '' }}
         if: ${{ !matrix.settings.build }}
         shell: bash
+      - name: Check glibc symbol compatibility
+        # riscv64 and loongarch64 use classic apt cross-gcc toolchains whose glibc
+        # floor tracks the runner image (currently 2.34/2.36) rather than the
+        # manylinux-derived napi cross toolchain; pinning them to 2.28 would
+        # require a separate sysroot toolchain change.
+        if: ${{ !matrix.settings.is-wasm-build && contains(matrix.settings.target, 'linux-gnu') && !contains(matrix.settings.target, 'android') && !contains(matrix.settings.target, 'ohos') && !contains(matrix.settings.target, 'riscv64') && !contains(matrix.settings.target, 'loongarch64') }}
+        run: |
+          set -e
+          failed=0
+          for file in ${APP_NAME:-rollup}.*.node; do
+            [ -f "$file" ] || continue
+            echo "Checking $file for glibc symbol versions..."
+            # Extract highest required GLIBC version from the binary
+            max_glibc=$(objdump -T "$file" 2>/dev/null | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sed 's/GLIBC_//' | sort -Vu | tail -1 || true)
+            if [ -n "$max_glibc" ]; then
+              echo "  Highest required GLIBC: $max_glibc"
+              # napi-cross sysroot is manylinux2014-based (glibc 2.17). Allow a small guard band
+              # up to 2.28 (the floor reported by users running RHEL8/Debian 11) to account for
+              # symbols the manylinux2014 sysroot itself legitimately references above 2.17.
+              if [ "$(printf '%s\n2.28\n' "$max_glibc" | sort -V | tail -1)" != "2.28" ]; then
+                echo "::error::$file requires GLIBC_$max_glibc, exceeding the supported floor of 2.28 (RHEL8/Debian 11)"
+                failed=1
+              fi
+            else
+              echo "  No GLIBC symbols found (statically linked or musl)."
+            fi
+          done
+          [ "$failed" = "0" ]
+        shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
