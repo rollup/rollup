@@ -1,5 +1,11 @@
 import type { ModuleLoaderResolveId } from '../ModuleLoader';
-import type { CustomPluginOptions, Plugin, ResolveIdResult, RollupFsModule } from '../rollup/types';
+import type {
+	CustomPluginOptions,
+	NormalizedInputOptions,
+	Plugin,
+	ResolveIdResult,
+	RollupFsModule
+} from '../rollup/types';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import type { PluginDriver } from './PluginDriver';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';
@@ -7,7 +13,6 @@ import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 export async function resolveId(
 	source: string,
 	importer: string | undefined,
-	preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
 	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
@@ -15,7 +20,8 @@ export async function resolveId(
 	isEntry: boolean,
 	attributes: Record<string, string>,
 	importerAttributes: Record<string, string> | undefined,
-	fs: RollupFsModule
+	importerRawId: string | undefined,
+	inputOptions: NormalizedInputOptions
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -26,21 +32,23 @@ export async function resolveId(
 		customOptions,
 		isEntry,
 		attributes,
-		importerAttributes
+		importerAttributes,
+		importerRawId,
+		inputOptions
 	);
 
 	if (pluginResult != null) {
 		const [resolveIdResult, plugin] = pluginResult;
-		if (typeof resolveIdResult === 'object' && !resolveIdResult.resolvedBy) {
-			return {
-				...resolveIdResult,
-				resolvedBy: plugin.name
-			};
-		}
 		if (typeof resolveIdResult === 'string') {
 			return {
 				id: resolveIdResult,
 				resolvedBy: plugin.name
+			};
+		}
+		if (typeof resolveIdResult === 'object') {
+			return {
+				...resolveIdResult,
+				resolvedBy: resolveIdResult.resolvedBy || plugin.name
 			};
 		}
 		return resolveIdResult;
@@ -56,8 +64,8 @@ export async function resolveId(
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
 		importer ? resolve(dirname(importer), source) : resolve(source),
-		preserveSymlinks,
-		fs
+		inputOptions.preserveSymlinks,
+		inputOptions.fs
 	);
 }
 
