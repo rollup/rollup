@@ -1,10 +1,59 @@
 ---
-title: Migrating to Rollup 4
+title: Migrating to Rollup 5
 ---
 
 # {{ $frontmatter.title }}
 
 [[toc]]
+
+This is a list of the most important topics you may encounter when migrating from Rollup 4 to Rollup 5. For a full list of breaking changes, we advise you to consult the
+
+- [Rollup 5 changelog](https://github.com/rollup/rollup/blob/master/CHANGELOG.md#500)
+
+For how to migrate from earlier versions, [see below](#migrating-to-rollup-4).
+
+## Prerequisites
+
+Make sure you run at least Node 18.0.0 and update all your Rollup plugins to their latest versions.
+
+## Changes to the Plugin API
+
+The most significant change in Rollup 5 is that **import attributes are now part of a module's identity**. This means that importing the same resolved module with different import attributes no longer emits a warning but instead creates separate, distinct modules. See [Module identity](../plugin-development/index.md#module-identity) for details on the `rawId`, `attributes`, and composite `id` properties this introduces.
+
+### Renamed and added hook options
+
+Several output-phase hooks had their `attributes` option renamed to `moduleAttributes` for consistency, and a `moduleRawId` option was added alongside it:
+
+- In [`resolveFileUrl`](../plugin-development/index.md#resolvefileurl) and [`resolveImportMeta`](../plugin-development/index.md#resolveimportmeta), the `attributes` option was renamed to `moduleAttributes`, and `moduleRawId` was added.
+- In [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport), `moduleRawId` and `moduleAttributes` were added for the importing module, and `targetModuleRawId` was added alongside the existing `targetModuleAttributes`. Additionally, `targetChunk` is now `null` (instead of being omitted) when the target is unresolved or external.
+
+The build-phase hooks [`load`](../plugin-development/index.md#load), [`transform`](../plugin-development/index.md#transform), and [`shouldTransformCachedModule`](../plugin-development/index.md#shouldtransformcachedmodule) now receive a `rawId` option alongside `attributes`, and [`resolveId`](../plugin-development/index.md#resolveid) and [`resolveDynamicImport`](../plugin-development/index.md#resolvedynamicimport) now receive `importerRawId` alongside `importerAttributes`.
+
+### `this.resolve` and `this.load` accept `UniqueModuleId`
+
+The `importer` parameter of [`this.resolve`](../plugin-development/index.md#this-resolve) and the `id` parameter of [`this.load`](../plugin-development/index.md#this-load) now accept a [`UniqueModuleId`](../plugin-development/index.md#this-getmoduleinfo) — either a string (interpreted as the `rawId`) or an object `{ rawId, attributes }`. The deprecated `importerAttributes` option of `this.resolve` can still be used together with a string `importer` for backwards compatibility, but will be removed in a future version.
+
+### `this.emitFile` and `this.getModuleInfo`
+
+[`this.emitFile`](../plugin-development/index.md#this-emitfile) now accepts `attributes` on emitted chunks, and the `importer` and `implicitlyLoadedAfterOneOf` options accept `UniqueModuleId` values. [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) accepts a `UniqueModuleId` and the returned `ModuleInfo` now includes `rawId` and `attributes` (moved from `ModuleOptions`).
+
+### Removed `INCONSISTENT_IMPORT_ATTRIBUTES` warning
+
+The `INCONSISTENT_IMPORT_ATTRIBUTES` warning is gone. Previously, importing the same module with different attributes triggered this warning; now each combination of `rawId` and `attributes` is a distinct module. If you were filtering or handling this warning, remove that logic.
+
+### `load` and `transform` returning `attributes` is now an error
+
+Returning `attributes` from the [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook was previously a deprecation warning; it is now a hard error. Attributes are determined at resolution time and cannot be overridden by these hooks.
+
+### New fields on output types
+
+`PreRenderedChunk`, `RenderedChunk`, and `OutputChunk` now expose `facadeModuleRawId` and `facadeModuleAttributes`. `RenderedModule` now exposes `rawId` and `attributes`.
+
+### Function-form `external`, `output.globals`, and `output.paths`
+
+The function forms of [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) now receive an additional `options` parameter containing `attributes` (and, for `external`, `importerRawId` and `importerAttributes`).
+
+## Migrating to Rollup 4
 
 This is a list of the most important topics you may encounter when migrating from Rollup 3 to Rollup 4. For a full list of breaking changes, we advise you to consult the
 

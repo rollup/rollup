@@ -1,4 +1,4 @@
-define(['require', './chunk-dep2-ughyJKkd'], (function (require, dep2) { 'use strict';
+define(['require', './chunk-dep2-B8GGdkan'], (function (require, dep2) { 'use strict';
 
 	var num = 1;
 	console.log('referenced asset', new URL(require.toUrl('./asset-test-C4X7hChn'), document.baseURI).href);
@@ -9,7 +9,9 @@ define(['require', './chunk-dep2-ughyJKkd'], (function (require, dep2) { 'use st
 }));
 console.log({
   "exports": [],
+  "facadeModuleAttributes": {},
   "facadeModuleId": "**/main1.js",
+  "facadeModuleRawId": "**/main1.js",
   "isDynamicEntry": false,
   "isEntry": true,
   "isImplicitEntry": false,
@@ -20,20 +22,22 @@ console.log({
   "name": "main1",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main1-utR7jRA-.js",
+  "fileName": "entry-main1-Bm972dwn.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-ughyJKkd.js": [
+    "chunk-dep2-B8GGdkan.js": [
       "num"
     ]
   },
   "imports": [
-    "chunk-dep2-ughyJKkd.js"
+    "chunk-dep2-B8GGdkan.js"
   ],
   "modules": {
     "**/dep1.js": {
+      "attributes": {},
       "code": "\tvar num = 1;\n\tconsole.log('referenced asset', new URL(require.toUrl('./asset-test-C4X7hChn'), document.baseURI).href);",
       "originalLength": 19,
+      "rawId": "**/dep1.js",
       "removedExports": [],
       "renderedExports": [
         "num"
@@ -41,8 +45,10 @@ console.log({
       "renderedLength": 117
     },
     "**/main1.js": {
+      "attributes": {},
       "code": "\tconsole.log(num + dep2.num);\n\tconsole.log('referenced asset', new URL(require.toUrl('./asset-test-C4X7hChn'), document.baseURI).href);",
       "originalLength": 102,
+      "rawId": "**/main1.js",
       "removedExports": [],
       "renderedExports": [],
       "renderedLength": 133
@@ -52,5 +58,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-utR7jRA-.js","entry-main2-CUgn7sNH.js","chunk-dep2-ughyJKkd.js"])
+console.log('all chunks', ["entry-main1-Bm972dwn.js","entry-main2-eGY-AdlU.js","chunk-dep2-B8GGdkan.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');
