@@ -1,5 +1,12 @@
 import type { ModuleLoaderResolveId } from '../ModuleLoader';
-import type { CustomPluginOptions, Plugin, PluginContext, ResolveIdResult } from '../rollup/types';
+import type {
+	CustomPluginOptions,
+	NormalizedInputOptions,
+	Plugin,
+	PluginContext,
+	ResolveIdResult
+} from '../rollup/types';
+import { getNormalizedImporter } from './PluginContext';
 import type { PluginDriver, ReplaceContext } from './PluginDriver';
 import { BLANK, EMPTY_OBJECT } from './blank';
 
@@ -12,7 +19,9 @@ export function resolveIdViaPlugins(
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
 	attributes: Record<string, string>,
-	importerAttributes: Record<string, string> | undefined
+	importerAttributes: Record<string, string> | undefined,
+	importerRawId: string | undefined,
+	inputOptions: NormalizedInputOptions
 ): Promise<[NonNullable<ResolveIdResult>, Plugin] | null> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
@@ -28,16 +37,29 @@ export function resolveIdViaPlugins(
 			resolve: (
 				source,
 				importer,
-				{ attributes, custom, isEntry, skipSelf, importerAttributes } = BLANK
+				{
+					attributes,
+					custom,
+					importerAttributes: deprecatedImporterAttributes,
+					isEntry,
+					skipSelf
+				} = BLANK
 			) => {
 				skipSelf ??= true;
+				const {
+					id: importerId,
+					attributes: importerAttributes,
+					rawId: importerRawId
+				} = importer
+					? getNormalizedImporter(importer, deprecatedImporterAttributes, plugin.name, inputOptions)
+					: BLANK;
 				if (
 					skipSelf &&
 					skip.findIndex(skippedCall => {
 						return (
 							skippedCall.plugin === plugin &&
 							skippedCall.source === source &&
-							skippedCall.importer === importer
+							skippedCall.importer === importerId
 						);
 					}) !== -1
 				) {
@@ -47,19 +69,30 @@ export function resolveIdViaPlugins(
 				}
 				return moduleLoaderResolveId(
 					source,
-					importer,
+					importerId,
 					custom,
 					isEntry,
 					attributes || EMPTY_OBJECT,
-					importerAttributes,
-					skipSelf ? [...skip, { importer, plugin, source }] : skip
+					importerAttributes || EMPTY_OBJECT,
+					importerRawId,
+					skipSelf ? [...skip, { importer: importerId, plugin, source }] : skip
 				);
 			}
 		});
 	}
 	return pluginDriver.hookFirstAndGetPlugin(
 		'resolveId',
-		[source, importer, { attributes, custom: customOptions, importerAttributes, isEntry }],
+		[
+			source,
+			importer,
+			{
+				attributes,
+				custom: customOptions,
+				importerAttributes: importerAttributes || EMPTY_OBJECT,
+				importerRawId,
+				isEntry
+			}
+		],
 		replaceContext,
 		skipped
 	);
