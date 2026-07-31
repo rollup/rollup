@@ -6,20 +6,20 @@ import {
 	renderStatementList
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
-	declare consequent: readonly StatementNode[];
+	declare parent: nodes.SwitchCaseParent;
+	declare consequent: readonly nodes.Statement[];
 	declare needsBoundaries: true;
-	declare test: ExpressionNode | null;
+	declare test: nodes.Expression | null;
 	declare type: NodeType.tSwitchCase;
 
 	hasEffects(context: HasEffectsContext): boolean {

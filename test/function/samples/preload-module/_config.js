@@ -23,9 +23,13 @@ module.exports = defineTest({
 				moduleParsed({ id }) {
 					parsedModules.push(id);
 				},
-				async resolveId(source, importer, options) {
+				async resolveId(
+					source,
+					importer,
+					{ importerAttributes, importerRawId, ...resolveOptions }
+				) {
 					if (source.endsWith('main.js')) {
-						const resolvedId = await this.resolve(source, importer, options);
+						const resolvedId = await this.resolve(source, importer, resolveOptions);
 						const { ast, ...moduleInfo } = await this.load({
 							...resolvedId,
 							meta: { testPlugin: 'first' }
@@ -52,6 +56,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: null,
 							meta: { testPlugin: 'first' },
+							rawId: ID_MAIN,
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						});
@@ -96,6 +101,7 @@ module.exports = defineTest({
 						isExternal: false,
 						isIncluded: true,
 						meta: {},
+						rawId: ID_DEP,
 						safeVariableNames: null,
 						syntheticNamedExports: false
 					});

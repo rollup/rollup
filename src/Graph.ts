@@ -1,4 +1,3 @@
-import flru from 'flru';
 import { createInclusionContext } from './ast/ExecutionContext';
 import type { ExpressionEntity } from './ast/nodes/shared/Expression';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -7,13 +6,13 @@ import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import type {
+	CachedModule,
 	ModuleInfo,
-	ModuleJSON,
 	NormalizedInputOptions,
-	ProgramNode,
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache,
+	UniqueModuleId,
 	WatchChangeHook
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
@@ -25,6 +24,7 @@ import {
 	logImplicitDependantIsNotIncluded,
 	logMissingExport
 } from './utils/logs';
+import { normalizeModuleId } from './utils/moduleId';
 import { PluginDriver } from './utils/PluginDriver';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
@@ -54,8 +54,7 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	readonly astLru = flru<ProgramNode>(5);
-	readonly cachedModules = new Map<string, ModuleJSON>();
+	readonly cachedModules = new Map<string, CachedModule>();
 	readonly deoptimizationTracker = new EntityPathTracker();
 	entryModules: Module[] = [];
 	readonly fileOperationQueue: Queue;
@@ -141,8 +140,9 @@ export default class Graph {
 		};
 	}
 
-	getModuleInfo = (moduleId: string): ModuleInfo | null => {
-		const foundModule = this.modulesById.get(moduleId);
+	getModuleInfo = (moduleId: UniqueModuleId): ModuleInfo | null => {
+		const normalizedModuleId = normalizeModuleId(moduleId);
+		const foundModule = this.modulesById.get(normalizedModuleId);
 		if (!foundModule) return null;
 		return foundModule.info;
 	};

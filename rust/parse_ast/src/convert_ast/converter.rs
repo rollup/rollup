@@ -1,12 +1,3 @@
-use swc_common::Span;
-use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
-  ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
-  JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
-  ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
-  PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
-};
-
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
@@ -19,34 +10,281 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::utf16_positions::{
   ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
+use scope_constants::{
+  SCOPE_DECLARATIONS_OFFSET, SCOPE_DECLARATION_COUNT_OFFSET, SCOPE_PARENT_OFFSET,
+};
+use swc_common::Span;
+use swc_ecma_ast::{
+  AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
+  ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
+  JSXAttrValue, JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName,
+  ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName,
+  PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+};
 
 pub(crate) mod analyze_code;
+pub(crate) mod ast_constants;
+mod ast_macros;
+pub(crate) mod scope_constants;
 pub(crate) mod string_constants;
 mod utf16_positions;
 
-pub(crate) mod ast_constants;
-mod ast_macros;
+pub(crate) struct WalkEntry {
+  pub(crate) node_buffer_position: u32,
+  pub(crate) skip_to_index: u32,
+  pub(crate) scope_position: u32,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum ScopeType {
+  Module,
+  Function,
+  Block,
+  Catch,
+  Class,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum DeclarationKind {
+  Lexical,
+  Var,
+}
+
+pub(crate) struct ScopeRecord {
+  scope_type: ScopeType,
+  declarations: Vec<u32>,
+  scope_offset_position: usize,
+  parent_scope_ref_positions: Vec<usize>,
+  walking_entry_indices: Vec<usize>,
+}
 
 pub(crate) struct AstConverter<'a> {
   pub(crate) buffer: Vec<u8>,
   pub(crate) code: &'a [u8],
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
+  pub(crate) walked_nodes_bitset: Option<[u64; 2]>,
+  pub(crate) collect_scopes: bool,
+  pub(crate) walking_entries: Vec<WalkEntry>,
+  pub(crate) scope_stack: Vec<ScopeRecord>,
+  pub(crate) declaration_kind: Option<DeclarationKind>,
 }
 
 impl<'a> AstConverter<'a> {
-  pub(crate) fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
+  pub(crate) fn new(
+    buffer: Vec<u8>,
+    code: &'a str,
+    annotations: &'a [AnnotationWithType],
+    walked_nodes_bitset: Option<[u64; 2]>,
+    collect_scopes: bool,
+  ) -> Self {
     Self {
-      // This is just a wild guess and should be revisited from time to time
-      buffer: Vec::with_capacity(20 * code.len()),
+      buffer,
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
+      walked_nodes_bitset,
+      collect_scopes,
+      walking_entries: Vec::new(),
+      scope_stack: Vec::new(),
+      declaration_kind: None,
     }
   }
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
+
+    if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
+      let walking_info_offset = (self.buffer.len() as u32) >> 2;
+
+      // Write the offset at the beginning of the buffer (native endian)
+      self.buffer[0..4].copy_from_slice(&walking_info_offset.to_ne_bytes());
+
+      // Append walking entries: [node_position(4), skip_to_index(4), scope_position(4)] for each entry
+      for entry in &self.walking_entries {
+        self
+          .buffer
+          .extend_from_slice(&(entry.node_buffer_position).to_ne_bytes());
+        self
+          .buffer
+          .extend_from_slice(&entry.skip_to_index.to_ne_bytes());
+        self
+          .buffer
+          .extend_from_slice(&entry.scope_position.to_ne_bytes());
+      }
+    }
+
     self.buffer.shrink_to_fit();
     self.buffer
+  }
+
+  // === walking hooks
+  /// Called when entering a node. Returns Some(entry_index) if this node type is walked.
+  pub(crate) fn on_node_enter<const NODE_TYPE: u32>(&mut self) -> Option<usize> {
+    // Compile-time assertion
+    const {
+      assert!(
+        NODE_TYPE < 128,
+        "Node type must be less than 128 for bitset"
+      )
+    };
+
+    // Check if this node type is in the bitset
+    // Since NODE_TYPE is a const generic, the compiler will constant-fold these operations:
+    // - (NODE_TYPE / 64) as usize  -> computed at compile time
+    // - NODE_TYPE % 64             -> computed at compile time
+    // - 1u64 << (compile-time value) -> computed at compile time
+    self.walked_nodes_bitset.and_then(|bitset| {
+      if (bitset[(NODE_TYPE / 64) as usize] & (1u64 << (NODE_TYPE % 64))) != 0 {
+        let entry_index = self.walking_entries.len();
+        self.walking_entries.push(WalkEntry {
+          node_buffer_position: (self.buffer.len() as u32) >> 2,
+          skip_to_index: 0, // Will be updated in on_node_exit
+          scope_position: 0,
+        });
+        if self.collect_scopes {
+          if let Some(scope) = self.scope_stack.last_mut() {
+            scope.walking_entry_indices.push(entry_index);
+          }
+        }
+        Some(entry_index)
+      } else {
+        None
+      }
+    })
+  }
+
+  /// Registers an already-created walk entry with the current (top-of-stack)
+  /// scope. This is only needed for the `Program` node, whose walking entry
+  /// must be associated with its own `ModuleScope` rather than the (non-existent)
+  /// parent scope. Must be called after the scope has been pushed.
+  pub(crate) fn register_walk_entry_with_current_scope(&mut self, entry_index: Option<usize>) {
+    if self.collect_scopes {
+      if let (Some(index), Some(scope)) = (entry_index, self.scope_stack.last_mut()) {
+        scope.walking_entry_indices.push(index);
+      }
+    }
+  }
+
+  pub(crate) fn push_scope(&mut self, scope_type: ScopeType, scope_offset_position: usize) {
+    if self.collect_scopes {
+      self.scope_stack.push(ScopeRecord {
+        scope_type,
+        declarations: Vec::new(),
+        scope_offset_position,
+        parent_scope_ref_positions: Vec::new(),
+        walking_entry_indices: Vec::new(),
+      });
+    }
+  }
+
+  pub(crate) fn pop_scope(&mut self) {
+    if !self.collect_scopes {
+      return;
+    }
+
+    let record = self.scope_stack.pop().unwrap();
+    let scope_node_start = self.buffer.len();
+
+    // Reserve the fixed-size scope node header (parent + declarationCount).
+    // The variable-length declaration offsets are appended after.
+    self
+      .buffer
+      .resize(scope_node_start + SCOPE_DECLARATIONS_OFFSET, 0);
+
+    // parent — patched by the parent scope on its exit
+    let parent_scope_ref_position = scope_node_start + SCOPE_PARENT_OFFSET;
+
+    // declarationCount
+    self.buffer[scope_node_start + SCOPE_DECLARATION_COUNT_OFFSET
+      ..scope_node_start + SCOPE_DECLARATION_COUNT_OFFSET + 4]
+      .copy_from_slice(&(record.declarations.len() as u32).to_ne_bytes());
+
+    // declaration[0..n] — buffer positions of Identifier nodes
+    for declaration in record.declarations {
+      self.buffer.extend_from_slice(&declaration.to_ne_bytes());
+    }
+
+    let scope_node_position = (scope_node_start as u32) >> 2;
+
+    self.buffer[record.scope_offset_position..record.scope_offset_position + 4]
+      .copy_from_slice(&scope_node_position.to_ne_bytes());
+
+    for &walking_entry_index in &record.walking_entry_indices {
+      self.walking_entries[walking_entry_index].scope_position = scope_node_position;
+    }
+
+    for child_ref_position in record.parent_scope_ref_positions {
+      self.buffer[child_ref_position..child_ref_position + 4]
+        .copy_from_slice(&scope_node_position.to_ne_bytes());
+    }
+
+    if let Some(parent_scope) = self.scope_stack.last_mut() {
+      parent_scope
+        .parent_scope_ref_positions
+        .push(parent_scope_ref_position);
+    }
+  }
+
+  pub(crate) fn with_declaration_kind<F>(&mut self, declaration_kind: DeclarationKind, convert: F)
+  where
+    F: FnOnce(&mut Self),
+  {
+    if self.collect_scopes {
+      let previous_declaration_kind = self.declaration_kind;
+      self.declaration_kind = Some(declaration_kind);
+      convert(self);
+      self.declaration_kind = previous_declaration_kind;
+    } else {
+      convert(self);
+    }
+  }
+
+  pub(crate) fn without_declaration_kind<F>(&mut self, convert: F)
+  where
+    F: FnOnce(&mut Self),
+  {
+    if self.collect_scopes {
+      let previous_declaration_kind = self.declaration_kind;
+      self.declaration_kind = None;
+      convert(self);
+      self.declaration_kind = previous_declaration_kind;
+    } else {
+      convert(self);
+    }
+  }
+
+  pub(crate) fn record_declaration(&mut self, identifier_buffer_position: u32) {
+    if let Some(declaration_kind) = self.declaration_kind {
+      self.record_declaration_with_kind(identifier_buffer_position, declaration_kind);
+    }
+  }
+
+  pub(crate) fn record_declaration_with_kind(
+    &mut self,
+    identifier_buffer_position: u32,
+    declaration_kind: DeclarationKind,
+  ) {
+    if !self.collect_scopes {
+      return;
+    }
+    let scope_index = match declaration_kind {
+      DeclarationKind::Lexical => self.scope_stack.len() - 1,
+      DeclarationKind::Var => self
+        .scope_stack
+        .iter()
+        .rposition(|scope| matches!(scope.scope_type, ScopeType::Module | ScopeType::Function))
+        .expect("var declaration without module/function scope"),
+    };
+    self.scope_stack[scope_index]
+      .declarations
+      .push(identifier_buffer_position);
+  }
+
+  /// Called when exiting a node. Updates the skip_to_index for the entry.
+  pub(crate) fn on_node_exit(&mut self, entry_index: Option<usize>) {
+    if let Some(index) = entry_index {
+      let skip_to = self.walking_entries.len() as u32;
+      self.walking_entries[index].skip_to_index = skip_to;
+    }
   }
 
   // === helpers
@@ -437,7 +675,7 @@ impl<'a> AstConverter<'a> {
         self.store_variable_declaration(&VariableDeclaration::Var(variable_declaration))
       }
       ForHead::Pat(pattern) => {
-        self.convert_pattern(pattern);
+        self.without_declaration_kind(|ast_converter| ast_converter.convert_pattern(pattern));
       }
       ForHead::UsingDecl(using_declaration) => {
         self.store_variable_declaration(&VariableDeclaration::Using(using_declaration))
@@ -524,8 +762,8 @@ impl<'a> AstConverter<'a> {
       JSXElementName::JSXMemberExpr(jsx_member_expression) => {
         self.store_jsx_member_expression(jsx_member_expression);
       }
-      JSXElementName::JSXNamespacedName(_jsx_namespaced_name) => {
-        unimplemented!("JSXElementName::JSXNamespacedName")
+      JSXElementName::JSXNamespacedName(jsx_namespaced_name) => {
+        self.store_jsx_namespaced_name(jsx_namespaced_name);
       }
     }
   }
@@ -664,7 +902,9 @@ impl<'a> AstConverter<'a> {
       Pat::Assign(assignment_pattern) => {
         self.convert_assignment_pattern(assignment_pattern);
       }
-      Pat::Expr(expression) => self.convert_expression(expression),
+      Pat::Expr(expression) => {
+        self.without_declaration_kind(|ast_converter| ast_converter.convert_expression(expression))
+      }
       Pat::Ident(binding_identifier) => {
         self.convert_binding_identifier(binding_identifier);
       }
@@ -761,7 +1001,7 @@ impl<'a> AstConverter<'a> {
   pub(crate) fn convert_statement(&mut self, statement: &Stmt) {
     match statement {
       Stmt::Break(break_statement) => self.store_break_statement(break_statement),
-      Stmt::Block(block_statement) => self.store_block_statement(block_statement, false),
+      Stmt::Block(block_statement) => self.store_block_statement(block_statement, false, false),
       Stmt::Continue(continue_statement) => self.store_continue_statement(continue_statement),
       Stmt::Decl(declaration) => self.convert_declaration(declaration, None),
       Stmt::Debugger(debugger_statement) => self.store_debugger_statement(debugger_statement),

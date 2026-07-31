@@ -14,11 +14,11 @@ module.exports = defineTest({
 						return `import.meta.ROLLUP_FILE_URL_${assetId}`;
 					});
 				},
-				resolveFileUrl({ attributes }) {
-					return `'attributes=${JSON.stringify(attributes)}'`;
+				resolveFileUrl({ moduleAttributes }) {
+					return `'attributes=${JSON.stringify(moduleAttributes)}'`;
 				},
-				resolveImportMeta(property, { attributes }) {
-					return `'attributes=${JSON.stringify(attributes)}'`;
+				resolveImportMeta(property, { moduleAttributes }) {
+					return `'attributes=${JSON.stringify(moduleAttributes)}'`;
 				}
 			}
 		]

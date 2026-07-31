@@ -1,6 +1,6 @@
 use swc_ecma_ast::ImportStarAsSpecifier;
 
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::{AstConverter, DeclarationKind};
 use crate::store_import_namespace_specifier;
 
 impl AstConverter<'_> {
@@ -8,10 +8,12 @@ impl AstConverter<'_> {
     &mut self,
     import_namespace_specifier: &ImportStarAsSpecifier,
   ) {
-    store_import_namespace_specifier!(
-      self,
-      span => &import_namespace_specifier.span,
-      local => [import_namespace_specifier.local, convert_identifier]
-    );
+    self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+      store_import_namespace_specifier!(
+        ast_converter,
+        span => &import_namespace_specifier.span,
+        local => [import_namespace_specifier.local, convert_identifier]
+      );
+    });
   }
 }
