@@ -1,6 +1,5 @@
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
-import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
@@ -17,11 +16,20 @@ import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
+import json from './build-plugins/json';
 import loadCliHelp from './build-plugins/load-cli-help';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import './typings/declarations';
 
 const onwarn: WarningHandlerWithDefault = warning => {
+	// temporarily bypass warnings about deprecated importerAttributes option
+	// until @rollup/plugin-commonjs is updated
+	if (
+		warning.message.includes(
+			`The "importerAttributes" option is deprecated. Provide a UniqueModuleId for "importer" instead`
+		)
+	)
+		return;
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
 			'Please keep in mind that the browser build may never have external dependencies!'
@@ -86,7 +94,8 @@ export default async function getConfig(
 			!command.configTest && collectLicenses(),
 			copyNodeTypes()
 		],
-		strictDeprecations: true,
+		// temporarily disable strictDeprecations until @rollup/plugin-commonjs is updated
+		strictDeprecations: false,
 		treeshake
 	};
 
@@ -150,7 +159,8 @@ export default async function getConfig(
 			cleanBeforeWrite('browser/dist'),
 			emitWasmFile()
 		],
-		strictDeprecations: true,
+		// temporarily disable strictDeprecations
+		strictDeprecations: false,
 		treeshake
 	};
 

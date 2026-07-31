@@ -25,7 +25,8 @@ echo -e "${GREEN}✓ Scripts passed${NC}"
 echo ""
 
 echo -e "${BLUE}Checking docs...${NC}"
-npx vue-tsc --noEmit -p docs
+# skip checking vite types because it is not compatible with the current version of Rollup
+npx vue-tsc --noEmit --skipLibCheck -p docs
 echo -e "${GREEN}✓ Docs passed${NC}"
 echo ""
 
