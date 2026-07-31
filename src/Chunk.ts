@@ -50,6 +50,7 @@ import {
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
+	logAmbiguousGlobalName,
 	logCyclicCrossChunkReexport,
 	logEmptyChunk,
 	logMissingGlobalName,
@@ -162,10 +163,16 @@ function getGlobalName(
 	chunk: ExternalChunk,
 	globals: GlobalsOption,
 	hasExports: boolean,
+	boundVariantsByRawId: Map<string, number>,
 	log: LogHandler
 ): string | undefined {
-	const globalName = typeof globals === 'function' ? globals(chunk.id) : globals[chunk.id];
+	const { attributes, rawId } = chunk.moduleInfo;
+	const globalName =
+		typeof globals === 'function' ? globals(rawId, { attributes }) : globals[rawId];
 	if (globalName) {
+		if (hasExports && typeof globals === 'object') {
+			warnIfAmbiguousGlobalName(rawId, globalName, boundVariantsByRawId, log);
+		}
 		return globalName;
 	}
 
@@ -173,6 +180,19 @@ function getGlobalName(
 		log(LOGLEVEL_WARN, logMissingGlobalName(chunk.id, chunk.variableName));
 		return chunk.variableName;
 	}
+}
+
+function warnIfAmbiguousGlobalName(
+	rawId: string,
+	globalName: string,
+	boundVariantsByRawId: Map<string, number>,
+	log: LogHandler
+): void {
+	const boundVariants = boundVariantsByRawId.get(rawId) ?? 0;
+	if (boundVariants === 1) {
+		log(LOGLEVEL_WARN, logAmbiguousGlobalName(rawId, globalName));
+	}
+	boundVariantsByRawId.set(rawId, boundVariants + 1);
 }
 
 export default class Chunk {
@@ -1144,7 +1164,9 @@ export default class Chunk {
 		const { dynamicEntryModules, facadeModule, implicitEntryModules, orderedModules } = this;
 		return (this.preRenderedChunkInfo = {
 			exports: this.getExportNames(),
+			facadeModuleAttributes: facadeModule ? facadeModule.info.attributes : {},
 			facadeModuleId: facadeModule && facadeModule.id,
+			facadeModuleRawId: facadeModule ? facadeModule.info.rawId : null,
 			isDynamicEntry: dynamicEntryModules.length > 0,
 			isEntry: !!facadeModule?.info.isEntry,
 			isImplicitEntry: implicitEntryModules.length > 0,
@@ -1249,6 +1271,10 @@ export default class Chunk {
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ChunkDependency>();
 		const fileName = this.getFileName();
+		const boundVariantsByRawId =
+			this.outputOptions.format === 'iife' || this.outputOptions.format === 'umd'
+				? new Map<string, number>()
+				: undefined;
 		for (const dependency of this.dependencies) {
 			const imports = importSpecifiers.get(dependency) || null;
 			const reexports = reexportSpecifiers.get(dependency) || null;
@@ -1266,40 +1292,52 @@ export default class Chunk {
 				// side effect import, see https://github.com/rollup/rollup/issues/6111
 				continue;
 			}
-			const namedExportsMode =
-				dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
-			const importPath = dependency.getImportPath(fileName);
-			// Separate source-phase imports from regular imports
-			const sourcePhaseImport = imports?.find(index => index.phase === 'source');
-			const instanceImports = imports?.filter(index => index.phase !== 'source') ?? null;
-
-			renderedDependencies.set(dependency, {
-				attributes:
-					dependency instanceof ExternalChunk
-						? dependency.getImportAttributes(this.snippets)
-						: null,
-				defaultVariableName: dependency.defaultVariableName,
-				globalName:
-					dependency instanceof ExternalChunk &&
-					(this.outputOptions.format === 'umd' || this.outputOptions.format === 'iife') &&
-					getGlobalName(
-						dependency,
-						this.outputOptions.globals,
-						(imports || reexports) !== null,
-						this.inputOptions.onLog
-					),
-				importPath,
-				imports: instanceImports && instanceImports.length > 0 ? instanceImports : null,
-				isChunk: dependency instanceof Chunk,
-				name: dependency.variableName,
-				namedExportsMode,
-				namespaceVariableName: dependency.namespaceVariableName,
-				reexports,
-				sourcePhaseImport: sourcePhaseImport?.local
-			});
+			renderedDependencies.set(
+				dependency,
+				this.getRenderedDependency(dependency, imports, reexports, fileName, boundVariantsByRawId)
+			);
 		}
 
 		return (this.renderedDependencies = renderedDependencies);
+	}
+
+	private getRenderedDependency(
+		dependency: Chunk | ExternalChunk,
+		imports: ImportSpecifier[] | null,
+		reexports: ReexportSpecifier[] | null,
+		fileName: string,
+		boundVariantsByRawId: Map<string, number> | undefined
+	): ChunkDependency {
+		const namedExportsMode =
+			dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
+		const importPath = dependency.getImportPath(fileName);
+		// Separate source-phase imports from regular imports
+		const sourcePhaseImport = imports?.find(index => index.phase === 'source');
+		const instanceImports = imports?.filter(index => index.phase !== 'source') ?? null;
+
+		return {
+			attributes:
+				dependency instanceof ExternalChunk ? dependency.getImportAttributes(this.snippets) : null,
+			defaultVariableName: dependency.defaultVariableName,
+			globalName:
+				boundVariantsByRawId &&
+				dependency instanceof ExternalChunk &&
+				getGlobalName(
+					dependency,
+					this.outputOptions.globals,
+					(imports || reexports) !== null,
+					boundVariantsByRawId,
+					this.inputOptions.onLog
+				),
+			importPath,
+			imports: instanceImports && instanceImports.length > 0 ? instanceImports : null,
+			isChunk: dependency instanceof Chunk,
+			name: dependency.variableName,
+			namedExportsMode,
+			namespaceVariableName: dependency.namespaceVariableName,
+			reexports,
+			sourcePhaseImport: sourcePhaseImport?.local
+		};
 	}
 
 	private inlineChunkDependencies(chunk: Chunk): void {
@@ -1397,10 +1435,12 @@ export default class Chunk {
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			renderedModules[module.id] = {
+				attributes: module.info.attributes,
 				get code() {
 					return source?.toString() ?? null;
 				},
 				originalLength: module.originalCode.length,
+				rawId: module.info.rawId,
 				removedExports,
 				renderedExports,
 				renderedLength

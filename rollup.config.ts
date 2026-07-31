@@ -1,6 +1,5 @@
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
-import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
@@ -17,6 +16,7 @@ import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
+import json from './build-plugins/json';
 import loadCliHelp from './build-plugins/load-cli-help';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import './typings/declarations';
