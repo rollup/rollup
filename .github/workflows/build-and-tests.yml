@@ -295,12 +295,15 @@ jobs:
         if: ${{ !matrix.settings.is-wasm-build && contains(matrix.settings.target, 'linux-gnu') && !contains(matrix.settings.target, 'android') && !contains(matrix.settings.target, 'ohos') && !contains(matrix.settings.target, 'riscv64') && !contains(matrix.settings.target, 'loongarch64') }}
         run: |
           set -e
+          set -o pipefail
           failed=0
+          checked=0
           for file in ${APP_NAME:-rollup}.*.node; do
             [ -f "$file" ] || continue
+            checked=$((checked + 1))
             echo "Checking $file for glibc symbol versions..."
             # Extract highest required GLIBC version from the binary
-            max_glibc=$(objdump -T "$file" 2>/dev/null | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sed 's/GLIBC_//' | sort -Vu | tail -1 || true)
+            max_glibc=$(objdump -T "$file" | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sed 's/GLIBC_//' | sort -Vu | tail -1 || true)
             if [ -n "$max_glibc" ]; then
               echo "  Highest required GLIBC: $max_glibc"
               # napi-cross sysroot is manylinux2014-based (glibc 2.17). Allow a small guard band
@@ -314,6 +317,10 @@ jobs:
               echo "  No GLIBC symbols found (statically linked or musl)."
             fi
           done
+          if [ "$checked" = "0" ]; then
+            echo "::error::No native .node artifacts found to check (pattern: ${APP_NAME:-rollup}.*.node)"
+            exit 1
+          fi
           [ "$failed" = "0" ]
         shell: bash
       - name: Save Cargo cache

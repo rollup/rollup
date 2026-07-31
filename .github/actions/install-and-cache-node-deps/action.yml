@@ -38,13 +38,13 @@ runs:
       run: |
         set -e
         binding=node_modules/@napi-rs/lzma-linux-x64-gnu
-        if [ ! -d "$binding" ]; then
+        if [ ! -f "$binding/package.json" ]; then
           echo "Repairing missing @napi-rs/lzma-linux-x64-gnu from its pinned lockfile tarball (rollup#6461)."
+          rm -rf "$binding"
           url=$(node -p "require('./package-lock.json').packages['node_modules/@napi-rs/lzma-linux-x64-gnu'].resolved")
           integrity=$(node -p "require('./package-lock.json').packages['node_modules/@napi-rs/lzma-linux-x64-gnu'].integrity")
           curl -fsSL "$url" -o /tmp/lzma-binding.tgz
           node -e "
-            const {execSync} = require('node:child_process');
             const crypto = require('node:crypto');
             const fs = require('node:fs');
             const [algo, expected] = '$integrity'.split('-', 2);
