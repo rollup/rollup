@@ -105,6 +105,7 @@ export function augmentLogMessage(log: AugmentedRollupLog): void {
 const ADDON_ERROR = 'ADDON_ERROR',
 	ALREADY_CLOSED = 'ALREADY_CLOSED',
 	AMBIGUOUS_EXTERNAL_NAMESPACES = 'AMBIGUOUS_EXTERNAL_NAMESPACES',
+	AMBIGUOUS_GLOBAL_NAME = 'AMBIGUOUS_GLOBAL_NAME',
 	ANONYMOUS_PLUGIN_CACHE = 'ANONYMOUS_PLUGIN_CACHE',
 	ASSET_NOT_FINALISED = 'ASSET_NOT_FINALISED',
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',
@@ -140,7 +141,6 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	FIRST_SIDE_EFFECT = 'FIRST_SIDE_EFFECT',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
-	INCONSISTENT_IMPORT_ATTRIBUTES = 'INCONSISTENT_IMPORT_ATTRIBUTES',
 	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
@@ -219,6 +219,15 @@ export function logAmbiguousExternalNamespaces(
 			sources.map(module => relativeId(module))
 		)}, guessing "${relativeId(usedModule)}".`,
 		reexporter: reexportingModule
+	};
+}
+
+export function logAmbiguousGlobalName(rawId: string, globalName: string): RollupLog {
+	return {
+		code: AMBIGUOUS_GLOBAL_NAME,
+		id: rawId,
+		message: `The object form of "output.globals" maps several import attribute variants of the external module "${rawId}" to the same global name "${globalName}". Use the function form of "output.globals" to give each variant its own global name.`,
+		url: getRollupUrl(URL_OUTPUT_GLOBALS)
 	};
 }
 
@@ -508,30 +517,6 @@ export function logIllegalImportReassignment(name: string, importingId: string):
 		message: `Illegal reassignment of import "${name}" in "${relativeId(importingId)}".`
 	};
 }
-
-export function logInconsistentImportAttributes(
-	existingAttributes: Record<string, string>,
-	newAttributes: Record<string, string>,
-	source: string,
-	importer: string
-): RollupLog {
-	return {
-		code: INCONSISTENT_IMPORT_ATTRIBUTES,
-		message: `Module "${relativeId(importer)}" tried to import "${relativeId(
-			source
-		)}" with ${formatAttributes(
-			newAttributes
-		)} attributes, but it was already imported elsewhere with ${formatAttributes(
-			existingAttributes
-		)} attributes. Please ensure that import attributes for the same module are always consistent.`
-	};
-}
-
-const formatAttributes = (attributes: Record<string, string>): string => {
-	const entries = Object.entries(attributes);
-	if (entries.length === 0) return 'no';
-	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
-};
 
 export function logInvalidAnnotation(
 	comment: string,
