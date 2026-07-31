@@ -11,6 +11,7 @@ import type {
 	NormalizedInputOptions,
 	RollupCache,
 	SerializablePluginCache,
+	UniqueModuleId,
 	WatchChangeHook
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
@@ -22,6 +23,7 @@ import {
 	logImplicitDependantIsNotIncluded,
 	logMissingExport
 } from './utils/logs';
+import { normalizeModuleId } from './utils/moduleId';
 import { PluginDriver } from './utils/PluginDriver';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
@@ -143,8 +145,9 @@ export default class Graph {
 		};
 	}
 
-	getModuleInfo = (moduleId: string): ModuleInfo | null => {
-		const foundModule = this.modulesById.get(moduleId);
+	getModuleInfo = (moduleId: UniqueModuleId): ModuleInfo | null => {
+		const normalizedModuleId = normalizeModuleId(moduleId);
+		const foundModule = this.modulesById.get(normalizedModuleId);
 		if (!foundModule) return null;
 		return foundModule.info;
 	};
