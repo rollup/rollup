@@ -3,8 +3,9 @@ const resolve = require('@rollup/plugin-node-resolve').default;
 
 module.exports = defineTest({
 	description: 'confirm preserveModulesRoot restructures src appropriately',
-	expectedWarnings: ['MIXED_EXPORTS'],
+	expectedWarnings: ['MIXED_EXPORTS', 'DEPRECATED_FEATURE'],
 	options: {
+		strictDeprecations: false,
 		input: ['src/under-build.js', 'src/below/module.js'],
 		plugins: [
 			{
