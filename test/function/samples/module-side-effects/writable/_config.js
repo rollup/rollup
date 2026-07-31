@@ -10,16 +10,20 @@ module.exports = defineTest({
 		plugins: [
 			{
 				name: 'inject-polyfill',
-				async resolveId(source, importer, options) {
+				async resolveId(
+					source,
+					importer,
+					{ importerAttributes, importerRawId, ...resolveOptions }
+				) {
 					if (source === POLYFILL_ID) {
 						// It is important that side effects are always respected for
 						// polyfills, otherwise using treeshake.moduleSideEffects: false
 						// may prevent the polyfill from being included.
 						return { id: POLYFILL_ID, moduleSideEffects: true };
 					}
-					if (options.isEntry) {
+					if (resolveOptions.isEntry) {
 						// Determine what the actual entry would have been.
-						const resolution = await this.resolve(source, importer, options);
+						const resolution = await this.resolve(source, importer, resolveOptions);
 						// If it cannot be resolved or is external, just return it so that
 						// Rollup can display an error
 						if (!resolution || resolution.external) return resolution;

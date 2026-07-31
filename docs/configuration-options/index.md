@@ -12,7 +12,7 @@ title: Configuration Options
 
 |  |  |
 | --: | :-- |
-| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string, isResolved: boolean) => boolean` |
+| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string, isResolved: boolean, options: { attributes: Record<string, string>, importerRawId?: string, importerAttributes: Record<string, string> }) => boolean` |
 | CLI: | `-e`/`--external <external-id,another-external-id,...>` |
 
 Either a function that takes an `id` and returns `true` (external) or `false` (not external), or an `Array` of module IDs, or regular expressions to match module IDs, that should remain external to the bundle. Can also be just a single ID or regular expression. The matched IDs should be either:
@@ -50,11 +50,14 @@ When given as a command line argument, it should be a comma-separated list of ID
 rollup -i src/main.js ... -e foo,bar,baz
 ```
 
-When providing a function, it is called with three parameters `(id, parent, isResolved)` that can give you more fine-grained control:
+When providing a function, it is called with four parameters `(id, parent, isResolved, options)` that can give you more fine-grained control:
 
 - `id` is the id of the module in question
 - `parent` is the id of the module doing the import
 - `isResolved` signals whether the `id` has been resolved by e.g. plugins
+- `options.attributes` contains the import attributes of the import
+- `options.importerRawId` is the id of the importing module without import attributes, if there is one
+- `options.importerAttributes` contains the import attributes of the importing module
 
 When creating an `iife` or `umd` bundle, you will need to provide global variable names to replace your external imports via the [`output.globals`](#output-globals) option.
 
@@ -93,6 +96,8 @@ The conversion back to a relative import is done as if `output.file` or `output.
 |  CLI: | `-i`/`--input <filename>`                                |
 
 The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](#output-file) option is used, generated chunk names will follow the [`output.entryFileNames`](#output-entryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
+
+Note that entry points specified here cannot carry import attributes. If you need an entry point that is imported with specific attributes (e.g. a JSON module imported with `{ type: 'json' }`), emit it from a plugin via [`this.emitFile`](../plugin-development/index.md#this-emitfile) with the `attributes` option instead.
 
 Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
@@ -386,7 +391,7 @@ Specifies the format of the generated bundle. One of the following:
 
 |  |  |
 | --: | :-- |
-| Type: | `{ [id: string]: string } \| ((id: string) => string)` |
+| Type: | `{ [id: string]: string } \| ((id: string, options: { attributes: Record<string, string> }) => string)` |
 | CLI: | `-g`/`--globals <external-id:variableName,another-external-id:anotherVariableName,...>` |
 
 Specifies `id: variableName` pairs necessary for external imports in `umd`/`iife` bundles. For example, in a case like this…
@@ -421,7 +426,7 @@ var MyBundle = (function ($) {
 */
 ```
 
-Alternatively, supply a function that will turn an external module ID into a global variable name.
+Alternatively, supply a function that will turn an external module ID into a global variable name. When using the function form, the second parameter contains the import attributes of the external module.
 
 When given as a command line argument, it should be a comma-separated list of `id:variableName` pairs:
 
@@ -815,6 +820,8 @@ See also [`output.intro/output.outro`](#output-intro-output-outro).
 interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;
+	facadeModuleRawId: string | null;
+	facadeModuleAttributes: Record<string, string>;
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
@@ -828,6 +835,8 @@ The `PreRenderedChunk` type provides information about the chunk being generated
 
 - `exports`: The list of exported bindings from the chunk.
 - `facadeModuleId`: The module id of the entry point this chunk is a facade for, or `null` if this is not a facade.
+- `facadeModuleRawId`: The facade module id without import attributes, or `null` if this is not a facade.
+- `facadeModuleAttributes`: The import attributes of the facade module, or an empty object if this is not a facade.
 - `isDynamicEntry`: `true` if this chunk is the target of dynamic `import()` expressions.
 - `isEntry`: `true` if this chunk is an entry point (either from the `input` option or emitted via `this.emitFile`).
 - `isImplicitEntry`: `true` if this chunk was emitted with [`implicitlyLoadedAfterOneOf`](../plugin-development/index.md#this-emitfile) set, indicating it will only be loaded as an entry point if at least one of the specified modules have already been loaded.
@@ -941,7 +950,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 |     CLI: | `--externalImportAttributes`/`--no-externalImportAttributes` |
 | Default: | `true`                                                       |
 
-Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
+Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes when resolving external modules. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
 
 ### output.generatedCode
 
@@ -1619,11 +1628,13 @@ Even though it appears that setting this option to `true` makes the output large
 
 ### output.paths
 
-|       |                                                        |
-| ----: | :----------------------------------------------------- |
-| Type: | `{ [id: string]: string } \| ((id: string) => string)` |
+|  |  |
+| --: | :-- |
+| Type: | `{ [id: string]: string } \| ((id: string, options: { attributes: Record<string, string> }) => string)` |
 
 Maps external module IDs to paths. External ids are ids that [cannot be resolved](../troubleshooting/index.md#warning-treating-module-as-external-dependency) or ids explicitly provided by the [`external`](#external) option. Paths supplied by `output.paths` will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
+
+When using the function form, the second parameter contains the import attributes of the external module.
 
 ```js twoslash
 // app.js
@@ -3141,7 +3152,7 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 |     CLI: | `--externalImportAssertions`/`--no-externalImportAssertions` |
 | Default: | `true`                                                       |
 
-Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
+Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, import attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
 
 ### output.onlyExplicitManualChunks
 

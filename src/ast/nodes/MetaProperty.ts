@@ -90,7 +90,8 @@ export default class MetaProperty extends NodeBase {
 		} = this;
 		const {
 			id: moduleId,
-			info: { attributes }
+			rawId: moduleRawId,
+			info: { attributes: moduleAttributes }
 		} = module;
 
 		if (name !== IMPORT) return;
@@ -102,7 +103,16 @@ export default class MetaProperty extends NodeBase {
 			const isUrlObject = !!metaProperty?.startsWith(FILE_OBJ_PREFIX);
 			const replacement =
 				pluginDriver.hookFirstSync('resolveFileUrl', [
-					{ attributes, chunkId, fileName, format, moduleId, referenceId, relativePath }
+					{
+						chunkId,
+						fileName,
+						format,
+						moduleAttributes,
+						moduleId,
+						moduleRawId,
+						referenceId,
+						relativePath
+					}
 				]) || relativeUrlMechanisms[format](relativePath, isUrlObject);
 
 			code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
@@ -111,7 +121,7 @@ export default class MetaProperty extends NodeBase {
 
 		let replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
 			metaProperty,
-			{ attributes, chunkId, format, moduleId }
+			{ chunkId, format, moduleAttributes, moduleId, moduleRawId }
 		]);
 		if (!replacement) {
 			replacement = importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });
