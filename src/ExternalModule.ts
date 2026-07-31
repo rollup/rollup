@@ -25,12 +25,17 @@ export default class ExternalModule {
 	constructor(
 		private readonly options: NormalizedInputOptions,
 		public readonly id: string,
+		public readonly rawId: string,
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
 		public readonly renormalizeRenderPath: boolean,
 		attributes: Record<string, string>
 	) {
-		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
+		const nameAttributes = new URLSearchParams(attributes);
+		nameAttributes.sort();
+		const attributesString = nameAttributes.toString();
+		const attributesSuffix = attributesString ? `?${attributesString}` : '';
+		this.suggestedVariableName = makeLegal(`${rawId.split(/[/\\]/).pop()!}${attributesSuffix}`);
 
 		const { importers, dynamicImporters } = this;
 		this.info = {
@@ -58,6 +63,7 @@ export default class ExternalModule {
 			isIncluded: null,
 			meta,
 			moduleSideEffects,
+			rawId,
 			safeVariableNames: null,
 			syntheticNamedExports: false
 		};
