@@ -90,6 +90,7 @@ module.exports = defineTest({
 									id: 'external',
 									meta: {},
 									moduleSideEffects: true,
+									rawId: 'external',
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -109,6 +110,7 @@ module.exports = defineTest({
 									id: getId('lib'),
 									meta: {},
 									moduleSideEffects: true,
+									rawId: getId('lib'),
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -119,6 +121,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: getId('dynamic'),
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -156,6 +159,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: getId('lib'),
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -253,6 +257,7 @@ module.exports = defineTest({
 									id: getId('dynamic'),
 									meta: {},
 									moduleSideEffects: true,
+									rawId: getId('dynamic'),
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -276,6 +281,7 @@ module.exports = defineTest({
 									id: getId('lib'),
 									meta: {},
 									moduleSideEffects: true,
+									rawId: getId('lib'),
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								},
@@ -285,6 +291,7 @@ module.exports = defineTest({
 									id: 'external',
 									meta: {},
 									moduleSideEffects: true,
+									rawId: 'external',
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -295,6 +302,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: getId('main'),
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -319,6 +327,7 @@ module.exports = defineTest({
 							isExternal: true,
 							isIncluded: null,
 							meta: {},
+							rawId: 'external',
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						}

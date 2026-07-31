@@ -28,7 +28,9 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						exports: [],
+						facadeModuleAttributes: {},
 						facadeModuleId: ID_MAIN,
+						facadeModuleRawId: ID_MAIN,
 						isDynamicEntry: false,
 						isEntry: true,
 						isImplicitEntry: false,
@@ -63,7 +65,9 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						exports: ['default'],
+						facadeModuleAttributes: {},
 						facadeModuleId: ID_DEB,
+						facadeModuleRawId: ID_DEB,
 						isDynamicEntry: true,
 						isEntry: false,
 						isImplicitEntry: false,

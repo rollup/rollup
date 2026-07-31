@@ -37,8 +37,8 @@ module.exports = defineTest({
 					if (source === 'external') {
 						return {
 							id: source,
-							external: true,
-							attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed']))
+							attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed'])),
+							external: true
 						};
 					}
 				}

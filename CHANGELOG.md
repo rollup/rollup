@@ -2,9 +2,19 @@
 
 ## 5.0.0
 
-_2026-06-28_
+_2026-07-31_
 
 ### BREAKING CHANGES
+
+#### Module Changes
+
+- Import attributes are now part of the module identity: importing the same module with different import attributes now creates separate module instances instead of triggering the `INCONSISTENT_IMPORT_ATTRIBUTES` warning, which has been removed (#6266)
+- The `id` of a module with import attributes now encodes the attributes as a URL search parameter, e.g. `/src/data.json?attributes=%7B%22type%22%3A%22json%22%7D`; the id without the encoded attributes is available as the new `rawId` property of `ModuleInfo`; plugins that match on the id of a module need to account for the encoded attributes, e.g. by matching on `rawId` in the handler or by allowing a query suffix in the `id` filter of `load`/`transform` hooks, e.g. `/\.json($|\?)/` (#6266)
+- The `attributes` property has been moved from `ModuleOptions` to `ModuleInfo` (#6266)
+- The options of the `load` and `transform` hooks no longer contain the Vite-specific `ssr` property, which was never filled by Rollup (#6266)
+- The `attributes` option of the `resolveImportMeta` and `resolveFileUrl` hooks has been renamed to `moduleAttributes` (#6266)
+- The `importerAttributes` option of `this.resolve` has been deprecated in favor of the new `{ rawId, attributes }` importer form (#6266)
+- Returning `attributes` from the `load` or `transform` hooks has been deprecated and now emits a warning (#6266)
 
 #### AST Changes
 
@@ -47,6 +57,14 @@ _2026-06-28_
 - The new helpers `parseLazyAst`, `parseLazyAstAsync`, `deserializeAst`, `deserializeLazyAst` and `serializeAst` are exported from `rollup/parseAst` for working with binary AST buffers (#6257)
 - The new `this.parseAndWalk` plugin hook and the `parseAndWalk` helper exported from `rollup/parseAst` provide an efficient way to walk the AST of a piece of code: the AST is traversed on the Rust side and only the visited nodes are materialized, and visitor handlers can use `parseChildren` and `skipChildren` to control which children are traversed (#6271)
 - When `collectScopes: true` is passed to `this.parseAndWalk` or `parseAndWalk`, the scopes of the visited nodes are collected so that visitor handlers can check via `api.scope.contains(name)` whether an identifier is contained in the current scope, which replaces the need for `attachScopes` from `@rollup/pluginutils` (#6271)
+- The same module can now be imported with different import attributes to create separate module instances, e.g. to import a JSON file both as JSON and as raw text (#6266)
+- The `load`, `transform` and `shouldTransformCachedModule` hooks now receive the `rawId` of the module in their options while the `resolveId` and `resolveDynamicImport` hooks now receive the `importerRawId` of the importing module (#6266)
+- The `resolveImportMeta` and `resolveFileUrl` hooks now receive the `moduleRawId` of the module in their options, and the `renderDynamicImport` hook now receives `moduleRawId`, `moduleAttributes` and `targetModuleRawId` (#6266)
+- The function form of the `external` option now receives the `attributes`, `importerAttributes` and `importerRawId` in a fourth argument while the function forms of `output.globals` and `output.paths` now receive the import `attributes` in an additional argument (#6266)
+- The object and function forms of `output.globals` and `output.paths` continue to use the id without import attributes (`rawId`) of external modules, so existing entries also match modules with import attributes (#6266)
+- Rollup now emits an `AMBIGUOUS_GLOBAL_NAME` warning when the object form of `output.globals` maps several import attribute variants of the same external module to a single global name as only the function form can distinguish them (#6266)
+- `this.resolve`, `this.load`, `this.getModuleInfo` and the `importer` and `implicitlyLoadedAfterOneOf` options of `this.emitFile` now also accept `{ rawId, attributes }` objects besides module ids, and `EmittedChunk` gained an `attributes` option (#6266)
+- `RenderedModule` gained `rawId` and `attributes` while `PreRenderedChunk` gained `facadeModuleRawId` and `facadeModuleAttributes` (#6266)
 
 ### Bug Fixes
 
@@ -59,6 +77,7 @@ _2026-06-28_
 - [#6248](https://github.com/rollup/rollup/pull/6248): [v5.0] Use "with" as the keyword of import attributes by default (@TrickyPi)
 - [#6257](https://github.com/rollup/rollup/pull/6257): [v5.0] Put binary AST buffers into cache (@lukastaegert)
 - [#6271](https://github.com/rollup/rollup/pull/6271): [v5.0] Implement efficient AST walking API (@lukastaegert)
+- [#6266](https://github.com/rollup/rollup/pull/6266): [v5.0] Support importing the same module with different import attributes (@TrickyPi)
 
 For previous changelogs, see
 
