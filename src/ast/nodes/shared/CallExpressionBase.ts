@@ -1,4 +1,3 @@
-import { EMPTY_ARRAY, EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -56,10 +55,10 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 
 	deoptimizeCache(): void {
 		if (this.returnExpression?.[0] !== UNKNOWN_EXPRESSION) {
-			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
+			this.returnExpression = null;
 			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
-			this.expressionsToBeDeoptimized = EMPTY_SET;
-			this.deoptimizableDependentExpressions = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			this.expressionsToBeDeoptimized = new Set();
+			this.deoptimizableDependentExpressions = [];
 			for (const expression of deoptimizableDependentExpressions) {
 				expression.deoptimizeCache();
 			}
@@ -96,7 +95,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 			returnExpression,
 			() => {
 				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+				return returnExpression.getLiteralValueAtPath(path, recursionTracker, this);
 			},
 			UnknownValue
 		);
