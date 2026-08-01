@@ -1,5 +1,59 @@
 # rollup changelog
 
+## 4.62.4
+
+_2026-08-01_
+
+### Bug Fixes
+
+- Resolve a regression when using Rollup on older Linux distributions (#6467)
+
+### Pull Requests
+
+- [#6463](https://github.com/rollup/rollup/pull/6463): docs: add llms.txt documentation index for LLMs and agents (@abyworkings-coder, @lukastaegert)
+- [#6464](https://github.com/rollup/rollup/pull/6464): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6465](https://github.com/rollup/rollup/pull/6465): chore(deps): lock file maintenance (@renovate[bot])
+- [#6466](https://github.com/rollup/rollup/pull/6466): chore(deps): lock file maintenance (@renovate[bot])
+- [#6467](https://github.com/rollup/rollup/pull/6467): ci: fix linux-gnu glibc regression and enforce glibc ≤ 2.28 compatibility (@lukastaegert)
+
+## 4.62.3
+
+_2026-07-26_
+
+### Bug Fixes
+
+- Sanitize illegal characters preserved modules input base (#6439)
+
+### Pull Requests
+
+- [#6421](https://github.com/rollup/rollup/pull/6421): docs: update x_google_ignoreList link to canonical URL (@DucMinhNe, @lukastaegert)
+- [#6422](https://github.com/rollup/rollup/pull/6422): fix(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6423](https://github.com/rollup/rollup/pull/6423): chore(deps): update actions/checkout action to v7 (@renovate[bot])
+- [#6424](https://github.com/rollup/rollup/pull/6424): chore(deps): update dependency eslint-plugin-unicorn to v68 (@renovate[bot], @lukastaegert)
+- [#6425](https://github.com/rollup/rollup/pull/6425): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6426](https://github.com/rollup/rollup/pull/6426): chore(deps): lock file maintenance (@renovate[bot])
+- [#6432](https://github.com/rollup/rollup/pull/6432): fix: make isLegal idempotent by not using a global-flag regex (@spokodev, @lukastaegert)
+- [#6433](https://github.com/rollup/rollup/pull/6433): docs: clarify sideEffects and moduleSideEffects (@ishaanlabs-gg, @lukastaegert)
+- [#6434](https://github.com/rollup/rollup/pull/6434): chore(deps): update dtolnay/rust-toolchain digest to 4be7066 (@renovate[bot], @lukastaegert)
+- [#6435](https://github.com/rollup/rollup/pull/6435): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6436](https://github.com/rollup/rollup/pull/6436): chore(deps): update actions/cache action to v6 (@renovate[bot])
+- [#6438](https://github.com/rollup/rollup/pull/6438): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6439](https://github.com/rollup/rollup/pull/6439): Sanitize input base before computing preserved module chunk names (@MahinAnowar, @lukastaegert)
+- [#6443](https://github.com/rollup/rollup/pull/6443): chore(deps): update dependency eslint-plugin-unicorn to v71 (@renovate[bot], @lukastaegert)
+- [#6444](https://github.com/rollup/rollup/pull/6444): fix(deps): update rust crate swc_compiler_base to v60 (@renovate[bot])
+- [#6446](https://github.com/rollup/rollup/pull/6446): chore(deps): update dtolnay/rust-toolchain digest to 4cda84d (@renovate[bot])
+- [#6447](https://github.com/rollup/rollup/pull/6447): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6448](https://github.com/rollup/rollup/pull/6448): chore(deps): update actions/setup-node action to v7 (@renovate[bot])
+- [#6449](https://github.com/rollup/rollup/pull/6449): chore(deps): update dependency eslint-plugin-unicorn to v72 (@renovate[bot])
+- [#6450](https://github.com/rollup/rollup/pull/6450): chore(deps): update dependency pinia to v4 (@renovate[bot], @lukastaegert)
+- [#6451](https://github.com/rollup/rollup/pull/6451): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6455](https://github.com/rollup/rollup/pull/6455): docs: fix broken commonjs namedExports link in troubleshooting (@Hashim1999164, @lukastaegert)
+- [#6456](https://github.com/rollup/rollup/pull/6456): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6457](https://github.com/rollup/rollup/pull/6457): chore(deps): update dependency magic-string to v1 (@renovate[bot], @lukastaegert)
+- [#6458](https://github.com/rollup/rollup/pull/6458): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#6459](https://github.com/rollup/rollup/pull/6459): chore(deps): lock file maintenance (@renovate[bot])
+- [#6460](https://github.com/rollup/rollup/pull/6460): Fix build:docs after rollup update (@lukastaegert)
+
 ## 4.62.2
 
 _2026-06-19_

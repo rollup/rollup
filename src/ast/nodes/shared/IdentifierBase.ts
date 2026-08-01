@@ -163,17 +163,15 @@ export default class IdentifierBase extends NodeBase {
 		const cachedTdzAccess = this.isTDZAccess;
 		if (cachedTdzAccess !== null) return cachedTdzAccess;
 
-		if (
-			!(
-				this.variable instanceof LocalVariable &&
-				this.variable.kind &&
-				tdzVariableKinds.has(this.variable.kind) &&
-				// We ignore modules that did not receive a treeshaking pass yet as that
-				// causes many false positives due to circular dependencies or disabled
-				// moduleSideEffects.
-				this.variable.module.hasTreeShakingPassStarted
-			)
-		) {
+		if (!(
+			this.variable instanceof LocalVariable &&
+			this.variable.kind &&
+			tdzVariableKinds.has(this.variable.kind) &&
+			// We ignore modules that did not receive a treeshaking pass yet as that
+			// causes many false positives due to circular dependencies or disabled
+			// moduleSideEffects.
+			this.variable.module.hasTreeShakingPassStarted
+		)) {
 			return (this.isTDZAccess = false);
 		}
 

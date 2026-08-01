@@ -1,7 +1,6 @@
 const assert = require('node:assert');
 const { readFileSync } = require('node:fs');
 const buble = require('buble');
-const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
@@ -25,6 +24,7 @@ module.exports = defineTest({
 			{
 				name: 'test-plugin2',
 				async transform(code, id) {
+					const { default: MagicString } = await import('magic-string');
 					const sourcemap = this.getCombinedSourcemap();
 					const smc = await new SourceMapConsumer(sourcemap);
 					const s = new MagicString(code);
@@ -50,6 +50,7 @@ module.exports = defineTest({
 			{
 				name: 'test-plugin3',
 				async transform(code, id) {
+					const { default: MagicString } = await import('magic-string');
 					const sourcemap = this.getCombinedSourcemap();
 					const smc = await new SourceMapConsumer(sourcemap);
 					const s = new MagicString(code);

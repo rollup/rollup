@@ -54,6 +54,15 @@ export default defineConfig({
 				twoslashOptions: {
 					compilerOptions: {
 						moduleResolution: 100, // bundler
+						// Rollup uses an import assertion in the JavaScript part of the
+						// code for the package.json file. This triggers a bug in the
+						// TypeScript handling of Twoslash, which by default tries to
+						// include not only d.ts files but also any JavaScript files in the
+						// compilation.
+						// The solution here is to directly resolve rollup to its d.ts file.
+						paths: {
+							rollup: ['./node_modules/rollup/dist/rollup.d.ts']
+						},
 						types: ['node']
 					}
 				}
@@ -180,6 +189,7 @@ export default defineConfig({
 			},
 			examplesPlugin(),
 			alias(moduleAliases)
-		]
+		],
+		ssr: { noExternal: ['pinia'] }
 	}
 });

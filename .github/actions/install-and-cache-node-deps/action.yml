@@ -5,7 +5,7 @@ runs:
   steps:
     - name: Restore Node dependencies cache
       id: cache-node-modules
-      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path:  |
           node_modules
@@ -22,9 +22,46 @@ runs:
         fi
         npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare:patch
       shell: bash
+    # The @napi-rs/lzma-linux-x64-gnu platform binding (optional dependency of
+    # @napi-rs/cross-toolchain) must be present, otherwise `napi build
+    # --use-napi-cross` silently skips the cross toolchain and links against the
+    # host glibc, producing artifacts that require a newer glibc than the target
+    # (rollup#6461). Restored cache snapshots can be poisoned: their hidden
+    # lockfile claims the binding is installed while it is not, and npm trusts
+    # that lockfile - even an explicit `npm install <pkg>` is reconciled away
+    # instead of placing the files (npm/cli#4828). So repair at tarball level
+    # using the pinned URL + integrity from package-lock.json, then fail loudly
+    # if the binding is still absent.
+    - name: Ensure napi-rs cross-toolchain platform binding is present
+      if: runner.os == 'Linux' && runner.arch == 'X64'
+      shell: bash
+      run: |
+        set -e
+        binding=node_modules/@napi-rs/lzma-linux-x64-gnu
+        if [ ! -f "$binding/package.json" ]; then
+          echo "Repairing missing @napi-rs/lzma-linux-x64-gnu from its pinned lockfile tarball (rollup#6461)."
+          rm -rf "$binding"
+          url=$(node -p "require('./package-lock.json').packages['node_modules/@napi-rs/lzma-linux-x64-gnu'].resolved")
+          integrity=$(node -p "require('./package-lock.json').packages['node_modules/@napi-rs/lzma-linux-x64-gnu'].integrity")
+          curl -fsSL "$url" -o /tmp/lzma-binding.tgz
+          node -e "
+            const crypto = require('node:crypto');
+            const fs = require('node:fs');
+            const [algo, expected] = '$integrity'.split('-', 2);
+            const actual = crypto.createHash(algo).update(fs.readFileSync('/tmp/lzma-binding.tgz')).digest('base64');
+            if (actual !== expected) { console.error('integrity mismatch'); process.exit(1); }
+          "
+          mkdir -p "$binding"
+          tar -xzf /tmp/lzma-binding.tgz -C "$binding" --strip-components=1
+          rm /tmp/lzma-binding.tgz
+        fi
+        if [ ! -f "$binding/package.json" ]; then
+          echo "::error::@napi-rs/lzma-linux-x64-gnu is missing from node_modules; the napi cross toolchain would be silently skipped (rollup#6461)."
+          exit 1
+        fi
     - name: Save Node dependencies cache
       if: steps.cache-node-modules.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
-      uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           node_modules

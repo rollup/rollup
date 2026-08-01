@@ -106,8 +106,7 @@ export async function normalizeOutputOptions(
 					? () => false
 					: relativeSourcePath => relativeSourcePath.includes('node_modules'),
 		sourcemapPathTransform: config.sourcemapPathTransform as
-			| SourcemapPathTransformOption
-			| undefined,
+			SourcemapPathTransformOption | undefined,
 		strict: config.strict ?? true,
 		systemNullSetters: config.systemNullSetters ?? true,
 		validate: config.validate || false,
