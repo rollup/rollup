@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.62.4
+
+_2026-08-01_
+
+### Bug Fixes
+
+- Resolve a regression when using Rollup on older Linux distributions (#6467)
+
+### Pull Requests
+
+- [#6463](https://github.com/rollup/rollup/pull/6463): docs: add llms.txt documentation index for LLMs and agents (@abyworkings-coder, @lukastaegert)
+- [#6464](https://github.com/rollup/rollup/pull/6464): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6465](https://github.com/rollup/rollup/pull/6465): chore(deps): lock file maintenance (@renovate[bot])
+- [#6466](https://github.com/rollup/rollup/pull/6466): chore(deps): lock file maintenance (@renovate[bot])
+- [#6467](https://github.com/rollup/rollup/pull/6467): ci: fix linux-gnu glibc regression and enforce glibc ≤ 2.28 compatibility (@lukastaegert)
+
 ## 4.62.3
 
 _2026-07-26_
