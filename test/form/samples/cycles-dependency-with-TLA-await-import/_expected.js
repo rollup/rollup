@@ -4,10 +4,9 @@ setTimeout(() => {
 
 const square$1 = x => x;
 
-var lib = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var lib = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	square: square$1
-});
+}, null));
 
 const { square } = await Promise.resolve().then(function () { return lib; });
 

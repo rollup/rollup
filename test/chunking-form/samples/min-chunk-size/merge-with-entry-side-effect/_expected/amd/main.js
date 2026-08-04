@@ -11,16 +11,14 @@ define((function () { 'use strict';
 
 	const d1 = x => s1(s2(x));
 
-	var dynamic1 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var dynamic1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		d1: d1
-	});
+	}, null));
 
 	const d2 = x => s1(s2(x));
 
-	var dynamic2 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var dynamic2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		d2: d2
-	});
+	}, null));
 
 }));

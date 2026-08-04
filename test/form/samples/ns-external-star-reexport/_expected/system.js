@@ -24,9 +24,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 				return Object.freeze(n);
 			}
 
-			var reexportExternal = /*#__PURE__*/_mergeNamespaces({
-				__proto__: null
-			}, [external1]);
+			var reexportExternal = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({}, null), [external1]);
 			exports("external", reexportExternal);
 
 			const extra = 'extra';
@@ -34,12 +32,11 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 			const override = 'override';
 			var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-			var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
-				__proto__: null,
+			var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 				default: reexportExternalsWithOverride,
 				extra: extra,
 				override: override
-			}, [reexportExternalsWithOverride, external1, external2]);
+			}, null), [reexportExternalsWithOverride, external1, external2]);
 			exports("externalOverride", reexportExternalsWithOverride$1);
 
 		})

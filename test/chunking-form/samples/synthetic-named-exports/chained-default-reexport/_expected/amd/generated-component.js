@@ -17,10 +17,9 @@ define(['exports', './generated-main'], (function (exports, main) { 'use strict'
 
 	var component = { lib: main.lib, lib2: main.lib.named, lib3: main.lib.named.named };
 
-	var component$1 = /*#__PURE__*/_mergeNamespaces({
-		__proto__: null,
+	var component$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 		default: component
-	}, [component]);
+	}, null), [component]);
 
 	exports.component = component$1;
 

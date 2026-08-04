@@ -21,11 +21,10 @@ define(['exports'], (function (exports) { 'use strict';
   };
   const foo = 100;
 
-  var ns = /*#__PURE__*/_mergeNamespaces({
-    __proto__: null,
+  var ns = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
     default: d,
     foo: foo
-  }, [d]);
+  }, null), [d]);
 
   const stuff = 12;
   console.log(stuff);
