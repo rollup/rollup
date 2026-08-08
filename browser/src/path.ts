@@ -2,6 +2,7 @@ const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
+const TRAILING_SLASHES_REGEX = /[/\\]+$/;
 
 export function isAbsolute(path: string): boolean {
 	return ABSOLUTE_PATH_REGEX.test(path);
@@ -16,7 +17,10 @@ export function normalize(path: string): string {
 }
 
 export function basename(path: string): string {
-	return path.split(ANY_SLASH_REGEX).pop() || '';
+	// A trailing slash names the same entry as the path without it, so "a/b/"
+	// has the basename "b" rather than "". This also decides what extname
+	// below sees, since it reads the extension off the base name.
+	return path.replace(TRAILING_SLASHES_REGEX, '').split(ANY_SLASH_REGEX).pop() || '';
 }
 
 export function dirname(path: string): string {
