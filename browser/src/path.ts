@@ -2,7 +2,7 @@ const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
-const EXTNAME_REGEX = /\.[^.]+$/;
+const TRAILING_SLASHES_REGEX = /[/\\]+$/;
 
 export function isAbsolute(path: string): boolean {
 	return ABSOLUTE_PATH_REGEX.test(path);
@@ -17,7 +17,10 @@ export function normalize(path: string): string {
 }
 
 export function basename(path: string): string {
-	return path.split(ANY_SLASH_REGEX).pop() || '';
+	// A trailing slash names the same entry as the path without it, so "a/b/"
+	// has the basename "b" rather than "". This also decides what extname
+	// below sees, since it reads the extension off the base name.
+	return path.replace(TRAILING_SLASHES_REGEX, '').split(ANY_SLASH_REGEX).pop() || '';
 }
 
 export function dirname(path: string): string {
@@ -31,8 +34,14 @@ export function dirname(path: string): string {
 }
 
 export function extname(path: string): string {
-	const match = EXTNAME_REGEX.exec(basename(path)!);
-	return match ? match[0] : '';
+	const base = basename(path);
+	// "." and ".." name a directory, never a file with an extension, and a
+	// leading dot starts a name rather than an extension, so ".htaccess" has
+	// none. Both rules match node:path, which the Node build uses for the
+	// same calls.
+	if (base === '.' || base === '..') return '';
+	const index = base.lastIndexOf('.');
+	return index > 0 ? base.slice(index) : '';
 }
 
 export function join(...segments: string[]): string {
