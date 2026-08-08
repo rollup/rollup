@@ -2,7 +2,6 @@ const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
-const EXTNAME_REGEX = /\.[^.]+$/;
 
 export function isAbsolute(path: string): boolean {
 	return ABSOLUTE_PATH_REGEX.test(path);
@@ -31,8 +30,14 @@ export function dirname(path: string): string {
 }
 
 export function extname(path: string): string {
-	const match = EXTNAME_REGEX.exec(basename(path)!);
-	return match ? match[0] : '';
+	const base = basename(path);
+	// "." and ".." name a directory, never a file with an extension, and a
+	// leading dot starts a name rather than an extension, so ".htaccess" has
+	// none. Both rules match node:path, which the Node build uses for the
+	// same calls.
+	if (base === '.' || base === '..') return '';
+	const index = base.lastIndexOf('.');
+	return index > 0 ? base.slice(index) : '';
 }
 
 export function join(...segments: string[]): string {
