@@ -58,10 +58,7 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 					// it needs to be executed before its dynamic importer, otherwise the
 					// Promise.resolve() wrapper of an inlined dynamic import would resolve
 					// before the module's top-level await has completed (#6010).
-					if (
-						scope.context.usesTopLevelAwait ||
-						resolution.scope.context.usesTopLevelAwait
-					) {
+					if (scope.context.usesTopLevelAwait || resolution.scope.context.usesTopLevelAwait) {
 						handleSyncLoadedModule(resolution, module);
 					} else {
 						dynamicImports.add(resolution);
