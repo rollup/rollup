@@ -98,7 +98,6 @@ jobs:
               set -e &&
               which rustup &&
               rustup target add x86_64-pc-windows-gnu &&
-              rustup component add rust-src --toolchain nightly-2025-07-25-x86_64-pc-windows-gnu &&
               npm run build:napi -- --release --target x86_64-pc-windows-gnu
             env:
               MINGW_ARCH: ucrt64
@@ -227,7 +226,6 @@ jobs:
             rustup:p
             nodejs:p
             rust-wasm:p
-            rust-src:p
           update: true
           path-type: inherit
           release: false
