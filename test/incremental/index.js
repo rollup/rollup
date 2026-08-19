@@ -428,6 +428,47 @@ describe('incremental', () => {
 		assert.strictEqual(shouldTransformCachedModuleCalls, 2);
 	});
 
+	it('keeps meta from the current resolution when reusing a cached module', async () => {
+		modules = {
+			entry: `import foo from 'foo'; export default foo;`,
+			foo: `export default 42`
+		};
+		let run = 1;
+		const metaPlugin = {
+			resolveId(id) {
+				return { id, meta: { [`resolvedInRun${run}`]: true } };
+			},
+			load: id => ({ code: modules[id] }),
+			transform: (code, id) => ({ code, meta: { transform: { id } } })
+		};
+		const capturedMeta = {};
+		const capturePlugin = {
+			name: 'capture',
+			moduleParsed({ id, meta }) {
+				capturedMeta[id] = { ...meta };
+			}
+		};
+
+		const cache = await rollup.rollup({
+			input: 'entry',
+			plugins: [metaPlugin, capturePlugin]
+		});
+
+		run = 2;
+		await rollup.rollup({
+			input: 'entry',
+			plugins: [metaPlugin, capturePlugin],
+			cache
+		});
+
+		assert.deepStrictEqual(capturedMeta, {
+			// The entry point is re-resolved each run, so its current meta is merged in
+			entry: { resolvedInRun2: true, resolvedInRun1: true, transform: { id: 'entry' } },
+			// Dependencies are resolved from cached resolvedIds, so they keep the original meta
+			foo: { resolvedInRun1: true, transform: { id: 'foo' } }
+		});
+	});
+
 	it('runs shouldTransformCachedModule when using a cached module', async () => {
 		modules = {
 			entry: `import foo from 'foo'; export default foo;`,
