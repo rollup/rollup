@@ -1340,7 +1340,6 @@ export default class Chunk {
 		const usedModules: Module[] = [];
 		let hoistedSource = '';
 		const accessedGlobals = new Set<string>();
-		const renderedModuleSources = new Map<Module, MagicString>();
 
 		const renderOptions: RenderOptions = {
 			accessedDocumentCurrentScript: false,
@@ -1373,7 +1372,6 @@ export default class Chunk {
 				renderedLength = source.length();
 				if (renderedLength) {
 					if (compact && source.lastLine().includes('//')) source.append('\n');
-					renderedModuleSources.set(module, source);
 					magicString.addSource(source);
 					usedModules.push(module);
 				}
