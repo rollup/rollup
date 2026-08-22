@@ -1,4 +1,4 @@
-use swc_ecma_ast::{BlockStmt, Function, Ident, Pat};
+use swc_ecma_ast::{Function, FunctionBody, Ident, Pat};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
@@ -40,7 +40,7 @@ impl AstConverter<'_> {
     is_generator: bool,
     identifier: Option<&Ident>,
     parameters: &[&Pat],
-    body: &BlockStmt,
+    body: &FunctionBody,
     observe_annotations: bool,
   ) {
     let end_position =
