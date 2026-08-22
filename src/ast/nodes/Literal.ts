@@ -37,7 +37,7 @@ export default class Literal<
 	declare type: NodeType.tLiteral;
 	declare value: T;
 
-	declare private members: Record<string, MemberDescription>;
+	declare private members: Readonly<Record<string, MemberDescription>>;
 
 	deoptimizeArgumentsOnInteractionAtPath(): void {}
 

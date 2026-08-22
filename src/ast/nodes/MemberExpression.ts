@@ -400,7 +400,7 @@ export default class MemberExpression
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) this.includeNode(context);
 		if (this.variable) {
-			this.variable?.includePath(path, context);
+			this.variable.includePath(path, context);
 		} else if (!this.isUndefined) {
 			this.object.includePath(
 				[
