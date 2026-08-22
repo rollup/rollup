@@ -6,7 +6,7 @@
 
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }
+	function _interopNamespaceDefaultOnly (e) { return Object.freeze(/*#__PURE__*/Object.setPrototypeOf({ default: e }, null)); }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -49,10 +49,9 @@
 		foo: 'bar'
 	};
 
-	var ns = /*#__PURE__*/_mergeNamespaces({
-		__proto__: null,
+	var ns = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 		default: other
-	}, [other]);
+	}, null), [other]);
 
 	console.log(ns, other.foo, other["function"], other["some-prop"], external["function"], someDefault__default["default"], defaultOnly__namespace);
 	console.log(undefined, undefined);

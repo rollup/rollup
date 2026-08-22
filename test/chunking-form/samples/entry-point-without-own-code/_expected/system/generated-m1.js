@@ -7,10 +7,9 @@ System.register(['./m2.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var ms = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var ms = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				m2: m2
-			});
+			}, null));
 			exports("m", ms);
 
 		})

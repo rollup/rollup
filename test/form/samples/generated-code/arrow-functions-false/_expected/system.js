@@ -1,18 +1,17 @@
 System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (exports, module) {
 	'use strict';
-	var _starExcludes = {
-		__proto__: null,
+	var _starExcludes = /*#__PURE__*/Object.setPrototypeOf({
 		a: 1,
 		default: 1,
 		foo: 1
-	};
+	}, null);
 	var b, defaultCompat, defaultCompat__default, externalAuto, externalDefault, externalDefaultOnly;
 	return {
 		setters: [function () {}, function (module) {
 			b = module.b;
 			defaultCompat = module;
 			defaultCompat__default = module.default;
-			var setter = { __proto__: null, foo: module.foo };
+			var setter = /*#__PURE__*/Object.setPrototypeOf({ foo: module.foo }, null);
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
@@ -54,11 +53,10 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 			console.log(externalDefault);
 			console.log(externalDefaultOnly);
 
-			var main = /*#__PURE__*/_mergeNamespaces({
-				__proto__: null,
+			var main = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 				get a () { return a; },
 				foo: foo
-			}, [defaultCompat]);
+			}, null), [defaultCompat]);
 
 		})
 	};

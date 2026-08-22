@@ -13,9 +13,7 @@ System.register(['./direct-relative-external', 'to-indirect-relative-external', 
 
 			console.log('existing');
 
-			var existing = /*#__PURE__*/Object.freeze({
-				__proto__: null
-			});
+			var existing = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 			//main
 			Promise.resolve().then(function () { return existing; });

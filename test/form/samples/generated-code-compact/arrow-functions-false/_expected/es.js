@@ -9,4 +9,4 @@ import('external').then(console.log);
 console.log(defaultCompat__default);
 console.log(externalAuto);
 console.log(externalDefault);
-console.log(externalDefaultOnly);var main=/*#__PURE__*/_mergeNamespaces({__proto__:null,get a(){return a},foo:foo},[defaultCompat]);export{a};
+console.log(externalDefaultOnly);var main=/*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({get a(){return a},foo:foo},null),[defaultCompat]);export{a};

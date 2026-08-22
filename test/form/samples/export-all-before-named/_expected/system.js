@@ -1,13 +1,12 @@
 System.register('exposedInternals', ['external'], (function (exports) {
 	'use strict';
-	var _starExcludes = {
-		__proto__: null,
+	var _starExcludes = /*#__PURE__*/Object.setPrototypeOf({
 		internalFn: 1,
 		default: 1
-	};
+	}, null);
 	return {
 		setters: [function (module) {
-			var setter = { __proto__: null };
+			var setter = /*#__PURE__*/Object.setPrototypeOf({}, null);
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}

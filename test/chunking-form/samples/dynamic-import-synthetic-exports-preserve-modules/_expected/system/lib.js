@@ -21,10 +21,9 @@ System.register([], (function (exports) {
 			const __moduleExports = { foo: 'bar' };
 			var lib = exports("default", 'baz');
 
-			var lib$1 = /*#__PURE__*/_mergeNamespaces({
-				__proto__: null,
+			var lib$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 				default: lib
-			}, [__moduleExports]);
+			}, null), [__moduleExports]);
 			exports("l", lib$1);
 
 		})
