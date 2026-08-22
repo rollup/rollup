@@ -1,6 +1,6 @@
 use swc_common::{Span, Spanned};
 use swc_ecma_ast::{
-  AssignPatProp, BlockStmt, Expr, GetterProp, Ident, KeyValuePatProp, KeyValueProp, MethodProp,
+  AssignPatProp, Expr, FunctionBody, GetterProp, Ident, KeyValuePatProp, KeyValueProp, MethodProp,
   Pat, Prop, PropName, SetterProp,
 };
 
@@ -92,7 +92,7 @@ impl AstConverter<'_> {
     span: &Span,
     kind: &[u8; 4],
     key: &PropName,
-    body: &Option<BlockStmt>,
+    body: &Option<FunctionBody>,
     param: Option<&Pat>,
   ) {
     let end_position =
@@ -113,7 +113,7 @@ impl AstConverter<'_> {
     let kind_position = end_position + PROPERTY_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);
     // value
-    let block_statement = body.as_ref().expect("Getter/setter property without body");
+    let function_body = body.as_ref().expect("Getter/setter property without body");
     self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
     let parameters = match param {
       Some(pattern) => vec![pattern],
@@ -122,12 +122,12 @@ impl AstConverter<'_> {
     self.store_function_node(
       &TYPE_FUNCTION_EXPRESSION,
       find_first_occurrence_outside_comment(self.code, b'(', key_end),
-      block_statement.span.hi.0 - 1,
+      function_body.span.hi.0 - 1,
       false,
       false,
       None,
       &parameters,
-      block_statement,
+      function_body,
       false,
     );
     // end
@@ -221,7 +221,7 @@ impl AstConverter<'_> {
       &getter_property.span,
       &STRING_GET,
       &getter_property.key,
-      &getter_property.body,
+      &getter_property.function.body,
       None,
     );
   }
@@ -238,8 +238,8 @@ impl AstConverter<'_> {
       &setter_property.span,
       &STRING_SET,
       &setter_property.key,
-      &setter_property.body,
-      Some(&*setter_property.param),
+      &setter_property.function.body,
+      Some(&setter_property.function.params[0].pat),
     );
   }
 
