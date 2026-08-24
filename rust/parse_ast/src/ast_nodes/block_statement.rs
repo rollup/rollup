@@ -1,26 +1,56 @@
-use swc_ecma_ast::{BlockStmt, Expr, Lit, Stmt};
+use swc_common::Span;
+use swc_ecma_ast::{BlockStmt, Expr, FunctionBody, Lit, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
   BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, TYPE_BLOCK_STATEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 
+/// Provides the parts shared by the SWC types that rollup represents as a
+/// single ESTree `BlockStatement` node: real block statements (`BlockStmt`)
+/// and the bodies of functions, methods and arrow functions (`FunctionBody`).
+/// Named after the ESTree node rather than any SWC type.
+pub(crate) trait BlockStatementBody {
+  fn span(&self) -> &Span;
+  fn stmts(&self) -> &[Stmt];
+}
+
+impl BlockStatementBody for BlockStmt {
+  fn span(&self) -> &Span {
+    &self.span
+  }
+  fn stmts(&self) -> &[Stmt] {
+    &self.stmts
+  }
+}
+
+impl BlockStatementBody for FunctionBody {
+  fn span(&self) -> &Span {
+    &self.span
+  }
+  fn stmts(&self) -> &[Stmt] {
+    &self.stmts
+  }
+}
+
 impl AstConverter<'_> {
-  pub(crate) fn store_block_statement(
+  pub(crate) fn store_block_statement<T: BlockStatementBody>(
     &mut self,
-    block_statement: &BlockStmt,
+    block_statement: &T,
     check_directive: bool,
   ) {
+    let span = block_statement.span();
+    let stmts = block_statement.stmts();
     let end_position = self.add_type_and_start(
       &TYPE_BLOCK_STATEMENT,
-      &block_statement.span,
+      span,
       BLOCK_STATEMENT_RESERVED_BYTES,
       false,
     );
     // body
     let mut keep_checking_directives = check_directive;
     self.convert_item_list_with_state(
-      &block_statement.stmts,
+      stmts,
       end_position + BLOCK_STATEMENT_BODY_OFFSET,
       &mut keep_checking_directives,
       |ast_converter, statement, can_be_directive| {
@@ -38,6 +68,6 @@ impl AstConverter<'_> {
       },
     );
     // end
-    self.add_end(end_position, &block_statement.span);
+    self.add_end(end_position, span);
   }
 }
