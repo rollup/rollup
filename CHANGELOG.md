@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.63.0
+
+_2026-08-25_
+
+### Features
+
+- Allow to analyze function return values in many more cases (#6065)
+
+### Pull Requests
+
+- [#6065](https://github.com/rollup/rollup/pull/6065): feat: improve function return value tracking (@cyyynthia, @lukastaegert)
+- [#6482](https://github.com/rollup/rollup/pull/6482): Remove unused rendered module sources map (@yoominho91, @irontaek, @lukastaegert)
+- [#6483](https://github.com/rollup/rollup/pull/6483): chore(deps): update minor/patch updates (@renovate[bot])
+- [#6484](https://github.com/rollup/rollup/pull/6484): fix(deps): update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6485](https://github.com/rollup/rollup/pull/6485): chore(deps): lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6486](https://github.com/rollup/rollup/pull/6486): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.62.5
 
 _2026-08-20_
