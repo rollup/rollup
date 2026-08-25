@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import UNASSIGNED from '../../utils/unassigned';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
@@ -8,7 +9,7 @@ import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBool
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import type { LiteralValueOrUnknown } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -19,8 +20,6 @@ import {
 	type StatementNode
 } from './shared/Node';
 
-const unset = Symbol('unset');
-
 export default class IfStatement extends StatementBase implements DeoptimizableEntity {
 	declare alternate: StatementNode | null;
 	declare consequent: StatementNode;
@@ -29,10 +28,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	declare alternateScope?: TrackingScope;
 	declare consequentScope: TrackingScope;
-	private testValue: LiteralValueOrUnknown | typeof unset = unset;
+	private testValue: LiteralValueOrUnknown | typeof UNASSIGNED = UNASSIGNED;
 
 	deoptimizeCache(): void {
-		this.testValue = UnknownValue;
+		this.testValue = UNASSIGNED;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -124,10 +123,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	private getTestValue(): LiteralValueOrUnknown {
-		if (this.testValue === unset) {
-			return (this.testValue = tryCastLiteralValueToBoolean(
+		if (this.testValue === UNASSIGNED) {
+			this.testValue = tryCastLiteralValueToBoolean(
 				this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this)
-			));
+			);
 		}
 		return this.testValue;
 	}
