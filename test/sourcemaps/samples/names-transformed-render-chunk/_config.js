@@ -1,5 +1,4 @@
 const assert = require('node:assert');
-const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
 const terser = require('terser');
 const getLocation = require('../../getLocation');
@@ -9,7 +8,8 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
-				transform(code) {
+				async transform(code) {
+					const { default: MagicString } = await import('magic-string');
 					const s = new MagicString(code);
 					const pattern = /mangleMe/g;
 					let match;

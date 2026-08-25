@@ -1,0 +1,28 @@
+# Rollup
+
+> Rollup is a module bundler for JavaScript which compiles small pieces of code into something larger and more complex, such as a library or application. It uses the standardized ES Module format for code, instead of previous idiosyncratic solutions such as CommonJS and AMD.
+
+## Getting Started
+
+- [Introduction](https://rollupjs.org/introduction/): What Rollup is, why it exists, and quick start instructions
+- [Tutorial](https://rollupjs.org/tutorial/): Step-by-step walkthrough of bundling with Rollup
+- [Command Line Interface](https://rollupjs.org/command-line-interface/): CLI usage, flags, and config file options
+- [JavaScript API](https://rollupjs.org/javascript-api/): Programmatic usage via `rollup.rollup()` and `bundle.generate()`/`bundle.write()`
+
+## Core Concepts
+
+- [Configuration Options](https://rollupjs.org/configuration-options/): Full reference for `rollup.config.js` (input, output, plugins, treeshake, etc.)
+- [Plugin Development](https://rollupjs.org/plugin-development/): How to write Rollup plugins, plugin hooks, and the build/output/watch phases
+- [ES Module Syntax](https://rollupjs.org/es-module-syntax/): Supported import/export syntax and how Rollup interprets it
+
+## Guides
+
+- [Running Rollup in a Browser](https://rollupjs.org/browser/): Using Rollup's browser build to bundle in-browser
+- [Migrating to Rollup 4](https://rollupjs.org/migration/): Breaking changes and upgrade steps from Rollup 3 to 4
+- [Troubleshooting](https://rollupjs.org/troubleshooting/): Common errors and how to resolve them
+- [Frequently Asked Questions](https://rollupjs.org/faqs/): Answers to common questions about Rollup's behavior and design
+
+## Optional
+
+- [Other Tools](https://rollupjs.org/tools/): Companion tools and ecosystem projects that work with Rollup
+- [REPL](https://rollupjs.org/repl/): Interactive in-browser playground for trying Rollup configs
