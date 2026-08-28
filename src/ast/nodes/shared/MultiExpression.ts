@@ -119,12 +119,11 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		// We cannot skip treeshaken return statements here: Interactions with the
+		// returned object can have effects via any of the possible returned values,
+		// even if the corresponding return statement is not (yet) included.
 		for (const expression of this.expressions) {
-			if (
-				!this.isTreeshaken(expression) &&
-				expression.hasEffectsOnInteractionAtPath(path, interaction, context)
-			)
-				return true;
+			if (expression.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
 		}
 		return false;
 	}
