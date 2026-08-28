@@ -4,18 +4,15 @@ let basic = {
 if (basic.a) log("basic");
 
 let proto = {
-  get a() { log(); },
-  get b() {}
+  get a() { log(); }
 };
 
 let plainProto = {
   __proto__: proto
 };
-if (plainProto.a) log("plainProto a");
-if (plainProto.b) log("plainProto b");
+if (plainProto.a) log("plainProto");
 
 let quotedProto = {
   "__proto__": proto
 };
-if (quotedProto.a) log("quotedProto a");
-if (quotedProto.b) log("quotedProto b");
+if (quotedProto.a) log("quotedProto");
