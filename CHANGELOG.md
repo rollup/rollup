@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.63.1
+
+_2026-08-28_
+
+### Bug Fixes
+
+- Revert function return value tracking until the most recent issue is understood (#6490)
+
+### Pull Requests
+
+- [#6489](https://github.com/rollup/rollup/pull/6489): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6490](https://github.com/rollup/rollup/pull/6490): Revert improve function return value tracking (@lukastaegert)
+
 ## 4.63.0
 
 _2026-08-25_
