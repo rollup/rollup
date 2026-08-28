@@ -1,16 +1,12 @@
 import type MagicString from 'magic-string';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import {
-	createInclusionContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
-import ReturnStatement from './ReturnStatement';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
@@ -23,7 +19,6 @@ import {
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
 	declare type: NodeType.tBlockStatement;
-	private virtualReturnStatement: ReturnStatement | null = null;
 
 	private get deoptimizeBody(): boolean {
 		return isFlagSet(this.flags, Flag.deoptimizeBody);
@@ -42,13 +37,7 @@ export default class BlockStatement extends StatementBase {
 	addImplicitReturnExpressionToScope(): void {
 		const lastStatement = this.body[this.body.length - 1];
 		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
-			const virtualReturnStatement = new ReturnStatement(this, this.scope);
-			virtualReturnStatement.type = NodeType.ReturnStatement;
-			virtualReturnStatement.argument = null;
-			virtualReturnStatement.initialise();
-
-			if (this.deoptimizeBody) virtualReturnStatement.includeNode(createInclusionContext());
-			this.virtualReturnStatement = virtualReturnStatement;
+			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
 		}
 	}
 
@@ -60,16 +49,11 @@ export default class BlockStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.deoptimizeBody) return true;
-		let hasEffect = false;
 		for (const node of this.body) {
-			if (context.brokenFlow || (hasEffect = node.hasEffects(context))) break;
+			if (context.brokenFlow) break;
+			if (node.hasEffects(context)) return true;
 		}
-
-		if (!context.brokenFlow) {
-			hasEffect ||= !!this.virtualReturnStatement?.hasEffects(context);
-		}
-
-		return hasEffect;
+		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -81,9 +65,6 @@ export default class BlockStatement extends StatementBase {
 				if (includeChildrenRecursively || node.shouldBeIncluded(context))
 					node.include(context, includeChildrenRecursively);
 			}
-
-			if (includeChildrenRecursively || !context.brokenFlow)
-				this.virtualReturnStatement?.include(context, includeChildrenRecursively);
 		}
 	}
 

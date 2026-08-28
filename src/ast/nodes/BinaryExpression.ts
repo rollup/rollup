@@ -1,7 +1,6 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import UNASSIGNED from '../../utils/unassigned';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -85,6 +84,8 @@ const binaryOperators: Partial<
 	// in: () => UnknownValue,
 	// instanceof: () => UnknownValue,
 };
+
+const UNASSIGNED = Symbol('Unassigned');
 
 export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
 	declare left: ExpressionNode;
