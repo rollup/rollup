@@ -13,22 +13,19 @@ import {
 } from './Expression';
 
 type Value = Exclude<LiteralValueOrUnknown, typeof UnknownValue>;
+
+// Do not use tryCastLiteralValueToBoolean here as it resolves well-known
+// symbols to UnknownValue, which would lose folding precision.
+const isKnownTruthy = (value: Value): boolean =>
+	value === UnknownTruthyValue || (value !== UnknownFalsyValue && !!value);
+
+// Merges two known (i.e. non-UnknownValue) values into the most precise value
+// that covers both, UnknownValue if they differ in truthiness.
 function mergeValues(a: Value, b: Value): LiteralValueOrUnknown {
 	if (a === b) return a;
-
-	if (a === UnknownTruthyValue) {
-		if (b && b !== UnknownFalsyValue) return UnknownTruthyValue;
-		return UnknownValue;
-	}
-
-	if (a === UnknownFalsyValue) {
-		if (!b || b === UnknownFalsyValue) return UnknownFalsyValue;
-		return UnknownValue;
-	}
-
-	if (a && b) return UnknownTruthyValue;
-	if (!a && !b) return UnknownFalsyValue;
-	return UnknownValue;
+	const truthy = isKnownTruthy(a);
+	if (truthy !== isKnownTruthy(b)) return UnknownValue;
+	return truthy ? UnknownTruthyValue : UnknownFalsyValue;
 }
 
 export class MultiExpression extends ExpressionEntity implements DeoptimizableEntity {
