@@ -1,0 +1,72 @@
+function noop() {}
+
+const selectedCondition = condition;
+
+const functionOverLimit =
+	selectedCondition === 0 ? () => () => noop :
+	selectedCondition === 1 ? () => () => noop :
+	selectedCondition === 2 ? () => () => noop :
+	selectedCondition === 3 ? () => () => noop :
+	selectedCondition === 4 ? () => () => noop :
+	selectedCondition === 5 ? () => () => noop :
+	selectedCondition === 6 ? () => () => noop :
+	selectedCondition === 7 ? () => () => noop :
+	selectedCondition === 8 ? () => () => noop :
+	selectedCondition === 9 ? () => () => noop :
+	selectedCondition === 10 ? () => () => noop :
+	selectedCondition === 11 ? () => () => noop :
+	selectedCondition === 12 ? () => () => noop :
+	selectedCondition === 13 ? () => () => noop :
+	selectedCondition === 14 ? () => () => noop :
+	selectedCondition === 15 ? () => () => noop :
+	selectedCondition === 16 ? () => () => noop :
+	selectedCondition === 17 ? () => () => noop :
+	selectedCondition === 18 ? () => () => noop :
+	selectedCondition === 19 ? () => () => noop :
+	selectedCondition === 20 ? () => () => noop :
+	selectedCondition === 21 ? () => () => noop :
+	selectedCondition === 22 ? () => () => noop :
+	selectedCondition === 23 ? () => () => noop :
+	selectedCondition === 24 ? () => () => noop :
+	selectedCondition === 25 ? () => () => noop :
+	selectedCondition === 26 ? () => () => noop :
+	selectedCondition === 27 ? () => () => noop :
+	selectedCondition === 28 ? () => () => noop :
+	selectedCondition === 29 ? () => () => noop :
+	selectedCondition === 30 ? () => () => noop :
+	selectedCondition === 31 ? () => () => noop :
+	selectedCondition === 32 ? () => () => noop :
+	selectedCondition === 33 ? () => () => noop :
+	selectedCondition === 34 ? () => () => noop :
+	selectedCondition === 35 ? () => () => noop :
+	selectedCondition === 36 ? () => () => noop :
+	selectedCondition === 37 ? () => () => noop :
+	selectedCondition === 38 ? () => () => noop :
+	selectedCondition === 39 ? () => () => noop :
+	selectedCondition === 40 ? () => () => noop :
+	selectedCondition === 41 ? () => () => noop :
+	selectedCondition === 42 ? () => () => noop :
+	selectedCondition === 43 ? () => () => noop :
+	selectedCondition === 44 ? () => () => noop :
+	selectedCondition === 45 ? () => () => noop :
+	selectedCondition === 46 ? () => () => noop :
+	selectedCondition === 47 ? () => () => noop :
+	selectedCondition === 48 ? () => () => noop :
+	selectedCondition === 49 ? () => () => noop :
+	selectedCondition === 50 ? () => () => noop :
+	selectedCondition === 51 ? () => () => noop :
+	selectedCondition === 52 ? () => () => noop :
+	selectedCondition === 53 ? () => () => noop :
+	selectedCondition === 54 ? () => () => noop :
+	selectedCondition === 55 ? () => () => noop :
+	selectedCondition === 56 ? () => () => noop :
+	selectedCondition === 57 ? () => () => noop :
+	selectedCondition === 58 ? () => () => noop :
+	selectedCondition === 59 ? () => () => noop :
+	selectedCondition === 60 ? () => () => noop :
+	selectedCondition === 61 ? () => () => noop :
+	selectedCondition === 62 ? () => () => noop :
+	selectedCondition === 63 ? () => () => noop :
+	() => () => noop;
+
+functionOverLimit()()();

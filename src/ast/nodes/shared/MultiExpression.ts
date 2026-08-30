@@ -7,10 +7,13 @@ import ReturnStatement from '../ReturnStatement';
 import {
 	ExpressionEntity,
 	type LiteralValueOrUnknown,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownFalsyValue,
 	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
+
+const MAX_TRACKED_RETURN_EXPRESSIONS = 64;
 
 type Value = Exclude<LiteralValueOrUnknown, typeof UnknownValue>;
 
@@ -98,15 +101,36 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const returnExpressions = this.expressions.map(expression =>
-			expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-		);
-
+		const returnExpressions = new Set<ExpressionEntity>();
+		const visitedMultiExpressions = new Set<MultiExpression>();
+		let exceededTrackingLimit = false;
 		let pure = true;
+		for (const expression of this.expressions) {
+			const [returnExpression, isPure] = expression.getReturnExpressionWhenCalledAtPath(
+				path,
+				interaction,
+				recursionTracker,
+				origin
+			);
+			pure &&= isPure;
+			if (
+				!exceededTrackingLimit &&
+				!this.addFlattenedReturnExpression(
+					returnExpression,
+					returnExpressions,
+					visitedMultiExpressions
+				)
+			) {
+				exceededTrackingLimit = true;
+			}
+		}
+
+		if (exceededTrackingLimit) return UNKNOWN_RETURN_EXPRESSION;
+		const flattenedReturnExpressions = [...returnExpressions];
 		return [
-			new MultiExpression(
-				returnExpressions.map(expression => ((pure &&= expression[1]), expression[0]))
-			),
+			flattenedReturnExpressions.length === 1
+				? flattenedReturnExpressions[0]
+				: new MultiExpression(flattenedReturnExpressions),
 			pure
 		];
 	}
@@ -131,5 +155,31 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		}
 
 		return false;
+	}
+
+	private addFlattenedReturnExpression(
+		expression: ExpressionEntity,
+		returnExpressions: Set<ExpressionEntity>,
+		visitedMultiExpressions: Set<MultiExpression>
+	): boolean {
+		if (!(expression instanceof MultiExpression)) {
+			returnExpressions.add(expression);
+			return returnExpressions.size <= MAX_TRACKED_RETURN_EXPRESSIONS;
+		}
+
+		if (visitedMultiExpressions.has(expression)) return true;
+		visitedMultiExpressions.add(expression);
+		for (const nestedExpression of expression.expressions) {
+			if (
+				!this.addFlattenedReturnExpression(
+					nestedExpression,
+					returnExpressions,
+					visitedMultiExpressions
+				)
+			) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
