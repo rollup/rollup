@@ -7,7 +7,7 @@ import ReturnStatement from '../ReturnStatement';
 import {
 	ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_RETURN_EXPRESSION,
+	UNKNOWN_EXPRESSION,
 	UnknownFalsyValue,
 	UnknownTruthyValue,
 	UnknownValue
@@ -125,7 +125,7 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 			}
 		}
 
-		if (exceededTrackingLimit) return UNKNOWN_RETURN_EXPRESSION;
+		if (exceededTrackingLimit) return [UNKNOWN_EXPRESSION, pure];
 		const flattenedReturnExpressions = [...returnExpressions];
 		return [
 			flattenedReturnExpressions.length === 1
