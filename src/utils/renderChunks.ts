@@ -241,12 +241,35 @@ async function transformChunksAndGenerateContentHashes(
 					))
 				};
 				const { code, map } = transformedChunk;
+				const sourcemapHashPlaceholder = preliminarySourcemapFileName?.hashPlaceholder;
+				if (map && sourcemapHashPlaceholder) {
+					initialHashesByPlaceholder.set(
+						sourcemapHashPlaceholder,
+						getHash(map.toString()).slice(0, sourcemapHashPlaceholder.length)
+					);
+				}
 
 				if (hashPlaceholder) {
+					const contentWithSourcemapComment =
+						map && outputOptions.sourcemap !== 'hidden'
+							? code +
+								replacePlaceholders(
+									getSourceMapComment(
+										preliminarySourcemapFileName?.fileName ?? `${fileName}.map`,
+										map,
+										outputOptions.sourcemap,
+										outputOptions.sourcemapBaseUrl
+									),
+									initialHashesByPlaceholder
+								)
+							: code;
 					// To create a reproducible content-only hash, all placeholders are
 					// replaced with the same value before hashing
 					const { containedPlaceholders, transformedCode } =
-						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
+						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
+							contentWithSourcemapComment,
+							placeholders
+						);
 					let contentToHash = transformedCode;
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
@@ -269,14 +292,6 @@ async function transformChunksAndGenerateContentHashes(
 					});
 				} else {
 					nonHashedChunksWithPlaceholders.push(transformedChunk);
-				}
-
-				const sourcemapHashPlaceholder = preliminarySourcemapFileName?.hashPlaceholder;
-				if (map && sourcemapHashPlaceholder) {
-					initialHashesByPlaceholder.set(
-						preliminarySourcemapFileName.hashPlaceholder,
-						getHash(map.toString()).slice(0, preliminarySourcemapFileName.hashPlaceholder.length)
-					);
 				}
 			}
 		)
@@ -391,14 +406,7 @@ function emitSourceMapAndGetComment(
 	pluginDriver: PluginDriver,
 	{ sourcemap, sourcemapBaseUrl }: NormalizedOutputOptions
 ) {
-	let url: string;
-	if (sourcemap === 'inline') {
-		url = map.toUrl();
-	} else {
-		const sourcemapFileName = basename(fileName);
-		url = sourcemapBaseUrl
-			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
-			: sourcemapFileName;
+	if (sourcemap !== 'inline') {
 		pluginDriver.emitFile({
 			fileName,
 			originalFileName: null,
@@ -406,6 +414,21 @@ function emitSourceMapAndGetComment(
 			type: 'asset'
 		});
 	}
+	return getSourceMapComment(fileName, map, sourcemap, sourcemapBaseUrl);
+}
+
+function getSourceMapComment(
+	fileName: string,
+	map: SourceMap,
+	sourcemap: NormalizedOutputOptions['sourcemap'],
+	sourcemapBaseUrl: string | undefined
+) {
+	const url =
+		sourcemap === 'inline'
+			? map.toUrl()
+			: sourcemapBaseUrl
+				? new URL(basename(fileName), sourcemapBaseUrl).toString()
+				: basename(fileName);
 	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
 
