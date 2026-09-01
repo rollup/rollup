@@ -19,6 +19,7 @@ import {
 	UnknownNonAccessorKey,
 	UnknownWellKnown
 } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { LiteralValueOrUnknown } from './Expression';
 import {
@@ -291,7 +292,8 @@ export class ObjectEntity extends ExpressionEntity {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
 			return UNKNOWN_RETURN_EXPRESSION;
@@ -303,7 +305,8 @@ export class ObjectEntity extends ExpressionEntity {
 				subPath,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		if (this.prototypeExpression) {
@@ -311,7 +314,8 @@ export class ObjectEntity extends ExpressionEntity {
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		return UNKNOWN_RETURN_EXPRESSION;

@@ -52,10 +52,7 @@ export default class ReturnValueScope extends ParameterScope {
 
 	getReturnExpression(): ExpressionEntity {
 		if (!this.returnExpression) {
-			this.returnExpression =
-				this.returnExpressions.length === 1
-					? this.returnExpressions[0]
-					: new MultiExpression(this.returnExpressions);
+			this.returnExpression = MultiExpression.of(this.returnExpressions);
 		}
 
 		return this.returnExpression;

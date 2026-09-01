@@ -10,6 +10,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -168,7 +169,8 @@ export default class CallExpression
 	}
 
 	protected getReturnExpression(
-		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER
+		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER,
+		compositionState: ReturnCompositionState | null = null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
 			this.returnExpression = UNKNOWN_RETURN_EXPRESSION; // In case of recursion
@@ -176,7 +178,8 @@ export default class CallExpression
 				EMPTY_PATH,
 				this.interaction,
 				recursionTracker,
-				this
+				this,
+				compositionState
 			);
 		}
 		return this.returnExpression;

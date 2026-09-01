@@ -31,6 +31,7 @@ import {
 	UnknownNonAccessorKey,
 	WELL_KNOWN_SYMBOLS
 } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
@@ -268,14 +269,16 @@ export default class MemberExpression
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.variable) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		if (this.isUndefined) {
@@ -288,7 +291,8 @@ export default class MemberExpression
 				[propertyKey, ...path],
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		return UNKNOWN_RETURN_EXPRESSION;

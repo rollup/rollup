@@ -3,10 +3,15 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import {
+	memoizeReturnComposition,
+	type ReturnCompositionState
+} from '../../utils/returnComposition';
 import ReturnStatement from '../ReturnStatement';
 import {
 	ExpressionEntity,
 	type LiteralValueOrUnknown,
+	UNKNOWN_EXPRESSION,
 	UnknownFalsyValue,
 	UnknownTruthyValue,
 	UnknownValue
@@ -30,18 +35,45 @@ function mergeValues(a: Value, b: Value): LiteralValueOrUnknown {
 
 export class MultiExpression extends ExpressionEntity implements DeoptimizableEntity {
 	private literalValue: LiteralValueOrUnknown | typeof UNASSIGNED = UNASSIGNED;
-	private dependantEntities = new Set<DeoptimizableEntity>();
-	constructor(private expressions: readonly ExpressionEntity[]) {
+	private dependantEntities: Set<DeoptimizableEntity> | null = null;
+	private constructor(private expressions: readonly ExpressionEntity[]) {
 		super();
+	}
+
+	/**
+	 * Flattens nested multi-expressions and removes duplicates so that
+	 * repeated composition cannot grow the expression structure unboundedly;
+	 * a single remaining expression is returned directly.
+	 */
+	static of(expressions: readonly ExpressionEntity[]): ExpressionEntity {
+		const flattened: ExpressionEntity[] = [];
+		for (const expression of expressions) {
+			MultiExpression.addFlattened(flattened, expression);
+		}
+		if (flattened.length === 0) return UNKNOWN_EXPRESSION;
+		if (flattened.length === 1) return flattened[0];
+		return new MultiExpression(flattened);
+	}
+
+	private static addFlattened(target: ExpressionEntity[], expression: ExpressionEntity): void {
+		if (expression instanceof MultiExpression) {
+			for (const nestedExpression of expression.expressions) {
+				MultiExpression.addFlattened(target, nestedExpression);
+			}
+		} else if (!target.includes(expression)) {
+			target.push(expression);
+		}
 	}
 
 	deoptimizeCache(): void {
 		if (this.literalValue !== UNASSIGNED) {
 			const { dependantEntities } = this;
 			this.literalValue = UNASSIGNED;
-			this.dependantEntities = new Set();
-			for (const entity of dependantEntities) {
-				entity.deoptimizeCache();
+			this.dependantEntities = null;
+			if (dependantEntities) {
+				for (const entity of dependantEntities) {
+					entity.deoptimizeCache();
+				}
 			}
 		}
 	}
@@ -61,7 +93,7 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 			if (this.literalValue === UNASSIGNED)
 				this.literalValue = this.doGetLiteralValueAtPath(path, recursionTracker, this);
 
-			this.dependantEntities.add(origin);
+			(this.dependantEntities ??= new Set()).add(origin);
 			return this.literalValue;
 		}
 
@@ -96,19 +128,25 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const returnExpressions = this.expressions.map(expression =>
-			expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-		);
-
-		let pure = true;
-		return [
-			new MultiExpression(
-				returnExpressions.map(expression => ((pure &&= expression[1]), expression[0]))
-			),
-			pure
-		];
+		return memoizeReturnComposition(compositionState, this, path, interaction, origin, state => {
+			let pure = true;
+			const returnExpressions: ExpressionEntity[] = [];
+			for (const expression of this.expressions) {
+				const [returnExpression, isPure] = expression.getReturnExpressionWhenCalledAtPath(
+					path,
+					interaction,
+					recursionTracker,
+					origin,
+					state
+				);
+				pure &&= isPure;
+				returnExpressions.push(returnExpression);
+			}
+			return [MultiExpression.of(returnExpressions), pure];
+		});
 	}
 
 	hasEffectsOnInteractionAtPath(

@@ -3,6 +3,7 @@ import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../../NodeInteractions';
 import { type EntityPathTracker, type ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -105,9 +106,10 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const returnExpression = this.getReturnExpression(recursionTracker);
+		const returnExpression = this.getReturnExpression(recursionTracker, compositionState);
 		if (returnExpression[0] === UNKNOWN_EXPRESSION) {
 			return returnExpression;
 		}
@@ -120,7 +122,8 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 					path,
 					interaction,
 					recursionTracker,
-					origin
+					origin,
+					compositionState
 				);
 				return [expression, isPure || returnExpression[1]];
 			},
@@ -161,6 +164,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	}
 
 	protected abstract getReturnExpression(
-		recursionTracker?: EntityPathTracker
+		recursionTracker?: EntityPathTracker,
+		compositionState?: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean];
 }

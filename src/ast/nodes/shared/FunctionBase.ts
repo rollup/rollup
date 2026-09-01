@@ -10,6 +10,10 @@ import {
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import {
+	invalidateComposedReturns,
+	type ReturnCompositionState
+} from '../../utils/returnComposition';
 import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
@@ -107,19 +111,22 @@ export default abstract class FunctionBase extends NodeBase {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		if (this.async) {
 			if (!this.deoptimizedReturn) {
 				this.deoptimizedReturn = true;
+				invalidateComposedReturns();
 				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 				this.scope.context.requestTreeshakingPass();
 			}
