@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import { EMPTY_ARRAY } from '../../utils/blank';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
@@ -12,19 +11,19 @@ export default class ReturnStatement extends StatementBase {
 	declare argument: ExpressionNode | null;
 	declare type: NodeType.tReturnStatement;
 
-	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private expressionsToBeDeoptimized: Set<DeoptimizableEntity> | null = null;
 
 	checkReached(origin: DeoptimizableEntity): boolean {
 		if (this.deoptimized) return true;
-		this.expressionsToBeDeoptimized.push(origin);
+		(this.expressionsToBeDeoptimized ??= new Set()).add(origin);
 		return false;
 	}
 
 	applyDeoptimizations(): void {
 		this.deoptimized = true;
 		const { expressionsToBeDeoptimized } = this;
-		if (expressionsToBeDeoptimized.length) {
-			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+		if (expressionsToBeDeoptimized?.size) {
+			this.expressionsToBeDeoptimized = null;
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
