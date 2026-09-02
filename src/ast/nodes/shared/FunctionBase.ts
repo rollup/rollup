@@ -123,7 +123,9 @@ export default abstract class FunctionBase extends NodeBase {
 				compositionState
 			);
 		}
-		if (this.async) {
+		// Calling an async or generator function does not produce the value of its
+		// return statements but a Promise or a generator object.
+		if (this.async || this.generator) {
 			if (!this.deoptimizedReturn) {
 				this.deoptimizedReturn = true;
 				invalidateComposedReturns();
