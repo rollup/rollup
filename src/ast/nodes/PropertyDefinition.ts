@@ -4,6 +4,7 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import type Decorator from './Decorator';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -56,10 +57,17 @@ export default class PropertyDefinition extends NodeBase {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.value
-			? this.value.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
+			? this.value.getReturnExpressionWhenCalledAtPath(
+					path,
+					interaction,
+					recursionTracker,
+					origin,
+					compositionState
+				)
 			: UNKNOWN_RETURN_EXPRESSION;
 	}
 
