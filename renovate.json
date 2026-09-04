@@ -73,6 +73,7 @@
         "@rollup/plugin-terser",
         "@types/node",
         "concurrently",
+        "mocha",
         "react",
         "react-dom",
         "typescript",
