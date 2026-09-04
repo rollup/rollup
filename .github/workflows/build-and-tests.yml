@@ -28,7 +28,7 @@ jobs:
   lint:
     name: Lint and Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout Commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -543,7 +543,7 @@ jobs:
               target: aarch64-pc-windows-msvc
             node: '18.20.0'
     runs-on: ${{ matrix.settings.host }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout Commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -590,7 +590,7 @@ jobs:
       id-token: write # Required for OIDC
     name: Publish
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     needs:
       - lint
       - test
