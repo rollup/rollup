@@ -242,35 +242,56 @@ async function transformChunksAndGenerateContentHashes(
 				};
 				const { code, map } = transformedChunk;
 				const sourcemapHashPlaceholder = preliminarySourcemapFileName?.hashPlaceholder;
+				const normalizedSourcemap =
+					map &&
+					(sourcemapHashPlaceholder || (hashPlaceholder && outputOptions.sourcemap === 'inline'))
+						? replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
+								map.toString(),
+								placeholders
+							)
+						: null;
 				if (map && sourcemapHashPlaceholder) {
 					initialHashesByPlaceholder.set(
 						sourcemapHashPlaceholder,
-						getHash(map.toString()).slice(0, sourcemapHashPlaceholder.length)
+						getHash(normalizedSourcemap!.transformedCode).slice(0, sourcemapHashPlaceholder.length)
 					);
 				}
 
 				if (hashPlaceholder) {
-					const contentWithSourcemapComment =
-						map && outputOptions.sourcemap !== 'hidden'
-							? code +
-								replacePlaceholders(
-									getSourceMapComment(
-										preliminarySourcemapFileName?.fileName ?? `${fileName}.map`,
-										map,
-										outputOptions.sourcemap,
-										outputOptions.sourcemapBaseUrl
-									),
-									initialHashesByPlaceholder
-								)
-							: code;
 					// To create a reproducible content-only hash, all placeholders are
 					// replaced with the same value before hashing
 					const { containedPlaceholders, transformedCode } =
-						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
-							contentWithSourcemapComment,
-							placeholders
-						);
+						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
 					let contentToHash = transformedCode;
+					if (map && outputOptions.sourcemap !== 'hidden') {
+						// Normalize raw map data and file names before base64 or URL encoding
+						// can hide placeholders and make hashes depend on chunk order.
+						const {
+							containedPlaceholders: sourcemapPlaceholders,
+							transformedCode: sourcemapContent
+						} =
+							outputOptions.sourcemap === 'inline'
+								? normalizedSourcemap!
+								: replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
+										replacePlaceholders(
+											preliminarySourcemapFileName?.fileName ?? `${fileName}.map`,
+											initialHashesByPlaceholder
+										),
+										placeholders
+									);
+						for (const placeholder of sourcemapPlaceholders) {
+							containedPlaceholders.add(placeholder);
+						}
+						contentToHash +=
+							outputOptions.sourcemap === 'inline'
+								? `//# ${SOURCEMAPPING_URL}=data:application/json,${sourcemapContent}\n`
+								: getSourceMapComment(
+										sourcemapContent,
+										map,
+										outputOptions.sourcemap,
+										outputOptions.sourcemapBaseUrl
+									);
+					}
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
 						'',
