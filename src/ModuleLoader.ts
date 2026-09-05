@@ -314,31 +314,42 @@ export class ModuleLoader {
 		if (
 			cachedModule &&
 			!cachedModule.customTransformCache &&
-			cachedModule.originalCode === sourceDescription.code &&
-			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
-				{
-					ast: cachedModule.ast,
-					attributes: cachedModule.attributes,
-					code: cachedModule.code,
-					id: cachedModule.id,
-					meta: cachedModule.meta,
-					moduleSideEffects: cachedModule.moduleSideEffects,
-					resolvedSources: cachedModule.resolvedIds,
-					syntheticNamedExports: cachedModule.syntheticNamedExports
-				}
-			]))
+			cachedModule.originalCode === sourceDescription.code
 		) {
-			if (cachedModule.transformFiles) {
-				for (const emittedFile of cachedModule.transformFiles)
-					this.pluginDriver.emitFile(emittedFile);
+			const originalModuleOptions = {
+				meta: { ...module.info.meta },
+				moduleSideEffects: module.info.moduleSideEffects,
+				syntheticNamedExports: module.info.syntheticNamedExports
+			};
+			module.updateOptions(cachedModule, { replaceExistingMeta: true });
+			if (
+				await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
+					{
+						ast: cachedModule.ast,
+						attributes: cachedModule.attributes,
+						code: cachedModule.code,
+						id: cachedModule.id,
+						meta: cachedModule.meta,
+						moduleSideEffects: cachedModule.moduleSideEffects,
+						resolvedSources: cachedModule.resolvedIds,
+						syntheticNamedExports: cachedModule.syntheticNamedExports
+					}
+				])
+			) {
+				module.updateOptions(originalModuleOptions, { replaceExistingMeta: true });
+			} else {
+				if (cachedModule.transformFiles) {
+					for (const emittedFile of cachedModule.transformFiles)
+						this.pluginDriver.emitFile(emittedFile);
+				}
+				await module.setSource(cachedModule);
+				return;
 			}
-			await module.setSource(cachedModule);
-		} else {
-			module.updateOptions(sourceDescription);
-			await module.setSource(
-				await transform(sourceDescription, module, this.pluginDriver, this.options)
-			);
 		}
+		module.updateOptions(sourceDescription);
+		await module.setSource(
+			await transform(sourceDescription, module, this.pluginDriver, this.options)
+		);
 	}
 
 	private async awaitLoadModulesPromise(): Promise<void> {
