@@ -19,7 +19,11 @@ import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { isStaticBlock } from '../StaticBlock';
-import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
+import {
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+	UnknownTruthyValue
+} from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
@@ -62,6 +66,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		if (!path.length) return UnknownTruthyValue;
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
