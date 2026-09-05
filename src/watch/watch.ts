@@ -95,7 +95,7 @@ export class Watcher {
 				this.invalidatedIds.clear();
 				await this.emitter.emit('restart');
 				this.emitter.removeListenersForCurrentRun();
-				this.run();
+				await this.run();
 			} catch (error: any) {
 				this.invalidatedIds.clear();
 				await this.emitter.emit('event', {
