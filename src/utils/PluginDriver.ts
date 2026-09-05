@@ -304,7 +304,7 @@ export class PluginDriver {
 	 * Run an async plugin hook and return the result.
 	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks`
 	 *   or `OutputPluginValueHooks`.
-	 * @param args Arguments passed to the plugin hook.
+	 * @param parameters Arguments passed to the plugin hook.
 	 * @param plugin The actual pluginObject to run.
 	 * @param replaceContext When passed, the plugin context can be overridden.
 	 */
@@ -400,7 +400,7 @@ export class PluginDriver {
 	/**
 	 * Run a sync plugin hook and return the result.
 	 * @param hookName Name of the plugin hook. Must be in `PluginHooks`.
-	 * @param args Arguments passed to the plugin hook.
+	 * @param parameters Arguments passed to the plugin hook.
 	 * @param plugin The actual plugin
 	 * @param replaceContext When passed, the plugin context can be overridden.
 	 */
