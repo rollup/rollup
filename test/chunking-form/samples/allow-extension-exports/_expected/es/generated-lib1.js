@@ -8,9 +8,8 @@ const value1 = 'conflict-value'; // Conflicting name
 // This should be included directly in the chunk with preserved exports
 const value3 = 'lib3-value';
 
-var lib3 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var lib3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	value3: value3
-});
+}, null));
 
 export { value2 as a, lib3 as l, value1 as v, value1$1 as value1, value3 };

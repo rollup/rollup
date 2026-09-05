@@ -5,7 +5,7 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 
 	function _interopNamespaceCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : _interopNamespaceDefault(e); }
 
-	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }
+	function _interopNamespaceDefaultOnly (e) { return Object.freeze(/*#__PURE__*/Object.setPrototypeOf({ default: e }, null)); }
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -57,11 +57,10 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
 
-	var main = /*#__PURE__*/_mergeNamespaces({
-		__proto__: null,
+	var main = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 		get a () { return exports.a; },
 		foo: foo
-	}, [defaultCompat__namespace]);
+	}, null), [defaultCompat__namespace]);
 
 	Object.defineProperty(exports, "foo", {
 		enumerable: true,
