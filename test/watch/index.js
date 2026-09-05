@@ -143,6 +143,44 @@ describe('rollup.watch', function () {
 		assert.deepStrictEqual([...events], ['START', 'BUNDLE_START', 'BUNDLE_END', 'END', undefined]);
 	});
 
+	it('emits an error event if a listener throws while re-running', async () => {
+		let bundleStarts = 0;
+		const codes = [];
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		const error = await new Promise((resolve, reject) => {
+			watcher.on('event', async event => {
+				codes.push(event.code);
+				if (event.code === 'BUNDLE_START' && ++bundleStarts === 2) {
+					// A listener that throws while the watcher is re-running must surface as an
+					// ERROR event, not as an unhandled rejection that skips ERROR and END.
+					throw new Error('listener failed');
+				}
+				if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+					if (bundleStarts === 1) {
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+					}
+				}
+				if (event.code === 'ERROR') {
+					resolve(event.error);
+				}
+			});
+			setTimeout(() => reject(new Error('no ERROR event was emitted')), 10_000);
+		});
+		assert.strictEqual(error.message, 'listener failed');
+		assert.strictEqual(codes.at(-1), 'ERROR');
+	});
+
 	it('does not fail for virtual files', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
