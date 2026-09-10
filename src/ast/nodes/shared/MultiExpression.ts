@@ -66,14 +66,12 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 	}
 
 	deoptimizeCache(): void {
-		if (this.literalValue !== UNASSIGNED) {
-			const { dependantEntities } = this;
-			this.literalValue = UNASSIGNED;
-			this.dependantEntities = null;
-			if (dependantEntities) {
-				for (const entity of dependantEntities) {
-					entity.deoptimizeCache();
-				}
+		const { dependantEntities } = this;
+		this.literalValue = UNASSIGNED;
+		this.dependantEntities = null;
+		if (dependantEntities) {
+			for (const entity of dependantEntities) {
+				entity.deoptimizeCache();
 			}
 		}
 	}
@@ -89,11 +87,14 @@ export class MultiExpression extends ExpressionEntity implements DeoptimizableEn
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		// While only the value at the empty path is memoized, any query must
+		// register the origin: a skipped return statement that later becomes
+		// reached can change the result at any path.
+		(this.dependantEntities ??= new Set()).add(origin);
 		if (path.length === 0) {
 			if (this.literalValue === UNASSIGNED)
 				this.literalValue = this.doGetLiteralValueAtPath(path, recursionTracker, this);
 
-			(this.dependantEntities ??= new Set()).add(origin);
 			return this.literalValue;
 		}
 
