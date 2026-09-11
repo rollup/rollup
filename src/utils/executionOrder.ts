@@ -19,6 +19,28 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 // modules are executed before or after which other modules. THen the chunking
 // would need to take care that in each chunk, all modules are always executed
 // in the same sequence.
+
+// Check if an ImportExpression is at the top level of a module
+// (not nested inside any function)
+function isTopLevelImport(node: { parent: any }): boolean {
+	let parent = node.parent;
+	while (parent) {
+		// Check if parent is a function-like node by checking the type string
+		// This covers FunctionDeclaration, FunctionExpression, ArrowFunctionExpression,
+		// and class methods
+		const type = parent.type as string;
+		if (
+			type === 'FunctionDeclaration' ||
+			type === 'FunctionExpression' ||
+			type === 'ArrowFunctionExpression'
+		) {
+			return false;
+		}
+		parent = parent.parent;
+	}
+	return true;
+}
+
 export function analyseModuleExecution(entryModules: readonly Module[]): {
 	cyclePaths: string[][];
 	orderedModules: Module[];
@@ -50,14 +72,19 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 			for (const dependency of module.implicitlyLoadedBefore) {
 				dynamicImports.add(dependency);
 			}
-			for (const {
-				node: { resolution, scope }
-			} of module.dynamicImports) {
-				if (resolution instanceof Module) {
-					if (scope.context.usesTopLevelAwait) {
-						handleSyncLoadedModule(resolution, module);
+			for (const dynamicImport of module.dynamicImports) {
+				if (dynamicImport.node.resolution instanceof Module) {
+					// Only treat dynamic imports as synchronous if the import
+					// expression is at the top level (not inside a function)
+					// of a module that uses top-level await. Dynamic imports
+					// inside functions are always async.
+					if (
+						isTopLevelImport(dynamicImport.node) &&
+						dynamicImport.node.scope.context.usesTopLevelAwait
+					) {
+						handleSyncLoadedModule(dynamicImport.node.resolution, module);
 					} else {
-						dynamicImports.add(resolution);
+						dynamicImports.add(dynamicImport.node.resolution);
 					}
 				}
 			}
