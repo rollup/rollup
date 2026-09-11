@@ -51,6 +51,8 @@ Developing software is usually easier if you break your project into smaller sep
 
 This finally changed with the ES6 revision of JavaScript, which includes a syntax for importing and exporting functions and data so they can be shared between separate scripts. The specification is now fixed, but it is only implemented in modern browsers and not finalised in Node.js. Rollup allows you to write your code using the new module system, and will then compile it back down to existing supported formats such as CommonJS modules, AMD modules, and IIFE-style scripts. This means that you get to _write future-proof code_, and you also get the tremendous benefits of…
 
+For a closer look at the loading, binding, packaging, and interoperability differences behind these formats, see [ES modules and CommonJS compared](https://frontendatlas.com/javascript/trivia/js-esm-vs-cjs).
+
 ## Tree-Shaking
 
 In addition to enabling the use of ES modules, Rollup also statically analyzes the code you are importing, and will exclude anything that isn't actually used. This allows you to build on top of existing tools and modules without adding extra dependencies or bloating the size of your project.
