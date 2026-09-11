@@ -7,10 +7,9 @@ System.register([], (function (exports, module) {
 
 			const promise = module.import('./generated-dynamic.js').then(result => console.log('main', result, value));
 
-			var main = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				promise: promise
-			});
+			}, null));
 			exports("m", main);
 
 		})

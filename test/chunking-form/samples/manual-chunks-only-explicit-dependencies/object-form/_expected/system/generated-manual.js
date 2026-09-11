@@ -7,16 +7,12 @@ System.register([], (function (exports) {
 
 			console.log('manual1');
 
-			var manual1 = /*#__PURE__*/Object.freeze({
-				__proto__: null
-			});
+			var manual1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 			exports("m", manual1);
 
 			console.log('manual2');
 
-			var manual2 = /*#__PURE__*/Object.freeze({
-				__proto__: null
-			});
+			var manual2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 			exports("a", manual2);
 
 		})

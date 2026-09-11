@@ -4,15 +4,11 @@ define(['exports'], (function (exports) { 'use strict';
 
 	console.log('manual1');
 
-	var manual1 = /*#__PURE__*/Object.freeze({
-		__proto__: null
-	});
+	var manual1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 	console.log('manual2');
 
-	var manual2 = /*#__PURE__*/Object.freeze({
-		__proto__: null
-	});
+	var manual2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 	exports.manual1 = manual1;
 	exports.manual2 = manual2;

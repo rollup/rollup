@@ -16,9 +16,7 @@ function _mergeNamespaces(n, m) {
 	return Object.freeze(n);
 }
 
-var pt = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null
-}, [ext]);
+var pt = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({}, null), [ext]);
 
 const crypto = 'webcrypto' in nc;
 const direct = 'whatever' in ext;

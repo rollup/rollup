@@ -3,11 +3,10 @@ define(['exports'], (function (exports) { 'use strict';
 	const foo = 1;
 	const bar = 2;
 
-	var namespace = {
-		__proto__: null,
+	var namespace = /*#__PURE__*/Object.setPrototypeOf({
 		bar: bar,
 		foo: foo
-	};
+	}, null);
 
 	console.log( Object.keys( namespace ) );
 

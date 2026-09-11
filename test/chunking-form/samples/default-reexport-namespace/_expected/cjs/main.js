@@ -4,11 +4,10 @@ var one = require('./one.js');
 
 const __icon__ = {};
 
-var icons = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var icons = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	one: one,
 	two: __icon__
-});
+}, null));
 
 const __component__ = { icons };
 

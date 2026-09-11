@@ -20,10 +20,9 @@ function _mergeNamespaces(n, m) {
 const __moduleExports = { foo: 'bar' };
 var lib = 'baz';
 
-var lib$1 = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null,
+var lib$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 	default: lib
-}, [__moduleExports]);
+}, null), [__moduleExports]);
 
 exports.default = lib;
 exports.lib = lib$1;

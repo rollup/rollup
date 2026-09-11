@@ -24,10 +24,9 @@ var other = {
 	foo: 'bar'
 };
 
-var ns = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null,
+var ns = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 	default: other
-}, [other]);
+}, null), [other]);
 
 console.log(ns, other.foo, other.function, other["some-prop"], _function, someDefault, defaultOnly);
 console.log(import.meta['function'], import.meta['some-prop']);

@@ -7,10 +7,9 @@ define(['exports'], (function (exports) { 'use strict';
 	console.log('dynamic', dep);
 	const dynamic = 'dynamic';
 
-	var dynamic$1 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var dynamic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		dynamic: dynamic
-	});
+	}, null));
 
 	exports.dep = dep;
 	exports.dynamic = dynamic;
