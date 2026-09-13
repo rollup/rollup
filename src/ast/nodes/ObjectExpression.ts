@@ -15,6 +15,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
@@ -64,13 +65,15 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,
 			recursionTracker,
-			origin
+			origin,
+			compositionState
 		);
 	}
 
