@@ -116,15 +116,21 @@ export class Watcher {
 
 	private async run(): Promise<void> {
 		this.running = true;
-		await this.emitter.emit('event', {
-			code: 'START'
-		});
+		// Drop a rerun request left over from a failed run: honoring it after this run
+		// would start an empty run that removes the plugin event listeners of this run.
+		this.rerun = false;
+		try {
+			await this.emitter.emit('event', {
+				code: 'START'
+			});
 
-		for (const task of this.tasks) {
-			await task.run();
+			for (const task of this.tasks) {
+				await task.run();
+			}
+		} finally {
+			this.running = false;
 		}
 
-		this.running = false;
 		await this.emitter.emit('event', {
 			code: 'END'
 		});
