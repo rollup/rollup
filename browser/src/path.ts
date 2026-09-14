@@ -1,8 +1,10 @@
+// Replaces node:path in the browser build. Keep the behavior consistent with
+// the Node build so that both builds handle paths the same way.
 const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
-const EXTNAME_REGEX = /\.[^.]+$/;
+const TRAILING_SLASHES_REGEX = /[/\\]+$/;
 
 export function isAbsolute(path: string): boolean {
 	return ABSOLUTE_PATH_REGEX.test(path);
@@ -17,22 +19,30 @@ export function normalize(path: string): string {
 }
 
 export function basename(path: string): string {
-	return path.split(ANY_SLASH_REGEX).pop() || '';
+	return path.replace(TRAILING_SLASHES_REGEX, '').split(ANY_SLASH_REGEX).pop() || '';
 }
 
 export function dirname(path: string): string {
-	const match = /[/\\][^/\\]*$/.exec(path);
-	if (!match) return '.';
+	const trimmed = path.replace(TRAILING_SLASHES_REGEX, '');
+	const match = /[/\\][^/\\]*$/.exec(trimmed);
+	if (match) {
+		const directory = trimmed.slice(0, -match[0].length);
 
-	const directory = path.slice(0, -match[0].length);
+		// If `directory` is the empty string, we're at root.
+		return directory || '/';
+	}
 
-	// If `directory` is the empty string, we're at root.
-	return directory || '/';
+	if (trimmed === '') return path ? '/' : '.';
+	// A drive root like "C:/" keeps the drive as its directory.
+	if (path !== trimmed && /^[A-Za-z]:$/.test(trimmed)) return trimmed;
+	return '.';
 }
 
 export function extname(path: string): string {
-	const match = EXTNAME_REGEX.exec(basename(path)!);
-	return match ? match[0] : '';
+	const base = basename(path);
+	if (base === '.' || base === '..') return '';
+	const index = base.lastIndexOf('.');
+	return index > 0 ? base.slice(index) : '';
 }
 
 export function join(...segments: string[]): string {
