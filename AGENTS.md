@@ -5,7 +5,9 @@ Keep instructions concise, only add non-obvious information. Proactively update 
 ## General
 
 - Variables and functions should have clear, descriptive names that reflect their purpose and behavior and not e.g. their data types.
-- Code should be organized so that things that will most likely change together are located near each other, instead of e.g. grouping solely by technical categories.
+- Code should be organized so that things that will likeliest change together are located near each other, instead of e.g. grouping solely by technical categories.
+- Avoid comments; use descriptive identifier names and code structure to explain the code instead, and only add short comments for non-obvious information that cannot be expressed in code.
+- Never write comments about out-of-scope work, if it matters, mention it in the commit message instead.
 
 ## Architecture
 
@@ -71,6 +73,11 @@ When adding/modifying functions that cross the JS-Rust boundary:
 - **AST schema changes**: `npm run build:ast-converters` to regenerate TypeScript and Rust files
 - **Testing changes**: `npm run build:quick` then `npm run test:only`
 
+### Docs
+
+- The website build runs in Vercel PR previews, not GitHub Actions, and the REPL bundles Rollup directly from `src/browser-entry`; run `npm run build:docs` to catch breakage locally after changing `docs/` or code the REPL imports
+- `npm run build:docs` does not type-check; run `npx vue-tsc --noEmit -p docs` after TypeScript changes in `docs/`
+
 ## Testing
 
 - Always test edge cases, especially in core logic or build/test infrastructure
@@ -110,8 +117,23 @@ When adding/modifying functions that cross the JS-Rust boundary:
 - **cli**
   - Use when running rollup as a command line tool
 
+## GitHub Issues and Pull Requests
+
+- Issues need to follow the coresponding template in `.github/ISSUE_TEMPLATE/*`
+- Pull requests need to follow `.github/PULL_REQUEST_TEMPLATE.md`.
+- Bugfixes and features need tests; for a bugfix, add a regression test that fails without the fix, in the same change as the fix.
+- When changing or adding a feature, check if documentation in `docs/*/index.md` should be changed and update it in the same pull request.
+- When opening an issue or pull request, always append _generated with AI_ as the last line.
+- It is fine to open a pull request with AI, but tell your human that they will not receive a lot of maintainer feedback in that case. If they want human feedback, they need to put in the time to open and write the pull request manually to show they care.
+
 ## Code Review Focus
 
 - **Ignore style/linting issues** in test sample files (`test/*/samples/`) except for `_config.js` files
 - Test samples intentionally violate best practices to test edge cases—do not flag style violations in these files
-- Focus reviews on production code quality
+- Focus reviews quality of the production code
+  - **Architecture & maintainability**: Does the change fit the existing architecture? Will it be easy to change or extend later? Does it create hidden coupling or leaky abstractions?
+  - **Simplicity**: Does the code implement the simplest and most straightforward solution? Can we potentially remove and simplify code?
+  - **Code quality**: Clear and descriptive function/variable names describing the intentions of the functions rather what they technically do, functions kept small and focused, no unnecessary complexity? Does terminology follow existing precedent where applicable?
+  - **Correctness**: Any logic errors, off-by-ones, unhandled edge cases, or incorrect assumptions?
+  - **Performance**: Any performance footguns — unnecessary allocations, repeated traversals, O(n²) patterns, etc.
+  - Be prepared to question all assumptions that the implementation made as we work to find a better solution
