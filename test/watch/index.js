@@ -188,6 +188,43 @@ describe('rollup.watch', function () {
 		assert.deepStrictEqual(codes.slice(-2), ['ERROR', 'END']);
 	});
 
+	it('emits an error event if a listener throws during the initial run', async () => {
+		const codes = [];
+		let reportedError = null;
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', event => {
+					codes.push(event.code);
+					if (event.code === 'BUNDLE_START') {
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+					}
+					if (event.code === 'END' && reportedError) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('timed out waiting for ERROR followed by END');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.deepStrictEqual(codes, ['START', 'BUNDLE_START', 'ERROR', 'END']);
+	});
+
 	it('does not fail for virtual files', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({

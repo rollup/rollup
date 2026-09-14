@@ -51,7 +51,7 @@ export class Watcher {
 				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
-		process.nextTick(() => this.run());
+		process.nextTick(() => this.run().catch(error => this.reportError(error)));
 	}
 
 	async close(): Promise<void> {
@@ -97,17 +97,21 @@ export class Watcher {
 				this.emitter.removeListenersForCurrentRun();
 				await this.run();
 			} catch (error: any) {
-				this.invalidatedIds.clear();
-				await this.emitter.emit('event', {
-					code: 'ERROR',
-					error,
-					result: null
-				});
-				await this.emitter.emit('event', {
-					code: 'END'
-				});
+				await this.reportError(error);
 			}
 		}, this.buildDelay);
+	}
+
+	private async reportError(error: any): Promise<void> {
+		this.invalidatedIds.clear();
+		await this.emitter.emit('event', {
+			code: 'ERROR',
+			error,
+			result: null
+		});
+		await this.emitter.emit('event', {
+			code: 'END'
+		});
 	}
 
 	private async run(): Promise<void> {
