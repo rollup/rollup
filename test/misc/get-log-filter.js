@@ -101,4 +101,32 @@ describe('getLogFilter', () => {
 		assert.strictEqual(filter({ foo: { bar: 'qux' } }), false, 'foo.bar:qux');
 		assert.strictEqual(filter({ foo: { bar: { baz: 'qux' } } }), false, 'foo.bar.baz:qux');
 	});
+
+	it('does not match nested properties on primitive values', () => {
+		const filter = getLogFilter(['foo.bar:baz']);
+		const invertedFilter = getLogFilter(['!foo.bar:baz']);
+		for (const foo of [
+			'baz',
+			'',
+			1,
+			0,
+			NaN,
+			true,
+			false,
+			1n,
+			0n,
+			Symbol('value'),
+			null,
+			undefined
+		]) {
+			assert.strictEqual(filter({ foo }), false, String(foo));
+			assert.strictEqual(invertedFilter({ foo }), true, String(foo));
+		}
+	});
+
+	it('handles nested properties on functions', () => {
+		const filter = getLogFilter(['foo.bar:baz']);
+		const foo = Object.assign(() => {}, { bar: 'baz' });
+		assert.strictEqual(filter({ foo }), true);
+	});
 });

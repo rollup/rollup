@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.63.2
+
+_2026-09-12_
+
+### Bug Fixes
+
+- Fix a bug when filtering logs for nested properties via the CLI (#6511)
+
+### Pull Requests
+
+- [#6498](https://github.com/rollup/rollup/pull/6498): chore(deps): lock file maintenance (@renovate[bot])
+- [#6503](https://github.com/rollup/rollup/pull/6503): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6504](https://github.com/rollup/rollup/pull/6504): chore(deps): update dependency eslint-plugin-unicorn to v74 (@renovate[bot])
+- [#6505](https://github.com/rollup/rollup/pull/6505): pin mocha to v11 (@renovate[bot], @lukastaegert)
+- [#6508](https://github.com/rollup/rollup/pull/6508): docs: fix AGENTS.md 'Generated files' rule to reference real paths (@Larslllllll, @lukastaegert)
+- [#6510](https://github.com/rollup/rollup/pull/6510): chore(deps): lock file maintenance (@renovate[bot])
+- [#6511](https://github.com/rollup/rollup/pull/6511): Fix nested log filters for primitive values (@jakezwang, @lukastaegert)
+- [#6512](https://github.com/rollup/rollup/pull/6512): chore(deps): update dtolnay/rust-toolchain digest to 6bed076 (@renovate[bot], @lukastaegert)
+- [#6513](https://github.com/rollup/rollup/pull/6513): fix(deps): update minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.63.1
 
 _2026-08-28_

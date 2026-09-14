@@ -28,7 +28,7 @@ export const getLogFilter: GetLogFilter = filters => {
 const testFilter = (log: RollupLog, key: string[], parts: string[]): boolean => {
 	let rawValue: any = log;
 	for (let index = 0; index < key.length; index++) {
-		if (!rawValue) {
+		if (rawValue === null || (typeof rawValue !== 'object' && typeof rawValue !== 'function')) {
 			return false;
 		}
 		const part = key[index];
