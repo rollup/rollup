@@ -85,6 +85,15 @@ export function findLastWhiteSpaceReverse(code: string, start: number, end: numb
 	}
 }
 
+// A CRLF pair is one line break and must be removed as one. Removing only the
+// LF leaves the CR, which is still a line terminator, so ASI fires anyway and
+// the operand after a `return` or `throw` becomes dead code.
+function getLineBreakStart(code: string, lineBreakPos: number): number {
+	return lineBreakPos > 0 && code.charCodeAt(lineBreakPos - 1) === 13 /*"\r"*/
+		? lineBreakPos - 1
+		: lineBreakPos;
+}
+
 // This assumes "code" only contains white-space and comments
 // Returns position of line-comment if applicable
 export function findFirstLineBreakOutsideComment(code: string): [number, number] {
@@ -94,7 +103,8 @@ export function findFirstLineBreakOutsideComment(code: string): [number, number]
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
 		start = code.indexOf('/', start);
-		if (start === -1 || start > lineBreakPos) return [lineBreakPos, lineBreakPos + 1];
+		if (start === -1 || start > lineBreakPos)
+			return [getLineBreakStart(code, lineBreakPos), lineBreakPos + 1];
 
 		// With our assumption, '/' always starts a comment. Determine comment type:
 		charCodeAfterSlash = code.charCodeAt(start + 1);
