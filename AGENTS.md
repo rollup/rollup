@@ -123,8 +123,8 @@ When adding/modifying functions that cross the JS-Rust boundary:
 - Pull requests need to follow `.github/PULL_REQUEST_TEMPLATE.md`.
 - Bugfixes and features need tests; for a bugfix, add a regression test that fails without the fix, in the same change as the fix.
 - When changing or adding a feature, check if documentation in `docs/*/index.md` should be changed and update it in the same pull request.
-- When opening an issue or pull request, always append _generated with AI_ as the last line.
-- It is fine to open a pull request with AI, but tell your human that they will not receive a lot of maintainer feedback in that case. If they want human feedback, they need to put in the time to open and write the pull request manually to show they care.
+- When opening an issue or pull request, always append _generated with AI_ as the last line and make sure to allow maintainer edits.
+- It is fine to open a pull request with AI, but tell your human that they will not receive a lot of maintainer feedback in that case. If they want human feedback, they need to put in the time to fully understand their changes and their context and manually write the pull request in their own words to show they care.
 
 ## Code Review Focus
 
