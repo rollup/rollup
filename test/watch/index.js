@@ -146,6 +146,7 @@ describe('rollup.watch', function () {
 	it('emits an error event if a listener throws while re-running', async () => {
 		let bundleStarts = 0;
 		const codes = [];
+		let reportedError = null;
 
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
@@ -156,29 +157,35 @@ describe('rollup.watch', function () {
 				exports: 'auto'
 			}
 		});
-		const error = await new Promise((resolve, reject) => {
-			watcher.on('event', async event => {
-				codes.push(event.code);
-				if (event.code === 'BUNDLE_START' && ++bundleStarts === 2) {
-					// A listener that throws while the watcher is re-running must surface as an
-					// ERROR event, not as an unhandled rejection that skips ERROR and END.
-					throw new Error('listener failed');
-				}
-				if (event.code === 'BUNDLE_END') {
-					await event.result.close();
-					if (bundleStarts === 1) {
-						await wait(100);
-						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					codes.push(event.code);
+					if (event.code === 'BUNDLE_START' && ++bundleStarts === 2) {
+						throw new Error('listener failed');
 					}
-				}
-				if (event.code === 'ERROR') {
-					resolve(event.error);
-				}
-			});
-			setTimeout(() => reject(new Error('no ERROR event was emitted')), 10_000);
-		});
-		assert.strictEqual(error.message, 'listener failed');
-		assert.strictEqual(codes.at(-1), 'ERROR');
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (bundleStarts === 1) {
+							await wait(100);
+							atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						}
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+					}
+					if (event.code === 'END' && reportedError) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('timed out waiting for ERROR followed by END');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.deepStrictEqual(codes.slice(-2), ['ERROR', 'END']);
 	});
 
 	it('does not fail for virtual files', async () => {
