@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.63.3
+
+_2026-09-14_
+
+### Bug Fixes
+
+- Make sure that the internal shims for basename and extname in the browser build fully match NodeJS (#6473)
+- Always report and recover from failures on invalidation in watch mode (#6506)
+- Respect windows line terminators when tree-shaking in situations where line-breaks need to be removed to prevent automatic semicolon insertion (#6514)
+
+### Pull Requests
+
+- [#6473](https://github.com/rollup/rollup/pull/6473): fix(browser): match node's basename and extname (@luantaraschi, @lukastaegert)
+- [#6506](https://github.com/rollup/rollup/pull/6506): fix(watch): await the rerun so listener failures surface as ERROR events (@yoominho91, @irontaek, @lukastaegert)
+- [#6514](https://github.com/rollup/rollup/pull/6514): Remove the whole CRLF pair when suppressing ASI (@NgoQuocViet2001)
+- [#6515](https://github.com/rollup/rollup/pull/6515): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.63.2
 
 _2026-09-12_
