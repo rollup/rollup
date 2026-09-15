@@ -526,14 +526,6 @@ jobs:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
               package: linux-x64-gnu
-            node: 24
-            command: 'ci:coverage'
-            additionalName: ' with Coverage'
-            coverage: true
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-              package: linux-x64-gnu
             node: '18.20.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
@@ -574,13 +566,97 @@ jobs:
         run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
         env:
           CI: true
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LLVM_PROFILE_FILE: ${{ github.workspace }}/coverage/profraw/rollup-%p-%12m.profraw
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: nightly-2025-07-25
+          components: llvm-tools-preview
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: coverage-cargo-ubuntu-latest
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-llvm-cov@0.8.7
+      - name: Build instrumented NAPI module
+        run: |
+          source <(cd rust && cargo llvm-cov show-env --sh)
+          (cd rust && cargo llvm-cov clean --workspace)
+          npm run build:napi
+      - name: Build JavaScript
+        run: npm run build:cjs
+      - name: Copy native module to dist
+        run: npm run build:copy-native
+      - name: Prepare Rust coverage output directory
+        run: mkdir -p coverage/profraw
+      - name: Run tests with coverage
+        run: |
+          # Run JS tests with nyc (JS coverage). The instrumented .node collects
+          # Rust coverage via LLVM_PROFILE_FILE. On Linux, the LLVM profiler
+          # runtime's atexit handler does not fire for dlopen'd shared libraries,
+          # so scripts/coverage-flush.cjs manually calls flushLlvmCoverage() on
+          # process exit.
+          # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
+          NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs" \
+            npx nyc --reporter lcovonly mocha test/test.js
+      - name: Merge Rust coverage data
+        run: |
+          LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
+          "$LLVM_PROFDATA" merge -sparse coverage/profraw/*.profraw -o coverage/rust.profdata
+      - name: Export Rust LCOV report
+        run: |
+          LLVM_COV="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-cov"
+          NODE_FILE="$(ls dist/rollup.*.node)"
+          "$LLVM_COV" export \
+            -instr-profile=coverage/rust.profdata \
+            -object "$NODE_FILE" \
+            -ignore-filename-regex='/.cargo/registry|/rustc/[0-9a-f]+|rust/target' \
+            -format=lcov > coverage/rust.lcov
+      - name: Save Cargo cache
+        if: github.ref == 'refs/heads/master'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload coverage
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        if: matrix.coverage
         with:
           fail_ci_if_error: true
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/rust.lcov,coverage/lcov.info
+          disable_search: true
 
   publish:
     permissions:
@@ -595,6 +671,7 @@ jobs:
       - lint
       - test
       - smoke-test
+      - coverage
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
