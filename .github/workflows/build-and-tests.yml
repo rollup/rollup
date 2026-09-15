@@ -620,7 +620,7 @@ jobs:
           # Run JS tests with nyc (JS coverage). The instrumented .node collects
           # Rust coverage via LLVM_PROFILE_FILE. On Linux, the LLVM profiler
           # runtime's atexit handler does not fire for dlopen'd shared libraries,
-          # so scripts/coverage-flush.js manually calls flushLlvmCoverage() on
+          # so scripts/coverage-flush.cjs manually calls flushLlvmCoverage() on
           # process exit.
           # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
           NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs" \

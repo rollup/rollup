@@ -169,7 +169,7 @@ module.exports.xxhashBase36 = xxhashBase36;
 module.exports.xxhashBase16 = xxhashBase16;
 
 // Only present in coverage builds (cfg(coverage) — set by cargo-llvm-cov show-env).
-// Used by scripts/coverage-flush.js to manually flush LLVM profile data on Linux,
+// Used by scripts/coverage-flush.cjs to manually flush LLVM profile data on Linux,
 // where the atexit handler does not fire for dlopen'd shared libraries.
 if (typeof nativeModule.flushLlvmCoverage === 'function') {
 	module.exports.flushLlvmCoverage = nativeModule.flushLlvmCoverage;
