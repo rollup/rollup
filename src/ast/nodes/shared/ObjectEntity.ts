@@ -19,6 +19,7 @@ import {
 	UnknownNonAccessorKey,
 	UnknownWellKnown
 } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { LiteralValueOrUnknown } from './Expression';
 import {
@@ -268,6 +269,8 @@ export class ObjectEntity extends ExpressionEntity {
 			// causes an issue with TypeScript enums in files with moduleSideEffects:
 			// false because we cannot properly track whether a "var" has been
 			// initialized. This should be reverted once we can properly track this.
+			// ALSO needs to be updated once this is resolved:
+			// - literals-from-return-expressions-branches/main.js
 			// return UnknownTruthyValue;
 			return UnknownValue;
 		}
@@ -289,7 +292,8 @@ export class ObjectEntity extends ExpressionEntity {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
 			return UNKNOWN_RETURN_EXPRESSION;
@@ -301,7 +305,8 @@ export class ObjectEntity extends ExpressionEntity {
 				subPath,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		if (this.prototypeExpression) {
@@ -309,7 +314,8 @@ export class ObjectEntity extends ExpressionEntity {
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
 		return UNKNOWN_RETURN_EXPRESSION;

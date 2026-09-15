@@ -10,6 +10,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -19,7 +20,7 @@ import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
-import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
+import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN, onlyIncludeSelf } from './shared/Node';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 
@@ -124,11 +125,6 @@ export default class CallExpression
 		}
 	}
 
-	includeNode(_context: InclusionContext) {
-		this.included = true;
-		if (!this.deoptimized) this.applyDeoptimizations();
-	}
-
 	initialise() {
 		super.initialise();
 		if (
@@ -173,17 +169,21 @@ export default class CallExpression
 	}
 
 	protected getReturnExpression(
-		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER
+		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER,
+		compositionState: ReturnCompositionState | null = null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
-			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
-			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+			this.returnExpression = UNKNOWN_RETURN_EXPRESSION; // In case of recursion
+			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
 				this.interaction,
 				recursionTracker,
-				this
-			));
+				this,
+				compositionState
+			);
 		}
 		return this.returnExpression;
 	}
 }
+
+CallExpression.prototype.includeNode = onlyIncludeSelf;
