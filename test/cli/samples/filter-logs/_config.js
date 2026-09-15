@@ -5,7 +5,8 @@ module.exports = defineTest({
 	spawnArgs: [
 		'--config',
 		'--filterLogs="pluginCode:FIRST,pluginCode:SECOND"',
-		'--filterLogs=pluginCode:THIRD'
+		'--filterLogs=pluginCode:THIRD',
+		'--filterLogs=details.kind:visible'
 	],
 	env: {
 		FORCE_COLOR: undefined,
@@ -22,6 +23,7 @@ main.js → stdout...
 [plugin test] third
 [plugin test] fourth
 [plugin test] fifth
+[plugin test] nested
 `
 		);
 	}
