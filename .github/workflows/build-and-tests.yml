@@ -649,20 +649,14 @@ jobs:
             .cargo-cache
             rust/target/
           key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
-      - name: Upload Rust coverage
+      - name: Upload coverage
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           fail_ci_if_error: true
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/rust.lcov
-      - name: Upload JS coverage
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        with:
-          fail_ci_if_error: true
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/lcov.info
+          files: coverage/rust.lcov,coverage/lcov.info
+          disable_search: true
 
   publish:
     permissions:
