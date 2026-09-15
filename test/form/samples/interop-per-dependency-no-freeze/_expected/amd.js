@@ -1,6 +1,6 @@
 define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], (function (require, fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
 
-	function _interopNamespaceDefaultOnly (e) { return { __proto__: null, default: e }; }
+	function _interopNamespaceDefaultOnly (e) { return /*#__PURE__*/Object.setPrototypeOf({ default: e }, null); }
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);

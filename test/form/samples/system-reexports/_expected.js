@@ -1,7 +1,6 @@
 System.register(['external1', 'external2', 'external3', 'external4', 'external5'], (function (exports) {
 	'use strict';
-	var _starExcludes = {
-		__proto__: null,
+	var _starExcludes = /*#__PURE__*/Object.setPrototypeOf({
 		default: 1,
 		namedReexport1: 1,
 		namedReexport2a: 1,
@@ -9,7 +8,7 @@ System.register(['external1', 'external2', 'external3', 'external4', 'external5'
 		namespaceReexport3: 1,
 		namedReexport5: 1,
 		namespaceReexport5: 1
-	};
+	}, null);
 	return {
 		setters: [function (module) {
 			exports("namedReexport1", module.namedReexport1);
@@ -18,13 +17,13 @@ System.register(['external1', 'external2', 'external3', 'external4', 'external5'
 		}, function (module) {
 			exports("namespaceReexport3", module);
 		}, function (module) {
-			var setter = { __proto__: null };
+			var setter = /*#__PURE__*/Object.setPrototypeOf({}, null);
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
 			exports(setter);
 		}, function (module) {
-			var setter = { __proto__: null, namedReexport5: module.namedReexport5, namespaceReexport5: module };
+			var setter = /*#__PURE__*/Object.setPrototypeOf({ namedReexport5: module.namedReexport5, namespaceReexport5: module }, null);
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
