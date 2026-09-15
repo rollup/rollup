@@ -603,7 +603,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tool: cargo-llvm-cov
+          tool: cargo-llvm-cov@0.8.7
       - name: Build instrumented NAPI module
         run: |
           source <(cd rust && cargo llvm-cov show-env --sh)
