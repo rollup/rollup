@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	description: 'escapes quotes and backslashes in import attribute values',
+	description: 'serializes quotes, backslashes and line terminators in import attribute values',
 	options: {
 		external: () => true,
 		output: {
