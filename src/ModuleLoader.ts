@@ -321,7 +321,7 @@ export class ModuleLoader {
 				moduleSideEffects: module.info.moduleSideEffects,
 				syntheticNamedExports: module.info.syntheticNamedExports
 			};
-			module.updateOptions(cachedModule, { replaceExistingMeta: true });
+			module.updateOptions(cachedModule);
 			if (
 				await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 					{
