@@ -12,7 +12,7 @@ Keep instructions concise, only add non-obvious information. Proactively update 
 ## Commits
 
 - There is no specific prescribed format for commit messages, but they should be concise and human-readable.
-- The subject line should summary what was changed
+- The subject line should summarize what was changed
 - The body should focus solely on the intention of the change, and only on the non-obvious parts. Short is good.
 
 ## Architecture
