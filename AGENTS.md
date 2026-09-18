@@ -9,6 +9,12 @@ Keep instructions concise, only add non-obvious information. Proactively update 
 - Avoid comments; use descriptive identifier names and code structure to explain the code instead, and only add short comments for non-obvious information that cannot be expressed in code.
 - Never write comments about out-of-scope work, if it matters, mention it in the commit message instead.
 
+## Commits
+
+- There is no specific prescribed format for commit messages, but they should be concise and human-readable.
+- The subject line should summarize what was changed
+- The body should focus solely on the intention of the change, and only on the non-obvious parts. Short is good.
+
 ## Architecture
 
 - TypeScript + Rust hybrid: Rust code in `rust/` (bindings_napi, bindings_wasm, parse_ast crates) called via `native.js` and `native.wasm.js`
