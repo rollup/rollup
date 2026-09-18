@@ -469,6 +469,83 @@ describe('incremental', () => {
 		});
 	});
 
+	it('restores the current module options when shouldTransformCachedModule triggers a re-transform', async () => {
+		modules = {
+			entry: `export const foo = 1; export default foo + 1;`
+		};
+		let run = 1;
+		let shouldTransformCachedModuleCalls = 0;
+		const optionsPlugin = {
+			resolveId(id) {
+				return {
+					id,
+					meta: { [`resolvedInRun${run}`]: true },
+					moduleSideEffects: run === 1,
+					syntheticNamedExports: run === 1 ? 'foo' : false
+				};
+			},
+			load: id => ({ code: modules[id] }),
+			transform(code, id) {
+				// During the fresh transform, only the meta of the current resolution is present
+				assert.deepStrictEqual(
+					this.getModuleInfo(id).meta,
+					{ [`resolvedInRun${run}`]: true },
+					'transform'
+				);
+				return { code, meta: { [`transformedInRun${run}`]: true } };
+			},
+			shouldTransformCachedModule({ id }) {
+				shouldTransformCachedModuleCalls++;
+				const moduleInfo = this.getModuleInfo(id);
+				// While the hook runs, the cached module options are exposed on top of the current ones
+				assert.deepStrictEqual(
+					moduleInfo.meta,
+					{
+						resolvedInRun2: true,
+						resolvedInRun1: true,
+						transformedInRun1: true
+					},
+					'shouldTransformCachedModule'
+				);
+				assert.strictEqual(moduleInfo.moduleSideEffects, true);
+				assert.strictEqual(moduleInfo.syntheticNamedExports, 'foo');
+				return true;
+			}
+		};
+		const capturedInfo = {};
+		const capturePlugin = {
+			name: 'capture',
+			moduleParsed(moduleInfo) {
+				capturedInfo[moduleInfo.id] = {
+					meta: { ...moduleInfo.meta },
+					moduleSideEffects: moduleInfo.moduleSideEffects,
+					syntheticNamedExports: moduleInfo.syntheticNamedExports
+				};
+			}
+		};
+
+		const cache = await rollup.rollup({
+			input: 'entry',
+			plugins: [optionsPlugin, capturePlugin]
+		});
+
+		run = 2;
+		await rollup.rollup({
+			input: 'entry',
+			plugins: [optionsPlugin, capturePlugin],
+			cache
+		});
+
+		assert.strictEqual(shouldTransformCachedModuleCalls, 1);
+		assert.deepStrictEqual(capturedInfo, {
+			entry: {
+				meta: { resolvedInRun2: true, transformedInRun2: true },
+				moduleSideEffects: false,
+				syntheticNamedExports: false
+			}
+		});
+	});
+
 	it('runs shouldTransformCachedModule when using a cached module', async () => {
 		modules = {
 			entry: `import foo from 'foo'; export default foo;`,
