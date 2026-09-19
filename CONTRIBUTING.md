@@ -20,17 +20,12 @@ Working on your first Pull Request? You can learn how from this _free_ course, [
 
 Rollup now includes some Rust code. To compile it, you need to set up the Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
-Make sure you use the same toolchain version as specified in the `/rust-toolchain.toml` file. It should automatically be handled, as well as acquiring the required targets. Should you want to do it manually, use the following commands:
+Make sure you use the same toolchain version as specified in the `/rust-toolchain.toml` file. This is handled automatically when running a command within the repository, including acquiring the required targets and components. Should you want to do it manually, use the following commands:
 
 ```shell
-# Look at the rust-toolchain.toml file for the precise toolchain used by Rollup
-rustup toolchain install nightly
-rustup default nightly
-```
-
-You should also install the `rust-src` component:
-
-```shell
+# Use the precise toolchain version from rust-toolchain.toml
+rustup toolchain install nightly-2025-07-25
+rustup default nightly-2025-07-25
 rustup component add rust-src
 ```
 
@@ -116,7 +111,7 @@ Running
 npm run dev
 ```
 
-will start the website locally in development mode via Vite. This will give you a live preview of the documentation. It will also verify that the documentation does not contain any dead links.
+will start the website locally in development mode via Vite. This will give you a live preview of the documentation. It will also verify that the documentation does not contain any dead internal links.
 
 A special feature of the website is that the REPL at `http://localhost:5173/repl/` is directly using the browser build of your local copy of Rollup created via Vite. It even supports full hot module replacement, which means that when you change anything within Rollup, the REPL will automatically rebundle the current code using your latest changes. This can come in very handy when working on a bug or tree-shaking improvement to allow extremely fast iterations.
 
@@ -126,7 +121,9 @@ See the [architecture documentation](ARCHITECTURE.md) for an overview of the cod
 
 ## Submitting code
 
-Any code change should be submitted as a pull request. The description should explain what the code does and give steps to execute it. The pull request should also contain tests.
+Any code change should be submitted as a pull request following the [pull request template](./.github/PULL_REQUEST_TEMPLATE.md). The description should explain what the code does and give steps to execute it. The pull request should also contain tests, and `npm run lint` should pass.
+
+It is fine to use AI to create a pull request. In that case, you must allow maintainer edits and accept that maintainers may work on your pull request without prior discussion. If you take pride in your work and prefer a discussion before changes are made, you need to fully understand all aspects of your pull request and take the time to write it by hand in your own words.
 
 ## Code review process
 
