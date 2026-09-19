@@ -10,10 +10,9 @@ define((function () { 'use strict';
 		return foo();
 	}
 
-	var dep1 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var dep1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		bar: bar
-	});
+	}, null));
 
 	console.log(foo(), bar());
 

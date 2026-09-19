@@ -10,10 +10,9 @@ System.register([], (function (exports) {
 			console.log('dynamic', dep);
 			const dynamic = exports("d", 'dynamic');
 
-			var dynamic$1 = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var dynamic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				dynamic: dynamic
-			});
+			}, null));
 			exports("b", dynamic$1);
 
 		})

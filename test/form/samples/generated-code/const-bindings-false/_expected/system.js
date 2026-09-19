@@ -1,16 +1,15 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
-	var _starExcludes = {
-		__proto__: null,
+	var _starExcludes = /*#__PURE__*/Object.setPrototypeOf({
 		default: 1,
 		syntheticMissing: 1
-	};
+	}, null);
 	var foo__default, foo$1;
 	return {
 		setters: [module => {
 			foo__default = module.default;
 			foo$1 = module;
-			var setter = { __proto__: null };
+			var setter = /*#__PURE__*/Object.setPrototypeOf({}, null);
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
@@ -22,11 +21,10 @@ System.register('bundle', ['external'], (function (exports) {
 
 			const foo = 'bar';
 
-			var other = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var other = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				foo: foo,
 				missing: _missingExportShim
-			});
+			}, null));
 
 			var synthetic = { bar: 'baz'};
 

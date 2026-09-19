@@ -138,13 +138,10 @@ const HELPER_GENERATORS: Record<
 			freeze,
 			getWithToStringTag(
 				symbols,
-				getObject(
-					[
-						[null, `__proto__:${_}null`],
-						['default', 'e']
-					],
+				`/*#__PURE__*/Object.setPrototypeOf(${getObject(
+					[['default', 'e']],
 					{ lineBreakIndent: null }
-				),
+				)},${_}null)`,
 				snippets
 			)
 		)}${right}${n}${n}`;

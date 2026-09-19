@@ -4,11 +4,10 @@ define(['require', 'exports', './generated-separate'], (function (require, expor
 	const x = 1;
 	console.log('inlined');
 
-	var inlined$2 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var inlined$2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		default: inlined$1,
 		x: x
-	});
+	}, null));
 
 	const inlined = Promise.resolve().then(function () { return inlined$2; });
 	const separate = new Promise(function (resolve, reject) { require(['./generated-separate'], resolve, reject); });
