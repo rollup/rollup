@@ -86,6 +86,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		const declarationStart = getDeclarationStart(code.original, this.start);
+		let needsTrailingSemicolon = false;
 
 		if (this.declaration instanceof FunctionDeclaration) {
 			this.renderNamedDeclaration(
@@ -110,7 +111,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			treeshakeNode(this, code, start, end);
 			return;
 		} else if (this.variable.included) {
-			this.renderVariableDeclaration(code, declarationStart, options);
+			needsTrailingSemicolon = this.renderVariableDeclaration(code, declarationStart, options);
 		} else {
 			code.remove(this.start, declarationStart);
 			this.declaration.render(code, options, {
@@ -122,6 +123,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			return;
 		}
 		this.declaration.render(code, options);
+		if (needsTrailingSemicolon) {
+			// This needs to happen after the declaration was rendered as rendering can
+			// replace the entire declaration, which would drop anything appended to the
+			// left of its end.
+			code.appendLeft(this.end, ';');
+		}
 	}
 
 	private renderNamedDeclaration(
@@ -151,11 +158,13 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		}
 	}
 
+	// Returns whether a semicolon still needs to be appended after the declaration
+	// was rendered.
 	private renderVariableDeclaration(
 		code: MagicString,
 		declarationStart: number,
 		{ format, exportNamesByVariable, snippets: { cnst, getPropertyAccess } }: RenderOptions
-	): void {
+	): boolean {
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
 		const systemExportNames = format === 'system' && exportNamesByVariable.get(this.variable);
 
@@ -171,16 +180,14 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				hasTrailingSemicolon ? this.end - 1 : this.end,
 				')' + (hasTrailingSemicolon ? '' : ';')
 			);
-		} else {
-			code.overwrite(
-				this.start,
-				declarationStart,
-				`${cnst} ${this.variable.getName(getPropertyAccess)} = `
-			);
-			if (!hasTrailingSemicolon) {
-				code.appendLeft(this.end, ';');
-			}
+			return false;
 		}
+		code.overwrite(
+			this.start,
+			declarationStart,
+			`${cnst} ${this.variable.getName(getPropertyAccess)} = `
+		);
+		return !hasTrailingSemicolon;
 	}
 }
 

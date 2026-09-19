@@ -8,7 +8,7 @@ impl AstConverter<'_> {
     store_jsx_text!(
       self,
       span => jsx_text.span,
-      value => &jsx_text.value,
+      value => jsx_text.value.as_atom().map_or("", |atom| atom.as_ref()),
       raw => &jsx_text.raw
     );
   }

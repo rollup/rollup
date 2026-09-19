@@ -28,7 +28,7 @@ module.exports = main;
 						originalFileName: null,
 						originalFileNames: [],
 						source:
-							'{"version":3,"file":"main.js","sources":["main.js"],"sourcesContent":["export default 42;\\n"],"names":[],"mappings":";;AAAA,WAAe,EAAE;;;;"}',
+							'{"version":3,"file":"main.js","sources":["main.js"],"sourcesContent":["export default 42;\\n"],"names":[],"mappings":";;AAAA,WAAe,EAAE;;"}',
 						type: 'asset'
 					});
 				}

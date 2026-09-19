@@ -73,6 +73,7 @@
         "@rollup/plugin-terser",
         "@types/node",
         "concurrently",
+        "mocha",
         "react",
         "react-dom",
         "typescript",
@@ -89,11 +90,7 @@
   "automerge": false,
   "internalChecksFilter": "strict",
   "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": [
-      "* 18-23 * * 4",
-      "* 0-5 * * 5"
-    ]
+    "enabled": true
   },
   "minimumReleaseAge": "3 days",
   "schedule": [

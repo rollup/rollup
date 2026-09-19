@@ -143,6 +143,215 @@ describe('rollup.watch', function () {
 		assert.deepStrictEqual([...events], ['START', 'BUNDLE_START', 'BUNDLE_END', 'END', undefined]);
 	});
 
+	it('emits an error event if a listener throws while re-running', async () => {
+		let bundleStarts = 0;
+		const codes = [];
+		let reportedError = null;
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					codes.push(event.code);
+					if (event.code === 'BUNDLE_START' && ++bundleStarts === 2) {
+						throw new Error('listener failed');
+					}
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (bundleStarts === 1) {
+							await wait(100);
+							atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						}
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+					}
+					if (event.code === 'END' && reportedError) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('timed out waiting for ERROR followed by END');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.deepStrictEqual(codes.slice(-2), ['ERROR', 'END']);
+	});
+
+	it('emits an error event if a listener throws during the initial run', async () => {
+		const codes = [];
+		let reportedError = null;
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', event => {
+					codes.push(event.code);
+					if (event.code === 'BUNDLE_START') {
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+					}
+					if (event.code === 'END' && reportedError) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('timed out waiting for ERROR followed by END');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.deepStrictEqual(codes, ['START', 'BUNDLE_START', 'ERROR', 'END']);
+	});
+
+	it('keeps rebuilding after a listener threw during a re-run', async () => {
+		let bundleStarts = 0;
+		let reportedError = null;
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_START' && ++bundleStarts === 2) {
+						throw new Error('listener failed');
+					}
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (bundleStarts === 1) {
+							await wait(100);
+							atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						}
+						if (reportedError && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'ERROR') {
+						if (!reportedError) {
+							reportedError = event.error;
+						}
+						await wait(300);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 45;');
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+	});
+
+	it('keeps calling the closeWatcher hook after a run failed with a pending rerun', async () => {
+		let bundleStarts = 0;
+		let closeWatcherRuns = 0;
+		let failOnEnd = false;
+		let reportedError = null;
+		let invalidatedDuringSecondRun = false;
+
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			plugins: {
+				name: 'test-plugin',
+				async transform(code) {
+					if (bundleStarts === 2) {
+						await wait(300);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 45;');
+						const invalidationDeadline = Date.now() + 5000;
+						while (!invalidatedDuringSecondRun && Date.now() < invalidationDeadline) {
+							await wait(50);
+						}
+						assert.ok(invalidatedDuringSecondRun);
+					}
+					return code;
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && bundleStarts === 2) {
+						invalidatedDuringSecondRun = true;
+					}
+				}
+			},
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_START' && ++bundleStarts === 2) {
+						failOnEnd = true;
+					}
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (bundleStarts === 1) {
+							await wait(100);
+							atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						}
+						if (reportedError && run(BUNDLE_FILE) === 46) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && failOnEnd) {
+						failOnEnd = false;
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						if (!reportedError) {
+							reportedError = event.error;
+						}
+						await wait(300);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 46;');
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild');
+			}
+		);
+		await wait(300);
+		await watcher.close();
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.strictEqual(closeWatcherRuns, 1);
+	});
+
 	it('does not fail for virtual files', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({

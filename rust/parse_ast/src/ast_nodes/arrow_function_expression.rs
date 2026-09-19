@@ -1,4 +1,4 @@
-use swc_ecma_ast::{ArrowExpr, BlockStmtOrExpr};
+use swc_ecma_ast::{ArrowExpr, ArrowFunctionBody};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
@@ -36,7 +36,7 @@ impl AstConverter<'_> {
       self,
       end_position,
       async => arrow_expression.is_async,
-      expression => matches!(&*arrow_expression.body, BlockStmtOrExpr::Expr(_)),
+      expression => matches!(&*arrow_expression.body, ArrowFunctionBody::Expr(_)),
       generator => arrow_expression.is_generator
     );
     // params
@@ -51,10 +51,10 @@ impl AstConverter<'_> {
     // body
     self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_BODY_OFFSET);
     match &*arrow_expression.body {
-      BlockStmtOrExpr::BlockStmt(block_statement) => {
-        self.store_block_statement(block_statement, true)
+      ArrowFunctionBody::FunctionBody(function_body) => {
+        self.store_block_statement(function_body, true)
       }
-      BlockStmtOrExpr::Expr(expression) => {
+      ArrowFunctionBody::Expr(expression) => {
         self.convert_expression(expression);
       }
     }

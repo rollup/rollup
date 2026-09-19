@@ -98,7 +98,7 @@ impl AstConverter<'_> {
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_CONSTRUCTOR);
     // value
     match &constructor.body {
-      Some(block_statement) => {
+      Some(function_body) => {
         self.update_reference_position(end_position + METHOD_DEFINITION_VALUE_OFFSET);
         let key_end = constructor.key.span().hi.0 - 1;
         let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
@@ -113,12 +113,12 @@ impl AstConverter<'_> {
         self.store_function_node(
           &TYPE_FUNCTION_EXPRESSION,
           function_start,
-          block_statement.span.hi.0 - 1,
+          function_body.span.hi.0 - 1,
           false,
           false,
           None,
           &parameters,
-          block_statement,
+          function_body,
           false,
         );
       }

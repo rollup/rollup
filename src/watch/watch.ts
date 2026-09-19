@@ -51,7 +51,7 @@ export class Watcher {
 				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
-		process.nextTick(() => this.run());
+		process.nextTick(() => this.run().catch(error => this.reportError(error)));
 	}
 
 	async close(): Promise<void> {
@@ -95,32 +95,42 @@ export class Watcher {
 				this.invalidatedIds.clear();
 				await this.emitter.emit('restart');
 				this.emitter.removeListenersForCurrentRun();
-				this.run();
+				await this.run();
 			} catch (error: any) {
-				this.invalidatedIds.clear();
-				await this.emitter.emit('event', {
-					code: 'ERROR',
-					error,
-					result: null
-				});
-				await this.emitter.emit('event', {
-					code: 'END'
-				});
+				await this.reportError(error);
 			}
 		}, this.buildDelay);
 	}
 
+	private async reportError(error: any): Promise<void> {
+		this.invalidatedIds.clear();
+		await this.emitter.emit('event', {
+			code: 'ERROR',
+			error,
+			result: null
+		});
+		await this.emitter.emit('event', {
+			code: 'END'
+		});
+	}
+
 	private async run(): Promise<void> {
 		this.running = true;
-		await this.emitter.emit('event', {
-			code: 'START'
-		});
+		// Drop a rerun request left over from a failed run: honoring it after this run
+		// would start an empty run that removes the plugin event listeners of this run.
+		this.rerun = false;
+		try {
+			await this.emitter.emit('event', {
+				code: 'START'
+			});
 
-		for (const task of this.tasks) {
-			await task.run();
+			for (const task of this.tasks) {
+				await task.run();
+			}
+		} finally {
+			this.running = false;
 		}
 
-		this.running = false;
 		await this.emitter.emit('event', {
 			code: 'END'
 		});
