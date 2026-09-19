@@ -1042,11 +1042,10 @@ export default class Module {
 		return null;
 	}
 
-	updateOptions({
-		meta,
-		moduleSideEffects,
-		syntheticNamedExports
-	}: Partial<PartialNull<ModuleOptions>>): void {
+	updateOptions(
+		{ meta, moduleSideEffects, syntheticNamedExports }: Partial<PartialNull<ModuleOptions>>,
+		{ replaceExistingMeta = false }: { replaceExistingMeta?: boolean } = EMPTY_OBJECT
+	): void {
 		if (moduleSideEffects != null) {
 			this.info.moduleSideEffects = moduleSideEffects;
 		}
@@ -1054,6 +1053,11 @@ export default class Module {
 			this.info.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
+			if (replaceExistingMeta) {
+				for (const key of Object.keys(this.info.meta)) {
+					delete this.info.meta[key];
+				}
+			}
 			Object.assign(this.info.meta, meta);
 		}
 	}
