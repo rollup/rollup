@@ -1,4 +1,5 @@
-import type { InclusionContext } from '../ExecutionContext';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import type * as NodeType from './NodeType';
@@ -7,19 +8,30 @@ import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from '
 
 export default class AwaitExpression extends NodeBase {
 	declare argument: ExpressionNode;
+	/** Marked with #__PURE__ annotation */
+	declare annotationPure?: boolean;
 	declare type: NodeType.tAwaitExpression;
 
 	deoptimizePath(path: ObjectPath) {
 		this.argument.deoptimizePath(path);
 	}
 
-	hasEffects(): boolean {
+	hasEffects(_context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (this.annotationPure) {
+			return false;
+		}
 		return true;
 	}
 
 	initialise(): void {
 		super.initialise();
+		if (
+			this.annotations &&
+			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
+		) {
+			this.annotationPure = this.annotations.some(comment => comment.type === 'pure');
+		}
 		let parent = this.parent;
 		do {
 			if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression) return;
