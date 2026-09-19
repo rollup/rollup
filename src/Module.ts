@@ -762,6 +762,10 @@ export default class Module {
 		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
 	}
 
+	hasTopLevelAwait(): boolean {
+		return this.astContext.usesTopLevelAwait;
+	}
+
 	include(): void {
 		const context = createInclusionContext();
 		if (this.ast!.shouldBeIncluded(context)) this.ast!.include(context, false);

@@ -314,13 +314,16 @@ function analyzeModuleGraph(
 	for (const currentEntryModules of allEntriesAndManualChunks) {
 		const dynamicImportsForCurrentEntry = new Set<Module>();
 		const awaitedDynamicImportsForCurrentEntry = new Set<Module>();
+		const dynamicEntriesForCurrentEntry = new Set<Module>();
 		dynamicImportModulesByEntry[entryOrManualChunkIndex] = dynamicImportsForCurrentEntry;
 		awaitedDynamicImportModulesByEntry[entryOrManualChunkIndex] =
 			awaitedDynamicImportsForCurrentEntry;
 		const staticDependencies = new Set(currentEntryModules);
+		let hasTopLevelAwait = false;
 		// If we have a very large manual chunk, tracking if it is already added to the dependencies will improve performance
 		const addedManualChunks = new Set<Module[]>();
 		for (const module of staticDependencies) {
+			hasTopLevelAwait ||= module.hasTopLevelAwait();
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
 			const manualChunkMembers = manualChunkModulesByModule.get(module);
 			if (manualChunkMembers && !addedManualChunks.has(manualChunkMembers)) {
@@ -340,18 +343,14 @@ function analyzeModuleGraph(
 				if (
 					resolution instanceof Module &&
 					resolution.includedDynamicImporters.length > 0 &&
-					!allEntriesSet.has(resolution)
+					(dynamicEntryModules.has(resolution) || !allEntriesSet.has(resolution))
 				) {
-					dynamicEntryModules.add(resolution);
-					allEntriesSet.add(resolution);
-					allEntriesAndManualChunks.push([resolution]);
-					dynamicImportsForCurrentEntry.add(resolution);
-					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
-						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
-							awaitedDynamicEntryModules.add(resolution);
-							awaitedDynamicImportsForCurrentEntry.add(resolution);
-							break;
-						}
+					dynamicEntriesForCurrentEntry.add(resolution);
+					if (!allEntriesSet.has(resolution)) {
+						dynamicEntryModules.add(resolution);
+						allEntriesSet.add(resolution);
+						allEntriesAndManualChunks.push([resolution]);
+						dynamicImportsForCurrentEntry.add(resolution);
 					}
 				}
 			}
@@ -361,6 +360,13 @@ function analyzeModuleGraph(
 					allEntriesSet.add(dependency);
 					allEntriesAndManualChunks.push([dependency]);
 				}
+			}
+		}
+		// A dynamic import can be awaited indirectly through a static dependency.
+		if (hasTopLevelAwait) {
+			for (const dynamicEntry of dynamicEntriesForCurrentEntry) {
+				awaitedDynamicEntryModules.add(dynamicEntry);
+				awaitedDynamicImportsForCurrentEntry.add(dynamicEntry);
 			}
 		}
 		entryOrManualChunkIndex++;
