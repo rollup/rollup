@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.63.4
+
+_2026-09-19_
+
+### Bug Fixes
+
+- Ensure meta information of the cached module is exposed in `shouldTransformCachedModule` (#6442)
+- Do not create invalid code if import attribute values contain special characters (#6502)
+
+### Pull Requests
+
+- [#6429](https://github.com/rollup/rollup/pull/6429): ci: collect Rust coverage from JS tests in dedicated job (@lukastaegert)
+- [#6442](https://github.com/rollup/rollup/pull/6442): fix: expose cached module meta during cache checks (@ychampion, @lukastaegert)
+- [#6496](https://github.com/rollup/rollup/pull/6496): docs: name the parameter runHook actually takes (@darkdi, @lukastaegert)
+- [#6502](https://github.com/rollup/rollup/pull/6502): Escape quotes and backslashes in import attribute values (@dylanpulver, @lukastaegert)
+- [#6517](https://github.com/rollup/rollup/pull/6517): Improve agent instructions (@lukastaegert)
+- [#6518](https://github.com/rollup/rollup/pull/6518): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6519](https://github.com/rollup/rollup/pull/6519): Request Copilot code review via workflow (@lukastaegert)
+
 ## 4.63.3
 
 _2026-09-14_
