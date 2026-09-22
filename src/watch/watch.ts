@@ -88,18 +88,56 @@ export class Watcher {
 
 		this.buildTimeout = setTimeout(async () => {
 			this.buildTimeout = null;
+			// The running flag also covers emitting the change and restart
+			// events. Async watchChange hooks keep this pending for a while, and
+			// invalidations arriving in that window must not start a second run
+			// cycle that overlaps with the run started below.
+			this.running = true;
 			try {
-				await Promise.all(
-					[...this.invalidatedIds].map(([id, event]) => this.emitter.emit('change', id, { event }))
-				);
-				this.invalidatedIds.clear();
+				await this.emitPendingChangeEvents();
 				await this.emitter.emit('restart');
+				// Changes arriving while the restart event is emitted still need to
+				// be announced before the run started below consumes them. Draining
+				// happens inline here so that the final emptiness check, resetting
+				// the rerun flag and starting the run share one synchronous
+				// continuation: an invalidation delivered in between would otherwise
+				// set the rerun flag only for the reset below to discard it.
+				while (this.invalidatedIds.size > 0) {
+					await this.emitChangeBatch();
+				}
+				// Every change observed so far is handled by this cycle, and the run
+				// started below consumes the task invalidations they caused. Honoring
+				// their rerun flag afterwards would start an empty run that removes
+				// the plugin event listeners of this run without registering new
+				// ones.
+				this.rerun = false;
 				this.emitter.removeListenersForCurrentRun();
-				await this.run();
 			} catch (error: any) {
+				this.running = false;
 				await this.reportError(error);
+				return;
 			}
+			await this.run().catch(error => this.reportError(error));
 		}, this.buildDelay);
+	}
+
+	private async emitPendingChangeEvents(): Promise<void> {
+		while (this.invalidatedIds.size > 0) {
+			await this.emitChangeBatch();
+		}
+	}
+
+	// Emitting one batch can take a while for async watchChange hooks, and
+	// changes arriving in the meantime are announced by a subsequent batch so
+	// that they become part of the same run. Clearing the invalidated ids
+	// before emitting keeps follow-up changes of the same file, e.g. a delete
+	// following an update, from being discarded with the batch they follow.
+	private async emitChangeBatch(): Promise<void> {
+		const invalidatedIds = [...this.invalidatedIds];
+		this.invalidatedIds.clear();
+		await Promise.all(
+			invalidatedIds.map(([id, event]) => this.emitter.emit('change', id, { event }))
+		);
 	}
 
 	private async reportError(error: any): Promise<void> {
@@ -116,9 +154,6 @@ export class Watcher {
 
 	private async run(): Promise<void> {
 		this.running = true;
-		// Drop a rerun request left over from a failed run: honoring it after this run
-		// would start an empty run that removes the plugin event listeners of this run.
-		this.rerun = false;
 		try {
 			await this.emitter.emit('event', {
 				code: 'START'

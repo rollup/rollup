@@ -1,5 +1,12 @@
 const assert = require('node:assert');
-const { existsSync, readdirSync, readFileSync, rmSync, unlinkSync } = require('node:fs');
+const {
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	unlinkSync,
+	writeFileSync
+} = require('node:fs');
 const { rm, unlink, writeFile, mkdir } = require('node:fs/promises');
 const path = require('node:path');
 const { hrtime } = require('node:process');
@@ -898,6 +905,281 @@ describe('rollup.watch', function () {
 				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
+	});
+
+	it('does not start overlapping runs when a change happens while a watchChange hook is running', async () => {
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const watchChangeIds = [];
+		let hasTriggeredSecondChange = false;
+		let resolveWatchedInvalidation;
+		const watchedInvalidation = new Promise(resolve => {
+			resolveWatchedInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(WATCHED_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				},
+				async watchChange(id, { event }) {
+					// Ignore the initial scan event for the added watch file.
+					if (event === 'create') return;
+					watchChangeIds.push(id);
+					if (id !== ENTRY_FILE || hasTriggeredSecondChange) return;
+					hasTriggeredSecondChange = true;
+					// A second watched file changes while this hook is still running.
+					// Without coalescing, this starts a second run cycle that overlaps
+					// with the run triggered by the first change.
+					atomicWriteFileSync(WATCHED_ID, 'updated');
+					// Keep the change event pending until the second change was
+					// observed so that it is guaranteed to arrive in this window.
+					await withTimeout(watchedInvalidation, 5000, () => {
+						throw new Error('the change of the watched file was not detected');
+					});
+				},
+				async transform() {
+					await wait(500);
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					// The initial scan of the added watch file must not resolve the
+					// handshake before the second change was triggered.
+					if (id === WATCHED_ID && hasTriggeredSecondChange) {
+						resolveWatchedInvalidation();
+					}
+				}
+			}
+		});
+		const eventCodes = [];
+		watcher.on('event', event => eventCodes.push(event.code));
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				atomicWriteFileSync(ENTRY_FILE, 'export default 21;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 21);
+				// Duplicate change events can occur, e.g. for atomic writes, but
+				// both files must be announced and no runs may overlap.
+				assert.deepStrictEqual([...new Set(watchChangeIds)], [ENTRY_FILE, WATCHED_ID]);
+				let isRunActive = false;
+				for (const code of eventCodes) {
+					if (code === 'START') {
+						assert.ok(!isRunActive, `runs must not overlap: ${eventCodes.join(' ')}`);
+						isRunActive = true;
+					} else if (code === 'END') {
+						isRunActive = false;
+					}
+				}
+			}
+		]);
+	});
+
+	it('announces follow-up changes of the same file that arrive while the previous change is still announced', async () => {
+		const DEP_ID = path.join(INPUT_DIR, 'dep');
+		const receivedChangeEvents = [];
+		let hasDeletedDependency = false;
+		let announcedEventsWhenRebuildStarted;
+		let resolveDependencyInvalidation;
+		const dependencyInvalidation = new Promise(resolve => {
+			resolveDependencyInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(DEP_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(DEP_ID);
+				},
+				async watchChange(id, { event }) {
+					// Ignore the initial scan event for the added watch file.
+					if (event === 'create') return;
+					receivedChangeEvents.push({ event, id });
+					if (id !== DEP_ID || event !== 'update' || hasDeletedDependency) return;
+					hasDeletedDependency = true;
+					// Deleting the file while its update is still being announced must
+					// not swallow the delete event.
+					unlinkSync(DEP_ID);
+					await withTimeout(dependencyInvalidation, 5000, () => {
+						throw new Error('the deletion of the watched file was not detected');
+					});
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === DEP_ID && hasDeletedDependency) {
+						resolveDependencyInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('event', watcherEvent => {
+			if (
+				watcherEvent.code !== 'BUNDLE_START' ||
+				announcedEventsWhenRebuildStarted ||
+				!receivedChangeEvents.some(({ event }) => event === 'update')
+			) {
+				return;
+			}
+			announcedEventsWhenRebuildStarted = receivedChangeEvents.map(({ event }) => event);
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				// A non-atomic write avoids duplicate change events from the
+				// rename of an atomic write.
+				writeFileSync(DEP_ID, 'updated');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				assert.ok(
+					announcedEventsWhenRebuildStarted,
+					'no rebuild was started after the update was announced'
+				);
+				assert.ok(
+					announcedEventsWhenRebuildStarted.includes('delete'),
+					`the delete was not announced before the rebuild started: ${announcedEventsWhenRebuildStarted}`
+				);
+			}
+		]);
+	});
+
+	it('absorbs changes that arrive while the restart event is emitted without starting an empty run', async () => {
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const watchChangeIds = [];
+		const eventCodes = [];
+		let closeWatcherRuns = 0;
+		let isEntryFileChangeTriggered = false;
+		let hasTriggeredRestartChange = false;
+		let watchChangeIdsWhenRebuildStarted;
+		let resolveWatchedInvalidation;
+		const watchedInvalidation = new Promise(resolve => {
+			resolveWatchedInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(WATCHED_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				},
+				watchChange(id, { event }) {
+					// Ignore the initial scan event for the added watch file.
+					if (event !== 'create') {
+						watchChangeIds.push(id);
+					}
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					// The initial scan of the added watch file must not resolve the
+					// handshake before the restart change was triggered.
+					if (id === WATCHED_ID && hasTriggeredRestartChange) {
+						resolveWatchedInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('restart', async () => {
+			// Ignore the restart triggered by the initial scan of the added watch
+			// file and only observe the restart for the entry file change.
+			if (!isEntryFileChangeTriggered || hasTriggeredRestartChange) return;
+			hasTriggeredRestartChange = true;
+			atomicWriteFileSync(WATCHED_ID, 'updated');
+			// Hold the restart event until the change was observed so that it is
+			// guaranteed to arrive in this window.
+			await withTimeout(watchedInvalidation, 5000, () => {
+				throw new Error('the change of the watched file was not detected');
+			});
+		});
+		watcher.on('event', watcherEvent => {
+			eventCodes.push(watcherEvent.code);
+			if (
+				watcherEvent.code !== 'BUNDLE_START' ||
+				watchChangeIdsWhenRebuildStarted ||
+				!isEntryFileChangeTriggered
+			) {
+				return;
+			}
+			watchChangeIdsWhenRebuildStarted = [...watchChangeIds];
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				isEntryFileChangeTriggered = true;
+				atomicWriteFileSync(ENTRY_FILE, 'export default 21;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 21);
+			}
+		]);
+		assert.ok(
+			watchChangeIdsWhenRebuildStarted,
+			'no rebuild was started after the entry file change'
+		);
+		assert.ok(
+			watchChangeIdsWhenRebuildStarted.includes(WATCHED_ID),
+			`the restart change was not announced before the rebuild started: ${watchChangeIdsWhenRebuildStarted}`
+		);
+		let isInsideRun = false;
+		let isInsideBundle = false;
+		for (const code of eventCodes) {
+			if (code === 'START') {
+				assert.ok(!isInsideRun, `runs must not overlap: ${eventCodes.join(' ')}`);
+				isInsideRun = true;
+				isInsideBundle = false;
+			} else if (code === 'BUNDLE_START') {
+				isInsideBundle = true;
+			} else if (code === 'END') {
+				assert.ok(isInsideBundle, `an empty run was started: ${eventCodes.join(' ')}`);
+				isInsideRun = false;
+			}
+		}
+		assert.strictEqual(closeWatcherRuns, 1);
 	});
 
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
