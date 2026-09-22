@@ -80,7 +80,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 ## GitHub Issues and Pull Requests
 
-- Issues need to follow the coresponding template in `.github/ISSUE_TEMPLATE/*`
+- Issues need to follow the corresponding template in `.github/ISSUE_TEMPLATE/*`
 - Pull requests need to follow `.github/PULL_REQUEST_TEMPLATE.md`.
 - Bugfixes and features need tests; for a bugfix, add a regression test that fails without the fix, in the same change as the fix.
 - When changing or adding a feature, check if documentation in `docs/*/index.md` should be changed and update it in the same pull request.
