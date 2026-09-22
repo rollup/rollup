@@ -17,7 +17,10 @@ import type {
 	WatchChangeHook
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
-import { analyseModuleExecution } from './utils/executionOrder';
+import {
+	analyseModuleExecution,
+	reorderModulesToAvoidCircularTemporalDeadZone
+} from './utils/executionOrder';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -222,6 +225,7 @@ export default class Graph {
 		for (const module of this.modules) {
 			module.bindReferences();
 		}
+		reorderModulesToAvoidCircularTemporalDeadZone(this.modules);
 		this.warnForMissingExports();
 	}
 
