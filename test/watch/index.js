@@ -1709,6 +1709,191 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	it('does not start a build when the watcher is closed while change events are still announced', async () => {
+		let buildStarts = 0;
+		let isInitialRunCompleted = false;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				},
+				async watchChange() {
+					// Closing the watcher while its change announcement is still
+					// pending must not start the build below it.
+					await watcher.close();
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while its change events were announced');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+	});
+
+	it('does not run the initial build when the watcher is closed right away', async () => {
+		let buildStarts = 0;
+		let isCloseEmitted = false;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		watcher.on('close', () => {
+			isCloseEmitted = true;
+		});
+		await watcher.close();
+		assert.ok(isCloseEmitted, 'the close event was not emitted');
+		await wait(400);
+		assert.strictEqual(buildStarts, 0);
+	});
+
+	it('does not start a build when the watcher is closed while the START event is emitted', async () => {
+		let buildStarts = 0;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'START') {
+						await watcher.close();
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while the START event was emitted');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 0);
+	});
+
+	it('does not start a build when the watcher is closed while the BUNDLE_START event is emitted', async () => {
+		let buildStarts = 0;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_START') {
+						await watcher.close();
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while the BUNDLE_START event was emitted');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 0);
+	});
+
+	it('does not build the remaining configs when the watcher is closed during an earlier config', async () => {
+		let buildStarts = 0;
+		let otherConfigBuildStarts = 0;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch([
+			{
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						buildStarts++;
+					},
+					load() {
+						watcher.close();
+					}
+				}
+			},
+			{
+				input: ENTRY_FILE,
+				output: {
+					file: path.join(OUTPUT_DIR, 'other-bundle.js'),
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						otherConfigBuildStarts++;
+					}
+				}
+			}
+		]);
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed during the first config');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+		assert.strictEqual(otherConfigBuildStarts, 0);
+	});
+
 	it('stops watching files that are no longer part of the graph', async () => {
 		await copy(path.join(SAMPLES_DIR, 'dependency'), INPUT_DIR);
 		watcher = rollup.watch({

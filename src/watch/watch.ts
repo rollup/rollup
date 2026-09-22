@@ -102,6 +102,12 @@ export class Watcher {
 			this.running = true;
 			try {
 				await this.emitPendingChangeEventsAndClearRerun();
+				if (this.closed) {
+					// The watcher was closed while the change events were still
+					// announced: pending changes are dropped with it.
+					this.running = false;
+					return;
+				}
 				if (this.tasks.every(task => !task.isInvalidated())) {
 					// Every change observed so far has been announced and no task
 					// needs a rebuild, so the cycle is complete without a run:
@@ -114,6 +120,11 @@ export class Watcher {
 				// Changes arriving while the restart event is emitted still need
 				// to be announced before the run started below consumes them.
 				await this.emitPendingChangeEventsAndClearRerun();
+				if (this.closed) {
+					// The watcher was closed while the restart event was emitted.
+					this.running = false;
+					return;
+				}
 				this.emitter.removeListenersForCurrentRun();
 			} catch (error: any) {
 				this.running = false;
@@ -178,6 +189,7 @@ export class Watcher {
 				});
 
 				for (const task of this.tasks) {
+					if (this.closed) return;
 					await task.run();
 				}
 			} finally {
@@ -271,6 +283,9 @@ export class Task {
 			input: this.options.input,
 			output: this.outputFiles
 		});
+		if (this.closed) {
+			return;
+		}
 		let result: RollupBuild | null = null;
 
 		try {
