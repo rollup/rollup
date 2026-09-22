@@ -108,6 +108,8 @@ dependencies = [
 name = "bindings_napi"
 version = "0.0.0"
 dependencies = [
+ "cc",
+ "find-msvc-tools",
  "mimalloc-safe",
  "napi",
  "napi-build",
