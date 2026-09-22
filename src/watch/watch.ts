@@ -39,6 +39,10 @@ export class Watcher {
 	private closed = false;
 	private readonly invalidatedIds = new Map<string, ChangeEvent>();
 	private rerun = false;
+	// Held from construction until the initial run releases it so that
+	// invalidations before that run request a rerun instead of a concurrent
+	// cycle. Each later cycle acquires it before announcing the change
+	// events, see invalidate().
 	private running = true;
 	private readonly tasks: Task[];
 
@@ -51,7 +55,7 @@ export class Watcher {
 				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
-		process.nextTick(() => this.run().catch(error => this.reportError(error)));
+		process.nextTick(() => this.run());
 	}
 
 	async close(): Promise<void> {
@@ -113,7 +117,7 @@ export class Watcher {
 				await this.reportError(error);
 				return;
 			}
-			await this.run().catch(error => this.reportError(error));
+			await this.run();
 		}, this.buildDelay);
 	}
 
@@ -155,26 +159,33 @@ export class Watcher {
 		});
 	}
 
+	// Requires the running flag to be held by the caller, which is released
+	// here before the END event is emitted. A failing run reports itself as
+	// ERROR and END events, so the promise only rejects if the reporting
+	// itself fails.
 	private async run(): Promise<void> {
-		this.running = true;
 		try {
-			await this.emitter.emit('event', {
-				code: 'START'
-			});
+			try {
+				await this.emitter.emit('event', {
+					code: 'START'
+				});
 
-			for (const task of this.tasks) {
-				await task.run();
+				for (const task of this.tasks) {
+					await task.run();
+				}
+			} finally {
+				this.running = false;
 			}
-		} finally {
-			this.running = false;
-		}
 
-		await this.emitter.emit('event', {
-			code: 'END'
-		});
-		if (this.rerun) {
-			this.rerun = false;
-			this.invalidate();
+			await this.emitter.emit('event', {
+				code: 'END'
+			});
+			if (this.rerun) {
+				this.rerun = false;
+				this.invalidate();
+			}
+		} catch (error: any) {
+			await this.reportError(error);
 		}
 	}
 }
