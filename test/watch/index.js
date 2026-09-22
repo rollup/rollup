@@ -1290,6 +1290,121 @@ describe('rollup.watch', function () {
 		assert.strictEqual(closeWatcherRuns, 1);
 	});
 
+	it('announces a change that arrived during a failed run when the next run is triggered', async () => {
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const announcedIds = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenWatchedFile = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let reportedError = null;
+		let resolveWatchedInvalidation;
+		const watchedInvalidation = new Promise(resolve => {
+			resolveWatchedInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(WATCHED_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					// The initial scan of the added watch file must not resolve the
+					// handshake before the change was triggered.
+					if (id === WATCHED_ID && hasWrittenWatchedFile) {
+						resolveWatchedInvalidation();
+					}
+				}
+			}
+		});
+		// The change event is observed through the persistent watcher
+		// listeners: the run below fails before its build replaces the plugin
+		// event listeners of the previous run.
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						// This change arrives while the run is active, so it can only
+						// request a rerun. The error reporting below must not wipe its
+						// announcement.
+						hasWrittenWatchedFile = true;
+						writeFileSync(WATCHED_ID, 'updated');
+						await withTimeout(watchedInvalidation, 5000, () => {
+							throw new Error('the change of the watched file was not detected');
+						});
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+						// Give the file watcher time so its throttling does not
+						// swallow the notification for the recovery write below.
+						// Another change then triggers the recovery run that
+						// announces the change from above.
+						await wait(300);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 45;');
+					}
+					if (
+						event.code === 'BUNDLE_END' &&
+						announcedIdCountWhenErrorWasReported !== undefined &&
+						run(BUNDLE_FILE) === 45
+					) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the recovery run was not completed');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.strictEqual(run(BUNDLE_FILE), 45);
+		const announcedAfterError = announcedIds.slice(announcedIdCountWhenErrorWasReported);
+		assert.ok(
+			announcedAfterError.includes(WATCHED_ID),
+			`the change that arrived during the failed run was not announced: ${announcedIds}`
+		);
+		assert.ok(
+			announcedAfterError.includes(ENTRY_FILE),
+			`the change that triggered the recovery run was not announced: ${announcedIds}`
+		);
+	});
+
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({

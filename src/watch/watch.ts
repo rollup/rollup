@@ -148,7 +148,6 @@ export class Watcher {
 	}
 
 	private async reportError(error: any): Promise<void> {
-		this.invalidatedIds.clear();
 		await this.emitter.emit('event', {
 			code: 'ERROR',
 			error,
