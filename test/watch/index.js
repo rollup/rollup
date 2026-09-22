@@ -1182,6 +1182,114 @@ describe('rollup.watch', function () {
 		assert.strictEqual(closeWatcherRuns, 1);
 	});
 
+	it('keeps the plugin event listeners when a rerun has nothing left to rebuild', async () => {
+		const watchChangeIds = [];
+		const eventCodes = [];
+		let closeWatcherRuns = 0;
+		let isEntryFileChangeTriggered = false;
+		let hasWrittenDuringRebuildStart = false;
+		let watchChangeCountWhenConsumingBuildEnded;
+		let resolveRebuildInvalidation;
+		const rebuildInvalidation = new Promise(resolve => {
+			resolveRebuildInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				watchChange(id) {
+					watchChangeIds.push(id);
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenDuringRebuildStart) {
+						resolveRebuildInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('event', async watcherEvent => {
+			eventCodes.push(watcherEvent.code);
+			if (
+				watcherEvent.code === 'BUNDLE_END' &&
+				hasWrittenDuringRebuildStart &&
+				watchChangeCountWhenConsumingBuildEnded === undefined
+			) {
+				watchChangeCountWhenConsumingBuildEnded = watchChangeIds.length;
+				return;
+			}
+			if (
+				watcherEvent.code !== 'START' ||
+				!isEntryFileChangeTriggered ||
+				hasWrittenDuringRebuildStart
+			) {
+				return;
+			}
+			hasWrittenDuringRebuildStart = true;
+			// This change arrives after the run started but before it reads the
+			// files, so the current build consumes it. Non-atomic writes avoid
+			// duplicate change events from the rename of an atomic write.
+			writeFileSync(ENTRY_FILE, 'export default 22;');
+			// Hold the START event until the change was observed so that it is
+			// guaranteed to arrive in this window.
+			await withTimeout(rebuildInvalidation, 5000, () => {
+				throw new Error('the change of the entry file was not detected');
+			});
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				isEntryFileChangeTriggered = true;
+				writeFileSync(ENTRY_FILE, 'export default 21;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 22);
+				assert.ok(
+					watchChangeCountWhenConsumingBuildEnded !== undefined,
+					'the build that consumed the change did not complete'
+				);
+				assert.ok(
+					watchChangeIds.length > watchChangeCountWhenConsumingBuildEnded,
+					`the change was not announced after the build that consumed it: ${watchChangeIds}`
+				);
+			}
+		]);
+		// Additional full runs can legitimately be triggered by duplicate change
+		// events, but no run may be empty: an empty run removes the plugin
+		// event listeners without a replacement.
+		let isInsideRun = false;
+		let isInsideBundle = false;
+		for (const code of eventCodes) {
+			if (code === 'START') {
+				assert.ok(!isInsideRun, `runs must not overlap: ${eventCodes.join(' ')}`);
+				isInsideRun = true;
+				isInsideBundle = false;
+			} else if (code === 'BUNDLE_START') {
+				isInsideBundle = true;
+			} else if (code === 'END') {
+				assert.ok(isInsideBundle, `an empty run was started: ${eventCodes.join(' ')}`);
+				isInsideRun = false;
+			}
+		}
+		assert.strictEqual(closeWatcherRuns, 1);
+	});
+
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({

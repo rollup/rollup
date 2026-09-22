@@ -94,23 +94,19 @@ export class Watcher {
 			// cycle that overlaps with the run started below.
 			this.running = true;
 			try {
-				await this.emitPendingChangeEvents();
-				await this.emitter.emit('restart');
-				// Changes arriving while the restart event is emitted still need to
-				// be announced before the run started below consumes them. Draining
-				// happens inline here so that the final emptiness check, resetting
-				// the rerun flag and starting the run share one synchronous
-				// continuation: an invalidation delivered in between would otherwise
-				// set the rerun flag only for the reset below to discard it.
-				while (this.invalidatedIds.size > 0) {
-					await this.emitChangeBatch();
+				await this.emitPendingChangeEventsAndClearRerun();
+				if (this.tasks.every(task => !task.isInvalidated())) {
+					// Every change observed so far has been announced and no task
+					// needs a rebuild, so the cycle is complete without a run:
+					// keep the plugin event listeners of the last completed run
+					// instead of removing them without a replacement.
+					this.running = false;
+					return;
 				}
-				// Every change observed so far is handled by this cycle, and the run
-				// started below consumes the task invalidations they caused. Honoring
-				// their rerun flag afterwards would start an empty run that removes
-				// the plugin event listeners of this run without registering new
-				// ones.
-				this.rerun = false;
+				await this.emitter.emit('restart');
+				// Changes arriving while the restart event is emitted still need
+				// to be announced before the run started below consumes them.
+				await this.emitPendingChangeEventsAndClearRerun();
 				this.emitter.removeListenersForCurrentRun();
 			} catch (error: any) {
 				this.running = false;
@@ -121,10 +117,17 @@ export class Watcher {
 		}, this.buildDelay);
 	}
 
-	private async emitPendingChangeEvents(): Promise<void> {
+	// All invalidations that happened in the meantime have been announced, so
+	// the rerun requests they left are dropped here: whether another build is
+	// needed is decided from the task invalidation flags, and invalidations
+	// arriving later set the flag again. Clearing must stay synchronous with
+	// the final emptiness check so that no invalidation can slip in between
+	// unannounced.
+	private async emitPendingChangeEventsAndClearRerun(): Promise<void> {
 		while (this.invalidatedIds.size > 0) {
 			await this.emitChangeBatch();
 		}
+		this.rerun = false;
 	}
 
 	// Emitting one batch can take a while for async watchChange hooks, and
@@ -228,6 +231,10 @@ export class Task {
 		}
 		this.watcher.invalidate({ event: details.event, id });
 		this.watchOptions.onInvalidate?.(id);
+	}
+
+	isInvalidated(): boolean {
+		return this.invalidated;
 	}
 
 	async run(): Promise<void> {
