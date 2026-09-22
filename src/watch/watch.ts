@@ -70,6 +70,9 @@ export class Watcher {
 	}
 
 	invalidate(file?: { event: ChangeEvent; id: string }): void {
+		// A closed watcher must not schedule runs, e.g. when a failed run
+		// honors a pending rerun after an error listener closed it.
+		if (this.closed) return;
 		if (file) {
 			const previousEvent = this.invalidatedIds.get(file.id);
 			const event = previousEvent ? eventsRewrites[previousEvent][file.event] : file.event;
@@ -115,6 +118,10 @@ export class Watcher {
 			} catch (error: any) {
 				this.running = false;
 				await this.reportError(error);
+				if (this.rerun) {
+					this.rerun = false;
+					this.invalidate();
+				}
 				return;
 			}
 			await this.run();
@@ -161,7 +168,8 @@ export class Watcher {
 	// Requires the running flag to be held by the caller, which is released
 	// here before the END event is emitted. A failing run reports itself as
 	// ERROR and END events, so the promise only rejects if the reporting
-	// itself fails.
+	// itself fails, which prevents this run from scheduling its pending
+	// rerun.
 	private async run(): Promise<void> {
 		try {
 			try {
@@ -179,12 +187,12 @@ export class Watcher {
 			await this.emitter.emit('event', {
 				code: 'END'
 			});
-			if (this.rerun) {
-				this.rerun = false;
-				this.invalidate();
-			}
 		} catch (error: any) {
 			await this.reportError(error);
+		}
+		if (this.rerun) {
+			this.rerun = false;
+			this.invalidate();
 		}
 	}
 }

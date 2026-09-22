@@ -1405,6 +1405,178 @@ describe('rollup.watch', function () {
 		);
 	});
 
+	it('rebuilds without another change when a run fails with a pending rerun', async () => {
+		const announcedIds = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFileDuringRebuild = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let reportedError = null;
+		let resolveEntryFileInvalidation;
+		const entryFileInvalidation = new Promise(resolve => {
+			resolveEntryFileInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFileDuringRebuild) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (hasTriggeredFailingRebuild && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						await wait(300);
+						// This change arrives while the run is active, so it can only
+						// request a rerun. The failed run must honor that request on
+						// its own instead of idling until another change arrives.
+						hasWrittenEntryFileDuringRebuild = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the failed run');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		const announcedAfterError = announcedIds.slice(announcedIdCountWhenErrorWasReported);
+		assert.ok(
+			announcedAfterError.includes(ENTRY_FILE),
+			`the change that arrived during the failed run was not announced: ${announcedIds}`
+		);
+	});
+
+	it('does not schedule the recovery run when the watcher is closed while the error is reported', async () => {
+		let buildStarts = 0;
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFileDuringRebuild = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		let resolveEntryFileInvalidation;
+		const entryFileInvalidation = new Promise(resolve => {
+			resolveEntryFileInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFileDuringRebuild) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						await wait(300);
+						// This change arrives while the run is active, so it only
+						// requests a rerun that the failed run honors below.
+						hasWrittenEntryFileDuringRebuild = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						// Closing while the error is reported leaves the pending
+						// rerun: honoring it must not schedule another build.
+						await watcher.close();
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while its error was reported');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+	});
+
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
