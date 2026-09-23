@@ -15,10 +15,8 @@ import { WatchEmitter } from './WatchEmitter';
 export default function watch(configs: RollupOptions[] | RollupOptions): RollupWatcher {
 	const emitter = new WatchEmitter() as RollupWatcher;
 	let isClosed = false;
-	// The watcher takes over closing when it is constructed. Until then, a
-	// close is remembered so that the still starting watcher never begins
-	// to run, and the close event is emitted right away because no watcher
-	// will be there to emit it later.
+	// Until the watcher takes over closing, a close prevents its construction
+	// and emits close itself, as no watcher will.
 	emitter.close = async () => {
 		if (isClosed) return;
 		isClosed = true;
@@ -73,7 +71,7 @@ function checkWatchConfig(config: MergedRollupOptions[]): void {
 async function watchInternal(
 	configs: MaybeArray<RollupOptions>,
 	emitter: RollupWatcher,
-	isClosed: () => boolean
+	wasClosed: () => boolean
 ) {
 	const optionsList = await Promise.all(
 		ensureArray(configs).map(config => mergeOptions(config, true))
@@ -91,9 +89,7 @@ async function watchInternal(
 	checkWatchConfig(watchOptionsList);
 	await loadFsEvents();
 	const { Watcher } = await import('./watch');
-	// The watcher was closed while it was still starting, so it must never
-	// begin to run.
-	if (isClosed()) {
+	if (wasClosed()) {
 		return;
 	}
 	new Watcher(watchOptionsList, emitter);
