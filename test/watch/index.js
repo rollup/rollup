@@ -15,7 +15,7 @@ const { copy } = require('fs-extra');
  * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { atomicWriteFileSync, wait, withTimeout } = require('../testHelpers');
+const { atomicWriteFileSync, createDeferred, wait, withTimeout } = require('../testHelpers');
 
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const TEMP_DIR = path.join(__dirname, '../_tmp');
@@ -911,10 +911,7 @@ describe('rollup.watch', function () {
 		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
 		const watchChangeIds = [];
 		let hasTriggeredSecondChange = false;
-		let resolveWatchedInvalidation;
-		const watchedInvalidation = new Promise(resolve => {
-			resolveWatchedInvalidation = resolve;
-		});
+		const { promise: watchedInvalidation, resolve: resolveWatchedInvalidation } = createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		await writeFile(WATCHED_ID, 'initial');
 		watcher = rollup.watch({
@@ -977,15 +974,7 @@ describe('rollup.watch', function () {
 				// Duplicate change events can occur, e.g. for atomic writes, but
 				// both files must be announced and no runs may overlap.
 				assert.deepStrictEqual([...new Set(watchChangeIds)], [ENTRY_FILE, WATCHED_ID]);
-				let isRunActive = false;
-				for (const code of eventCodes) {
-					if (code === 'START') {
-						assert.ok(!isRunActive, `runs must not overlap: ${eventCodes.join(' ')}`);
-						isRunActive = true;
-					} else if (code === 'END') {
-						isRunActive = false;
-					}
-				}
+				assertRunsDoNotOverlapAndAreNotEmpty(eventCodes);
 			}
 		]);
 	});
@@ -999,10 +988,8 @@ describe('rollup.watch', function () {
 		let hasObservedFollowUpChange = false;
 		let hasObservedFollowUpChangeWhenRebuildStarted;
 		let announcedEventsWhenRebuildStarted;
-		let resolveDependencyInvalidation;
-		const dependencyInvalidation = new Promise(resolve => {
-			resolveDependencyInvalidation = resolve;
-		});
+		const { promise: dependencyInvalidation, resolve: resolveDependencyInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		await writeFile(DEP_ID, 'initial');
 		watcher = rollup.watch({
@@ -1105,10 +1092,7 @@ describe('rollup.watch', function () {
 		let isEntryFileChangeTriggered = false;
 		let hasTriggeredRestartChange = false;
 		let watchChangeIdsWhenRebuildStarted;
-		let resolveWatchedInvalidation;
-		const watchedInvalidation = new Promise(resolve => {
-			resolveWatchedInvalidation = resolve;
-		});
+		const { promise: watchedInvalidation, resolve: resolveWatchedInvalidation } = createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		await writeFile(WATCHED_ID, 'initial');
 		watcher = rollup.watch({
@@ -1190,20 +1174,7 @@ describe('rollup.watch', function () {
 			watchChangeIdsWhenRebuildStarted.includes(WATCHED_ID),
 			`the restart change was not announced before the rebuild started: ${watchChangeIdsWhenRebuildStarted}`
 		);
-		let isInsideRun = false;
-		let isInsideBundle = false;
-		for (const code of eventCodes) {
-			if (code === 'START') {
-				assert.ok(!isInsideRun, `runs must not overlap: ${eventCodes.join(' ')}`);
-				isInsideRun = true;
-				isInsideBundle = false;
-			} else if (code === 'BUNDLE_START') {
-				isInsideBundle = true;
-			} else if (code === 'END') {
-				assert.ok(isInsideBundle, `an empty run was started: ${eventCodes.join(' ')}`);
-				isInsideRun = false;
-			}
-		}
+		assertRunsDoNotOverlapAndAreNotEmpty(eventCodes);
 		assert.strictEqual(closeWatcherRuns, 1);
 	});
 
@@ -1214,10 +1185,7 @@ describe('rollup.watch', function () {
 		let isEntryFileChangeTriggered = false;
 		let hasWrittenDuringRebuildStart = false;
 		let watchChangeCountWhenConsumingBuildEnded;
-		let resolveRebuildInvalidation;
-		const rebuildInvalidation = new Promise(resolve => {
-			resolveRebuildInvalidation = resolve;
-		});
+		const { promise: rebuildInvalidation, resolve: resolveRebuildInvalidation } = createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -1302,20 +1270,7 @@ describe('rollup.watch', function () {
 		// Additional full runs can legitimately be triggered by duplicate change
 		// events, but no run may be empty: an empty run removes the plugin
 		// event listeners without a replacement.
-		let isInsideRun = false;
-		let isInsideBundle = false;
-		for (const code of eventCodes) {
-			if (code === 'START') {
-				assert.ok(!isInsideRun, `runs must not overlap: ${eventCodes.join(' ')}`);
-				isInsideRun = true;
-				isInsideBundle = false;
-			} else if (code === 'BUNDLE_START') {
-				isInsideBundle = true;
-			} else if (code === 'END') {
-				assert.ok(isInsideBundle, `an empty run was started: ${eventCodes.join(' ')}`);
-				isInsideRun = false;
-			}
-		}
+		assertRunsDoNotOverlapAndAreNotEmpty(eventCodes);
 		assert.strictEqual(closeWatcherRuns, 1);
 	});
 
@@ -1327,10 +1282,7 @@ describe('rollup.watch', function () {
 		let isInitialRunCompleted = false;
 		let announcedIdCountWhenErrorWasReported;
 		let reportedError = null;
-		let resolveWatchedInvalidation;
-		const watchedInvalidation = new Promise(resolve => {
-			resolveWatchedInvalidation = resolve;
-		});
+		const { promise: watchedInvalidation, resolve: resolveWatchedInvalidation } = createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		await writeFile(WATCHED_ID, 'initial');
 		watcher = rollup.watch({
@@ -1437,10 +1389,8 @@ describe('rollup.watch', function () {
 		let isInitialRunCompleted = false;
 		let announcedIdCountWhenErrorWasReported;
 		let reportedError = null;
-		let resolveEntryFileInvalidation;
-		const entryFileInvalidation = new Promise(resolve => {
-			resolveEntryFileInvalidation = resolve;
-		});
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -1524,10 +1474,8 @@ describe('rollup.watch', function () {
 		let hasWrittenEntryFileDuringAnnouncement = false;
 		let isInitialRunCompleted = false;
 		let reportedError = null;
-		let resolveEntryFileInvalidation;
-		const entryFileInvalidation = new Promise(resolve => {
-			resolveEntryFileInvalidation = resolve;
-		});
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -1608,14 +1556,9 @@ describe('rollup.watch', function () {
 		let announcedIdCountWhenEndListenerWasReleased;
 		let isInitialRunCompleted = false;
 		let hasWrittenEntryFile = false;
-		let resolveEndListenerReleased;
-		const endListenerReleased = new Promise(resolve => {
-			resolveEndListenerReleased = resolve;
-		});
-		let resolveEntryFileInvalidation;
-		const entryFileInvalidation = new Promise(resolve => {
-			resolveEntryFileInvalidation = resolve;
-		});
+		const { promise: endListenerReleased, resolve: resolveEndListenerReleased } = createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -1693,14 +1636,10 @@ describe('rollup.watch', function () {
 		let announcedIdCountWhenErrorWasReported;
 		let announcedIdCountWhenErrorListenerWasReleased;
 		let reportedError = null;
-		let resolveErrorListenerReleased;
-		const errorListenerReleased = new Promise(resolve => {
-			resolveErrorListenerReleased = resolve;
-		});
-		let resolveEntryFileInvalidation;
-		const entryFileInvalidation = new Promise(resolve => {
-			resolveEntryFileInvalidation = resolve;
-		});
+		const { promise: errorListenerReleased, resolve: resolveErrorListenerReleased } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -1802,14 +1741,10 @@ describe('rollup.watch', function () {
 		let announcedIdCountWhenErrorWasReported;
 		let announcedIdCountWhenErrorListenerWasReleased;
 		let reportedError = null;
-		let resolveErrorListenerReleased;
-		const errorListenerReleased = new Promise(resolve => {
-			resolveErrorListenerReleased = resolve;
-		});
-		let resolveEntryFileInvalidation;
-		const entryFileInvalidation = new Promise(resolve => {
-			resolveEntryFileInvalidation = resolve;
-		});
+		const { promise: errorListenerReleased, resolve: resolveErrorListenerReleased } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -1902,16 +1837,123 @@ describe('rollup.watch', function () {
 		);
 	});
 
+	it('does not honor a pending rerun when the error reporting fails', async () => {
+		const eventCodes = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFileDuringRebuild = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		const { promise: errorReportFailed, resolve: resolveErrorReportFailed } = createDeferred();
+		const { promise: recoveryRunCompleted, resolve: resolveRecoveryRunCompleted } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		const unhandledRejections = [];
+		const onUnhandledRejection = reason => {
+			unhandledRejections.push(reason);
+		};
+		process.on('unhandledRejection', onUnhandledRejection);
+		const otherRejectionListeners = process
+			.listeners('unhandledRejection')
+			.filter(listener => listener !== onUnhandledRejection);
+		for (const listener of otherRejectionListeners) {
+			process.removeListener('unhandledRejection', listener);
+		}
+		try {
+			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			watcher = rollup.watch({
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				watch: {
+					onInvalidate(id) {
+						if (id === ENTRY_FILE && hasWrittenEntryFileDuringRebuild) {
+							resolveEntryFileInvalidation();
+						}
+					}
+				}
+			});
+			watcher.on('event', event => eventCodes.push(event.code));
+			watcher.on('event', async event => {
+				if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+				}
+				if (event.code === 'END' && !isInitialRunCompleted) {
+					isInitialRunCompleted = true;
+					await wait(100);
+					atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+					return;
+				}
+				if (event.code === 'BUNDLE_START' && isInitialRunCompleted && !hasTriggeredFailingRebuild) {
+					hasTriggeredFailingRebuild = true;
+					await wait(300);
+					// This change arrives while the run is active, so it can only
+					// request a rerun.
+					hasWrittenEntryFileDuringRebuild = true;
+					writeFileSync(ENTRY_FILE, 'export default 45;');
+					await withTimeout(entryFileInvalidation, 5000, () => {
+						throw new Error('the change of the entry file was not detected');
+					});
+					await wait(300);
+					throw new Error('listener failed');
+				}
+				if (event.code === 'ERROR') {
+					reportedError = event.error;
+					resolveErrorReportFailed();
+					throw new Error('reporting failed');
+				}
+				if (event.code === 'END' && hasTriggeredFailingRebuild && run(BUNDLE_FILE) === 46) {
+					resolveRecoveryRunCompleted();
+				}
+			});
+			await withTimeout(errorReportFailed, 5000, () => {
+				throw new Error('the error report did not fail');
+			});
+			assert.strictEqual(
+				reportedError.message,
+				'listener failed',
+				`the failing rebuild reported an unexpected error: ${reportedError.message}`
+			);
+			await wait(400);
+			assert.strictEqual(
+				eventCodes.filter(code => code === 'START').length,
+				2,
+				'the pending rerun was honored despite the failed error reporting'
+			);
+			atomicWriteFileSync(ENTRY_FILE, 'export default 46;');
+			await withTimeout(recoveryRunCompleted, 10_000, () => {
+				throw new Error('the recovery run was not completed');
+			});
+			assert.strictEqual(
+				eventCodes.filter(code => code === 'START').length,
+				3,
+				'the watcher did not recover with a fresh change after the failed error reporting'
+			);
+			assert.strictEqual(run(BUNDLE_FILE), 46);
+			assert.deepStrictEqual(
+				unhandledRejections.map(reason => reason?.message),
+				['reporting failed'],
+				`the failed error reporting produced unexpected rejections: ${unhandledRejections}`
+			);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+			for (const listener of otherRejectionListeners) {
+				process.on('unhandledRejection', listener);
+			}
+		}
+	});
+
 	it('does not schedule the recovery run when the watcher is closed while the error is reported', async () => {
 		let buildStarts = 0;
 		let hasTriggeredFailingRebuild = false;
 		let hasWrittenEntryFileDuringRebuild = false;
 		let isInitialRunCompleted = false;
 		let reportedError = null;
-		let resolveEntryFileInvalidation;
-		const entryFileInvalidation = new Promise(resolve => {
-			resolveEntryFileInvalidation = resolve;
-		});
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -3496,4 +3538,21 @@ function sequence(watcher, events, timeout = 300) {
 function getTimeDiffInMs(previous) {
 	const [seconds, nanoseconds] = hrtime(previous);
 	return seconds * 1e3 + nanoseconds / 1e6;
+}
+
+function assertRunsDoNotOverlapAndAreNotEmpty(eventCodes) {
+	let isInsideRun = false;
+	let isInsideBundle = false;
+	for (const code of eventCodes) {
+		if (code === 'START') {
+			assert.ok(!isInsideRun, `runs must not overlap: ${eventCodes.join(' ')}`);
+			isInsideRun = true;
+			isInsideBundle = false;
+		} else if (code === 'BUNDLE_START') {
+			isInsideBundle = true;
+		} else if (code === 'END') {
+			assert.ok(isInsideBundle, `an empty run was started: ${eventCodes.join(' ')}`);
+			isInsideRun = false;
+		}
+	}
 }
