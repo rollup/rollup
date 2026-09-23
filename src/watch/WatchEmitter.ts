@@ -1,5 +1,18 @@
 import type { AwaitedEventListener, AwaitingEventEmitter } from '../rollup/types';
 
+// A failing listener must neither skip its siblings nor end the event while
+// they are still pending: all of them settle before the first failure is
+// rethrown.
+export function waitForAllAndRethrowFirstFailure(promises: Promise<unknown>[]): Promise<void> {
+	return Promise.allSettled(promises).then(results => {
+		for (const result of results) {
+			if (result.status === 'rejected') {
+				throw result.reason;
+			}
+		}
+	});
+}
+
 export class WatchEmitter<
 	T extends Record<string, (...parameters: any) => any>
 > implements AwaitingEventEmitter<T> {
@@ -14,8 +27,8 @@ export class WatchEmitter<
 	async close(): Promise<void> {}
 
 	emit<K extends keyof T>(event: K, ...parameters: Parameters<T[K]>): Promise<unknown> {
-		return Promise.all(
-			[...this.getCurrentHandlers(event), ...this.getPersistentHandlers(event)].map(handler =>
+		return waitForAllAndRethrowFirstFailure(
+			[...this.getCurrentHandlers(event), ...this.getPersistentHandlers(event)].map(async handler =>
 				handler(...parameters)
 			)
 		);

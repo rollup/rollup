@@ -12,6 +12,7 @@ import type {
 	WatcherOptions
 } from '../rollup/types';
 import { FileWatcher } from './fileWatcher';
+import { waitForAllAndRethrowFirstFailure } from './WatchEmitter';
 
 const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'buggy' | null>> = {
 	create: {
@@ -140,7 +141,9 @@ export class Watcher {
 	private async announceChangeBatch(): Promise<void> {
 		const changes = [...this.invalidatedIds];
 		this.invalidatedIds.clear();
-		await Promise.all(changes.map(([id, event]) => this.emitter.emit('change', id, { event })));
+		await waitForAllAndRethrowFirstFailure(
+			changes.map(([id, event]) => this.emitter.emit('change', id, { event }))
+		);
 	}
 
 	private hasInvalidatedTask(): boolean {

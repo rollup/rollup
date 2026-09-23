@@ -1837,6 +1837,105 @@ describe('rollup.watch', function () {
 		);
 	});
 
+	it('does not announce a change while the sibling of a failed change listener is still pending', async () => {
+		const announcedIds = [];
+		let announcedIdCountWhenChangeWasObserved;
+		let hasFailedChangeListener = false;
+		let hasHeldChangeListener = false;
+		let hasWrittenEntryFile = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		const { promise: firstChangeObserved, resolve: resolveFirstChangeObserved } = createDeferred();
+		const { promise: pendingListenerReleased, resolve: resolvePendingListenerReleased } =
+			createDeferred();
+		const { promise: recoveryRunCompleted, resolve: resolveRecoveryRunCompleted } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		watcher.on('change', async () => {
+			if (!hasHeldChangeListener) {
+				hasHeldChangeListener = true;
+				announcedIdCountWhenChangeWasObserved = announcedIds.length;
+				resolveFirstChangeObserved();
+				await withTimeout(pendingListenerReleased, 10_000, () => {
+					throw new Error('the pending change listener was never released');
+				});
+			}
+		});
+		watcher.on('change', () => {
+			if (!hasFailedChangeListener) {
+				hasFailedChangeListener = true;
+				throw new Error('change listener failed');
+			}
+		});
+		watcher.on('event', async event => {
+			if (event.code === 'BUNDLE_END') {
+				await event.result.close();
+				if (run(BUNDLE_FILE) === 45) {
+					resolveRecoveryRunCompleted();
+				}
+			}
+			if (event.code === 'END' && !isInitialRunCompleted) {
+				isInitialRunCompleted = true;
+				await wait(100);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+				return;
+			}
+			if (event.code === 'ERROR') {
+				reportedError = event.error;
+			}
+		});
+		await withTimeout(firstChangeObserved, 5000, () => {
+			throw new Error('the failed change listener was not called');
+		});
+		// Give the file watcher time to re-arm the changed file so that it
+		// observes this change: immediate follow-up changes can be missed by
+		// the watcher backend.
+		await wait(300);
+		hasWrittenEntryFile = true;
+		writeFileSync(ENTRY_FILE, 'export default 45;');
+		await withTimeout(entryFileInvalidation, 5000, () => {
+			throw new Error('the change of the entry file was not detected');
+		});
+		// Give a potentially overlapping next cycle time to announce the change
+		// before its absence is asserted.
+		await wait(400);
+		const announcedIdCountWhenPendingListenerWasReleased = announcedIds.length;
+		resolvePendingListenerReleased();
+		assert.strictEqual(
+			announcedIdCountWhenPendingListenerWasReleased,
+			announcedIdCountWhenChangeWasObserved,
+			'the change was announced while the sibling of the failed change listener was still pending'
+		);
+		await withTimeout(recoveryRunCompleted, 10_000, () => {
+			throw new Error('the watcher did not rebuild after the pending change listener was released');
+		});
+		assert.strictEqual(reportedError.message, 'change listener failed');
+		assert.ok(
+			announcedIds.slice(announcedIdCountWhenPendingListenerWasReleased).includes(ENTRY_FILE),
+			`the change was not announced after the pending change listener was released: ${announcedIds}`
+		);
+	});
+
 	it('does not honor a pending rerun when the error reporting fails', async () => {
 		const eventCodes = [];
 		let hasTriggeredFailingRebuild = false;
