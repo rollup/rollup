@@ -44,3 +44,11 @@ mimalloc-safe = { version = "0.1.67", features = ["no_opt_arch"] }
 
 [build-dependencies]
 napi-build = "2.4.2"
+# Pins for the transitive cmake/cc build chain (libmimalloc-sys2): cc 1.4.7
+# changes the clang --target triple for armv7-unknown-linux-gnueabihf and breaks
+# that CI build, and cc 1.4.6 does not compile against the regenerated
+# find-msvc-tools 0.1.13 bindings. Renovate lock file maintenance ignores
+# allowedVersions rules, so the pins need to live here. Remove once
+# https://github.com/rust-lang/cc-rs/issues/1940 is fixed.
+cc = "=1.4.6"
+find-msvc-tools = "=0.1.12"

@@ -55,6 +55,20 @@
     },
     {
       "matchPackageNames": [
+        "cc"
+      ],
+      "allowedVersions": "<=1.4.6",
+      "description": "cc 1.4.7 passes --target=arm-unknown-linux-gnueabihf to clang, which breaks the armv7-unknown-linux-gnueabihf build when --gcc-toolchain points to the napi cross toolchain. Also pinned in rust/bindings_napi/Cargo.toml because lock file maintenance ignores allowedVersions. Pin until upstream fixes this. See https://github.com/rust-lang/cc-rs/issues/1940"
+    },
+    {
+      "matchPackageNames": [
+        "find-msvc-tools"
+      ],
+      "allowedVersions": "<=0.1.12",
+      "description": "cc 1.4.6 does not compile against the regenerated bindings of find-msvc-tools 0.1.13. Pinned together with cc in rust/bindings_napi/Cargo.toml."
+    },
+    {
+      "matchPackageNames": [
         "lru-cache"
       ],
       "enabled": false,
