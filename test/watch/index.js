@@ -1603,6 +1603,305 @@ describe('rollup.watch', function () {
 		assert.strictEqual(run(BUNDLE_FILE), 45);
 	});
 
+	it('does not announce a change while the END listener of the completed run is still pending', async () => {
+		const announcedIds = [];
+		let announcedIdCountWhenEndListenerWasReleased;
+		let isInitialRunCompleted = false;
+		let hasWrittenEntryFile = false;
+		let resolveEndListenerReleased;
+		const endListenerReleased = new Promise(resolve => {
+			resolveEndListenerReleased = resolve;
+		});
+		let resolveEntryFileInvalidation;
+		const entryFileInvalidation = new Promise(resolve => {
+			resolveEntryFileInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						// Give the file watcher time to re-arm the entry file so
+						// that it observes this change: immediate follow-up
+						// changes can be missed by the watcher backend.
+						await wait(300);
+						// This change is observed while the END event is still
+						// being handled: it must not be announced before this
+						// handler is done.
+						hasWrittenEntryFile = true;
+						writeFileSync(ENTRY_FILE, 'export default 43;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						// Give a potentially overlapping next cycle time to
+						// announce the change before its absence is asserted.
+						await wait(400);
+						announcedIdCountWhenEndListenerWasReleased = announcedIds.length;
+						resolveEndListenerReleased();
+					}
+					if (event.code === 'BUNDLE_END' && isInitialRunCompleted && run(BUNDLE_FILE) === 43) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the END listener was released');
+			}
+		);
+		await withTimeout(endListenerReleased, 5000, () => {
+			throw new Error('the END listener did not complete');
+		});
+		assert.strictEqual(
+			announcedIdCountWhenEndListenerWasReleased,
+			0,
+			'the change was announced while the END listener was still pending'
+		);
+		assert.ok(
+			announcedIds.includes(ENTRY_FILE),
+			`the change was not announced after the END listener was released: ${announcedIds}`
+		);
+	});
+
+	it('does not announce a change while the ERROR listener of a failed run is still pending', async () => {
+		const announcedIds = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFile = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let announcedIdCountWhenErrorListenerWasReleased;
+		let reportedError = null;
+		let resolveErrorListenerReleased;
+		const errorListenerReleased = new Promise(resolve => {
+			resolveErrorListenerReleased = resolve;
+		});
+		let resolveEntryFileInvalidation;
+		const entryFileInvalidation = new Promise(resolve => {
+			resolveEntryFileInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (hasTriggeredFailingRebuild && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+						// Give the file watcher time to re-arm the changed file
+						// so that it observes this change: immediate follow-up
+						// changes can be missed by the watcher backend.
+						await wait(300);
+						// This change is observed while the ERROR event is
+						// still being handled: it must not be announced before
+						// this handler is done.
+						hasWrittenEntryFile = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						// Give a potentially overlapping next cycle time to
+						// announce the change before its absence is asserted.
+						await wait(400);
+						announcedIdCountWhenErrorListenerWasReleased = announcedIds.length;
+						resolveErrorListenerReleased();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the ERROR listener was released');
+			}
+		);
+		await withTimeout(errorListenerReleased, 5000, () => {
+			throw new Error('the ERROR listener did not complete');
+		});
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.strictEqual(
+			announcedIdCountWhenErrorListenerWasReleased,
+			announcedIdCountWhenErrorWasReported,
+			'the change was announced while the ERROR listener was still pending'
+		);
+		assert.ok(
+			announcedIds.slice(announcedIdCountWhenErrorListenerWasReleased).includes(ENTRY_FILE),
+			`the change was not announced after the ERROR listener was released: ${announcedIds}`
+		);
+	});
+
+	it('does not announce a change while the ERROR listener of a failed change announcement is still pending', async () => {
+		const announcedIds = [];
+		let hasTriggeredFailingAnnouncement = false;
+		let hasWrittenEntryFile = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let announcedIdCountWhenErrorListenerWasReleased;
+		let reportedError = null;
+		let resolveErrorListenerReleased;
+		const errorListenerReleased = new Promise(resolve => {
+			resolveErrorListenerReleased = resolve;
+		});
+		let resolveEntryFileInvalidation;
+		const entryFileInvalidation = new Promise(resolve => {
+			resolveEntryFileInvalidation = resolve;
+		});
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				watchChange(id) {
+					if (id !== ENTRY_FILE || hasTriggeredFailingAnnouncement) return;
+					hasTriggeredFailingAnnouncement = true;
+					throw new Error('watchChange failed');
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (hasTriggeredFailingAnnouncement && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'watchChange failed') {
+							reject(
+								new Error(
+									`the failing announcement reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+						// Give the file watcher time to re-arm the changed file
+						// so that it observes this change: immediate follow-up
+						// changes can be missed by the watcher backend.
+						await wait(300);
+						// This change is observed while the ERROR event is
+						// still being handled: it must not be announced before
+						// this handler is done.
+						hasWrittenEntryFile = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						// Give a potentially overlapping next cycle time to
+						// announce the change before its absence is asserted.
+						await wait(400);
+						announcedIdCountWhenErrorListenerWasReleased = announcedIds.length;
+						resolveErrorListenerReleased();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the ERROR listener was released');
+			}
+		);
+		await withTimeout(errorListenerReleased, 5000, () => {
+			throw new Error('the ERROR listener did not complete');
+		});
+		assert.strictEqual(reportedError.message, 'watchChange failed');
+		assert.strictEqual(
+			announcedIdCountWhenErrorListenerWasReleased,
+			announcedIdCountWhenErrorWasReported,
+			'the change was announced while the ERROR listener was still pending'
+		);
+		assert.ok(
+			announcedIds.slice(announcedIdCountWhenErrorListenerWasReleased).includes(ENTRY_FILE),
+			`the change was not announced after the ERROR listener was released: ${announcedIds}`
+		);
+	});
+
 	it('does not schedule the recovery run when the watcher is closed while the error is reported', async () => {
 		let buildStarts = 0;
 		let hasTriggeredFailingRebuild = false;

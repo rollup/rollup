@@ -95,10 +95,11 @@ export class Watcher {
 
 		this.buildTimeout = setTimeout(async () => {
 			this.buildTimeout = null;
-			// The running flag also covers emitting the change and restart
-			// events. Async watchChange hooks keep this pending for a while, and
-			// invalidations arriving in that window must not start a second run
-			// cycle that overlaps with the run started below.
+			// The running flag covers the whole cycle: emitting the change and
+			// restart events, the run below and reporting its failure. Async
+			// watchChange hooks and event listeners keep it pending for a while,
+			// and invalidations arriving in that window must not start a second
+			// run cycle that overlaps with this one.
 			this.running = true;
 			try {
 				await this.emitPendingChangeEventsAndClearRerun();
@@ -127,8 +128,11 @@ export class Watcher {
 				}
 				this.emitter.removeListenersForCurrentRun();
 			} catch (error: any) {
-				this.running = false;
-				await this.reportError(error);
+				try {
+					await this.reportError(error);
+				} finally {
+					this.running = false;
+				}
 				if (this.rerun) {
 					this.rerun = false;
 					this.invalidate();
@@ -177,23 +181,20 @@ export class Watcher {
 	}
 
 	// Requires the running flag to be held by the caller, which is released
-	// here before the END event is emitted. A failing run reports itself as
-	// ERROR and END events, so the promise only rejects if the reporting
-	// itself fails, which prevents this run from scheduling its pending
-	// rerun.
+	// here once the run and its event reporting are done so that async event
+	// listeners can delay the next cycle until they resolve. A failing run
+	// reports itself as ERROR and END events, so the promise only rejects if
+	// the reporting itself fails, which prevents this run from scheduling its
+	// pending rerun.
 	private async run(): Promise<void> {
 		try {
-			try {
-				await this.emitter.emit('event', {
-					code: 'START'
-				});
+			await this.emitter.emit('event', {
+				code: 'START'
+			});
 
-				for (const task of this.tasks) {
-					if (this.closed) return;
-					await task.run();
-				}
-			} finally {
-				this.running = false;
+			for (const task of this.tasks) {
+				if (this.closed) return;
+				await task.run();
 			}
 
 			await this.emitter.emit('event', {
@@ -201,6 +202,8 @@ export class Watcher {
 			});
 		} catch (error: any) {
 			await this.reportError(error);
+		} finally {
+			this.running = false;
 		}
 		if (this.rerun) {
 			this.rerun = false;
