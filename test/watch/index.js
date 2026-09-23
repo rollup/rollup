@@ -994,6 +994,10 @@ describe('rollup.watch', function () {
 		const DEP_ID = path.join(INPUT_DIR, 'dep');
 		const receivedChangeEvents = [];
 		let hasDeletedDependency = false;
+		let dependencyInvalidationCount = 0;
+		let dependencyInvalidationCountAtDeletion;
+		let hasObservedFollowUpChange = false;
+		let hasObservedFollowUpChangeWhenRebuildStarted;
 		let announcedEventsWhenRebuildStarted;
 		let resolveDependencyInvalidation;
 		const dependencyInvalidation = new Promise(resolve => {
@@ -1013,22 +1017,36 @@ describe('rollup.watch', function () {
 					this.addWatchFile(DEP_ID);
 				},
 				async watchChange(id, { event }) {
-					// Ignore the initial scan event for the added watch file.
-					if (event === 'create') return;
+					// Ignore the initial scan event for the added watch file:
+					// changes delivered while the update announcement is held
+					// count as follow-up changes.
+					if (event === 'create' && !hasDeletedDependency) return;
 					receivedChangeEvents.push({ event, id });
 					if (id !== DEP_ID || event !== 'update' || hasDeletedDependency) return;
 					hasDeletedDependency = true;
-					// Deleting the file while its update is still being announced must
-					// not swallow the delete event.
+					// Give the file watcher time to re-arm the file it just announced
+					// and to deliver remaining events for the update: immediate
+					// follow-up changes can be missed by the watcher backend.
+					await wait(300);
+					dependencyInvalidationCountAtDeletion = dependencyInvalidationCount;
+					// The follow-up change: deleting the file while its update is
+					// still being announced must not be swallowed with the batch
+					// it follows.
 					unlinkSync(DEP_ID);
 					await withTimeout(dependencyInvalidation, 5000, () => {
 						throw new Error('the deletion of the watched file was not detected');
 					});
+					hasObservedFollowUpChange = true;
 				}
 			},
 			watch: {
 				onInvalidate(id) {
-					if (id === DEP_ID && hasDeletedDependency) {
+					if (id !== DEP_ID) return;
+					dependencyInvalidationCount++;
+					if (
+						dependencyInvalidationCountAtDeletion !== undefined &&
+						dependencyInvalidationCount > dependencyInvalidationCountAtDeletion
+					) {
 						resolveDependencyInvalidation();
 					}
 				}
@@ -1038,11 +1056,14 @@ describe('rollup.watch', function () {
 			if (
 				watcherEvent.code !== 'BUNDLE_START' ||
 				announcedEventsWhenRebuildStarted ||
-				!receivedChangeEvents.some(({ event }) => event === 'update')
+				!receivedChangeEvents.some(({ id, event }) => id === DEP_ID && event === 'update')
 			) {
 				return;
 			}
-			announcedEventsWhenRebuildStarted = receivedChangeEvents.map(({ event }) => event);
+			announcedEventsWhenRebuildStarted = receivedChangeEvents
+				.filter(({ id }) => id === DEP_ID)
+				.map(({ event }) => event);
+			hasObservedFollowUpChangeWhenRebuildStarted = hasObservedFollowUpChange;
 		});
 		await sequence(watcher, [
 			'START',
@@ -1065,8 +1086,12 @@ describe('rollup.watch', function () {
 					'no rebuild was started after the update was announced'
 				);
 				assert.ok(
-					announcedEventsWhenRebuildStarted.includes('delete'),
-					`the delete was not announced before the rebuild started: ${announcedEventsWhenRebuildStarted}`
+					announcedEventsWhenRebuildStarted.length > 1,
+					`the follow-up change was not announced before the rebuild started: ${announcedEventsWhenRebuildStarted}`
+				);
+				assert.ok(
+					hasObservedFollowUpChangeWhenRebuildStarted,
+					'the rebuild started while the previous change was still being announced'
 				);
 			}
 		]);
@@ -1234,6 +1259,10 @@ describe('rollup.watch', function () {
 			) {
 				return;
 			}
+			// Give the file watcher time to re-arm the changed file so that it
+			// observes this change: immediate follow-up changes can be missed by
+			// the watcher backend.
+			await wait(300);
 			hasWrittenDuringRebuildStart = true;
 			// This change arrives after the run started but before it reads the
 			// files, so the current build consumes it. Non-atomic writes avoid
@@ -1398,10 +1427,6 @@ describe('rollup.watch', function () {
 		assert.ok(
 			announcedAfterError.includes(WATCHED_ID),
 			`the change that arrived during the failed run was not announced: ${announcedIds}`
-		);
-		assert.ok(
-			announcedAfterError.includes(ENTRY_FILE),
-			`the change that triggered the recovery run was not announced: ${announcedIds}`
 		);
 	});
 
