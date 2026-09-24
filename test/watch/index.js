@@ -2564,6 +2564,69 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	it('still removes the listeners when a close listener fails', async () => {
+		const changeIds = [];
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', event => {
+					if (event.code === 'END') resolve();
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the initial build did not complete');
+			}
+		);
+		watcher.on('change', id => {
+			changeIds.push(id);
+		});
+		watcher.on('close', () => {
+			throw new Error('close listener failed');
+		});
+		await assert.rejects(watcher.close(), { message: 'close listener failed' });
+		await watcher.emit('change', 'some-file', { event: 'update' });
+		assert.deepStrictEqual(
+			changeIds,
+			[],
+			'the listeners were not removed after the close listener failed'
+		);
+	});
+
+	it('still removes the listeners when a close listener fails on an early close', async () => {
+		const changeIds = [];
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		watcher.on('change', id => {
+			changeIds.push(id);
+		});
+		watcher.on('close', () => {
+			throw new Error('close listener failed');
+		});
+		await assert.rejects(watcher.close(), { message: 'close listener failed' });
+		await watcher.emit('change', 'some-file', { event: 'update' });
+		assert.deepStrictEqual(
+			changeIds,
+			[],
+			'the listeners were not removed after the close listener failed'
+		);
+	});
+
 	it('does not run the initial build when the watcher is closed right away', async () => {
 		let buildStarts = 0;
 		let isCloseEmitted = false;

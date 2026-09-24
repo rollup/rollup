@@ -61,11 +61,14 @@ export class Watcher {
 		if (this.closed) return;
 		this.closed = true;
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
-		await waitForAllAndRethrowFirstFailure([
-			...this.tasks.map(task => task.close()),
-			this.emitter.emit('close')
-		]);
-		this.emitter.removeAllListeners();
+		try {
+			await waitForAllAndRethrowFirstFailure([
+				...this.tasks.map(task => task.close()),
+				this.emitter.emit('close')
+			]);
+		} finally {
+			this.emitter.removeAllListeners();
+		}
 	}
 
 	invalidate(file?: { event: ChangeEvent; id: string }): void {
@@ -218,7 +221,9 @@ export class Task {
 
 	async close(): Promise<void> {
 		this.fileWatcher.close();
-		await this.watchHooks?.closeWatcher();
+		const watchHooks = this.watchHooks;
+		this.watchHooks = null;
+		await watchHooks?.closeWatcher();
 	}
 
 	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }): void {
@@ -261,7 +266,7 @@ export class Task {
 
 		try {
 			result = await rollupInternal(options, watchHooks => {
-				this.watchHooks = watchHooks;
+				if (!this.watcher.closed) this.watchHooks = watchHooks;
 			});
 			if (this.watcher.closed) {
 				return;

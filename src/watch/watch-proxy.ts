@@ -20,8 +20,11 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 	emitter.close = async () => {
 		if (isClosed) return;
 		isClosed = true;
-		await emitter.emit('close');
-		emitter.removeAllListeners();
+		try {
+			await emitter.emit('close');
+		} finally {
+			emitter.removeAllListeners();
+		}
 	};
 
 	watchInternal(configs, emitter, () => isClosed).catch(error => {
