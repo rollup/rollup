@@ -55,6 +55,7 @@ import { EMPTY_OBJECT } from './utils/blank';
 import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
+import { visitDirectlyEvaluatedBindings } from './utils/directlyEvaluatedBindings';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -982,6 +983,10 @@ export default class Module {
 			transformDependencies: this.transformDependencies,
 			transformFiles: this.transformFiles
 		};
+	}
+
+	forEachDirectlyEvaluatedBinding(visit: (variable: Variable) => void): void {
+		if (this.ast) visitDirectlyEvaluatedBindings(this.ast, visit);
 	}
 
 	traceVariable(
