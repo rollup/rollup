@@ -1081,14 +1081,14 @@ export interface AwaitingEventEmitter<T extends Record<string, (...parameters: a
 	off<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
 	/**
 	 * Registers an event listener that will be awaited before Rollup continues.
-	 * All listeners will be awaited in parallel while rejections are tracked via
-	 * Promise.all.
+	 * All listeners are invoked and awaited in parallel. Rollup waits until all
+	 * of them have settled and then throws the first rejection, if any.
 	 */
 	on<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
 	/**
 	 * Registers an event listener that will be awaited before Rollup continues.
-	 * All listeners will be awaited in parallel while rejections are tracked via
-	 * Promise.all.
+	 * All listeners are invoked and awaited in parallel. Rollup waits until all
+	 * of them have settled and then throws the first rejection, if any.
 	 * Listeners are removed automatically when removeListenersForCurrentRun is
 	 * called, which happens automatically after each run.
 	 */
