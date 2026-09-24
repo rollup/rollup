@@ -1090,7 +1090,8 @@ export interface AwaitingEventEmitter<T extends Record<string, (...parameters: a
 	 * All listeners are invoked and awaited in parallel. Rollup waits until all
 	 * of them have settled and then throws the first rejection, if any.
 	 * Listeners are removed automatically when removeListenersForCurrentRun is
-	 * called, which happens automatically after each run.
+	 * called, which happens right before each rebuild, after the changes that
+	 * triggered it were announced.
 	 */
 	onCurrentRun<K extends keyof T>(
 		event: K,
