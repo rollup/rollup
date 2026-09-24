@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 4.63.5
+
+_2026-09-24_
+
+### Bug Fixes
+
+- Fix an issue where watch mode would hang instead of terminating when closing via Ctrl+C (#6521)
+- Avoid starting overlapping watch mode runs when plugins invalidate files at the wrong time (#6526)
+- Fix many edge cases where watch mode events were not properly emitted to listeners, especially when errors occur (#6526)
+
+### Pull Requests
+
+- [#6520](https://github.com/rollup/rollup/pull/6520): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6521](https://github.com/rollup/rollup/pull/6521): Terminate watch mode via natural process exit when possible (@lukastaegert)
+- [#6523](https://github.com/rollup/rollup/pull/6523): Protect cc pin against renovate lock file maintenance (@lukastaegert)
+- [#6525](https://github.com/rollup/rollup/pull/6525): docs: fix typos 'interations' and 'coresponding' (@haimingZZ)
+- [#6526](https://github.com/rollup/rollup/pull/6526): fix(watch): prevent overlapping runs and other run lifecycle bugs (@lukastaegert)
+
 ## 4.63.4
 
 _2026-09-19_
