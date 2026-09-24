@@ -321,10 +321,7 @@ function validateOptionsForMultiChunkOutput(
 function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalModule>): Module[] {
 	const includedModules: Module[] = [];
 	for (const module of modulesById.values()) {
-		if (
-			module instanceof Module &&
-			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
-		) {
+		if (module instanceof Module && module.isEmitted()) {
 			includedModules.push(module);
 		}
 	}

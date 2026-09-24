@@ -65,8 +65,9 @@ module.exports = defineTest({
 			reexporter: ID_INDEX
 		},
 		{
-			code: 'EMPTY_BUNDLE',
-			message: 'Generated an empty chunk: "index.js".',
+			code: 'EMPTY_MANUAL_CHUNK',
+			message:
+				'Manual chunk "index.js" was not generated as none of its modules are included in the bundle.',
 			names: ['index.js']
 		}
 	]

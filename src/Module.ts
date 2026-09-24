@@ -813,6 +813,10 @@ export default class Module {
 		);
 	}
 
+	isEmitted(): boolean {
+		return this.isIncluded() || this.info.isEntry || this.includedDynamicImporters.length > 0;
+	}
+
 	linkImports(): void {
 		this.addModulesToImportDescriptions(this.importDescriptions);
 		this.addModulesToImportDescriptions(this.reexportDescriptions);

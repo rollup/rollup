@@ -3,6 +3,14 @@ let referenceId;
 
 module.exports = defineTest({
 	description: 'supports emitting chunks as side effect of the manual chunks option',
+	warnings: [
+		{
+			code: 'EMPTY_MANUAL_CHUNK',
+			message:
+				'Manual chunk "foo" was not generated as none of its modules are included in the bundle.',
+			names: ['foo']
+		}
+	],
 	options: {
 		output: {
 			manualChunks: { foo: ['manual.js'] },

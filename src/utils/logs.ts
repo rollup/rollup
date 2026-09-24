@@ -127,6 +127,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	DUPLICATE_IMPORT_OPTIONS = 'DUPLICATE_IMPORT_OPTIONS',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
 	EMPTY_BUNDLE = 'EMPTY_BUNDLE',
+	EMPTY_MANUAL_CHUNK = 'EMPTY_MANUAL_CHUNK',
 	EVAL = 'EVAL',
 	EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS =
 		'EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS',
@@ -436,6 +437,14 @@ export function logEmptyChunk(chunkName: string): RollupLog {
 		code: EMPTY_BUNDLE,
 		message: `Generated an empty chunk: "${chunkName}".`,
 		names: [chunkName]
+	};
+}
+
+export function logEmptyManualChunk(alias: string): RollupLog {
+	return {
+		code: EMPTY_MANUAL_CHUNK,
+		message: `Manual chunk "${alias}" was not generated as none of its modules are included in the bundle.`,
+		names: [alias]
 	};
 }
 
