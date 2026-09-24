@@ -1,6 +1,7 @@
 import { createFilter } from '@rollup/pluginutils';
 import path from 'node:path';
 import process from 'node:process';
+import type { GraphWatchHooks } from '../Graph';
 import { rollupInternal } from '../rollup/rollup';
 import type {
 	ChangeEvent,
@@ -60,10 +61,10 @@ export class Watcher {
 		if (this.closed) return;
 		this.closed = true;
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
-		for (const task of this.tasks) {
-			task.close();
-		}
-		await this.emitter.emit('close');
+		await waitForAllAndRethrowFirstFailure([
+			...this.tasks.map(task => task.close()),
+			this.emitter.emit('close')
+		]);
 		this.emitter.removeAllListeners();
 	}
 
@@ -114,10 +115,7 @@ export class Watcher {
 
 	private async announceChangesAndRebuild(): Promise<void> {
 		await this.announcePendingChanges();
-		if (this.closed || !this.hasInvalidatedTask()) {
-			// Skipping the restart keeps the plugin listeners of the last run registered.
-			return;
-		}
+		if (this.closed || !this.hasInvalidatedTask()) return;
 		await this.emitter.emit('restart');
 		await this.announcePendingChanges();
 		if (this.closed) return;
@@ -129,7 +127,7 @@ export class Watcher {
 	// their rerun requests obsolete. The reset must directly follow the last
 	// emptiness check so that no change slips through unannounced.
 	private async announcePendingChanges(): Promise<void> {
-		while (this.invalidatedIds.size > 0) {
+		while (this.invalidatedIds.size > 0 && !this.closed) {
 			await this.announceChangeBatch();
 		}
 		this.rerun = false;
@@ -142,7 +140,10 @@ export class Watcher {
 		const changes = [...this.invalidatedIds];
 		this.invalidatedIds.clear();
 		await waitForAllAndRethrowFirstFailure(
-			changes.map(([id, event]) => this.emitter.emit('change', id, { event }))
+			changes.flatMap(([id, event]) => [
+				...this.tasks.map(task => task.announceChange(id, event)),
+				this.emitter.emit('change', id, { event })
+			])
 		);
 	}
 
@@ -189,6 +190,7 @@ export class Task {
 	private watched = new Set<string>();
 	private readonly watcher: Watcher;
 	private readonly watchOptions: WatcherOptions;
+	private watchHooks: GraphWatchHooks | null = null;
 
 	constructor(watcher: Watcher, options: MergedRollupOptions) {
 		this.watcher = watcher;
@@ -210,8 +212,13 @@ export class Task {
 		});
 	}
 
-	close(): void {
+	async announceChange(id: string, event: ChangeEvent): Promise<void> {
+		await this.watchHooks?.watchChange(id, { event });
+	}
+
+	async close(): Promise<void> {
 		this.fileWatcher.close();
+		await this.watchHooks?.closeWatcher();
 	}
 
 	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }): void {
@@ -253,7 +260,9 @@ export class Task {
 		let result: RollupBuild | null = null;
 
 		try {
-			result = await rollupInternal(options, this.watcher.emitter);
+			result = await rollupInternal(options, watchHooks => {
+				this.watchHooks = watchHooks;
+			});
 			if (this.watcher.closed) {
 				return;
 			}

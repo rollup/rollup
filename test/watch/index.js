@@ -2045,6 +2045,151 @@ describe('rollup.watch', function () {
 		}
 	});
 
+	it('announces changes to and closes the plugins of the last build when a run fails before building', async () => {
+		const announcedIds = [];
+		const pluginChangeIds = [];
+		let announcedIdCountWhenRunFailed;
+		let closeWatcherRuns = 0;
+		let failNextStart = false;
+		let hasStartedRecoveryBuild = false;
+		let isInitialRunCompleted = false;
+		let pluginChangeCountWhenRunFailed;
+		let pluginChangeIdsBeforeRecoveryBuild;
+		let announcedIdsBeforeRecoveryBuild;
+		let reportedError = null;
+		const { promise: recoveryBuildStarted, resolve: resolveRecoveryBuildStarted } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				watchChange(id) {
+					pluginChangeIds.push(id);
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		watcher.on('event', async event => {
+			if (event.code === 'BUNDLE_END') {
+				await event.result.close();
+			}
+			if (event.code === 'END' && !isInitialRunCompleted) {
+				isInitialRunCompleted = true;
+				failNextStart = true;
+				await wait(100);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+				return;
+			}
+			if (event.code === 'START' && failNextStart) {
+				failNextStart = false;
+				throw new Error('START listener failed');
+			}
+			if (event.code === 'ERROR' && reportedError === null) {
+				reportedError = event.error;
+				pluginChangeCountWhenRunFailed = pluginChangeIds.length;
+				announcedIdCountWhenRunFailed = announcedIds.length;
+				await wait(300);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 45;');
+				return;
+			}
+			if (event.code === 'BUNDLE_START' && !hasStartedRecoveryBuild && reportedError !== null) {
+				hasStartedRecoveryBuild = true;
+				pluginChangeIdsBeforeRecoveryBuild = pluginChangeIds.slice(pluginChangeCountWhenRunFailed);
+				announcedIdsBeforeRecoveryBuild = announcedIds.slice(announcedIdCountWhenRunFailed);
+				await watcher.close();
+				resolveRecoveryBuildStarted();
+			}
+		});
+		await withTimeout(recoveryBuildStarted, 10_000, () => {
+			throw new Error('the recovery build was not started');
+		});
+		assert.strictEqual(reportedError.message, 'START listener failed');
+		assert.ok(
+			announcedIdsBeforeRecoveryBuild.includes(ENTRY_FILE),
+			`the change was not announced to the user listeners: ${announcedIdsBeforeRecoveryBuild}`
+		);
+		assert.ok(
+			pluginChangeIdsBeforeRecoveryBuild.includes(ENTRY_FILE),
+			`the change was not announced to the plugins: ${pluginChangeIdsBeforeRecoveryBuild}`
+		);
+		assert.strictEqual(
+			closeWatcherRuns,
+			1,
+			'the closeWatcher hook of the last build was not called'
+		);
+	});
+
+	it('keeps notifying the plugins of a config that was not rebuilt', async () => {
+		const otherConfigChangeIds = [];
+		let otherConfigChangeCountAfterPartialRebuild;
+		let otherConfigCloseWatcherRuns = 0;
+		const MAIN1 = path.join(INPUT_DIR, 'main1.js');
+		const MAIN2 = path.join(INPUT_DIR, 'main2.js');
+		await copy(path.join(SAMPLES_DIR, 'multiple'), INPUT_DIR);
+		watcher = rollup.watch([
+			{
+				input: MAIN1,
+				output: { file: BUNDLE_FILE, format: 'cjs', exports: 'auto' }
+			},
+			{
+				input: MAIN2,
+				output: {
+					file: path.join(OUTPUT_DIR, 'other-bundle.js'),
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					watchChange(id) {
+						otherConfigChangeIds.push(id);
+					},
+					closeWatcher() {
+						otherConfigCloseWatcherRuns++;
+					}
+				}
+			}
+		]);
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => atomicWriteFileSync(MAIN1, 'export default 44;'),
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				otherConfigChangeCountAfterPartialRebuild = otherConfigChangeIds.length;
+				atomicWriteFileSync(MAIN1, 'export default 45;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 45);
+				assert.ok(
+					otherConfigChangeIds.length > otherConfigChangeCountAfterPartialRebuild,
+					'the plugins of the non-rebuilt config were not notified'
+				);
+			}
+		]);
+		await watcher.close();
+		assert.strictEqual(otherConfigCloseWatcherRuns, 1);
+	});
+
 	it('does not schedule the recovery run when the watcher is closed while the error is reported', async () => {
 		let buildStarts = 0;
 		let hasTriggeredFailingRebuild = false;
@@ -2298,6 +2443,72 @@ describe('rollup.watch', function () {
 		);
 		await wait(400);
 		assert.strictEqual(buildStarts, 1);
+	});
+
+	it('does not announce changes to the plugins after the watcher was closed', async () => {
+		const pluginChangeIds = [];
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		let didTriggerFirstUpdate = false;
+		let hasWrittenSecondUpdate = false;
+		let pluginChangeCountWhenClosed = 0;
+		const { promise: secondUpdateInvalidation, resolve: resolveSecondUpdateInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === WATCHED_ID && hasWrittenSecondUpdate) {
+						resolveSecondUpdateInvalidation();
+					}
+				}
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				},
+				async watchChange(id) {
+					pluginChangeIds.push(id);
+					if (id === WATCHED_ID && !didTriggerFirstUpdate) {
+						didTriggerFirstUpdate = true;
+						await wait(300);
+						hasWrittenSecondUpdate = true;
+						writeFileSync(WATCHED_ID, 'second');
+						await withTimeout(secondUpdateInvalidation, 5000, () => {
+							throw new Error('the second change of the watched file was not detected');
+						});
+						await watcher.close();
+						pluginChangeCountWhenClosed = pluginChangeIds.length;
+					}
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !didTriggerFirstUpdate) {
+						await wait(100);
+						atomicWriteFileSync(WATCHED_ID, 'first');
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while its change events were announced');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(
+			pluginChangeIds.length,
+			pluginChangeCountWhenClosed,
+			'a change was announced to the plugins after the watcher was closed'
+		);
 	});
 
 	it('does not run the initial build when the watcher is closed right away', async () => {
