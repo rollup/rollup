@@ -7,14 +7,16 @@ import {
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type SwitchCase from './SwitchCase';
 
-export default class SwitchStatement extends StatementBase {
+export default class SwitchStatement extends NodeBase {
+	declare parent: nodes.SwitchStatementParent;
 	declare cases: readonly SwitchCase[];
-	declare discriminant: ExpressionNode;
+	declare discriminant: nodes.Expression;
 	declare type: NodeType.tSwitchStatement;
 
 	declare parentScope: ChildScope;
@@ -89,14 +91,6 @@ export default class SwitchStatement extends StatementBase {
 			}
 		}
 		this.defaultCase = null;
-	}
-
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
-			this,
-			this.parentScope
-		).parseNode(esTreeNode.discriminant);
-		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

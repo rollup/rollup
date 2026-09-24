@@ -69,7 +69,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Rust changes only**: `npm run update:napi` then `npm run test:only`
 - **JavaScript changes only**: `npm run update:js` then `npm run test:only`
-- **AST schema changes**: `npm run build:ast-converters` to regenerate TypeScript and Rust files
+- **AST schema changes**: Modify `scripts/ast-types.ts`, then run `npm run build:ast-converters` to regenerate TypeScript and Rust files
 - **Testing changes**: `npm run build:quick` then `npm run test:only`
 
 ## Testing

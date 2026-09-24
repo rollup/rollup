@@ -23,6 +23,9 @@
       "path": "./function"
     },
     {
+      "path": "./parse-and-walk"
+    },
+    {
       "path": "./sourcemaps"
     }
   ]

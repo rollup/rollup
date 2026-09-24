@@ -2,16 +2,18 @@ use swc_common::Span;
 use swc_ecma_ast::{UsingDecl, VarDecl, VarDeclKind, VarDeclarator};
 
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_VARIABLE_DECLARATION, VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
-  VARIABLE_DECLARATION_KIND_OFFSET, VARIABLE_DECLARATION_RESERVED_BYTES,
+  NODE_TYPE_ID_VARIABLE_DECLARATION, TYPE_VARIABLE_DECLARATION,
+  VARIABLE_DECLARATION_DECLARATIONS_OFFSET, VARIABLE_DECLARATION_KIND_OFFSET,
+  VARIABLE_DECLARATION_RESERVED_BYTES,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_AWAIT_USING, STRING_CONST, STRING_LET, STRING_USING, STRING_VAR,
 };
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::{AstConverter, DeclarationKind};
 
 impl AstConverter<'_> {
   pub(crate) fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_VARIABLE_DECLARATION>();
     let (kind, span, decls): (&[u8; 4], Span, &Vec<VarDeclarator>) = match variable_declaration {
       VariableDeclaration::Var(value) => (
         match value.kind {
@@ -39,12 +41,21 @@ impl AstConverter<'_> {
       kind == &STRING_CONST,
     );
     // declarations
-    self.convert_item_list(
-      decls,
-      end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
-      |ast_converter, variable_declarator| {
-        ast_converter.store_variable_declarator(variable_declarator);
-        true
+    self.with_declaration_kind(
+      if kind == &STRING_VAR {
+        DeclarationKind::Var
+      } else {
+        DeclarationKind::Lexical
+      },
+      |ast_converter| {
+        ast_converter.convert_item_list(
+          decls,
+          end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
+          |ast_converter, variable_declarator| {
+            ast_converter.store_variable_declarator(variable_declarator);
+            true
+          },
+        );
       },
     );
     // kind
@@ -52,6 +63,7 @@ impl AstConverter<'_> {
     self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);
     // end
     self.add_end(end_position, &span);
+    self.on_node_exit(walk_entry);
   }
 }
 

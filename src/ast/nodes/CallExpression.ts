@@ -12,13 +12,14 @@ import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import type { ChainElement, IncludeChildren, SkippedChain } from './shared/Node';
 import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
@@ -27,11 +28,12 @@ export default class CallExpression
 	extends CallExpressionBase
 	implements DeoptimizableEntity, ChainElement
 {
-	declare arguments: (ExpressionNode | SpreadElement)[];
-	declare callee: ExpressionNode | Super;
+	declare parent: nodes.CallExpressionParent;
+	declare arguments: (nodes.Expression | SpreadElement)[];
+	declare callee: nodes.Expression | Super;
 	declare type: NodeType.tCallExpression;
 	/** Marked with #__PURE__ annotation */
-	declare annotationPure?: boolean;
+	annotationPure?: boolean;
 
 	private get hasCheckedForWarnings(): boolean {
 		return isFlagSet(this.flags, Flag.checkedForWarnings);
@@ -86,7 +88,7 @@ export default class CallExpression
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain {
 		const calleeHasEffects =
 			'hasEffectsAsChainElement' in this.callee
-				? (this.callee as ChainElement).hasEffectsAsChainElement(context)
+				? this.callee.hasEffectsAsChainElement(context)
 				: this.callee.hasEffects(context);
 		if (calleeHasEffects === IS_SKIPPED_CHAIN) return IS_SKIPPED_CHAIN;
 		if (

@@ -3,24 +3,24 @@ import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
-	type StatementNode
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForStatement extends StatementBase {
-	declare body: StatementNode;
-	declare init: VariableDeclaration | ExpressionNode | null;
-	declare test: ExpressionNode | null;
+export default class ForStatement extends NodeBase {
+	declare parent: nodes.ForStatementParent;
+	declare body: nodes.Statement;
+	declare init: VariableDeclaration | nodes.Expression | null;
+	declare test: nodes.Expression | null;
 	declare type: NodeType.tForStatement;
-	declare update: ExpressionNode | null;
+	declare update: nodes.Expression | null;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new BlockScope(parentScope);

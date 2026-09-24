@@ -8,7 +8,7 @@ import {
 	NODE_INTERACTION_UNKNOWN_ACCESS,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
 } from '../../NodeInteractions';
-import { isObjectExpressionNode, isPropertyNode } from '../../utils/identifyNode';
+import { isObjectExpressionNode } from '../../utils/identifyNode';
 import type { ObjectPath, WellKnownSymbol } from '../../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -22,6 +22,7 @@ import {
 	UnknownWellKnown
 } from '../../utils/PathTracker';
 import ArrayExpression from '../ArrayExpression';
+import * as nodeType from '../NodeType';
 import type { LiteralValueOrUnknown } from './Expression';
 import { ExpressionEntity, UnknownValue } from './Expression';
 
@@ -326,7 +327,9 @@ const knownGlobals: GlobalDescription = {
 		[ValueProperties]: {
 			deoptimizeArgumentsOnCall: ({ args: [, target, parameter] }) => {
 				if (isObjectExpressionNode(parameter)) {
-					const hasSpreadElement = parameter.properties.some(property => !isPropertyNode(property));
+					const hasSpreadElement = parameter.properties.some(
+						property => property.type !== nodeType.Property
+					);
 					if (!hasSpreadElement) {
 						for (const property of parameter.properties) {
 							property.deoptimizeArgumentsOnInteractionAtPath(

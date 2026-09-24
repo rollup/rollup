@@ -3,8 +3,8 @@ import ClassDeclaration from '../nodes/ClassDeclaration';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier, { type IdentifierWithVariable } from '../nodes/Identifier';
+import type MemberExpression from '../nodes/MemberExpression';
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
-import type { NodeBase } from '../nodes/shared/Node';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
@@ -43,7 +43,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	addUsedPlace(usedPlace: NodeBase): void {
+	addUsedPlace(usedPlace: IdentifierBase | MemberExpression): void {
 		const original = this.getOriginalVariable();
 		if (original === this) {
 			super.addUsedPlace(usedPlace);

@@ -1,14 +1,16 @@
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class ContinueStatement extends StatementBase {
+export default class ContinueStatement extends NodeBase {
+	declare parent: nodes.ContinueStatementParent;
 	declare label: Identifier | null;
 	declare type: NodeType.tContinueStatement;
 

@@ -1,10 +1,11 @@
 use crate::convert_ast::converter::ast_constants::{
-  JSX_EMPTY_EXPRESSION_RESERVED_BYTES, TYPE_JSX_EMPTY_EXPRESSION,
+  JSX_EMPTY_EXPRESSION_RESERVED_BYTES, NODE_TYPE_ID_JSX_EMPTY_EXPRESSION, TYPE_JSX_EMPTY_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_jsx_empty_expression(&mut self, start: u32, end: u32) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_JSX_EMPTY_EXPRESSION>();
     let end_position = self.add_type_and_explicit_start(
       &TYPE_JSX_EMPTY_EXPRESSION,
       start,
@@ -12,5 +13,6 @@ impl AstConverter<'_> {
     );
     // end
     self.add_explicit_end(end_position, end);
+    self.on_node_exit(walk_entry);
   }
 }

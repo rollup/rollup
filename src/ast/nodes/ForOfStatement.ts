@@ -4,23 +4,19 @@ import type { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { includeLoopBody } from './shared/loops';
-import {
-	type ExpressionNode,
-	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForOfStatement extends StatementBase {
-	declare body: StatementNode;
-	declare left: VariableDeclaration | PatternNode;
-	declare right: ExpressionNode;
+export default class ForOfStatement extends NodeBase {
+	declare parent: nodes.ForOfStatementParent;
+	declare body: nodes.Statement;
+	declare left: VariableDeclaration | nodes.DestructuringPattern;
+	declare right: nodes.Expression;
 	declare type: NodeType.tForOfStatement;
 
 	get await(): boolean {
