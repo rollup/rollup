@@ -1086,12 +1086,9 @@ export interface AwaitingEventEmitter<T extends Record<string, (...parameters: a
 	 */
 	on<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
 	/**
-	 * Registers an event listener that will be awaited before Rollup continues.
-	 * All listeners are invoked and awaited in parallel. Rollup waits until all
-	 * of them have settled and then throws the first rejection, if any.
-	 * Listeners are removed automatically when removeListenersForCurrentRun is
-	 * called, which happens right before each rebuild, after the changes that
-	 * triggered it were announced.
+	 * Registers an event listener like `on`. Listeners are removed automatically
+	 * when removeListenersForCurrentRun is called, which happens right before each
+	 * rebuild, after the changes that triggered it were announced.
 	 */
 	onCurrentRun<K extends keyof T>(
 		event: K,
