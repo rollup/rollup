@@ -53,6 +53,15 @@ Returning `attributes` from the [`load`](../plugin-development/index.md#load) or
 
 The function forms of [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) now receive an additional `options` parameter containing `attributes` (and, for `external`, `importerRawId` and `importerAttributes`).
 
+## Reworked manual chunks
+
+Manual chunks no longer absorb their full transitive dependency subtree. Instead, they either behave like entry points or contain exactly their assigned modules, controlled by [`onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks), which now applies to both the object and the function form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), with `false` as default for the object form and `true` for the function form:
+
+- When `onlyExplicitManualChunks` is `false` (object form by default), a manual chunk behaves like an entry point: it contains the listed modules and all modules that are always loaded together with them, while modules that are shared with other entries or manual chunks are extracted into separate chunks.
+- When `onlyExplicitManualChunks` is `true` (function form by default), the chunk contains exactly the modules that are explicitly assigned to it, and their dependencies are chunked normally into separate chunks. If you relied on the function form merging dependencies into your manual chunks, either set `onlyExplicitManualChunks: false` or list the dependencies yourself.
+
+If none of the modules of a manual chunk are included in the bundle—for instance because you only listed a pure re-export barrel file that your imports bypass—the chunk is no longer emitted. Previously, such a chunk still received the dependencies of the listed module; now Rollup skips it and emits an `EMPTY_MANUAL_CHUNK` warning. Also, the text of the `CIRCULAR_CHUNK` warning has changed.
+
 ## Migrating to Rollup 4
 
 This is a list of the most important topics you may encounter when migrating from Rollup 3 to Rollup 4. For a full list of breaking changes, we advise you to consult the
