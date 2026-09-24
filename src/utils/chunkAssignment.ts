@@ -3,7 +3,8 @@ import Module from '../Module';
 import type { LogHandler } from '../rollup/types';
 import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
-import { logOptimizeChunkStatus } from './logs';
+import { LOGLEVEL_WARN } from './logging';
+import { logEmptyManualChunk, logOptimizeChunkStatus } from './logs';
 import { timeEnd, timeStart } from './timers';
 
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
@@ -171,7 +172,7 @@ export function getChunkAssignments(
 	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
 	const { manualChunkModules, manualChunkModulesByModule, aliasByModule } =
-		getManualChunkMemberships(manualChunkAliasByEntry);
+		getManualChunkMemberships(manualChunkAliasByEntry, log);
 	const {
 		entriesAndManualChunksCount,
 		dependentEntriesByModule,
@@ -237,7 +238,10 @@ export function getChunkAssignments(
 	];
 }
 
-function getManualChunkMemberships(manualChunkAliasByEntry: ReadonlyMap<Module, string>): {
+function getManualChunkMemberships(
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
+	log: LogHandler
+): {
 	aliasByModule: Map<Module, string>;
 	manualChunkModulesByModule: Map<Module, Module[]>;
 	manualChunkModules: Module[][];
@@ -253,9 +257,14 @@ function getManualChunkMemberships(manualChunkAliasByEntry: ReadonlyMap<Module, 
 	const manualChunkModulesByModule = new Map<Module, Module[]>();
 	const aliasByModule = new Map<Module, string>();
 	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
-		manualChunkModules.push(modules);
-		for (const module of modules) {
-			manualChunkModulesByModule.set(module, modules);
+		const includedModules = modules.filter(module => module.isEmitted());
+		if (includedModules.length === 0) {
+			log(LOGLEVEL_WARN, logEmptyManualChunk(alias));
+			continue;
+		}
+		manualChunkModules.push(includedModules);
+		for (const module of includedModules) {
+			manualChunkModulesByModule.set(module, includedModules);
 			aliasByModule.set(module, alias);
 		}
 	}

@@ -3,9 +3,9 @@ System.register([], (function () {
 	return {
 		execute: (function () {
 
-			console.log('included');
+			const a = 42;
 
-			console.log('main');
+			console.log(a);
 
 		})
 	};
