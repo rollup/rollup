@@ -2206,6 +2206,7 @@ function requireEs5Shim () {
 		        // eslint-disable-next-line no-global-assign, no-implicit-globals
 		        parseInt = (function (origParseInt) {
 		            return function parseInt(str, radix) {
+		                if (this instanceof parseInt) ; // eslint-disable-line new-cap, no-new, max-statements-per-line
 		                var string = trim(String(str));
 		                var defaultedRadix = $Number(radix) || (hexRegex.test(string) ? 16 : 10);
 		                return origParseInt(string, defaultedRadix);
@@ -2236,6 +2237,7 @@ function requireEs5Shim () {
 		        // eslint-disable-next-line no-global-assign, no-implicit-globals
 		        parseInt = (function (origParseInt) {
 		            return function parseInt(str, radix) {
+		                if (this instanceof parseInt) ; // eslint-disable-line new-cap, no-new, max-statements-per-line
 		                var isSym = typeof str === 'symbol';
 		                if (!isSym && str && typeof str === 'object') {
 		                    try {
