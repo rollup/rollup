@@ -4,10 +4,9 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const promise = new Promise(function (resolve, reject) { require(['./generated-dynamic'], resolve, reject); }).then(result => console.log('main', result, value));
 
-	var main = /*#__PURE__*/Object.freeze({
-		__proto__: null,
+	var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 		promise: promise
-	});
+	}, null));
 
 	exports.main = main;
 	exports.promise = promise;

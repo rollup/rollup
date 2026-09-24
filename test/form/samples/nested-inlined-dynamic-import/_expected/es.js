@@ -8,7 +8,6 @@ main();
 
 const value = 42;
 
-var foo = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var foo = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	value: value
-});
+}, null));

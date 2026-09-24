@@ -1,10 +1,9 @@
 System.register('bundle', ['a', 'b', 'c', 'd', 'unresolved'], (function (exports) {
 	'use strict';
-	var _starExcludes = {
-		__proto__: null,
+	var _starExcludes = /*#__PURE__*/Object.setPrototypeOf({
 		default: 1,
 		c: 1
-	};
+	}, null);
 	var a, b;
 	return {
 		setters: [function (module) {
@@ -14,7 +13,7 @@ System.register('bundle', ['a', 'b', 'c', 'd', 'unresolved'], (function (exports
 		}, function (module) {
 			exports("c", module.c);
 		}, function (module) {
-			var setter = { __proto__: null };
+			var setter = /*#__PURE__*/Object.setPrototypeOf({}, null);
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
