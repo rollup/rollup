@@ -906,7 +906,13 @@ export interface OutputOptions {
 	minifyInternalExports?: boolean | undefined;
 	name?: string | undefined;
 	noConflict?: boolean | undefined;
-	/** @deprecated This will be the new default in Rollup 5. */
+	/**
+	 * When "true", manual chunks only contain the modules that are explicitly assigned to
+	 * them and their dependencies are chunked normally. When "false", manual chunks also
+	 * contain modules that are always loaded together with them, like entry points.
+	 * Defaults to "false" for the object form of "manualChunks" and to "true" for the
+	 * function form.
+	 */
 	onlyExplicitManualChunks?: boolean | undefined;
 	outro?: string | AddonFunction | undefined;
 	paths?: OptionsPaths | undefined;
