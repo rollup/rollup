@@ -12,6 +12,7 @@ import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import { memoizeReturnComposition, type ReturnCompositionState } from '../utils/returnComposition';
 import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -110,33 +111,38 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch)
-			return [
-				new MultiExpression([
+		if (!usedBranch) {
+			return memoizeReturnComposition(compositionState, this, path, interaction, origin, state => [
+				MultiExpression.of([
 					this.consequent.getReturnExpressionWhenCalledAtPath(
 						path,
 						interaction,
 						recursionTracker,
-						origin
+						origin,
+						state
 					)[0],
 					this.alternate.getReturnExpressionWhenCalledAtPath(
 						path,
 						interaction,
 						recursionTracker,
-						origin
+						origin,
+						state
 					)[0]
 				]),
 				false
-			];
+			]);
+		}
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,
 			recursionTracker,
-			origin
+			origin,
+			compositionState
 		);
 	}
 

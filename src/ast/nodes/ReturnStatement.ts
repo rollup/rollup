@@ -1,21 +1,39 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type IncludeChildren,
-	StatementBase
-} from './shared/Node';
+import { LiteralExpression } from './shared/Expression';
+import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
 	declare argument: ExpressionNode | null;
 	declare type: NodeType.tReturnStatement;
 
+	private expressionsToBeDeoptimized: Set<DeoptimizableEntity> | null = null;
+
+	checkReached(origin: DeoptimizableEntity): boolean {
+		if (this.deoptimized) return true;
+		(this.expressionsToBeDeoptimized ??= new Set()).add(origin);
+		return false;
+	}
+
+	applyDeoptimizations(): void {
+		this.deoptimized = true;
+		const { expressionsToBeDeoptimized } = this;
+		if (expressionsToBeDeoptimized?.size) {
+			this.expressionsToBeDeoptimized = null;
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+
+			this.scope.context.requestTreeshakingPass();
+		}
+	}
+
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!context.ignore.returnYield || this.argument?.hasEffects(context)) return true;
 		context.brokenFlow = true;
 		return false;
@@ -29,12 +47,13 @@ export default class ReturnStatement extends StatementBase {
 
 	includeNode(context: InclusionContext) {
 		this.included = true;
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.argument?.includePath(UNKNOWN_PATH, context);
 	}
 
 	initialise(): void {
 		super.initialise();
-		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
+		this.scope.addReturnExpression(this.argument || new LiteralExpression(undefined, this));
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
@@ -46,5 +65,3 @@ export default class ReturnStatement extends StatementBase {
 		}
 	}
 }
-
-ReturnStatement.prototype.applyDeoptimizations = doNotDeoptimize;
