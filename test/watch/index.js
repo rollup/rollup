@@ -616,6 +616,8 @@ describe('rollup.watch', function () {
 		let calls = 0;
 		let context1;
 		let context2;
+		let closeWatcherContext1;
+		let closeWatcherContext2;
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -631,7 +633,8 @@ describe('rollup.watch', function () {
 						context1 = this;
 					},
 					closeWatcher() {
-						assert.strictEqual(context1, this);
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						closeWatcherContext1 = this;
 						calls++;
 					}
 				},
@@ -641,13 +644,14 @@ describe('rollup.watch', function () {
 						context2 = this;
 					},
 					closeWatcher() {
-						assert.strictEqual(context2, this);
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						closeWatcherContext2 = this;
 						calls++;
 					}
 				}
 			]
 		});
-		return sequence(watcher, [
+		await sequence(watcher, [
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
@@ -656,12 +660,12 @@ describe('rollup.watch', function () {
 				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.ok(context1);
 				assert.ok(context2);
-				watcher.once('close', () => {
-					assert.strictEqual(calls, 2);
-				});
-				watcher.close();
 			}
 		]);
+		await watcher.close();
+		assert.strictEqual(calls, 2);
+		assert.strictEqual(closeWatcherContext1, context1);
+		assert.strictEqual(closeWatcherContext2, context2);
 	});
 
 	it('watches a file in code-splitting mode', async () => {
