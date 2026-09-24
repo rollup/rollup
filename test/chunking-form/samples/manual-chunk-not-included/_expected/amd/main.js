@@ -1,4 +1,4 @@
-define(['./generated-manual'], (function (manual) { 'use strict';
+define(['./generated-manual-included'], (function (manualIncluded) { 'use strict';
 
 	console.log('main');
 

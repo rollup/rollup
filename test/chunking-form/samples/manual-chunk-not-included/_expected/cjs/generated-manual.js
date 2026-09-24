@@ -1,3 +1,4 @@
 'use strict';
 
-console.log('included');
+require('./generated-manual-included.js');
+

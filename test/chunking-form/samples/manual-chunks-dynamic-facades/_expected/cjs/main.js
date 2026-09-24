@@ -1,7 +1,7 @@
 'use strict';
 
-var dynamic = require('./generated-dynamic.js');
+var dep = require('./generated-dep.js');
 
-Promise.all([Promise.resolve().then(function () { return require('./generated-dynamic.js'); }).then(function (n) { return n.dynamic1; }), Promise.resolve().then(function () { return require('./generated-dynamic.js'); }).then(function (n) { return n.dynamic2; }), Promise.resolve().then(function () { return require('./generated-dynamic.js'); }).then(function (n) { return n.dynamic3; })]).then(
-	results => console.log(results, dynamic.DEP)
+Promise.all([Promise.resolve().then(function () { return require('./generated-dynamic.js'); }), Promise.resolve().then(function () { return require('./generated-dynamic2.js'); }), Promise.resolve().then(function () { return require('./generated-dynamic3.js'); })]).then(
+	results => console.log(results, dep.DEP)
 );
