@@ -1,1 +1,1 @@
-console.log('included');
+import './generated-manual-included.js';

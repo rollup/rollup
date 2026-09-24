@@ -9,6 +9,7 @@ import { timeEnd, timeStart } from './timers';
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 interface ModuleWithDependentEntries {
+	alias: string | null;
 	/**
 	 * The indices of the entries depending on this chunk
 	 */
@@ -17,6 +18,7 @@ interface ModuleWithDependentEntries {
 }
 
 interface ModulesWithDependentEntries {
+	alias: string | null;
 	/**
 	 * The indices of the entries depending on this chunk
 	 */
@@ -25,6 +27,7 @@ interface ModulesWithDependentEntries {
 }
 
 interface ChunkDescription {
+	alias: string | null;
 	/**
 	 * These are the atoms (=initial chunks) that are contained in this chunk
 	 */
@@ -45,6 +48,7 @@ interface ChunkDescription {
 
 interface ChunkPartition {
 	big: Set<ChunkDescription>;
+	fixed: Set<ChunkDescription>;
 	small: Set<ChunkDescription>;
 }
 
@@ -164,15 +168,10 @@ export function getChunkAssignments(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
 	log: LogHandler,
-	isManualChunksFunctionForm: boolean,
 	onlyExplicitManualChunks: boolean
 ): ChunkDefinitions {
-	const { chunkDefinitions, manualChunkModules, manualChunkModulesByModule } =
-		getChunkDefinitionsFromManualChunks(
-			manualChunkAliasByEntry,
-			isManualChunksFunctionForm,
-			onlyExplicitManualChunks
-		);
+	const { manualChunkModules, manualChunkModulesByModule, aliasByModule } =
+		getManualChunkMemberships(manualChunkAliasByEntry);
 	const {
 		entriesAndManualChunksCount,
 		dependentEntriesByModule,
@@ -183,12 +182,16 @@ export function getChunkAssignments(
 	} = analyzeModuleGraph(entries, manualChunkModules, manualChunkModulesByModule);
 
 	// Each chunk is identified by its position in this array
+	const topLevelAwaitingCycleSingletons: ChunkDefinitions = [];
 	const chunkAtoms = getChunksWithSameDependentEntries(
-		getModulesWithDependentEntriesAndHandleTLACycles(
-			dependentEntriesByModule,
-			manualChunkModulesByModule,
-			chunkDefinitions
-		)
+		[
+			...getModulesWithDependentEntriesAndHandleTLACycles(
+				dependentEntriesByModule,
+				aliasByModule,
+				topLevelAwaitingCycleSingletons
+			)
+		],
+		onlyExplicitManualChunks
 	);
 	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(
 		entriesAndManualChunksCount,
@@ -219,73 +222,97 @@ export function getChunkAssignments(
 			chunkAtoms,
 			staticDependencyAtomsByEntry,
 			alreadyLoadedAtomsByEntry,
-			minChunkSize
+			minChunkSize,
+			onlyExplicitManualChunks
 		);
 
-	chunkDefinitions.push(
+	return [
+		...topLevelAwaitingCycleSingletons,
 		...getOptimizedChunks(chunks, minChunkSize, sideEffectAtoms, sizeByAtom, log).map(
-			({ modules }) => ({
-				alias: null,
+			({ alias, modules }) => ({
+				alias,
 				modules
 			})
 		)
-	);
-	return chunkDefinitions;
+	];
 }
 
-function getChunkDefinitionsFromManualChunks(
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
-	isManualChunksFunctionForm: boolean,
-	onlyExplicitManualChunks: boolean
-): {
-	chunkDefinitions: ChunkDefinitions;
-	manualChunkModules: Module[][];
+function getManualChunkMemberships(manualChunkAliasByEntry: ReadonlyMap<Module, string>): {
+	aliasByModule: Map<Module, string>;
 	manualChunkModulesByModule: Map<Module, Module[]>;
+	manualChunkModules: Module[][];
 } {
-	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	const sortedEntriesWithAlias = [...manualChunkAliasByEntry].sort(
 		([entryA], [entryB]) => entryA.execIndex - entryB.execIndex
 	);
 	for (const [entry, alias] of sortedEntriesWithAlias) {
-		const chunkModules = (manualChunkModulesByAlias[alias] ||= []);
-		if (isManualChunksFunctionForm && onlyExplicitManualChunks) {
-			chunkModules.push(entry);
-		} else {
-			addStaticDependenciesToManualChunk(entry, chunkModules, modulesInManualChunks);
-		}
+		(manualChunkModulesByAlias[alias] ||= []).push(entry);
 	}
-	const manualChunks = Object.entries(manualChunkModulesByAlias);
-	const manualChunkModules: Module[][] = new Array(manualChunks.length);
-	const chunkDefinitions: ChunkDefinitions = new Array(manualChunks.length);
+	const manualChunkModules: Module[][] = [];
 	const manualChunkModulesByModule = new Map<Module, Module[]>();
-	let index = 0;
-	for (const [alias, modules] of manualChunks) {
-		chunkDefinitions[index] = { alias, modules };
-		manualChunkModules[index] = modules;
+	const aliasByModule = new Map<Module, string>();
+	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
+		manualChunkModules.push(modules);
 		for (const module of modules) {
 			manualChunkModulesByModule.set(module, modules);
+			aliasByModule.set(module, alias);
 		}
-		index++;
 	}
-	return { chunkDefinitions, manualChunkModules, manualChunkModulesByModule };
+	return { aliasByModule, manualChunkModules, manualChunkModulesByModule };
 }
 
-function addStaticDependenciesToManualChunk(
-	entry: Module,
-	manualChunkModules: Module[],
-	modulesInManualChunks: Set<Module>
-): void {
-	const modulesToHandle = new Set([entry]);
-	for (const module of modulesToHandle) {
-		modulesInManualChunks.add(module);
-		manualChunkModules.push(module);
-		for (const dependency of module.dependencies) {
-			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
-				modulesToHandle.add(dependency);
-			}
+/**
+ * The key function is shared by both grouping stages. In explicit mode, manual
+ * chunk members always form separate chunks that other atoms can never join.
+ * In entry mode, atoms whose signature matches exactly one alias join that
+ * manual chunk, while signatures with zero or several aliases stay separate
+ * (several aliases split per manual chunk, shared code stays alias-less).
+ */
+interface ChunkKeyWithAlias {
+	alias: string | null;
+	key: string;
+}
+
+function createChunkKeyFactory(
+	records: readonly { alias: string | null; dependentEntries: ReadonlySet<number> }[],
+	onlyExplicitManualChunks: boolean
+): (recordIndex: number) => ChunkKeyWithAlias {
+	const signatureKeys: string[] = new Array(records.length);
+	const aliasBySignature = onlyExplicitManualChunks ? null : new Map<string, string | null>();
+	for (const [index, { dependentEntries, alias }] of records.entries()) {
+		let signature = 0n;
+		for (const entryIndex of dependentEntries) {
+			signature |= 1n << BigInt(entryIndex);
+		}
+		const signatureKey = String(signature);
+		signatureKeys[index] = signatureKey;
+		if (aliasBySignature && alias !== null) {
+			const existingAlias = aliasBySignature.get(signatureKey);
+			aliasBySignature.set(
+				signatureKey,
+				existingAlias === undefined || existingAlias === alias ? alias : null
+			);
 		}
 	}
+	return recordIndex => {
+		const { alias } = records[recordIndex];
+		const signatureKey = signatureKeys[recordIndex];
+		if (alias !== null) {
+			return {
+				alias,
+				key: onlyExplicitManualChunks ? `manual:${alias}` : `${signatureKey}|${alias}`
+			};
+		}
+		if (aliasBySignature) {
+			const aliasOfSignature = aliasBySignature.get(signatureKey) ?? null;
+			return {
+				alias: aliasOfSignature,
+				key: aliasOfSignature === null ? signatureKey : `${signatureKey}|${aliasOfSignature}`
+			};
+		}
+		return { alias: null, key: signatureKey };
+	};
 }
 
 function analyzeModuleGraph(
@@ -304,6 +331,11 @@ function analyzeModuleGraph(
 	const awaitedDynamicEntryModules = new Set<Module>();
 	const dependentEntriesByModule = new Map<Module, Set<number>>();
 	const allEntriesSet = new Set<Module>(entries);
+	for (const modules of manualChunkModules) {
+		for (const module of modules) {
+			allEntriesSet.add(module);
+		}
+	}
 	// Each entry is defined by its position in this array
 	const allEntriesAndManualChunks = entries.map(module => [module]).concat(manualChunkModules);
 	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesAndManualChunks.length);
@@ -483,15 +515,15 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 }
 
 function getChunksWithSameDependentEntries(
-	moduleWithDependentEntries: Iterable<ModuleWithDependentEntries>
+	modulesWithDependentEntries: readonly ModuleWithDependentEntries[],
+	onlyExplicitManualChunks: boolean
 ): ModulesWithDependentEntries[] {
+	const getChunkKey = createChunkKeyFactory(modulesWithDependentEntries, onlyExplicitManualChunks);
 	const chunkModules: Record<string, ModulesWithDependentEntries> = Object.create(null);
-	for (const { dependentEntries, module } of moduleWithDependentEntries) {
-		let chunkSignature = 0n;
-		for (const entryIndex of dependentEntries) {
-			chunkSignature |= 1n << BigInt(entryIndex);
-		}
-		(chunkModules[String(chunkSignature)] ||= {
+	for (const [index, { dependentEntries, module }] of modulesWithDependentEntries.entries()) {
+		const { alias, key } = getChunkKey(index);
+		(chunkModules[key] ||= {
+			alias,
 			dependentEntries: new Set(dependentEntries),
 			modules: []
 		}).modules.push(module);
@@ -501,19 +533,19 @@ function getChunksWithSameDependentEntries(
 
 function* getModulesWithDependentEntriesAndHandleTLACycles(
 	dependentEntriesByModule: Map<Module, Set<number>>,
-	modulesInManualChunks: Map<Module, unknown>,
-	chunkDefinitions: ChunkDefinitions
+	aliasByModule: ReadonlyMap<Module, string>,
+	topLevelAwaitingCycleSingletons: ChunkDefinitions
 ) {
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
-		if (!modulesInManualChunks.has(module)) {
-			if (module.cycles.size > 0 && module.includedTopLevelAwaitingDynamicImporters.size > 0) {
-				chunkDefinitions.push({
-					alias: null,
-					modules: [module]
-				});
-				continue;
-			}
-			yield { dependentEntries, module };
+		const alias = aliasByModule.get(module) ?? null;
+		if (
+			alias === null &&
+			module.cycles.size > 0 &&
+			module.includedTopLevelAwaitingDynamicImporters.size > 0
+		) {
+			topLevelAwaitingCycleSingletons.push({ alias: null, modules: [module] });
+		} else {
+			yield { alias, dependentEntries, module };
 		}
 	}
 }
@@ -613,26 +645,28 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	chunkAtoms: ModulesWithDependentEntries[],
 	staticDependencyAtomsByEntry: bigint[],
 	alreadyLoadedAtomsByEntry: bigint[],
-	minChunkSize: number
+	minChunkSize: number,
+	onlyExplicitManualChunks: boolean
 ) {
+	const getChunkKey = createChunkKeyFactory(chunkAtoms, onlyExplicitManualChunks);
 	const chunksBySignature: Record<string, ChunkDescription> = Object.create(null);
 	const chunkByModule = new Map<Module, ChunkDescription>();
 	const sizeByAtom: number[] = new Array(chunkAtoms.length);
 	let sideEffectAtoms = 0n;
 	let atomMask = 1n;
 	let index = 0;
-	for (const { dependentEntries, modules } of chunkAtoms) {
-		let chunkSignature = 0n;
+	for (const [recordIndex, { dependentEntries, modules }] of chunkAtoms.entries()) {
 		let correlatedAtoms = -1n;
 		for (const entryIndex of dependentEntries) {
-			chunkSignature |= 1n << BigInt(entryIndex);
 			// Correlated atoms are the atoms that are guaranteed to be loaded as
 			// well when a given atom is loaded. It is the intersection of the already
 			// loaded modules of each chunk merged with its static dependencies.
 			correlatedAtoms &=
 				staticDependencyAtomsByEntry[entryIndex] | alreadyLoadedAtomsByEntry[entryIndex];
 		}
-		const chunk = (chunksBySignature[String(chunkSignature)] ||= {
+		const { alias, key } = getChunkKey(recordIndex);
+		const chunk = (chunksBySignature[key] ||= {
+			alias,
 			containedAtoms: 0n,
 			correlatedAtoms,
 			dependencies: new Set(),
@@ -793,7 +827,7 @@ function getOptimizedChunks(
 	sideEffectAtoms: bigint,
 	sizeByAtom: number[],
 	log: LogHandler
-): { modules: Module[] }[] {
+): ChunkDescription[] {
 	timeStart('optimize chunks', 3);
 	const chunkPartition = getPartitionedChunks(chunks, minChunkSize);
 	if (!chunkPartition) {
@@ -808,14 +842,14 @@ function getOptimizedChunks(
 		log(
 			'info',
 			logOptimizeChunkStatus(
-				chunkPartition.small.size + chunkPartition.big.size,
+				chunkPartition.small.size + chunkPartition.big.size + chunkPartition.fixed.size,
 				chunkPartition.small.size,
 				'After merging chunks'
 			)
 		);
 	}
 	timeEnd('optimize chunks', 3);
-	return [...chunkPartition.small, ...chunkPartition.big];
+	return [...chunkPartition.small, ...chunkPartition.big, ...chunkPartition.fixed];
 }
 
 function getPartitionedChunks(
@@ -824,8 +858,13 @@ function getPartitionedChunks(
 ): ChunkPartition | null {
 	const smallChunks: ChunkDescription[] = [];
 	const bigChunks: ChunkDescription[] = [];
+	const fixedChunks: ChunkDescription[] = [];
 	for (const chunk of chunks) {
-		(chunk.size < minChunkSize ? smallChunks : bigChunks).push(chunk);
+		if (chunk.alias !== null) {
+			fixedChunks.push(chunk);
+		} else {
+			(chunk.size < minChunkSize ? smallChunks : bigChunks).push(chunk);
+		}
 	}
 	if (smallChunks.length === 0) {
 		return null;
@@ -834,6 +873,7 @@ function getPartitionedChunks(
 	bigChunks.sort(compareChunkSize);
 	return {
 		big: new Set(bigChunks),
+		fixed: new Set(fixedChunks),
 		small: new Set(smallChunks)
 	};
 }

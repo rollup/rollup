@@ -1,6 +1,6 @@
 'use strict';
 
-console.log('dep');
+require('./main2.js');
 
 console.log('main');
 

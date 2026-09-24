@@ -1,7 +1,7 @@
 'use strict';
 
-const value = 42;
+var dep = require('./generated-dep.js');
 
-console.log('main2', value);
+console.log('main2', dep.value);
 
-exports.reexported = value;
+exports.reexported = dep.value;

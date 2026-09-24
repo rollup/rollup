@@ -1,4 +1,4 @@
-const value = 42;
+import { v as value } from './generated-dep.js';
 
 console.log('main2', value);
 

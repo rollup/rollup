@@ -330,15 +330,25 @@ export function logCircularDependency(cyclePath: string[]): RollupLog {
 	};
 }
 
-export function logCircularChunk(cyclePath: string[], isManualChunkConflict: boolean): RollupLog {
+export function logCircularChunk(
+	cyclePath: string[],
+	manualChunkNames: readonly string[],
+	onlyExplicitManualChunks: boolean
+): RollupLog {
+	const manualChunkCount = cyclePath.length - 1;
 	return {
 		code: CIRCULAR_CHUNK,
 		ids: cyclePath,
-		message: `Circular chunk: ${cyclePath.join(' -> ')}. ${
-			isManualChunkConflict
-				? `Please adjust the manual chunk logic for these chunks.`
-				: `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${cyclePath.at(-2)}" to be extracted into the separate chunk "${cyclePath.at(-1)}".`
-		}`
+		message:
+			manualChunkNames.length === 0
+				? `Circular chunk: ${cyclePath.join(' -> ')}.`
+				: `Circular chunk: ${cyclePath.join(' -> ')}. ${
+						manualChunkNames.length === manualChunkCount
+							? `Please adjust the manual chunk logic for these chunks.`
+							: onlyExplicitManualChunks
+								? `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${manualChunkNames[0]}" to be extracted into the separate chunk "${cyclePath.find(name => !manualChunkNames.includes(name))}".`
+								: `Please adjust the manual chunks or the module structure.`
+					}`
 	};
 }
 

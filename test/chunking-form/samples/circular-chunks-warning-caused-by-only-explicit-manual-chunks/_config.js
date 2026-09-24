@@ -11,9 +11,9 @@ module.exports = defineTest({
 	expectedWarnings: ['CIRCULAR_CHUNK'],
 	logs: new Array(4).fill(null).map(() => ({
 		code: 'CIRCULAR_CHUNK',
-		ids: ['b', 'ac', 'b'],
+		ids: ['ac', 'b', 'ac'],
 		level: 'warn',
 		message:
-			'Circular chunk: b -> ac -> b. Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "ac" to be extracted into the separate chunk "b".'
+			'Circular chunk: ac -> b -> ac. Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "ac" to be extracted into the separate chunk "b".'
 	}))
 });
