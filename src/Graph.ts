@@ -12,7 +12,6 @@ import type {
 	NormalizedInputOptions,
 	ProgramNode,
 	RollupCache,
-	RollupWatcher,
 	SerializablePluginCache,
 	WatchChangeHook
 } from './rollup/types';
@@ -53,6 +52,13 @@ function normalizeEntryModules(
 	}));
 }
 
+export interface GraphWatchHooks {
+	closeWatcher(): Promise<void>;
+	watchChange(...parameters: Parameters<WatchChangeHook>): Promise<void>;
+}
+
+export type RegisterWatchHooks = (watchHooks: GraphWatchHooks) => void;
+
 export default class Graph {
 	readonly astLru = flru<ProgramNode>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
@@ -77,7 +83,7 @@ export default class Graph {
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
-		watcher: RollupWatcher | null
+		registerWatchHooks: RegisterWatchHooks | null
 	) {
 		if (options.cache !== false) {
 			if (options.cache?.modules) {
@@ -92,13 +98,12 @@ export default class Graph {
 			}
 		}
 
-		if (watcher) {
+		if (registerWatchHooks) {
 			this.watchMode = true;
-			const handleChange = (...parameters: Parameters<WatchChangeHook>) =>
-				this.pluginDriver.hookParallel('watchChange', parameters);
-			const handleClose = () => this.pluginDriver.hookParallel('closeWatcher', []);
-			watcher.onCurrentRun('change', handleChange);
-			watcher.onCurrentRun('close', handleClose);
+			registerWatchHooks({
+				closeWatcher: () => this.pluginDriver.hookParallel('closeWatcher', []),
+				watchChange: (...parameters) => this.pluginDriver.hookParallel('watchChange', parameters)
+			});
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
