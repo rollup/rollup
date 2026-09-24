@@ -2515,6 +2515,55 @@ describe('rollup.watch', function () {
 		);
 	});
 
+	it('removes onCurrentRun listeners when the next run starts', async () => {
+		const currentRunChangeIds = [];
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				watcher.onCurrentRun('change', id => {
+					currentRunChangeIds.push(id);
+				});
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.deepStrictEqual(
+					currentRunChangeIds,
+					[ENTRY_FILE],
+					'the onCurrentRun listener was not called for the change that started this run'
+				);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 44);
+				assert.deepStrictEqual(
+					currentRunChangeIds,
+					[ENTRY_FILE],
+					'the onCurrentRun listener was not removed with the previous run'
+				);
+			}
+		]);
+	});
+
 	it('does not run the initial build when the watcher is closed right away', async () => {
 		let buildStarts = 0;
 		let isCloseEmitted = false;
