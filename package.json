@@ -157,7 +157,7 @@
     "buble": "^0.20.0",
     "builtin-modules": "^5.3.0",
     "chokidar": "^5.0.0",
-    "concurrently": "^9.2.4",
+    "concurrently": "^10.0.5",
     "core-js": "3.38.1",
     "date-time": "^4.0.0",
     "es5-shim": "^4.6.7",
