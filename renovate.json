@@ -67,8 +67,7 @@
         "react",
         "react-dom",
         "typescript",
-        "vite",
-        "yargs-parser"
+        "vite"
       ],
       "matchUpdateTypes": [
         "major"
