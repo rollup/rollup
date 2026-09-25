@@ -518,21 +518,16 @@ jobs:
             target: aarch64-pc-windows-msvc
             package: win32-arm64-msvc
         node:
-          - '18.20.0'
+          - '22.0.0'
           - 24
         include:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
               package: linux-x64-gnu
-            node: '18.20.0'
+            node: '22.0.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
-        exclude:
-          # Windows ARM builds were not provided for a while
-          - settings:
-              target: aarch64-pc-windows-msvc
-            node: '18.20.0'
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
     steps:
