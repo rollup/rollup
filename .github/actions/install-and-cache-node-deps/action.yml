@@ -23,9 +23,7 @@ runs:
         npm ${{ github.ref == 'refs/heads/master' && 'ci' || 'install' }} --ignore-scripts && npm run prepare:patch
       shell: bash
     # The @napi-rs/lzma-linux-x64-gnu platform binding (optional dependency of
-    # @napi-rs/cross-toolchain) must be present, otherwise `napi build
-    # --use-napi-cross` silently skips the cross toolchain and links against the
-    # host glibc, producing artifacts that require a newer glibc than the target
+    # @napi-rs/cross-toolchain) is required by `napi build --use-napi-cross`
     # (rollup#6461). Restored cache snapshots can be poisoned: their hidden
     # lockfile claims the binding is installed while it is not, and npm trusts
     # that lockfile - even an explicit `npm install <pkg>` is reconciled away
@@ -56,7 +54,7 @@ runs:
           rm /tmp/lzma-binding.tgz
         fi
         if [ ! -f "$binding/package.json" ]; then
-          echo "::error::@napi-rs/lzma-linux-x64-gnu is missing from node_modules; the napi cross toolchain would be silently skipped (rollup#6461)."
+          echo "::error::@napi-rs/lzma-linux-x64-gnu is missing from node_modules; napi build --use-napi-cross fails without it (rollup#6461)."
           exit 1
         fi
     - name: Save Node dependencies cache

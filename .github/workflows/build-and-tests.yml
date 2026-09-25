@@ -140,10 +140,8 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            cross: napi
           - host: ubuntu-latest
             target: aarch64-linux-android
-            cross: napi
             # There are compile issues when using the cache with Android
             cache-cargo: false
           - host: ubuntu-latest
