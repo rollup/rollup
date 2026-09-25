@@ -62,7 +62,6 @@
     {
       "matchPackageNames": [
         "@inquirer/prompts",
-        "@rollup/plugin-terser",
         "@types/node",
         "mocha",
         "react",
