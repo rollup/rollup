@@ -270,7 +270,7 @@ Repository: sindresorhus/pretty-ms
 ## readdirp
 License: MIT
 By: Thorsten Lorenz, Paul Miller
-Repository: git://github.com/paulmillr/readdirp.git
+Repository: https://github.com/paulmillr/readdirp.git
 
 > MIT License
 > 
