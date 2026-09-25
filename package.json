@@ -130,7 +130,7 @@
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@eslint/js": "^10.0.1",
-    "@inquirer/prompts": "^7.10.1",
+    "@inquirer/prompts": "^8.7.2",
     "@jridgewell/sourcemap-codec": "^1.6.0",
     "@mermaid-js/mermaid-cli": "^11.17.0",
     "@napi-rs/cli": "3.10.5",
