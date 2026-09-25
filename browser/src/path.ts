@@ -4,6 +4,7 @@ const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
+const DRIVE_REGEX = /^[A-Za-z]:$/;
 const TRAILING_SLASHES_REGEX = /[/\\]+$/;
 
 export function isAbsolute(path: string): boolean {
@@ -46,21 +47,26 @@ export function extname(path: string): string {
 }
 
 export function join(...segments: string[]): string {
-	const joined = segments.join('/');
+	// An empty segment contributes nothing, so it must not turn the path into
+	// an absolute one by putting a slash in front of the next segment.
+	const joined = segments.filter(Boolean).join('/');
+	if (joined === '') return '.';
 	const absolute = ANY_SLASH_REGEX.test(joined[0]);
-	return (
-		(absolute ? '/' : '') +
-		(normalizePathSegments(joined.split(ANY_SLASH_REGEX), absolute) || (absolute ? '' : '.'))
-	);
+	const normalized = normalizePathSegments(joined.split(ANY_SLASH_REGEX), absolute);
+	const result = (absolute ? '/' : '') + (normalized || (absolute ? '' : '.'));
+	// node:path keeps a trailing slash
+	return TRAILING_SLASHES_REGEX.test(joined) && !result.endsWith('/') ? result + '/' : result;
 }
 
 function normalizePathSegments(parts: string[], absolute = false): string {
 	const normalized: string[] = [];
+	// A drive like "C:" is the root of the path, so ".." cannot climb above it
+	const root = DRIVE_REGEX.test(parts[0]) ? 1 : 0;
 	for (const part of parts) {
 		if (part === '..') {
-			if (normalized.length > 0 && normalized[normalized.length - 1] !== '..') {
+			if (normalized.length > root && normalized[normalized.length - 1] !== '..') {
 				normalized.pop();
-			} else if (!absolute) {
+			} else if (!absolute && root === 0) {
 				normalized.push('..');
 			}
 		} else if (part !== '.' && part !== '') {
@@ -71,8 +77,14 @@ function normalizePathSegments(parts: string[], absolute = false): string {
 }
 
 export function relative(from: string, to: string): string {
-	const fromParts = from.split(ANY_SLASH_REGEX).filter(Boolean);
-	const toParts = to.split(ANY_SLASH_REGEX).filter(Boolean);
+	// "." and ".." segments are collapsed on both sides first, as node:path
+	// does, so that "/a/./b" and "/a/b" describe the same location.
+	const fromParts = normalizePathSegments(from.split(ANY_SLASH_REGEX), isAbsolute(from))
+		.split('/')
+		.filter(Boolean);
+	const toParts = normalizePathSegments(to.split(ANY_SLASH_REGEX), isAbsolute(to))
+		.split('/')
+		.filter(Boolean);
 
 	if (fromParts[0] === '.') fromParts.shift();
 	if (toParts[0] === '.') toParts.shift();
