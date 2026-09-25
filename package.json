@@ -133,7 +133,7 @@
     "@inquirer/prompts": "^7.10.1",
     "@jridgewell/sourcemap-codec": "^1.6.0",
     "@mermaid-js/mermaid-cli": "^11.17.0",
-    "@napi-rs/cli": "3.4.1",
+    "@napi-rs/cli": "3.10.5",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-buble": "^1.0.3",
     "@rollup/plugin-commonjs": "^29.0.3",
@@ -229,7 +229,7 @@
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges",
     "@emnapi/core": "If missing this fails npm install for Linux ARM",
     "@emnapi/runtime": "If missing this fails npm install for Linux ARM",
-    "@napi-rs/lzma-linux-x64-gnu": "If missing, napi build --use-napi-cross silently skips the cross toolchain and links against the host glibc (#6461)",
+    "@napi-rs/lzma-linux-x64-gnu": "If missing, napi build --use-napi-cross fails (#6461)",
     "react": "If missing this fails npm install for Linux ARM",
     "react-dom": "If missing this fails npm install for Linux ARM"
   },
