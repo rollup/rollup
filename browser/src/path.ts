@@ -4,6 +4,7 @@ const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
+const DRIVE_REGEX = /^[A-Za-z]:$/;
 const TRAILING_SLASHES_REGEX = /[/\\]+$/;
 
 export function isAbsolute(path: string): boolean {
@@ -59,11 +60,13 @@ export function join(...segments: string[]): string {
 
 function normalizePathSegments(parts: string[], absolute = false): string {
 	const normalized: string[] = [];
+	// A drive like "C:" is the root of the path, so ".." cannot climb above it
+	const root = DRIVE_REGEX.test(parts[0]) ? 1 : 0;
 	for (const part of parts) {
 		if (part === '..') {
-			if (normalized.length > 0 && normalized[normalized.length - 1] !== '..') {
+			if (normalized.length > root && normalized[normalized.length - 1] !== '..') {
 				normalized.pop();
-			} else if (!absolute) {
+			} else if (!absolute && root === 0) {
 				normalized.push('..');
 			}
 		} else if (part !== '.' && part !== '') {
