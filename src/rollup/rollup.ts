@@ -312,14 +312,52 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 async function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: NormalizedOutputOptions,
-	{ fs: { mkdir, writeFile } }: NormalizedInputOptions
+	{ fs: { chmod, mkdir, stat, writeFile } }: NormalizedInputOptions
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
 
 	// 'recursive: true' does not throw if the folder structure, or parts of it, already exist
 	await mkdir(dirname(fileName), { recursive: true });
 
-	return writeFile(fileName, outputFile.type === 'asset' ? outputFile.source : outputFile.code);
+	if (outputFile.type === 'asset') {
+		const mode = await getOriginalAssetMode(outputFile, stat);
+		await writeFile(fileName, outputFile.source);
+		if (mode !== undefined) {
+			await chmod?.(fileName, mode);
+		}
+		return;
+	}
+
+	return writeFile(fileName, outputFile.code);
+}
+
+async function getOriginalAssetMode(
+	outputFile: OutputAsset,
+	stat: NormalizedInputOptions['fs']['stat']
+): Promise<number | undefined> {
+	const [originalFileName] = outputFile.originalFileNames;
+	if (!originalFileName) {
+		return;
+	}
+	try {
+		const { mode } = (await stat(originalFileName)) as { mode?: number };
+		return typeof mode === 'number' ? mode & 0o7777 : undefined;
+	} catch (error) {
+		if (!isUnavailableFileError(error)) {
+			throw error;
+		}
+		// originalFileName may be metadata rather than a readable file path.
+	}
+}
+
+function isUnavailableFileError(error: unknown): boolean {
+	const unavailableFileErrorCodes = ['ENOENT', 'ENOTDIR', 'ERR_INVALID_ARG_VALUE', 'EINVAL'];
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'code' in error &&
+		unavailableFileErrorCodes.includes(error.code as string)
+	);
 }
 
 /**
