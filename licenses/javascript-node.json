@@ -146,7 +146,7 @@
 			],
 			"license": "MIT",
 			"name": "readdirp",
-			"repository": "git://github.com/paulmillr/readdirp.git",
+			"repository": "https://github.com/paulmillr/readdirp.git",
 			"texts": [
 				"dffec71d93f273d2"
 			]

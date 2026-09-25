@@ -143,7 +143,7 @@ License text: see MIT (1) below
 ## readdirp
 License: MIT
 By: Thorsten Lorenz, Paul Miller
-Repository: git://github.com/paulmillr/readdirp.git
+Repository: https://github.com/paulmillr/readdirp.git
 License text: see MIT (1) below
 
 > Copyright (c) 2012-2019 Thorsten Lorenz, Paul Miller (https://paulmillr.com)
