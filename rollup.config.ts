@@ -30,6 +30,13 @@ const onwarn: WarningHandlerWithDefault = warning => {
 		)
 	)
 		return;
+	// chokidar 5 keeps a type-only "Stats" import from "node:fs" in its compiled output
+	if (
+		warning.code === 'UNUSED_EXTERNAL_IMPORT' &&
+		warning.exporter === 'node:fs' &&
+		warning.names?.includes('Stats')
+	)
+		return;
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
 			'Please keep in mind that the browser build may never have external dependencies!'
