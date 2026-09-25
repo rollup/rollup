@@ -145,7 +145,7 @@
     "@rollup/pluginutils": "^5.4.0",
     "@shikijs/vitepress-twoslash": "^4.4.3",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.43",
+    "@types/node": "^22.19.0",
     "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.8.0",
     "@types/yargs-parser": "^21.0.3",
@@ -241,8 +241,8 @@
     "dist/es/package.json"
   ],
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=22.0.0",
+    "npm": ">=10.5.1"
   },
   "exports": {
     ".": {

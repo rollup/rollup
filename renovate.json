@@ -33,13 +33,6 @@
     },
     {
       "matchPackageNames": [
-        "@napi-rs/cli"
-      ],
-      "enabled": false,
-      "description": "napi-rs no longer runs on Node 18 as of v3.5.0"
-    },
-    {
-      "matchPackageNames": [
         "wasm-pack"
       ],
       "allowedVersions": "!/^0\\.14\\.0$/",
