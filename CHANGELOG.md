@@ -78,6 +78,7 @@ _2026-07-31_
 - [#6257](https://github.com/rollup/rollup/pull/6257): [v5.0] Put binary AST buffers into cache (@lukastaegert)
 - [#6271](https://github.com/rollup/rollup/pull/6271): [v5.0] Implement efficient AST walking API (@lukastaegert)
 - [#6266](https://github.com/rollup/rollup/pull/6266): [v5.0] Support importing the same module with different import attributes (@TrickyPi)
+- [#6531](https://github.com/rollup/rollup/pull/6531): [v5.0] Update chokidar to v5 (@lukastaegert)
 
 For previous changelogs, see
 
