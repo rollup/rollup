@@ -181,9 +181,9 @@ export function getChunkAssignments(
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry
 	} = analyzeModuleGraph(entries, manualChunkModules, manualChunkModulesByModule);
+	const topLevelAwaitingCycleSingletons: ChunkDefinitions = [];
 
 	// Each chunk is identified by its position in this array
-	const topLevelAwaitingCycleSingletons: ChunkDefinitions = [];
 	const chunkAtoms = getChunksWithSameDependentEntries(
 		[
 			...getModulesWithDependentEntriesAndHandleTLACycles(
@@ -271,6 +271,11 @@ function getManualChunkMemberships(
 	return { aliasByModule, manualChunkModules, manualChunkModulesByModule };
 }
 
+interface ChunkKeyWithAlias {
+	alias: string | null;
+	key: string;
+}
+
 /**
  * The key function is shared by both grouping stages. In explicit mode, manual
  * chunk members always form separate chunks that other atoms can never join.
@@ -278,18 +283,16 @@ function getManualChunkMemberships(
  * manual chunk, while signatures with zero or several aliases stay separate
  * (several aliases split per manual chunk, shared code stays alias-less).
  */
-interface ChunkKeyWithAlias {
-	alias: string | null;
-	key: string;
-}
-
 function createChunkKeyFactory(
-	records: readonly { alias: string | null; dependentEntries: ReadonlySet<number> }[],
+	modulesWithDependentEntries: readonly {
+		alias: string | null;
+		dependentEntries: ReadonlySet<number>;
+	}[],
 	onlyExplicitManualChunks: boolean
-): (recordIndex: number) => ChunkKeyWithAlias {
-	const signatureKeys: string[] = new Array(records.length);
+): (index: number) => ChunkKeyWithAlias {
+	const signatureKeys: string[] = new Array(modulesWithDependentEntries.length);
 	const aliasBySignature = onlyExplicitManualChunks ? null : new Map<string, string | null>();
-	for (const [index, { dependentEntries, alias }] of records.entries()) {
+	for (const [index, { dependentEntries, alias }] of modulesWithDependentEntries.entries()) {
 		let signature = 0n;
 		for (const entryIndex of dependentEntries) {
 			signature |= 1n << BigInt(entryIndex);
@@ -304,9 +307,9 @@ function createChunkKeyFactory(
 			);
 		}
 	}
-	return recordIndex => {
-		const { alias } = records[recordIndex];
-		const signatureKey = signatureKeys[recordIndex];
+	return index => {
+		const { alias } = modulesWithDependentEntries[index];
+		const signatureKey = signatureKeys[index];
 		if (alias !== null) {
 			return {
 				alias,
@@ -663,8 +666,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	const sizeByAtom: number[] = new Array(chunkAtoms.length);
 	let sideEffectAtoms = 0n;
 	let atomMask = 1n;
-	let index = 0;
-	for (const [recordIndex, { dependentEntries, modules }] of chunkAtoms.entries()) {
+	for (const [atomIndex, { dependentEntries, modules }] of chunkAtoms.entries()) {
 		let correlatedAtoms = -1n;
 		for (const entryIndex of dependentEntries) {
 			// Correlated atoms are the atoms that are guaranteed to be loaded as
@@ -673,7 +675,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			correlatedAtoms &=
 				staticDependencyAtomsByEntry[entryIndex] | alreadyLoadedAtomsByEntry[entryIndex];
 		}
-		const { alias, key } = getChunkKey(recordIndex);
+		const { alias, key } = getChunkKey(atomIndex);
 		const chunk = (chunksBySignature[key] ||= {
 			alias,
 			containedAtoms: 0n,
@@ -702,7 +704,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 		if (!pure) {
 			sideEffectAtoms |= atomMask;
 		}
-		sizeByAtom[index++] = atomSize;
+		sizeByAtom[atomIndex] = atomSize;
 
 		chunk.containedAtoms |= atomMask;
 		chunk.modules.push(...modules);
