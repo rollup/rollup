@@ -14,7 +14,7 @@ For how to migrate from earlier versions, [see below](#migrating-to-rollup-4).
 
 ## Prerequisites
 
-Make sure you run at least Node 22.0.0 and update all your Rollup plugins to their latest versions.
+Make sure you run at least Node 22.12.0 and update all your Rollup plugins to their latest versions.
 
 ## Changes to the Plugin API
 
