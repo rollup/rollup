@@ -62,7 +62,6 @@
     {
       "matchPackageNames": [
         "@types/node",
-        "mocha",
         "react",
         "react-dom",
         "typescript",
@@ -72,7 +71,7 @@
         "major"
       ],
       "enabled": false,
-      "description": "Majors are only updated manually: @types/node must match the engines.node floor, mocha 12 requires require(esm) support (Node >= 22.12)"
+      "description": "Majors are only updated manually: @types/node must match the engines.node floor, typescript and vite when their tooling follows, react and react-dom for the REPL"
     }
   ],
   "pinDigests": true,

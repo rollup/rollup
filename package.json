@@ -61,7 +61,7 @@
     "ci:artifacts": "napi artifacts",
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
     "ci:test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan 'npm:test:only' 'npm:test:typescript' 'npm:test:leak' 'npm:test:browser'",
-    "ci:coverage": "NODE_OPTIONS=--no-experimental-require-module nyc --reporter lcovonly mocha",
+    "ci:coverage": "c8 --reporter lcovonly mocha test/test.js",
     "build:napi:coverage": "bash -c 'coverage_env=\"$(cd rust && cargo llvm-cov show-env --sh)\" && eval \"$coverage_env\" && (cd rust && cargo llvm-cov clean --workspace) && npm run build:napi'",
     "test:coverage:rust": "bash scripts/coverage-rust.sh",
     "lint": "concurrently -c red,yellow,green,blue 'npm:lint:js' 'npm:lint:native-js' 'npm:lint:markdown' 'npm:lint:rust'",
@@ -87,8 +87,8 @@
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
     "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:options'",
-    "test:coverage": "npm run build:cjs && shx rm -rf coverage/* && nyc --reporter html mocha test/test.js",
-    "test:coverage:browser": "npm run build && shx rm -rf coverage/* && nyc mocha test/browser/index.js",
+    "test:coverage": "npm run build:cjs && shx rm -rf coverage/* && c8 --reporter html mocha test/test.js",
+    "test:coverage:browser": "npm run build && shx rm -rf coverage/* && c8 mocha test/browser/index.js",
     "test:leak": "npm install --no-save weak-napi && node --expose-gc test/leak/index.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
@@ -156,6 +156,7 @@
     "acorn-jsx": "^5.3.2",
     "buble": "^0.20.0",
     "builtin-modules": "^5.3.0",
+    "c8": "^12.0.0",
     "chokidar": "^5.0.0",
     "concurrently": "^10.0.5",
     "core-js": "3.38.1",
@@ -177,10 +178,9 @@
     "locate-character": "^3.0.0",
     "magic-string": "^1.4.1",
     "memfs": "^4.78.0",
-    "mocha": "^11.8.0",
+    "mocha": "^12.0.2",
     "nodemon": "^3.1.14",
     "npm-audit-resolver": "^3.0.0-RC.0",
-    "nyc": "^18.0.0",
     "patch-package": "^8.0.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.7",
@@ -241,8 +241,8 @@
     "dist/es/package.json"
   ],
   "engines": {
-    "node": ">=22.0.0",
-    "npm": ">=10.5.1"
+    "node": ">=22.12.0",
+    "npm": ">=10.9.0"
   },
   "exports": {
     ".": {
