@@ -27,6 +27,14 @@ interface ModulesWithDependentEntries {
 	modules: Module[];
 }
 
+interface AliasWithDependentEntries {
+	alias: string | null;
+	/**
+	 * The indices of the entries depending on this chunk
+	 */
+	dependentEntries: ReadonlySet<number>;
+}
+
 interface ChunkDescription {
 	alias: string | null;
 	/**
@@ -284,15 +292,12 @@ interface ChunkKeyWithAlias {
  * (several aliases split per manual chunk, shared code stays alias-less).
  */
 function createChunkKeyFactory(
-	modulesWithDependentEntries: readonly {
-		alias: string | null;
-		dependentEntries: ReadonlySet<number>;
-	}[],
+	aliasesWithDependentEntries: readonly AliasWithDependentEntries[],
 	onlyExplicitManualChunks: boolean
 ): (index: number) => ChunkKeyWithAlias {
-	const signatureKeys: string[] = new Array(modulesWithDependentEntries.length);
+	const signatureKeys: string[] = new Array(aliasesWithDependentEntries.length);
 	const aliasBySignature = onlyExplicitManualChunks ? null : new Map<string, string | null>();
-	for (const [index, { dependentEntries, alias }] of modulesWithDependentEntries.entries()) {
+	for (const [index, { dependentEntries, alias }] of aliasesWithDependentEntries.entries()) {
 		let signature = 0n;
 		for (const entryIndex of dependentEntries) {
 			signature |= 1n << BigInt(entryIndex);
@@ -308,7 +313,7 @@ function createChunkKeyFactory(
 		}
 	}
 	return index => {
-		const { alias } = modulesWithDependentEntries[index];
+		const { alias } = aliasesWithDependentEntries[index];
 		const signatureKey = signatureKeys[index];
 		if (alias !== null) {
 			return {
