@@ -1,5 +1,5 @@
-define(['./main2'], (function (manual) { 'use strict';
+define(['./generated-dep'], (function (dep) { 'use strict';
 
-	console.log('main', manual.reexported);
+	console.log('main', dep.value);
 
 }));

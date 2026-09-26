@@ -1464,17 +1464,17 @@ export default {
 
 Allows the creation of custom shared common chunks. The object form can be used for an easier and safer manual chunking, and the function form can be used for a more powerful and controlled behavior.
 
-When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key. Note that it is not necessary for the listed modules themselves to be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
+When using the object form, each property represents a chunk that contains the listed modules as well as all modules that are always loaded together with them, while modules that are also used by other entry points or manual chunks are extracted into separate chunks; see [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks) to change this behavior. The name of the chunk will be determined by the property key. Listed ids are resolved like entry points, so bare package ids work with `@rollup/plugin-node-resolve`, but only listed modules that end up included in the bundle become part of the chunk. For instance
 
 ```javascript
 manualChunks: {
-	lodash: ['lodash'],
+	lodash: ['lodash/get'],
 }
 ```
 
-will merge all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
+will merge the `get` module and the lodash modules only used by it into a manual chunk named `lodash`.
 
-When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependencies will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
+When using the function form, each resolved module id will be passed to the function. If a string is returned, the module is added to the manual chunk with the given name, while its dependencies are chunked normally into separate chunks. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
 
 ```javascript twoslash
 // ---cut-start---
@@ -1489,9 +1489,11 @@ function manualChunks(id) {
 }
 ```
 
-By default, the function form will also merge dependencies of the returned ids into the manualChunk. If you need stricter behavior, you can use [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks), which will be the default in Rollup 5.
+By default, the function form does not add any additional modules to the manual chunk besides the returned modules. If you want manual chunks to behave like entry points and also contain modules that are always loaded together with the returned modules, set [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks) to `false`.
 
 Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
+
+If you only include modules in a manual chunk that are fully removed by tree-shaking, then the (empty) manual chunk will not be generated, but you will receive an `EMPTY_MANUAL_CHUNK` warning.
 
 When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) and [`this.getModuleIds`](../plugin-development/index.md#this-getmoduleids) on the plugin context.
 
@@ -1625,6 +1627,55 @@ console.log(importantValue);
 ```
 
 Even though it appears that setting this option to `true` makes the output larger, it actually makes it smaller if a minifier is used. In this case, `export { importantValue as i }` can become e.g. `export{a as i}` or even `export{i}`, while otherwise it would produce `export{ a as importantValue }` because a minifier usually will not change export signatures.
+
+### output.onlyExplicitManualChunks
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| Default: | `false` for the object form of [output.manualChunks](#output-manualchunks), `true` for the function form |
+
+When `true`, manual chunks only contain the modules that are explicitly assigned to them, and their dependencies are chunked normally into separate chunks. When `false`, manual chunks behave like entry points and also contain all modules that are always loaded together with them, while modules that are also used by other entry points or manual chunks are extracted into separate chunks. The option applies to both the object and the function form of [output.manualChunks](#output-manualchunks).
+
+For instance, with
+
+```js
+// src/main.js (entry point)
+import './manual1';
+import './manual2';
+
+console.log('main');
+
+// src/manual1.js
+import './dep.js';
+
+console.log('manual1');
+
+// src/manual2.js
+import './dep.js';
+
+console.log('manual2');
+
+// src/dep.js
+console.log('dep');
+```
+
+and
+
+<!-- prettier-ignore-start -->
+
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').GetManualChunk} */
+// ---cut-end---
+function manualChunks(id) {
+	if (id.endsWith('manual1.js') || id.endsWith('manual2.js')) {
+		return 'manual';
+	}
+}
+```
+
+the `manual` chunk contains only the two manual modules while `dep.js` is chunked normally into a separate chunk that is shared between the `main` and the `manual` chunk. This is the default for the function form and gives you full control over what code goes into which manual chunks—if your manual chunking is very granular, this can prevent import graph inaccuracies and help reduce cache invalidation. When the option is set to `false`, the `manual` chunk behaves like an entry point instead and also contains `dep.js`, as it is always loaded together with the two manual modules.
 
 ### output.paths
 
@@ -3153,53 +3204,3 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 | Default: | `true`                                                       |
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, import attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
-
-### output.onlyExplicitManualChunks
-
-|       |           |
-| ----: | :-------- |
-| Type: | `boolean` |
-
-If set to true, using the [output.manualChunks](#output-manualchunks) function form won't merge dependencies into the output chunk.
-
-For instance, with
-
-```js
-// src/main.js (entry point)
-import './manual1';
-import './manual2';
-
-console.log('main');
-
-// src/manual1.js
-import './dep.js';
-
-console.log('manual1');
-
-// src/manual2.js
-import './dep.js';
-
-console.log('manual2');
-
-// src/dep.js
-console.log('dep');
-```
-
-and
-
-<!-- prettier-ignore-start -->
-
-```js twoslash
-// ---cut-start---
-/** @type {import('rollup').GetManualChunk} */
-// ---cut-end---
-function manualChunks(id) {
-	if (id.endsWith('manual1.js') && id.endsWith('manual2.js')) {
-		return 'manual';
-	}
-}
-```
-
-the dep.js `export const dep = 'dep';` code, won't be merged into the `manual` output chunk. This gives you full control over what code goes into which manual chunks, and if your manual chunking is very granular, this can prevent import graph inaccuracies and help reduce cache invalidation.
-
-Note: although this option is new in Rollup 4, it is marked as deprecated because it will become the new default for the function form in Rollup 5.

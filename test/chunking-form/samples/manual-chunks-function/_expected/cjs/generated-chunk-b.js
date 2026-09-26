@@ -1,6 +1,6 @@
 'use strict';
 
-require('./generated-chunk-c.js');
+require('./generated-dep2.js');
 
 console.log('dep-b');
 

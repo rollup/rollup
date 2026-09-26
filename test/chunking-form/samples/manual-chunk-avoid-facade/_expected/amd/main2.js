@@ -1,9 +1,7 @@
-define(['exports'], (function (exports) { 'use strict';
+define(['exports', './generated-dep'], (function (exports, dep) { 'use strict';
 
-	const value = 42;
+	console.log('main2', dep.value);
 
-	console.log('main2', value);
-
-	exports.reexported = value;
+	exports.reexported = dep.value;
 
 }));

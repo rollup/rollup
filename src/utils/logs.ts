@@ -127,6 +127,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	DUPLICATE_IMPORT_OPTIONS = 'DUPLICATE_IMPORT_OPTIONS',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
 	EMPTY_BUNDLE = 'EMPTY_BUNDLE',
+	EMPTY_MANUAL_CHUNK = 'EMPTY_MANUAL_CHUNK',
 	EVAL = 'EVAL',
 	EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS =
 		'EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS',
@@ -330,15 +331,25 @@ export function logCircularDependency(cyclePath: string[]): RollupLog {
 	};
 }
 
-export function logCircularChunk(cyclePath: string[], isManualChunkConflict: boolean): RollupLog {
+export function logCircularChunk(
+	cyclePath: string[],
+	manualChunkNames: readonly string[],
+	onlyExplicitManualChunks: boolean
+): RollupLog {
+	const manualChunkCount = cyclePath.length - 1;
 	return {
 		code: CIRCULAR_CHUNK,
 		ids: cyclePath,
-		message: `Circular chunk: ${cyclePath.join(' -> ')}. ${
-			isManualChunkConflict
-				? `Please adjust the manual chunk logic for these chunks.`
-				: `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${cyclePath.at(-2)}" to be extracted into the separate chunk "${cyclePath.at(-1)}".`
-		}`
+		message:
+			manualChunkNames.length === 0
+				? `Circular chunk: ${cyclePath.join(' -> ')}.`
+				: `Circular chunk: ${cyclePath.join(' -> ')}. ${
+						manualChunkNames.length === manualChunkCount
+							? `Please adjust the manual chunk logic for these chunks.`
+							: onlyExplicitManualChunks
+								? `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${manualChunkNames[0]}" to be extracted into the separate chunk "${cyclePath.find(name => !manualChunkNames.includes(name))}".`
+								: `Please adjust the manual chunks or the module structure.`
+					}`
 	};
 }
 
@@ -426,6 +437,14 @@ export function logEmptyChunk(chunkName: string): RollupLog {
 		code: EMPTY_BUNDLE,
 		message: `Generated an empty chunk: "${chunkName}".`,
 		names: [chunkName]
+	};
+}
+
+export function logEmptyManualChunk(alias: string): RollupLog {
+	return {
+		code: EMPTY_MANUAL_CHUNK,
+		message: `Manual chunk "${alias}" was not generated as none of its modules are included in the bundle.`,
+		names: [alias]
 	};
 }
 
