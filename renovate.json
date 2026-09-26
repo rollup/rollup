@@ -47,6 +47,13 @@
     },
     {
       "matchPackageNames": [
+        "@napi-rs/cli"
+      ],
+      "allowedVersions": "<3.8.0",
+      "description": "From 3.8.0 on, napi artifacts can wedge on Windows runners: a failed lock cleanup leaves the reconciliation lock owned by the live process, and it is never reclaimed. Pin until this is fixed upstream."
+    },
+    {
+      "matchPackageNames": [
         "lru-cache"
       ],
       "enabled": false,
