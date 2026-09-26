@@ -140,10 +140,8 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            cross: napi
           - host: ubuntu-latest
             target: aarch64-linux-android
-            cross: napi
             # There are compile issues when using the cache with Android
             cache-cargo: false
           - host: ubuntu-latest
@@ -373,6 +371,11 @@ jobs:
           key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-openbsd-cargo-ubuntu-latest
 
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
 
@@ -446,6 +449,10 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Build JS
@@ -518,21 +525,16 @@ jobs:
             target: aarch64-pc-windows-msvc
             package: win32-arm64-msvc
         node:
-          - '18.20.0'
+          - '22.12.0'
           - 24
         include:
           - settings:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
               package: linux-x64-gnu
-            node: '18.20.0'
+            node: '22.12.0'
             command: 'ci:test:all'
             additionalName: ' with Additional Tests'
-        exclude:
-          # Windows ARM builds were not provided for a while
-          - settings:
-              target: aarch64-pc-windows-msvc
-            node: '18.20.0'
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
     steps:
@@ -616,14 +618,13 @@ jobs:
         run: mkdir -p coverage/profraw
       - name: Run tests with coverage
         run: |
-          # Run JS tests with nyc (JS coverage). The instrumented .node collects
+          # Run JS tests with c8 (JS coverage). The instrumented .node collects
           # Rust coverage via LLVM_PROFILE_FILE. On Linux, the LLVM profiler
           # runtime's atexit handler does not fire for dlopen'd shared libraries,
           # so scripts/coverage-flush.cjs manually calls flushLlvmCoverage() on
           # process exit.
-          # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
-          NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs" \
-            npx nyc --reporter lcovonly mocha test/test.js
+          NODE_OPTIONS="--require $PWD/scripts/coverage-flush.cjs" \
+            npm run ci:coverage
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"

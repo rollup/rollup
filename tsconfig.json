@@ -5,7 +5,7 @@
     "allowUnusedLabels": false,
     "forceConsistentCasingInFileNames": true,
     "lib": [
-      "ES2022",
+      "ES2023",
       "ESNext.Disposable",
       "DOM"
     ],
@@ -22,7 +22,7 @@
     "pretty": true,
     "resolveJsonModule": true,
     "strict": true,
-    "target": "ES2022",
+    "target": "ES2023",
     "useDefineForClassFields": false
   },
   "include": [

@@ -33,13 +33,6 @@
     },
     {
       "matchPackageNames": [
-        "@napi-rs/cli"
-      ],
-      "enabled": false,
-      "description": "napi-rs no longer runs on Node 18 as of v3.5.0"
-    },
-    {
-      "matchPackageNames": [
         "wasm-pack"
       ],
       "allowedVersions": "!/^0\\.14\\.0$/",
@@ -51,6 +44,13 @@
       ],
       "allowedVersions": "<=0.1.23",
       "description": "stacker 0.1.24+ requires windows-sys >=0.60 which uses windows-link instead of windows-targets, breaking the x86_64-pc-windows-gnu (MinGW) build. Pin until upstream fixes this."
+    },
+    {
+      "matchPackageNames": [
+        "@napi-rs/cli"
+      ],
+      "allowedVersions": "<3.8.0",
+      "description": "From 3.8.0 on, napi artifacts can wedge on Windows runners: a failed lock cleanup leaves the reconciliation lock owned by the live process, and it is never reclaimed. Pin until this is fixed upstream."
     },
     {
       "matchPackageNames": [
@@ -68,21 +68,17 @@
     },
     {
       "matchPackageNames": [
-        "@inquirer/prompts",
-        "@rollup/plugin-terser",
         "@types/node",
-        "concurrently",
-        "mocha",
         "react",
         "react-dom",
         "typescript",
-        "vite",
-        "yargs-parser"
+        "vite"
       ],
       "matchUpdateTypes": [
         "major"
       ],
-      "enabled": false
+      "enabled": false,
+      "description": "Majors are only updated manually: @types/node must match the engines.node floor, typescript and vite when their tooling follows, react and react-dom for the REPL"
     }
   ],
   "pinDigests": true,

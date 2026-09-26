@@ -14,7 +14,7 @@
 
 ## Running Tests
 
-- Fast loop: add `solo: true` to the `_config.js`, run `npm run build:quick` then `npm run test:quick` (bails on first failure). Remove `solo` before committing — it disables the entire suite
+- Fast loop: add `solo: true` to the `_config.js`, run `npm run build:quick` then `npm run test:quick` (bails on first failure). Remove `solo` before committing — it disables the entire suite and fails the CI run, where mocha forbids `.only`
 - `test:quick` does not run browser tests, and some CLI tests require the ES build and fail without it — use the full build and `npm run test:all` before declaring those green
 - On Windows, `core.symlinks true` is required or symlink-based tests fail
 - `npm run test:update-snapshots` walks ALL form and chunking-form samples and copies `_actual`/`_actual.js` over `_expected`, throwing when any sample lacks output — a full (non-bailed) prior run must have produced fresh `_actual` output everywhere
