@@ -1493,6 +1493,8 @@ By default, the function form does not add any additional modules to the manual 
 
 Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
 
+If a manual chunk is only loaded via dynamic imports, then for chunking purposes it behaves like a dynamic entry: modules that are always already loaded by the importing chunk are not extracted into the manual chunk but remain in the importing chunk.
+
 If you only include modules in a manual chunk that are fully removed by tree-shaking, then the (empty) manual chunk will not be generated, but you will receive an `EMPTY_MANUAL_CHUNK` warning.
 
 When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) and [`this.getModuleIds`](../plugin-development/index.md#this-getmoduleids) on the plugin context.

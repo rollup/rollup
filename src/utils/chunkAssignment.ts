@@ -197,6 +197,10 @@ export function getChunkAssignments(
 		manualChunkAliasByEntry,
 		log
 	);
+	const manualChunkIndexByChunk = new Map<ManualChunk, number>();
+	manualChunks.forEach((manualChunk, index) => {
+		manualChunkIndexByChunk.set(manualChunk, entries.length + index);
+	});
 	const {
 		entriesAndManualChunksCount,
 		dependentEntriesByModule,
@@ -204,7 +208,7 @@ export function getChunkAssignments(
 		dynamicImportsByEntry,
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry
-	} = analyzeModuleGraph(entries, manualChunks, manualChunkByModule);
+	} = analyzeModuleGraph(entries, manualChunks, manualChunkByModule, manualChunkIndexByChunk);
 	const { modulesWithDependentEntries, topLevelAwaitingCycleSingletons } =
 		getModulesWithDependentEntries(dependentEntriesByModule, manualChunkByModule);
 
@@ -227,6 +231,15 @@ export function getChunkAssignments(
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry,
 		entriesAndManualChunksCount
+	);
+	// A manual chunk only behaves like a dynamic entry if its whole member atom
+	// is not already loaded whenever any entry dynamically loads it. Otherwise
+	// there is nothing to gain (and cycles could be created) and the manual
+	// chunk keeps behaving like a static pseudo-entry.
+	keepAlreadyLoadedManualChunksStatic(
+		manualChunkIndexByChunk,
+		chunkAtoms,
+		alreadyLoadedAtomsByEntry
 	);
 	// This mutates the dependentEntries in chunkAtoms
 	removeUnnecessaryDependentEntries(
@@ -333,7 +346,8 @@ function getChunkKeys(
 function analyzeModuleGraph(
 	entries: readonly Module[],
 	manualChunks: readonly ManualChunk[],
-	manualChunkByModule: ReadonlyMap<Module, ManualChunk>
+	manualChunkByModule: ReadonlyMap<Module, ManualChunk>,
+	manualChunkIndexByChunk: ReadonlyMap<ManualChunk, number>
 ): {
 	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[];
 	dependentEntriesByModule: Map<Module, Set<number>>;
@@ -358,13 +372,24 @@ function analyzeModuleGraph(
 	const awaitedDynamicImportModulesByEntry: Set<Module>[] = new Array(
 		allEntriesAndManualChunks.length
 	);
+	const dynamicallyLoadedManualChunksByEntry: Set<ManualChunk>[] = new Array(
+		allEntriesAndManualChunks.length
+	);
+	const awaitedLoadedManualChunksByEntry: Set<ManualChunk>[] = new Array(
+		allEntriesAndManualChunks.length
+	);
 	let entryOrManualChunkIndex = 0;
 	for (const currentEntryModules of allEntriesAndManualChunks) {
 		const dynamicImportsForCurrentEntry = new Set<Module>();
 		const awaitedDynamicImportsForCurrentEntry = new Set<Module>();
+		const dynamicManualChunksForCurrentEntry = new Set<ManualChunk>();
+		const awaitedManualChunksForCurrentEntry = new Set<ManualChunk>();
 		dynamicImportModulesByEntry[entryOrManualChunkIndex] = dynamicImportsForCurrentEntry;
 		awaitedDynamicImportModulesByEntry[entryOrManualChunkIndex] =
 			awaitedDynamicImportsForCurrentEntry;
+		dynamicallyLoadedManualChunksByEntry[entryOrManualChunkIndex] =
+			dynamicManualChunksForCurrentEntry;
+		awaitedLoadedManualChunksByEntry[entryOrManualChunkIndex] = awaitedManualChunksForCurrentEntry;
 		const staticDependencies = new Set(currentEntryModules);
 		// If we have a very large manual chunk, tracking if it is already added to the dependencies will improve performance
 		const addedManualChunks = new Set<ManualChunk>();
@@ -385,19 +410,28 @@ function analyzeModuleGraph(
 			for (const {
 				node: { resolution }
 			} of module.dynamicImports) {
+				let manuallyLoadedChunk: ManualChunk | null = null;
 				if (resolution instanceof Module && resolution.includedDynamicImporters.length > 0) {
 					if (!allEntriesSet.has(resolution)) {
 						dynamicEntryModules.add(resolution);
 						allEntriesSet.add(resolution);
 						allEntriesAndManualChunks.push([resolution]);
 					} else if (!dynamicEntryModules.has(resolution)) {
-						continue;
+						manuallyLoadedChunk = manualChunkByModule.get(resolution) ?? null;
+						if (!manuallyLoadedChunk) {
+							continue;
+						}
+						dynamicManualChunksForCurrentEntry.add(manuallyLoadedChunk);
 					}
 					dynamicImportsForCurrentEntry.add(resolution);
 					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
 						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
-							awaitedDynamicEntryModules.add(resolution);
 							awaitedDynamicImportsForCurrentEntry.add(resolution);
+							if (manuallyLoadedChunk) {
+								awaitedManualChunksForCurrentEntry.add(manuallyLoadedChunk);
+							} else {
+								awaitedDynamicEntryModules.add(resolution);
+							}
 							break;
 						}
 					}
@@ -408,6 +442,12 @@ function analyzeModuleGraph(
 					dynamicEntryModules.add(dependency);
 					allEntriesSet.add(dependency);
 					allEntriesAndManualChunks.push([dependency]);
+				} else {
+					const manuallyLoadedChunk = manualChunkByModule.get(dependency);
+					if (manuallyLoadedChunk) {
+						dynamicManualChunksForCurrentEntry.add(manuallyLoadedChunk);
+						dynamicImportsForCurrentEntry.add(dependency);
+					}
 				}
 			}
 		}
@@ -423,7 +463,10 @@ function analyzeModuleGraph(
 		dynamicEntryModules,
 		dynamicImportModulesByEntry,
 		awaitedDynamicEntryModules,
-		awaitedDynamicImportModulesByEntry
+		awaitedDynamicImportModulesByEntry,
+		dynamicallyLoadedManualChunksByEntry,
+		awaitedLoadedManualChunksByEntry,
+		manualChunkIndexByChunk
 	);
 	return {
 		awaitedDynamicImportsByEntry,
@@ -450,13 +493,18 @@ function getDynamicEntries(
 	dynamicEntryModules: Set<Module>,
 	dynamicImportModulesByEntry: Set<Module>[],
 	awaitedDynamicEntryModules: Set<Module>,
-	awaitedDynamicImportModulesByEntry: Set<Module>[]
+	awaitedDynamicImportModulesByEntry: Set<Module>[],
+	dynamicallyLoadedManualChunksByEntry: readonly ReadonlySet<ManualChunk>[],
+	awaitedLoadedManualChunksByEntry: readonly ReadonlySet<ManualChunk>[],
+	manualChunkIndexByChunk: ReadonlyMap<ManualChunk, number>
 ) {
 	const entryIndexByModule = new Map<Module, number>();
 	const dynamicEntries = new Set<number>();
 	const awaitedDynamicEntries = new Set<number>();
 	for (const [entryIndex, entryModules] of allEntriesAndManualChunks.entries()) {
 		for (const entryModule of entryModules) {
+			// Manual chunk members and in particular members that are also static
+			// entries map to their manual chunk for dynamic-edge bookkeeping
 			entryIndexByModule.set(entryModule, entryIndex);
 			if (dynamicEntryModules.has(entryModule)) {
 				dynamicEntries.add(entryIndex);
@@ -464,6 +512,16 @@ function getDynamicEntries(
 			if (awaitedDynamicEntryModules.has(entryModule)) {
 				awaitedDynamicEntries.add(entryIndex);
 			}
+		}
+	}
+	for (const dynamicallyLoadedManualChunks of dynamicallyLoadedManualChunksByEntry) {
+		for (const manuallyLoadedChunk of dynamicallyLoadedManualChunks) {
+			dynamicEntries.add(manualChunkIndexByChunk.get(manuallyLoadedChunk)!);
+		}
+	}
+	for (const awaitedLoadedManualChunks of awaitedLoadedManualChunksByEntry) {
+		for (const awaitedLoadedChunk of awaitedLoadedManualChunks) {
+			awaitedDynamicEntries.add(manualChunkIndexByChunk.get(awaitedLoadedChunk)!);
 		}
 	}
 	const dynamicImportsByEntry = getDynamicImportsByEntry(
@@ -634,6 +692,33 @@ function getAlreadyLoadedAtomsByEntry(
 		}
 	}
 	return alreadyLoadedAtomsByEntry;
+}
+
+/**
+ * Manual chunks whose member atom is already loaded in every context that
+ * dynamically loads them must not be treated like dynamic entries as that
+ * would only cause unnecessary chunk cycles. The all-or-nothing rule resets
+ * their already loaded atoms so that pruning behaves exactly as if they were
+ * static pseudo-entries.
+ */
+function keepAlreadyLoadedManualChunksStatic(
+	manualChunkIndexByChunk: ReadonlyMap<ManualChunk, number>,
+	chunkAtoms: readonly ModulesWithDependentEntries[],
+	alreadyLoadedAtomsByEntry: bigint[]
+) {
+	const memberAtomMaskByAlias = new Map<string, bigint>();
+	for (const [index, { alias }] of chunkAtoms.entries()) {
+		if (alias !== null) {
+			memberAtomMaskByAlias.set(alias, 1n << BigInt(index));
+		}
+	}
+	for (const [manualChunk, manualChunkIndex] of manualChunkIndexByChunk) {
+		const memberAtomMask = memberAtomMaskByAlias.get(manualChunk.alias);
+		const alreadyLoadedAtoms = alreadyLoadedAtomsByEntry[manualChunkIndex];
+		if (memberAtomMask !== undefined && (alreadyLoadedAtoms & memberAtomMask) === memberAtomMask) {
+			alreadyLoadedAtomsByEntry[manualChunkIndex] = 0n;
+		}
+	}
 }
 
 /**

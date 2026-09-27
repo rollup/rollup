@@ -1,4 +1,4 @@
-export { D as DEP } from './generated-dep.js';
+export { D as DEP } from './main.js';
 export { DYNAMIC_2 } from './generated-dynamic2.js';
 export { DYNAMIC_3 } from './generated-dynamic3.js';
 
