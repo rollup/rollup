@@ -336,7 +336,7 @@ export function logCircularChunk(
 	manualChunkNames: readonly string[],
 	onlyExplicitManualChunks: boolean
 ): RollupLog {
-	const manualChunkCount = cyclePath.length - 1;
+	const cycleChunkCount = cyclePath.length - 1;
 	return {
 		code: CIRCULAR_CHUNK,
 		ids: cyclePath,
@@ -344,7 +344,7 @@ export function logCircularChunk(
 			manualChunkNames.length === 0
 				? `Circular chunk: ${cyclePath.join(' -> ')}.`
 				: `Circular chunk: ${cyclePath.join(' -> ')}. ${
-						manualChunkNames.length === manualChunkCount
+						manualChunkNames.length === cycleChunkCount
 							? `Please adjust the manual chunk logic for these chunks.`
 							: onlyExplicitManualChunks
 								? `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${manualChunkNames[0]}" to be extracted into the separate chunk "${cyclePath.find(name => !manualChunkNames.includes(name))}".`
