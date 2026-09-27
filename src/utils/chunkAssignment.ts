@@ -386,14 +386,14 @@ function analyzeModuleGraph(
 			for (const {
 				node: { resolution }
 			} of module.dynamicImports) {
-				if (
-					resolution instanceof Module &&
-					resolution.includedDynamicImporters.length > 0 &&
-					!allEntriesSet.has(resolution)
-				) {
-					dynamicEntryModules.add(resolution);
-					allEntriesSet.add(resolution);
-					allEntriesAndManualChunks.push([resolution]);
+				if (resolution instanceof Module && resolution.includedDynamicImporters.length > 0) {
+					if (!allEntriesSet.has(resolution)) {
+						dynamicEntryModules.add(resolution);
+						allEntriesSet.add(resolution);
+						allEntriesAndManualChunks.push([resolution]);
+					} else if (!dynamicEntryModules.has(resolution)) {
+						continue;
+					}
 					dynamicImportsForCurrentEntry.add(resolution);
 					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
 						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
