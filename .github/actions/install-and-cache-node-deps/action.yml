@@ -12,7 +12,15 @@ runs:
           ~/.npm
         key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
         restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
-    - name: Pin npm version and install Node dependencies
+    - name: Pin npm version
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: |
+        npm config set prefix ~/.npm-global
+        npm install -g npm@11.15.0
+        echo "$HOME/.npm-global/bin" >> $GITHUB_PATH
+      shell: bash
+      # This is a separate step to pick up the updated path
+    - name: Install Node dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: |
         npm config set prefix ~/.npm-global
