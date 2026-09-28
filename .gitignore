@@ -15,7 +15,6 @@ test/hooks/tmp
 test/tmp
 test/typescript/typings
 perf/
-.nyc_output/
 .github_token
 .temp
 docs/.vitepress/graphs/*.mmd
