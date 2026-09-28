@@ -266,31 +266,34 @@ async function transformChunksAndGenerateContentHashes(
 					if (map && outputOptions.sourcemap !== 'hidden') {
 						// Normalize raw map data and file names before base64 or URL encoding
 						// can hide placeholders and make hashes depend on chunk order.
-						const {
-							containedPlaceholders: sourcemapPlaceholders,
-							transformedCode: sourcemapContent
-						} =
-							outputOptions.sourcemap === 'inline'
-								? normalizedSourcemap!
-								: replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
-										replacePlaceholders(
-											preliminarySourcemapFileName?.fileName ?? `${fileName}.map`,
-											initialHashesByPlaceholder
-										),
-										placeholders
-									);
+						let sourcemapPlaceholders: Set<string>;
+						if (outputOptions.sourcemap === 'inline') {
+							const { containedPlaceholders: inlinePlaceholders, transformedCode: sourcemapJson } =
+								normalizedSourcemap!;
+							sourcemapPlaceholders = inlinePlaceholders;
+							contentToHash += `//# ${SOURCEMAPPING_URL}=data:application/json,${sourcemapJson}\n`;
+						} else {
+							const {
+								containedPlaceholders: externalPlaceholders,
+								transformedCode: sourcemapFileName
+							} = replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
+								replacePlaceholders(
+									preliminarySourcemapFileName?.fileName ?? `${fileName}.map`,
+									initialHashesByPlaceholder
+								),
+								placeholders
+							);
+							sourcemapPlaceholders = externalPlaceholders;
+							contentToHash += getSourceMapComment(
+								sourcemapFileName,
+								map,
+								outputOptions.sourcemap,
+								outputOptions.sourcemapBaseUrl
+							);
+						}
 						for (const placeholder of sourcemapPlaceholders) {
 							containedPlaceholders.add(placeholder);
 						}
-						contentToHash +=
-							outputOptions.sourcemap === 'inline'
-								? `//# ${SOURCEMAPPING_URL}=data:application/json,${sourcemapContent}\n`
-								: getSourceMapComment(
-										sourcemapContent,
-										map,
-										outputOptions.sourcemap,
-										outputOptions.sourcemapBaseUrl
-									);
 					}
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
