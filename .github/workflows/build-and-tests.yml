@@ -139,10 +139,8 @@ jobs:
             cross: zig
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            cross: napi
           - host: ubuntu-latest
             target: aarch64-linux-android
-            cross: napi
             # There are compile issues when using the cache with Android
             cache-cargo: false
           - host: ubuntu-latest
@@ -362,6 +360,11 @@ jobs:
           key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: x86_64-unknown-openbsd-cargo-ubuntu-latest
 
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
 
@@ -432,6 +435,10 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Build JS
@@ -504,13 +511,8 @@ jobs:
             target: aarch64-pc-windows-msvc
             package: win32-arm64-msvc
         node:
-          - '18.20.0'
+          - '22.12.0'
           - 24
-        exclude:
-          # Windows ARM builds were not provided for a while
-          - settings:
-              target: aarch64-pc-windows-msvc
-            node: '18.20.0'
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
     steps:
@@ -640,7 +642,7 @@ jobs:
           node-version: 24.10.0
           registry-url: 'https://registry.npmjs.org'
       - name: Update npm for publishing
-        run: npm install -g npm@11.15.0
+        run: npm install -g npm@11.21.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Prepare Build Artifacts

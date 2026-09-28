@@ -21,5 +21,5 @@
   "libc": [
     "glibc"
   ],
-  "main": "./rollup.linux-riscv64-gnu.node"
+  "main": "rollup.linux-riscv64-gnu.node"
 }
