@@ -7,6 +7,5 @@ module.exports = defineTest({
 		'typescript',
 		'--configImportAttributesKey',
 		'with'
-	],
-	minNodeVersion: 22
+	]
 });

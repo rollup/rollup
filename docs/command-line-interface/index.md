@@ -322,45 +322,33 @@ export default {
 
 ### Importing package.json
 
-It can be useful to import your package file to e.g. mark your dependencies as "external" automatically. Depending on your Node version, there are different ways of doing that:
+It can be useful to import your package file to e.g. mark your dependencies as "external" automatically. You can use an import attribute for that:
 
-- For Node 18.20+, you can use an import attribute
+```js twoslash
+import pkg from './package.json' with { type: 'json' };
 
-  ```js twoslash
-  import pkg from './package.json' with { type: 'json' };
+export default {
+	// Mark package dependencies as "external". Rest of configuration
+	// omitted.
+	external: Object.keys(pkg.dependencies)
+};
+```
 
-  export default {
-  	// Mark package dependencies as "external". Rest of configuration
-  	// omitted.
-  	external: Object.keys(pkg.dependencies)
-  };
-  ```
+Alternatively, you can read and parse the file directly from disk:
 
-- For older Node versions, you can use `createRequire`
+```js twoslash
+// rollup.config.mjs
+import { readFileSync } from 'node:fs';
 
-  ```js twoslash
-  import { createRequire } from 'node:module';
-  const require = createRequire(import.meta.url);
-  const pkg = require('./package.json');
+// Use import.meta.url to make the path relative to the current source
+// file instead of process.cwd(). For more information:
+// https://nodejs.org/docs/latest/api/esm.html#importmetaurl
+const packageJson = JSON.parse(
+	readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
+);
 
-  // ...
-  ```
-
-- Or just directly read and parse the file from disk
-
-  ```js twoslash
-  // rollup.config.mjs
-  import { readFileSync } from 'node:fs';
-
-  // Use import.meta.url to make the path relative to the current source
-  // file instead of process.cwd(). For more information:
-  // https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
-  const packageJson = JSON.parse(
-  	readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
-  );
-
-  // ...
-  ```
+// ...
+```
 
 ## Command line flags
 

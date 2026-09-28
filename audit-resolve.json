@@ -1,73 +1,33 @@
 {
   "decisions": {
-    "1112706|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1789100346311,
-      "expiresAt": 1797000000000
-    },
-    "1113686|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458699984,
-      "expiresAt": 1797000000000
-    },
-    "1113686|mocha>diff>glob>minimatch>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458699984,
-      "expiresAt": 1797000000000
-    },
-    "1113686|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336870,
-      "expiresAt": 1797000000000
-    },
-    "1119440|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458703055,
-      "expiresAt": 1797000000000
-    },
-    "1119440|mocha>diff>glob>minimatch>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458703055,
-      "expiresAt": 1797000000000
-    },
-    "1119440|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1797000000000
-    },
     "1241206|@mermaid-js/mermaid-cli>katex": {
       "decision": "ignore",
       "madeAt": 1791260936836,
       "expiresAt": 1797000000000
     },
-    "1243082|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458705088,
-      "expiresAt": 1797000000000
-    },
-    "1243082|mocha>diff>glob>minimatch>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458705088,
-      "expiresAt": 1797000000000
-    },
-    "1243082|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1792990824148,
-      "expiresAt": 1797000000000
-    },
     "1243505|@rollup/plugin-node-resolve>deepmerge": {
       "decision": "ignore",
-      "madeAt": 1793174306903,
-      "expiresAt": 1795766295689
+      "madeAt": 1793513495079,
+      "expiresAt": 1797000000000
     },
     "1244012|@eslint/js>eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
       "decision": "ignore",
-      "madeAt": 1793458697584,
+      "madeAt": 1793513491605,
       "expiresAt": 1797000000000
     },
     "1244012|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
       "decision": "ignore",
-      "madeAt": 1793458697584,
+      "madeAt": 1793513491605,
+      "expiresAt": 1797000000000
+    },
+    "1244012|@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793513491605,
+      "expiresAt": 1797000000000
+    },
+    "1244012|c8>test-exclude>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793513491605,
       "expiresAt": 1797000000000
     },
     "1244012|eslint-config-prettier>eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
@@ -100,32 +60,12 @@
       "madeAt": 1793458697584,
       "expiresAt": 1797000000000
     },
-    "1244012|istanbul-lib-processinfo>rimraf>glob>minimatch": {
+    "1244012|mocha>glob>minimatch": {
       "decision": "ignore",
-      "madeAt": 1793458697584,
-      "expiresAt": 1797000000000
-    },
-    "1244012|mocha>diff>glob>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793458697584,
+      "madeAt": 1793513491605,
       "expiresAt": 1797000000000
     },
     "1244012|nodemon>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793458697584,
-      "expiresAt": 1797000000000
-    },
-    "1244012|nyc>glob>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793458697584,
-      "expiresAt": 1797000000000
-    },
-    "1244012|spawn-wrap>rimraf>glob>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793458697584,
-      "expiresAt": 1797000000000
-    },
-    "1244012|test-exclude>glob>minimatch": {
       "decision": "ignore",
       "madeAt": 1793458697584,
       "expiresAt": 1797000000000
@@ -140,29 +80,14 @@
       "madeAt": 1793458697584,
       "expiresAt": 1797000000000
     },
-    "1244013|istanbul-lib-processinfo>rimraf>glob": {
+    "1244013|c8>test-exclude>glob": {
       "decision": "ignore",
-      "madeAt": 1793458707044,
+      "madeAt": 1793513496679,
       "expiresAt": 1797000000000
     },
-    "1244013|mocha>diff>glob": {
+    "1244013|mocha>glob": {
       "decision": "ignore",
-      "madeAt": 1793458707044,
-      "expiresAt": 1797000000000
-    },
-    "1244013|nyc>glob": {
-      "decision": "ignore",
-      "madeAt": 1793458707044,
-      "expiresAt": 1797000000000
-    },
-    "1244013|spawn-wrap>rimraf>glob": {
-      "decision": "ignore",
-      "madeAt": 1793458707044,
-      "expiresAt": 1797000000000
-    },
-    "1244013|test-exclude>glob": {
-      "decision": "ignore",
-      "madeAt": 1793458707044,
+      "madeAt": 1793513496679,
       "expiresAt": 1797000000000
     }
   },
