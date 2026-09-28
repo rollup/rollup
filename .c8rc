@@ -1,0 +1,4 @@
+{
+	"exclude": ["coverage", "dist", "native.js", "node_modules", "scripts", "test"],
+	"excludeAfterRemap": true
+}

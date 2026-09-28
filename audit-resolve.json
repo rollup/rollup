@@ -1,59 +1,19 @@
 {
   "decisions": {
-    "1112706|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1789100346311,
-      "expiresAt": 1797000000000
-    },
-    "1113686|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458699984,
-      "expiresAt": 1797000000000
-    },
-    "1113686|mocha>diff>glob>minimatch>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458699984,
-      "expiresAt": 1797000000000
-    },
-    "1119440|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458703055,
-      "expiresAt": 1797000000000
-    },
-    "1119440|mocha>diff>glob>minimatch>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458703055,
-      "expiresAt": 1797000000000
-    },
-    "1243082|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458705088,
-      "expiresAt": 1797000000000
-    },
-    "1243082|mocha>diff>glob>minimatch>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1793458705088,
-      "expiresAt": 1797000000000
-    },
     "1243505|@rollup/plugin-node-resolve>deepmerge": {
       "decision": "ignore",
       "madeAt": 1793174306903,
       "expiresAt": 1797000000000
     },
-    "1244013|mocha>diff>glob": {
+    "1244013|c8>test-exclude>glob": {
       "decision": "ignore",
-      "madeAt": 1793942991011,
-      "expiresAt": 1797000000000
+      "madeAt": 1794590124275,
+      "expiresAt": 1797182098011
     },
-    "1244013|nyc>glob": {
+    "1244013|mocha>glob": {
       "decision": "ignore",
-      "madeAt": 1793942991011,
-      "expiresAt": 1797000000000
-    },
-    "1244013|test-exclude>glob": {
-      "decision": "ignore",
-      "madeAt": 1793942991011,
-      "expiresAt": 1797000000000
+      "madeAt": 1794590124275,
+      "expiresAt": 1797182098011
     },
     "1244623|@eslint/config-array>minimatch": {
       "decision": "ignore",
@@ -70,6 +30,11 @@
       "madeAt": 1794512381699,
       "expiresAt": 1797104367751
     },
+    "1244623|c8>test-exclude>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1794590117956,
+      "expiresAt": 1797182098011
+    },
     "1244623|eslint-plugin-unicorn>eslint>@eslint/config-array>minimatch": {
       "decision": "ignore",
       "madeAt": 1793942979020,
@@ -80,22 +45,12 @@
       "madeAt": 1793942979020,
       "expiresAt": 1797000000000
     },
-    "1244623|mocha>diff>glob>minimatch": {
+    "1244623|mocha>glob>minimatch": {
       "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
+      "madeAt": 1794590117956,
+      "expiresAt": 1797182098011
     },
     "1244623|nodemon>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
-    },
-    "1244623|nyc>glob>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
-    },
-    "1244623|test-exclude>glob>minimatch": {
       "decision": "ignore",
       "madeAt": 1793942979020,
       "expiresAt": 1797000000000
