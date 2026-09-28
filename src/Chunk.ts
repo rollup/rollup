@@ -1372,7 +1372,10 @@ export default class Chunk {
 				renderedLength = source.length();
 				if (renderedLength) {
 					if (compact && source.lastLine().includes('//')) source.append('\n');
-					magicString.addSource(source);
+					magicString.addSource({
+						content: source,
+						indentExclusionRanges: rendered.indentExclusionRanges
+					});
 					usedModules.push(module);
 				}
 				const namespace = module.namespace;
