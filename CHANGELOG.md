@@ -6,6 +6,10 @@ _2026-07-31_
 
 ### BREAKING CHANGES
 
+#### General Changes
+
+- The minimal required Node version is now 22.12.0 (#6532)
+
 #### Module Changes
 
 - Import attributes are now part of the module identity: importing the same module with different import attributes now creates separate module instances instead of triggering the `INCONSISTENT_IMPORT_ATTRIBUTES` warning, which has been removed (#6266)
@@ -79,6 +83,7 @@ _2026-07-31_
 - [#6271](https://github.com/rollup/rollup/pull/6271): [v5.0] Implement efficient AST walking API (@lukastaegert)
 - [#6266](https://github.com/rollup/rollup/pull/6266): [v5.0] Support importing the same module with different import attributes (@TrickyPi)
 - [#6531](https://github.com/rollup/rollup/pull/6531): [v5.0] Update chokidar to v5 (@lukastaegert)
+- [#6532](https://github.com/rollup/rollup/pull/6532): [v5.0] Require Node.js 22.12.0 (@lukastaegert)
 
 For previous changelogs, see
 
