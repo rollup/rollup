@@ -24,10 +24,9 @@ System.register(['./generated-main.js'], (function (exports) {
 
 			var component = { lib, lib2: lib.named, lib3: lib.named.named };
 
-			var component$1 = /*#__PURE__*/_mergeNamespaces({
-				__proto__: null,
+			var component$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 				default: component
-			}, [component]);
+			}, null), [component]);
 			exports("c", component$1);
 
 		})

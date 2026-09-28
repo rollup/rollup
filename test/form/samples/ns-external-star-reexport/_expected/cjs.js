@@ -38,21 +38,18 @@ function _mergeNamespaces(n, m) {
 var external1__namespace = /*#__PURE__*/_interopNamespaceDefault(external1);
 var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
-var reexportExternal = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null
-}, [external1__namespace]);
+var reexportExternal = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({}, null), [external1__namespace]);
 
 const extra = 'extra';
 
 const override = 'override';
 var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null,
+var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 	default: reexportExternalsWithOverride,
 	extra: extra,
 	override: override
-}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]);
+}, null), [reexportExternalsWithOverride, external1__namespace, external2__namespace]);
 
 exports.external = reexportExternal;
 exports.externalOverride = reexportExternalsWithOverride$1;

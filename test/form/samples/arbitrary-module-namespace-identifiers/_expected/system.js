@@ -10,8 +10,7 @@ System.register('bundle', ['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var main = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				get 1 () { return one; },
 				get bar () { return bar; },
 				get "bar:\nfrom main'\"`" () { return bar; },
@@ -20,18 +19,17 @@ System.register('bundle', ['external'], (function (exports) {
 				get "external:\nre-exported'\"`" () { return external__reExported___; },
 				get "foo:\nin quotes'\"`" () { return foo; },
 				get 你好 () { return 你好; }
-			});
+			}, null));
 
 			const foo = exports("foo:\nin quotes'\"`", 42);
 			const one$1 = 43;
 			const 你好$1 = 44;
 
-			var dep = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var dep = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				1: one$1,
 				"foo:\nin quotes'\"`": foo,
 				你好: 你好$1
-			});
+			}, null));
 
 			console.log(external__foo___, main, dep);
 

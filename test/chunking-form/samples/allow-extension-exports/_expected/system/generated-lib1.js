@@ -13,10 +13,9 @@ System.register([], (function (exports) {
 			// This should be included directly in the chunk with preserved exports
 			const value3 = exports("value3", 'lib3-value');
 
-			var lib3 = /*#__PURE__*/Object.freeze({
-				__proto__: null,
+			var lib3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 				value3: value3
-			});
+			}, null));
 			exports("l", lib3);
 
 		})

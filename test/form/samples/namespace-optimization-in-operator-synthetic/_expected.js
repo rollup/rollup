@@ -15,9 +15,7 @@ function _mergeNamespaces(n, m) {
 
 const __moduleExports = { a: true };
 
-var mod = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null
-}, [__moduleExports]);
+var mod = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({}, null), [__moduleExports]);
 
 if ('a' in mod) console.log(`'a' in mod`);
 if ('b' in mod) console.log(`'b' in mod`);

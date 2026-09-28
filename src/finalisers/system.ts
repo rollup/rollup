@@ -136,8 +136,7 @@ function analyzeDependencies(
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
-					reexportedNames.unshift([null, `__proto__:${_}null`]);
-					const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
+					const exportMapping = `/*#__PURE__*/Object.setPrototypeOf(${getObject(reexportedNames, { lineBreakIndent: null })},${_}null)`;
 					setter.push(
 						`${cnst} setter${_}=${_}${exportMapping};`,
 						`for${_}(${cnst} name in module)${_}{`,
@@ -182,10 +181,9 @@ const getStarExcludesBlock = (
 			property,
 			'1'
 		]);
-		fields.unshift([null, `__proto__:${_}null`]);
-		return `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(fields, {
+		return `${n}${t}${cnst} _starExcludes${_}=${_}/*#__PURE__*/Object.setPrototypeOf(${getObject(fields, {
 			lineBreakIndent: { base: t, t }
-		})};`;
+		})},${_}null);`;
 	}
 	return '';
 };

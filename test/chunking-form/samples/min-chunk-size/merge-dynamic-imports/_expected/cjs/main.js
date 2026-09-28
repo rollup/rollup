@@ -8,17 +8,15 @@ const small2$2 = Promise.resolve().then(function () { return small2$1; });
 
 const small1 = 'small1';
 
-var small1$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var small1$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	small1: small1
-});
+}, null));
 
 const small2 = 'small2';
 
-var small2$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var small2$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	small2: small2
-});
+}, null));
 
 exports.big = big;
 exports.small1 = small1$2;

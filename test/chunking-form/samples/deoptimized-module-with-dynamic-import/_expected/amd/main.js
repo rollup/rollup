@@ -4,9 +4,7 @@ define(['exports'], (function (exports) { 'use strict';
 
 	console.log(value);
 
-	var cjs = /*#__PURE__*/Object.freeze({
-		__proto__: null
-	});
+	var cjs = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 	exports.cjs = cjs;
 

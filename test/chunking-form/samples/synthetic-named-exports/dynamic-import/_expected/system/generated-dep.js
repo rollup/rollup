@@ -21,11 +21,10 @@ System.register([], (function (exports) {
 			var dep = { foo: 1 };
 			const bar = 2;
 
-			var dep$1 = /*#__PURE__*/_mergeNamespaces({
-				__proto__: null,
+			var dep$1 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 				bar: bar,
 				default: dep
-			}, [dep]);
+			}, null), [dep]);
 			exports("d", dep$1);
 
 		})

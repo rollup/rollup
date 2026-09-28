@@ -88,10 +88,9 @@ function foo1() {
 
 console.log('side-effect1');
 
-var sub1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var sub1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	foo1: foo1
-});
+}, null));
 
 function foo3() {
   return 'foo3';
@@ -117,8 +116,7 @@ function baz2() {
 
 const a = 1;
 
-var sub2 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var sub2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	a: a,
 	bar2: bar2,
 	bar3: bar3,
@@ -126,160 +124,132 @@ var sub2 = /*#__PURE__*/Object.freeze({
 	foo2: foo2,
 	foo3: foo3,
 	reexported: bar3
-});
+}, null));
 
 const foo4 = 3;
 
-var sub4 = /*#__PURE__*/_mergeNamespaces({
-	__proto__: null,
+var sub4 = /*#__PURE__*/_mergeNamespaces(/*#__PURE__*/Object.setPrototypeOf({
 	foo4: foo4
-}, [external]);
+}, null), [external]);
 
 console.log('@included-effect-1');
 
-var effect1 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-2');
 
-var effect2 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-3');
 
-var effect3 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-4');
 
-var effect4 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect4 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-5');
 
-var effect5 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect5 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-6');
 
-var effect6 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect6 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-7');
 
-var effect7 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect7 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 console.log('@included-effect-8');
 
-var effect8 = /*#__PURE__*/Object.freeze({
-	__proto__: null
-});
+var effect8 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({}, null));
 
 var bail1 = '@included-bail-1';
 const named1 = 'bail1';
 
-var bail1$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail1$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail1,
 	named1: named1
-});
+}, null));
 
 var bail2 = '@included-bail-2';
 const named2 = 'bail2';
 
-var bail2$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail2$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail2,
 	named2: named2
-});
+}, null));
 
 var bail3 = '@included-bail-3';
 const named3 = 'bail3';
 
-var bail3$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail3$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail3,
 	named3: named3
-});
+}, null));
 
 var bail4 = '@included-bail-4';
 const named4 = 'bail4';
 
-var bail4$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail4$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail4,
 	named4: named4
-});
+}, null));
 
 var bail5 = '@included-bail-5';
 const named5 = 'bail5';
 
-var bail5$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail5$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail5,
 	named5: named5
-});
+}, null));
 
 var bail6 = '@included-bail-6';
 const named6 = 'bail6';
 
-var bail6$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail6$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail6,
 	named6: named6
-});
+}, null));
 
 var bail7 = '@included-bail-7';
 const named7 = 'bail7';
 
-var bail7$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail7$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail7,
 	named7: named7
-});
+}, null));
 
 var bail8 = '@included-bail-8';
 const named8 = 'bail8';
 
-var bail8$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail8$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail8,
 	named8: named8
-});
+}, null));
 
 var bail9 = '@included-bail-9';
 const named9 = 'bail9';
 
-var bail9$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail9$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail9,
 	named9: named9
-});
+}, null));
 
 var bail10 = '@included-bail-10';
 const named10 = 'bail10';
 
-var bail10$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail10$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail10,
 	named10: named10
-});
+}, null));
 
 var bail11 = '@included-bail-11';
 const named11 = 'bail11';
 
-var bail11$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
+var bail11$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.setPrototypeOf({
 	default: bail11,
 	named11: named11
-});
+}, null));
 
 export { entry };
