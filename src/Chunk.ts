@@ -870,6 +870,8 @@ export default class Chunk {
 							this.imports.add(importedVariable);
 						}
 					}
+				} else if (exportingModule instanceof ExternalModule && importedVariable.included) {
+					includedReexports.push(importedVariable);
 				}
 			}
 		}
