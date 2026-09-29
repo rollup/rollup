@@ -21,22 +21,62 @@ module.exports = defineTest({
 			level: 'warn',
 			message: 'Circular dependency: x.js -> b.js -> x.js'
 		},
-		...new Array(4).fill(null).flatMap(() => [
-			{
-				code: 'CIRCULAR_CHUNK',
-				ids: ['a', 'x', 'a'],
-				level: 'warn',
-				message:
-					'Circular chunk: a -> x -> a. Please adjust the manual chunks or the module structure.'
-			},
-			{
-				code: 'CIRCULAR_CHUNK',
-				ids: ['x', 'b', 'x'],
-				level: 'warn',
-				message:
-					'Circular chunk: x -> b -> x. Please adjust the manual chunks or the module structure.'
-			}
-		])
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['a', 'x', 'a'],
+			level: 'warn',
+			message:
+				'Circular chunk: a -> x -> a. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['x', 'b', 'x'],
+			level: 'warn',
+			message:
+				'Circular chunk: x -> b -> x. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['a', 'x', 'a'],
+			level: 'warn',
+			message:
+				'Circular chunk: a -> x -> a. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['x', 'b', 'x'],
+			level: 'warn',
+			message:
+				'Circular chunk: x -> b -> x. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['a', 'x', 'a'],
+			level: 'warn',
+			message:
+				'Circular chunk: a -> x -> a. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['x', 'b', 'x'],
+			level: 'warn',
+			message:
+				'Circular chunk: x -> b -> x. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['a', 'x', 'a'],
+			level: 'warn',
+			message:
+				'Circular chunk: a -> x -> a. Please adjust the manual chunks or the module structure.'
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['x', 'b', 'x'],
+			level: 'warn',
+			message:
+				'Circular chunk: x -> b -> x. Please adjust the manual chunks or the module structure.'
+		}
 	],
 	options: {
 		input: ['main.js'],

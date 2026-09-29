@@ -15,13 +15,20 @@ module.exports = defineTest({
 			level: 'warn',
 			message: 'Circular dependency: a.js -> b.js -> a.js'
 		},
-		...new Array(2).fill(null).map(() => ({
+		{
 			code: 'CIRCULAR_CHUNK',
 			ids: ['manual', 'b', 'manual'],
 			level: 'warn',
 			message:
 				'Circular chunk: manual -> b -> manual. Please adjust the manual chunks or the module structure.'
-		}))
+		},
+		{
+			code: 'CIRCULAR_CHUNK',
+			ids: ['manual', 'b', 'manual'],
+			level: 'warn',
+			message:
+				'Circular chunk: manual -> b -> manual. Please adjust the manual chunks or the module structure.'
+		}
 	],
 	options: {
 		input: ['main.js'],
