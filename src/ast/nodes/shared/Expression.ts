@@ -107,6 +107,18 @@ export class ExpressionEntity implements WritableEntity {
 		includeInteraction(interaction, context);
 	}
 
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (path.length === 0) {
+			this.includeCallArguments(interaction, context);
+		} else {
+			includeInteraction(interaction, context);
+		}
+	}
+
 	shouldBeIncluded(_context: InclusionContext): boolean {
 		return true;
 	}

@@ -212,6 +212,18 @@ export default abstract class FunctionBase extends NodeBase {
 
 	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);
 
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (path.length === 0) {
+			this.includeCallArguments(interaction, context);
+		} else {
+			this.getObjectEntity().includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+		}
+	}
+
 	initialise(): void {
 		super.initialise();
 		if (this.body instanceof BlockStatement) {

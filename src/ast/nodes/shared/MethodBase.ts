@@ -1,5 +1,5 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext } from '../../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -74,6 +74,14 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 			path,
 			recursionTracker
 		);
+	}
+
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		this.getAccessedValue()[0].includeCallArgumentsWhenCalledAtPath(path, interaction, context);
 	}
 
 	// As getter properties directly receive their values from fixed function

@@ -25,6 +25,7 @@ import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
+	EMPTY_PATH,
 	type EntityPathTracker,
 	IncludedFullPathTracker,
 	type ObjectPath,
@@ -236,19 +237,29 @@ export default class LocalVariable extends Variable {
 	}
 
 	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+		this.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
+	}
+
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
 		if (
 			this.isReassigned ||
 			context.includedCallArguments.has(this.init) ||
-			// This can be removed again once we can include arguments when called at
-			// a specific path
-			this.initPath.length > 0
+			path.length + this.initPath.length > MAX_PATH_DEPTH
 		) {
 			includeInteraction(interaction, context);
-		} else {
-			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(interaction, context);
-			context.includedCallArguments.delete(this.init);
+			return;
 		}
+		context.includedCallArguments.add(this.init);
+		this.init.includeCallArgumentsWhenCalledAtPath(
+			[...this.initPath, ...path],
+			interaction,
+			context
+		);
+		context.includedCallArguments.delete(this.init);
 	}
 
 	markCalledFromTryStatement(): void {

@@ -158,6 +158,14 @@ export default class IdentifierBase extends NodeBase {
 		this.variable!.includeCallArguments(interaction, context);
 	}
 
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		this.variable!.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+	}
+
 	isPossibleTDZ(): boolean {
 		// return cached value to avoid issues with the next tree-shaking pass
 		const cachedTdzAccess = this.isTDZAccess;
