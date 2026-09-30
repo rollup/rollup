@@ -60,8 +60,7 @@
     "preview:docs": "vitepress preview docs",
     "ci:artifacts": "napi artifacts",
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
-    "ci:test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan 'npm:test:only' 'npm:test:typescript' 'npm:test:leak' 'npm:test:browser'",
-    "ci:coverage": "NODE_OPTIONS=--no-experimental-require-module nyc --reporter lcovonly mocha",
+    "ci:coverage": "concurrently -c green,blue,magenta,cyan 'npm:test:only:coverage' 'npm:test:typescript' 'npm:test:leak' 'npm:test:browser'",
     "build:napi:coverage": "bash -c 'coverage_env=\"$(cd rust && cargo llvm-cov show-env --sh)\" && eval \"$coverage_env\" && (cd rust && cargo llvm-cov clean --workspace) && npm run build:napi'",
     "test:coverage:rust": "bash scripts/coverage-rust.sh",
     "lint": "concurrently -c red,yellow,green,blue 'npm:lint:js' 'npm:lint:native-js' 'npm:lint:markdown' 'npm:lint:rust'",
@@ -93,6 +92,7 @@
     "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
+    "test:only:coverage": "LLVM_PROFILE_FILE=\"$PWD/coverage/profraw/rollup-%p-%12m.profraw\" NODE_OPTIONS=\"--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs\" nyc --reporter lcovonly mocha test/test.js",
     "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
     "test:browser": "mocha test/browser/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"

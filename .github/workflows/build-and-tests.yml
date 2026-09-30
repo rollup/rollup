@@ -495,7 +495,7 @@ jobs:
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
 
   test:
-    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
+    name: Test Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
       - build-openbsd
@@ -521,14 +521,6 @@ jobs:
         node:
           - '18.20.0'
           - 24
-        include:
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-              package: linux-x64-gnu
-            node: '18.20.0'
-            command: 'ci:test:all'
-            additionalName: ' with Additional Tests'
         exclude:
           # Windows ARM builds were not provided for a while
           - settings:
@@ -563,16 +555,14 @@ jobs:
           node -e "console.log(require('rollup'))"
       - name: Test Rollup
         shell: bash
-        run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
+        run: cp artifacts/*/*.node dist/ && npm run test:only
         env:
           CI: true
 
-  coverage:
-    name: Coverage
+  coverage-and-additional-tests:
+    name: Coverage and Additional Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      LLVM_PROFILE_FILE: ${{ github.workspace }}/coverage/profraw/rollup-%p-%12m.profraw
     steps:
       - name: Checkout Commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -587,6 +577,7 @@ jobs:
         with:
           toolchain: nightly-2025-07-25
           components: llvm-tools-preview
+          targets: wasm32-unknown-unknown
       - name: Restore Cargo cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -596,8 +587,10 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: coverage-cargo-ubuntu-latest
+          key: coverage-and-additional-tests-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            coverage-and-additional-tests-cargo-ubuntu-latest
+            coverage-cargo-ubuntu-latest
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@94c31af3204a9f15ab40b35ad084410b905bbc73 # v2.87.17
         env:
@@ -609,22 +602,20 @@ jobs:
           source <(cd rust && cargo llvm-cov show-env --sh)
           (cd rust && cargo llvm-cov clean --workspace)
           npm run build:napi
+      - name: Build WASM
+        run: npm run build:wasm
       - name: Build JavaScript
-        run: npm run build:cjs
+        run: npm run build:js
       - name: Copy native module to dist
         run: npm run build:copy-native
       - name: Prepare Rust coverage output directory
         run: mkdir -p coverage/profraw
       - name: Run tests with coverage
-        run: |
-          # Run JS tests with nyc (JS coverage). The instrumented .node collects
-          # Rust coverage via LLVM_PROFILE_FILE. On Linux, the LLVM profiler
-          # runtime's atexit handler does not fire for dlopen'd shared libraries,
-          # so scripts/coverage-flush.cjs manually calls flushLlvmCoverage() on
-          # process exit.
-          # --no-experimental-require-module avoids ERR_REQUIRE_CYCLE_MODULE.
-          NODE_OPTIONS="--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs" \
-            npx nyc --reporter lcovonly mocha test/test.js
+        # Continue on error so the coverage report is still merged and uploaded
+        # when tests fail; the final step then fails the job.
+        id: run-tests
+        continue-on-error: true
+        run: npm run ci:coverage
       - name: Merge Rust coverage data
         run: |
           LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
@@ -648,7 +639,7 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: coverage-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          key: coverage-and-additional-tests-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload coverage
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
@@ -657,6 +648,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/rust.lcov,coverage/lcov.info
           disable_search: true
+      - name: Fail if tests failed
+        if: ${{ steps.run-tests.outcome == 'failure' }}
+        run: |
+          echo "::error::One or more tests failed"
+          exit 1
 
   publish:
     permissions:
@@ -671,7 +667,7 @@ jobs:
       - lint
       - test
       - smoke-test
-      - coverage
+      - coverage-and-additional-tests
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
