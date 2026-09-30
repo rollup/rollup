@@ -560,6 +560,11 @@ jobs:
           node-version: 24.10.0
       - name: Install and Cache Node Dependencies
         uses: ./.github/actions/install-and-cache-node-deps
+      - name: Install leak test dependency
+        # Installed up front so that npm's tree reconciliation cannot modify
+        # node_modules while tests run; scripts are unnecessary as weak-napi
+        # ships the linux-x64 prebuild that node-gyp-build loads at runtime.
+        run: npm install --no-save --ignore-scripts weak-napi@2.0.2
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
