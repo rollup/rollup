@@ -248,11 +248,14 @@ export default class Bundle {
 					const manualChunkNames = cycleChunks
 						.filter(cycleChunk => cycleChunk.isManualChunk)
 						.map(cycleChunk => cycleChunk.getChunkName());
+					const nonManualChunkName = cycleChunks
+						.find(cycleChunk => !cycleChunk.isManualChunk)
+						?.getChunkName();
 					path.push(path[0]);
 					path.reverse();
 					this.inputOptions.onLog(
 						LOGLEVEL_WARN,
-						logCircularChunk(path, manualChunkNames, onlyExplicitManualChunks)
+						logCircularChunk(path, manualChunkNames, nonManualChunkName, onlyExplicitManualChunks)
 					);
 				}
 				return;
