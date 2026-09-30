@@ -32,6 +32,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../values';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
@@ -41,6 +42,10 @@ export default class LocalVariable extends Variable {
 	readonly module: Module;
 
 	protected additionalInitializers: ExpressionEntity[] | null = null;
+	// A possibly incomplete list of values assigned to this variable after its
+	// declaration; as it is incomplete, it must never be used for value queries
+	// but only to forward call arguments to possible values
+	protected reassignedValues: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: EntityPathTracker;
@@ -245,8 +250,20 @@ export default class LocalVariable extends Variable {
 		interaction: NodeInteractionCalled,
 		context: InclusionContext
 	): void {
+		if (this.isReassigned) {
+			// Even when the value is unknown, it may be one of the assigned values;
+			// forwarding to all of them retains the arguments of try-catch helpers
+			includeInteraction(interaction, context);
+			// Re-entering this variable through one of the assigned values would
+			// repeat the same work for each simple path through the values
+			if (!context.includedCallArguments.has(this)) {
+				context.includedCallArguments.add(this);
+				this.includeCallArgumentsOfPossibleValues(path, interaction, context);
+				context.includedCallArguments.delete(this);
+			}
+			return;
+		}
 		if (
-			this.isReassigned ||
 			context.includedCallArguments.has(this.init) ||
 			path.length + this.initPath.length > MAX_PATH_DEPTH
 		) {
@@ -260,6 +277,47 @@ export default class LocalVariable extends Variable {
 			context
 		);
 		context.includedCallArguments.delete(this.init);
+	}
+
+	private includeCallArgumentsOfPossibleValues(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (this.reassignedValues === null || path.length + this.initPath.length > MAX_PATH_DEPTH) {
+			return;
+		}
+		this.includeCallArgumentsOfPossibleValue(
+			this.init,
+			[...this.initPath, ...path],
+			interaction,
+			context
+		);
+		for (const entity of this.reassignedValues) {
+			this.includeCallArgumentsOfPossibleValue(entity, path, interaction, context);
+		}
+	}
+
+	private includeCallArgumentsOfPossibleValue(
+		entity: ExpressionEntity,
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (
+			entity === UNKNOWN_EXPRESSION ||
+			entity === UNDEFINED_EXPRESSION ||
+			context.includedCallArguments.has(entity)
+		) {
+			return;
+		}
+		context.includedCallArguments.add(entity);
+		entity.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+		context.includedCallArguments.delete(entity);
+	}
+
+	addReassignedValue(value: ExpressionEntity): void {
+		(this.reassignedValues ??= []).push(value);
 	}
 
 	markCalledFromTryStatement(): void {

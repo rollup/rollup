@@ -1,11 +1,17 @@
 import { EMPTY_ARRAY, EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext } from '../../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../../NodeInteractions';
-import { type EntityPathTracker, type ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type EntityPathTracker,
+	type ObjectPath,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
 import {
 	type ExpressionEntity,
+	includeInteraction,
 	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
@@ -159,6 +165,32 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 			(type === INTERACTION_ASSIGNED || !isPure) &&
 			returnExpression.hasEffectsOnInteractionAtPath(path, interaction, context)
 		);
+	}
+
+	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+		this.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
+	}
+
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		// Mirrors deoptimizeArgumentsOnInteractionAtPath by following the return
+		// expression, falling back to the conservative inclusion when it is
+		// unknown or the interaction is known to be pure
+		const [returnExpression, isPure] = this.getReturnExpression();
+		if (
+			isPure ||
+			returnExpression === UNKNOWN_EXPRESSION ||
+			context.includedCallArguments.has(returnExpression)
+		) {
+			includeInteraction(interaction, context);
+			return;
+		}
+		context.includedCallArguments.add(returnExpression);
+		returnExpression.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+		context.includedCallArguments.delete(returnExpression);
 	}
 
 	protected abstract getReturnExpression(

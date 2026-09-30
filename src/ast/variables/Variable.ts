@@ -127,6 +127,8 @@ export default class Variable extends ExpressionEntity {
 
 	markCalledFromTryStatement(): void {}
 
+	addReassignedValue(_value: ExpressionEntity): void {}
+
 	setRenderNames(baseName: string | null, name: string | null): void {
 		this.renderBaseName = baseName;
 		this.renderName = name;
