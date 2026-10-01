@@ -91,7 +91,7 @@
     "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
-    "test:only:coverage": "LLVM_PROFILE_FILE=\"$PWD/coverage/profraw/rollup-%p-%12m.profraw\" NODE_OPTIONS=\"--no-experimental-require-module --require $PWD/scripts/coverage-flush.cjs\" nyc --reporter lcovonly --reporter html mocha test/test.js",
+    "test:only:coverage": "node scripts/run-with-coverage-environment.js nyc --reporter lcovonly --reporter html mocha test/test.js",
     "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
     "test:browser": "mocha test/browser/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
