@@ -587,38 +587,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tool: cargo-llvm-cov@0.8.7
-      - name: Build instrumented NAPI module
-        run: |
-          source <(cd rust && cargo llvm-cov show-env --sh)
-          (cd rust && cargo llvm-cov clean --workspace)
-          npm run build:napi
-      - name: Build WASM
-        run: npm run build:wasm
-      - name: Build JavaScript
-        run: npm run build:js
-      - name: Copy native module to dist
-        run: npm run build:copy-native
-      - name: Prepare Rust coverage output directory
-        run: mkdir -p coverage/profraw
-      - name: Run tests with coverage
-        # Continue on error so the coverage report is still merged and uploaded
-        # when tests fail; the final step then fails the job.
+      - name: Build and run tests with coverage
+        # continue-on-error so the coverage upload still runs when tests fail;
+        # the final step then fails the job.
         id: run-tests
         continue-on-error: true
-        run: npm run ci:coverage
-      - name: Merge Rust coverage data
-        run: |
-          LLVM_PROFDATA="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-profdata"
-          "$LLVM_PROFDATA" merge -sparse coverage/profraw/*.profraw -o coverage/rust.profdata
-      - name: Export Rust LCOV report
-        run: |
-          LLVM_COV="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/host: //p')/bin/llvm-cov"
-          NODE_FILE="$(ls dist/rollup.*.node)"
-          "$LLVM_COV" export \
-            -instr-profile=coverage/rust.profdata \
-            -object "$NODE_FILE" \
-            -ignore-filename-regex='/.cargo/registry|/rustc/[0-9a-f]+|rust/target' \
-            -format=lcov > coverage/rust.lcov
+        run: bash scripts/coverage.sh ci:coverage
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -635,10 +609,10 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/rust.lcov,coverage/lcov.info
           disable_search: true
-      - name: Fail if tests failed
+      - name: Fail if the coverage run failed
         if: ${{ steps.run-tests.outcome == 'failure' }}
         run: |
-          echo "::error::One or more tests failed"
+          echo "::error::The coverage run failed; see the Build and run tests with coverage step"
           exit 1
 
   publish:
