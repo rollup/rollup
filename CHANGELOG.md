@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.63.6
+
+_2026-10-01_
+
+### Bug Fixes
+
+- Ensure external reexports are always imported when used in a reified dynamic namespace (#6540)
+
+### Pull Requests
+
+- [#6527](https://github.com/rollup/rollup/pull/6527): Update minor/patch updates (@renovate[bot])
+- [#6529](https://github.com/rollup/rollup/pull/6529): Update dependency eslint-plugin-unicorn to v76 (@renovate[bot])
+- [#6530](https://github.com/rollup/rollup/pull/6530): Lock file maintenance (@renovate[bot])
+- [#6535](https://github.com/rollup/rollup/pull/6535): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6540](https://github.com/rollup/rollup/pull/6540): Import external re-exports used by shared-chunk namespace objects (@00200200)
+
 ## 4.63.5
 
 _2026-09-24_
