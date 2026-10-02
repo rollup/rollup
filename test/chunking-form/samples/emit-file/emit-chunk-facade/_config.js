@@ -7,7 +7,7 @@ module.exports = defineTest({
 		input: 'main',
 		output: {
 			manualChunks: {
-				'build-starter': ['buildStart']
+				'build-starter': ['buildStart', 'dep']
 			}
 		},
 		plugins: {
