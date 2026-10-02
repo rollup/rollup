@@ -10,6 +10,11 @@ _2026-07-31_
 
 - The minimal required Node version is now 22.12.0 (#6532)
 
+#### Manual Chunk Changes
+
+- Manual chunks no longer absorb the full transitive dependency subtree of their modules; depending on `output.onlyExplicitManualChunks`, they either behave like entry points that also contain all modules always loaded together with them, or contain exactly their assigned modules (#6533)
+- Manual chunks none of whose modules are included in the bundle, e.g. because only a pure re-export barrel file was listed that all imports bypass, are no longer generated; Rollup now emits an `EMPTY_MANUAL_CHUNK` warning instead (#6533)
+
 #### Module Changes
 
 - Import attributes are now part of the module identity: importing the same module with different import attributes now creates separate module instances instead of triggering the `INCONSISTENT_IMPORT_ATTRIBUTES` warning, which has been removed (#6266)
@@ -52,6 +57,7 @@ _2026-07-31_
 
 - The `output.importAttributesKey` option now defaults to `"with"` instead of `"assert"`: the import attributes of external imports, re-exports and dynamic imports are rendered with the `with` keyword in the generated output regardless of the keyword used in the source; set `output.importAttributesKey: "assert"` to restore the old behavior (#6248)
 - When Rollup transpiles or bundles the config file itself, e.g. when using `--configPlugin` or `--bundleConfigAsCjs`, the generated config uses the `with` keyword as well; use `--configImportAttributesKey assert` to restore the old behavior (#6248)
+- `output.onlyExplicitManualChunks` now also applies to the object form of `output.manualChunks`, is no longer deprecated, and defaults to `false` for the object form and to `true` for the function form, so the function form no longer adds the dependencies of returned modules to the manual chunk by default (#6533)
 
 ### Features
 
@@ -69,10 +75,15 @@ _2026-07-31_
 - Rollup now emits an `AMBIGUOUS_GLOBAL_NAME` warning when the object form of `output.globals` maps several import attribute variants of the same external module to a single global name as only the function form can distinguish them (#6266)
 - `this.resolve`, `this.load`, `this.getModuleInfo` and the `importer` and `implicitlyLoadedAfterOneOf` options of `this.emitFile` now also accept `{ rawId, attributes }` objects besides module ids, and `EmittedChunk` gained an `attributes` option (#6266)
 - `RenderedModule` gained `rawId` and `attributes` while `PreRenderedChunk` gained `facadeModuleRawId` and `facadeModuleAttributes` (#6266)
+- Manual chunks that are only loaded via dynamic imports now behave like dynamic entries, so modules that are already loaded when the manual chunk is imported stay in the importing chunk (#6533)
+- The `CIRCULAR_CHUNK` warning now only gives manual chunk advice when a manual chunk is part of the cycle, and that advice depends on `onlyExplicitManualChunks` (#6533)
 
 ### Bug Fixes
 
 - Rollup no longer panics when parsing JSX that contains namespaced element names like `<a:b />` (#6271)
+- When `experimentalMinChunkSize` is used together with `onlyExplicitManualChunks: true`, loading an entry no longer runs side effects of unrelated manual chunk modules (#6533)
+- When the same dynamic import is reached from several entries, the dynamically imported chunk no longer imports from an unrelated entry chunk and thereby runs that entry's side effects (#6533)
+- Chunks emitted with `implicitlyLoadedAfterOneOf` are no longer missing from the output when their module is fully tree-shaken, e.g. when using `preserveModules`, which made `this.getFileName` throw for their reference id (#6533)
 
 ### Pull Requests
 
@@ -84,6 +95,7 @@ _2026-07-31_
 - [#6266](https://github.com/rollup/rollup/pull/6266): [v5.0] Support importing the same module with different import attributes (@TrickyPi)
 - [#6531](https://github.com/rollup/rollup/pull/6531): [v5.0] Update chokidar to v5 (@lukastaegert)
 - [#6532](https://github.com/rollup/rollup/pull/6532): [v5.0] Require Node.js 22.12.0 (@lukastaegert)
+- [#6533](https://github.com/rollup/rollup/pull/6533): [v5.0] Rework manual chunks for Rollup 5 (@lukastaegert)
 
 For previous changelogs, see
 
