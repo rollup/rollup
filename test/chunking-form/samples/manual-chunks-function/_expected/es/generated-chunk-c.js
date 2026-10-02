@@ -1,3 +1,3 @@
-console.log('dep2');
+import './generated-dep2.js';
 
 console.log('dep-c');

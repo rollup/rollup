@@ -1,5 +1,5 @@
-define(['./main'], (function (other) { 'use strict';
+define((function () { 'use strict';
 
-
+	console.log('dep');
 
 }));
