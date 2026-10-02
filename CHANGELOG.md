@@ -2,7 +2,7 @@
 
 ## 5.0.0
 
-_2026-07-31_
+_2026-10-02_
 
 ### BREAKING CHANGES
 
@@ -96,6 +96,7 @@ _2026-07-31_
 - [#6531](https://github.com/rollup/rollup/pull/6531): [v5.0] Update chokidar to v5 (@lukastaegert)
 - [#6532](https://github.com/rollup/rollup/pull/6532): [v5.0] Require Node.js 22.12.0 (@lukastaegert)
 - [#6533](https://github.com/rollup/rollup/pull/6533): [v5.0] Rework manual chunks for Rollup 5 (@lukastaegert)
+- [#6548](https://github.com/rollup/rollup/pull/6548): [v5.0] Add Mocha GitHub Actions test reports (@lukastaegert)
 
 For previous changelogs, see
 
