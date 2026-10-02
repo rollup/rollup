@@ -250,27 +250,18 @@ export default class LocalVariable extends Variable {
 			// Even when the value is unknown, it may be one of the assigned values;
 			// forwarding to all of them retains the arguments of try-catch helpers
 			includeInteraction(interaction, context);
-			const { possibleValuesTracker } = context;
 			// Each possible value is visited at most once per path and call
 			// per traversal so that dense assignment graphs do not repeat work
 			// for every simple path
-			if (possibleValuesTracker === null) {
-				context.possibleValuesTracker = new DiscriminatedPathTracker();
-				this.includeCallArgumentsOfPossibleValues(
-					path,
-					interaction,
-					context,
-					context.possibleValuesTracker
-				);
-				context.possibleValuesTracker = null;
-			} else {
-				this.includeCallArgumentsOfPossibleValues(
-					path,
-					interaction,
-					context,
-					possibleValuesTracker
-				);
-			}
+			const previousTracker = context.includedCallArgumentsOfPossibleValues;
+			context.includedCallArgumentsOfPossibleValues ??= new DiscriminatedPathTracker();
+			this.includeCallArgumentsOfPossibleValues(
+				path,
+				interaction,
+				context,
+				context.includedCallArgumentsOfPossibleValues
+			);
+			context.includedCallArgumentsOfPossibleValues = previousTracker;
 			return;
 		}
 		if (
