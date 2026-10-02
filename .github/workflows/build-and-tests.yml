@@ -627,8 +627,8 @@ jobs:
       - test
       - smoke-test
       - coverage-and-additional-tests
-    # This needs to be adapted for Rollup 5
-    if: startsWith(github.ref_name, 'v4')
+    # This needs to be adapted for Rollup 6
+    if: startsWith(github.ref_name, 'v5')
     steps:
       - name: Checkout Commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
