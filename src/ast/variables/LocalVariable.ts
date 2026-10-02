@@ -25,6 +25,7 @@ import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
+	DiscriminatedPathTracker,
 	type EntityPathTracker,
 	IncludedFullPathTracker,
 	type ObjectPath,
@@ -249,12 +250,26 @@ export default class LocalVariable extends Variable {
 			// Even when the value is unknown, it may be one of the assigned values;
 			// forwarding to all of them retains the arguments of try-catch helpers
 			includeInteraction(interaction, context);
-			// Re-entering this variable through one of the assigned values would
-			// repeat the same work for each simple path through the values
-			if (!context.includedCallArguments.has(this)) {
-				context.includedCallArguments.add(this);
-				this.includeCallArgumentsOfPossibleValues(path, interaction, context);
-				context.includedCallArguments.delete(this);
+			const { possibleValuesTracker } = context;
+			// Each possible value is visited at most once per path and call
+			// per traversal so that dense assignment graphs do not repeat work
+			// for every simple path
+			if (possibleValuesTracker === null) {
+				context.possibleValuesTracker = new DiscriminatedPathTracker();
+				this.includeCallArgumentsOfPossibleValues(
+					path,
+					interaction,
+					context,
+					context.possibleValuesTracker
+				);
+				context.possibleValuesTracker = null;
+			} else {
+				this.includeCallArgumentsOfPossibleValues(
+					path,
+					interaction,
+					context,
+					possibleValuesTracker
+				);
 			}
 			return;
 		}
@@ -277,7 +292,8 @@ export default class LocalVariable extends Variable {
 	private includeCallArgumentsOfPossibleValues(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		context: InclusionContext
+		context: InclusionContext,
+		tracker: DiscriminatedPathTracker
 	): void {
 		if (this.reassignedValues === null || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return;
@@ -286,10 +302,11 @@ export default class LocalVariable extends Variable {
 			this.init,
 			[...this.initPath, ...path],
 			interaction,
-			context
+			context,
+			tracker
 		);
 		for (const entity of this.reassignedValues) {
-			this.includeCallArgumentsOfPossibleValue(entity, path, interaction, context);
+			this.includeCallArgumentsOfPossibleValue(entity, path, interaction, context, tracker);
 		}
 	}
 
@@ -297,18 +314,17 @@ export default class LocalVariable extends Variable {
 		entity: ExpressionEntity,
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		context: InclusionContext
+		context: InclusionContext,
+		tracker: DiscriminatedPathTracker
 	): void {
 		if (
 			entity === UNKNOWN_EXPRESSION ||
 			entity === UNDEFINED_EXPRESSION ||
-			context.includedCallArguments.has(entity)
+			tracker.trackEntityAtPathAndGetIfTracked(path, interaction, entity)
 		) {
 			return;
 		}
-		context.includedCallArguments.add(entity);
 		entity.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
-		context.includedCallArguments.delete(entity);
 	}
 
 	addReassignedValue(value: ExpressionEntity): void {

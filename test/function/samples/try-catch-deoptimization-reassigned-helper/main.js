@@ -78,4 +78,25 @@ assert.ok(
 	'logically assigned helper: callback was not retained'
 );
 
+// Helper that is reached through different paths of a reassigned variable
+var pathForkHelper;
+var forked;
+pathForkHelper = exec => {
+	try {
+		exec();
+		return false;
+	} catch {
+		return true;
+	}
+};
+forked = pathForkHelper.x;
+forked = pathForkHelper;
+
+assert.ok(
+	forked(() => {
+		Object.getPrototypeOf(null);
+	}),
+	'helper reached through different paths: callback was not retained'
+);
+
 assert.ok(!requireFails()(() => {}), 'no false positive feature detection');
