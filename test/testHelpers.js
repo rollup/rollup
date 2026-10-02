@@ -331,6 +331,73 @@ function getFileNamesAndRemoveOutput(directory) {
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 /**
+ * Pretends test failures happen in the sample's "_config.js" by temporarily
+ * patching the global `it` during test registration. Tools that read stack
+ * traces like GitHub Actions annotations or IDE test runners then point at
+ * the sample instead of shared harness code.
+ *
+ * @param {string} configFile
+ * @param {() => void} registerTests
+ */
+function runTestWithConfigAsFailureLocation(configFile, registerTests) {
+	const originalIt = globalThis.it;
+	const wrapTestFunction = testFunction =>
+		testFunction && locateFailuresInConfigFile(testFunction, configFile);
+	const itReportingConfigLocation = (testName, testFunction) =>
+		originalIt(testName, wrapTestFunction(testFunction));
+	itReportingConfigLocation.only = (testName, testFunction) =>
+		originalIt.only(testName, wrapTestFunction(testFunction));
+	itReportingConfigLocation.skip = originalIt.skip;
+	globalThis.it = itReportingConfigLocation;
+	try {
+		registerTests();
+	} finally {
+		globalThis.it = originalIt;
+	}
+}
+
+/**
+ * Wraps a test function so that the topmost stack frame of a failure points
+ * at the sample's "_config.js" file, at the exact location if the failure
+ * originates there. Test functions using the "done" callback style cannot be
+ * wrapped without confusing Mocha's async detection and are returned
+ * unchanged.
+ *
+ * @param {Mocha.Func} testFunction
+ * @param {string} configFile
+ */
+function locateFailuresInConfigFile(testFunction, configFile) {
+	if (testFunction.length > 0) {
+		return testFunction;
+	}
+	return async function () {
+		try {
+			return await testFunction.call(this);
+		} catch (error) {
+			if (typeof error?.stack === 'string') {
+				const stackLines = error.stack.split('\n');
+				const firstStackFrameIndex = stackLines.findIndex(stackLine => /^ {4}at /.test(stackLine));
+				if (firstStackFrameIndex >= 0) {
+					const configFrame = stackLines
+						.slice(firstStackFrameIndex)
+						.find(stackLine => stackLine.includes(configFile));
+					const failureLocation = configFrame
+						? configFrame.slice(configFrame.indexOf(configFile)).replace(/\)$/, '')
+						: `${configFile}:1:1`;
+					stackLines.splice(
+						firstStackFrameIndex,
+						0,
+						`    at Context.<anonymous> (${failureLocation})`
+					);
+					error.stack = stackLines.join('\n');
+				}
+			}
+			throw error;
+		}
+	};
+}
+
+/**
  * @template {TestConfigBase} C
  * @param {string} directory
  * @param {(directory: string, config: C) => void} runTest
@@ -346,7 +413,7 @@ function loadConfigAndRunTest(directory, runTest) {
 		(!config.onlyWindows || platform === 'win32') &&
 		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(version)[1]))
 	) {
-		runTest(directory, config);
+		runTestWithConfigAsFailureLocation(configFile, () => runTest(directory, config));
 	}
 }
 
