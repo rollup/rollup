@@ -341,14 +341,23 @@ exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
  */
 function runTestWithConfigAsFailureLocation(configFile, registerTests) {
 	const originalIt = globalThis.it;
-	const wrapTestFunction = testFunction =>
-		testFunction && locateFailuresInConfigFile(testFunction, configFile);
+
+	/**
+	 * @param {string} testName
+	 * @param {Mocha.AsyncFunc} testFunction
+	 */
 	const itReportingConfigLocation = (testName, testFunction) =>
-		originalIt(testName, wrapTestFunction(testFunction));
+		originalIt(testName, locateFailuresInConfigFile(testFunction, configFile));
+
+	/**
+	 * @param {string} testName
+	 * @param {Mocha.AsyncFunc} testFunction
+	 */
 	itReportingConfigLocation.only = (testName, testFunction) =>
-		originalIt.only(testName, wrapTestFunction(testFunction));
+		originalIt.only(testName, locateFailuresInConfigFile(testFunction, configFile));
+
 	itReportingConfigLocation.skip = originalIt.skip;
-	globalThis.it = itReportingConfigLocation;
+	globalThis.it = /** @type {any} */ (itReportingConfigLocation);
 	try {
 		registerTests();
 	} finally {
@@ -363,8 +372,9 @@ function runTestWithConfigAsFailureLocation(configFile, registerTests) {
  * wrapped without confusing Mocha's async detection and are returned
  * unchanged.
  *
- * @param {Mocha.Func} testFunction
+ * @param {Mocha.AsyncFunc} testFunction
  * @param {string} configFile
+ * @returns {Mocha.AsyncFunc}
  */
 function locateFailuresInConfigFile(testFunction, configFile) {
 	if (testFunction.length > 0) {
@@ -374,7 +384,7 @@ function locateFailuresInConfigFile(testFunction, configFile) {
 		try {
 			return await testFunction.call(this);
 		} catch (error) {
-			if (typeof error?.stack === 'string') {
+			if (error instanceof Error && typeof error.stack === 'string') {
 				const stackLines = error.stack.split('\n');
 				const firstStackFrameIndex = stackLines.findIndex(stackLine => /^ {4}at /.test(stackLine));
 				if (firstStackFrameIndex >= 0) {
