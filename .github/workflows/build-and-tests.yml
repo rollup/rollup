@@ -254,7 +254,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@94c31af3204a9f15ab40b35ad084410b905bbc73 # v2.87.17
+        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2.87.21
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -446,7 +446,7 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
       - name: Run Smoke Test
-        uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # v3.2.0
+        uses: uraimo/run-on-arch-action@fa1f3e7de95534497266c7265950b5188355fbfb # v3.2.1
         with:
           arch: ${{ matrix.settings.arch }}
           distro: ${{ matrix.settings.distro }}
@@ -582,7 +582,7 @@ jobs:
             coverage-and-additional-tests-cargo-ubuntu-latest
             coverage-cargo-ubuntu-latest
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@94c31af3204a9f15ab40b35ad084410b905bbc73 # v2.87.17
+        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2.87.21
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
