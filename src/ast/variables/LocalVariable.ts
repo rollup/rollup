@@ -25,7 +25,6 @@ import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
-	EMPTY_PATH,
 	type EntityPathTracker,
 	IncludedFullPathTracker,
 	type ObjectPath,
@@ -239,10 +238,6 @@ export default class LocalVariable extends Variable {
 				);
 			}
 		}
-	}
-
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
-		this.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
 	}
 
 	includeCallArgumentsWhenCalledAtPath(

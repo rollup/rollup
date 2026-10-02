@@ -16,7 +16,12 @@ import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBool
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { UnknownFalsyValue, UnknownTruthyValue, UnknownValue } from './shared/Expression';
+import {
+	includeInteraction,
+	UnknownFalsyValue,
+	UnknownTruthyValue,
+	UnknownValue
+} from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
@@ -187,13 +192,21 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
-		const usedBranch = this.getUsedBranch();
-		if (usedBranch) {
-			usedBranch.includeCallArguments(interaction, context);
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (path.length === 0) {
+			const usedBranch = this.getUsedBranch();
+			if (usedBranch) {
+				usedBranch.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
+			} else {
+				this.consequent.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
+				this.alternate.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
+			}
 		} else {
-			this.consequent.includeCallArguments(interaction, context);
-			this.alternate.includeCallArguments(interaction, context);
+			includeInteraction(interaction, context);
 		}
 	}
 

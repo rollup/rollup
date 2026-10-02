@@ -210,15 +210,13 @@ export default abstract class FunctionBase extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);
-
 	includeCallArgumentsWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		context: InclusionContext
 	): void {
 		if (path.length === 0) {
-			this.includeCallArguments(interaction, context);
+			this.scope.includeCallArguments(interaction, context);
 		} else {
 			this.getObjectEntity().includeCallArgumentsWhenCalledAtPath(path, interaction, context);
 		}

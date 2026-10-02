@@ -425,10 +425,6 @@ export default class MemberExpression
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
-		this.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, interaction, context);
-	}
-
 	includeCallArgumentsWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
