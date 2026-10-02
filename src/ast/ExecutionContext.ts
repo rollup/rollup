@@ -20,6 +20,10 @@ interface ControlFlowContext {
 
 export interface InclusionContext extends ControlFlowContext {
 	includedCallArguments: Set<Entity>;
+	// (path, interaction, value) combinations visited in the current traversal
+	// over the possible values of a reassigned variable; skipping them is safe
+	// because the traversal root already included the call arguments
+	includedCallArgumentsOfPossibleValues: DiscriminatedPathTracker | null;
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
@@ -38,6 +42,7 @@ export function createInclusionContext(): InclusionContext {
 		hasBreak: false,
 		hasContinue: false,
 		includedCallArguments: new Set(),
+		includedCallArgumentsOfPossibleValues: null,
 		includedLabels: new Set()
 	};
 }

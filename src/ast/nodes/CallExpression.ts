@@ -120,7 +120,7 @@ export default class CallExpression
 			}
 		} else {
 			this.callee.include(context, false);
-			this.callee.includeCallArguments(this.interaction, context);
+			this.callee.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, this.interaction, context);
 		}
 	}
 

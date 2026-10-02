@@ -425,11 +425,25 @@ export default class MemberExpression
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
 		if (this.promiseHandler) {
-			this.promiseHandler.includeCallArguments(interaction, context);
+			if (path.length === 0) {
+				this.promiseHandler.includeCallArguments(interaction, context);
+			} else {
+				includeInteraction(interaction, context);
+			}
 		} else if (this.variable) {
-			this.variable.includeCallArguments(interaction, context);
+			this.variable.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+		} else if (!this.isUndefined && path.length < MAX_PATH_DEPTH) {
+			this.object.includeCallArgumentsWhenCalledAtPath(
+				this.propertyKey === UnknownKey ? UNKNOWN_PATH : [this.propertyKey, ...path],
+				interaction,
+				context
+			);
 		} else {
 			includeInteraction(interaction, context);
 		}
