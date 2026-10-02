@@ -1,4 +1,4 @@
-import './generated-chunk-c.js';
+import './generated-dep2.js';
 
 console.log('dep-b');
 
