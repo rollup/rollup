@@ -19,6 +19,7 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
+import { memoizeReturnComposition, type ReturnCompositionState } from '../utils/returnComposition';
 import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -140,7 +141,8 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch) {
@@ -149,26 +151,29 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		}
-		return [
-			new MultiExpression([
+		return memoizeReturnComposition(compositionState, this, path, interaction, origin, state => [
+			MultiExpression.of([
 				this.left.getReturnExpressionWhenCalledAtPath(
 					path,
 					interaction,
 					recursionTracker,
-					origin
+					origin,
+					state
 				)[0],
 				this.right.getReturnExpressionWhenCalledAtPath(
 					path,
 					interaction,
 					recursionTracker,
-					origin
+					origin,
+					state
 				)[0]
 			]),
 			false
-		];
+		]);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

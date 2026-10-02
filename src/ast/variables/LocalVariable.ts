@@ -31,6 +31,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
@@ -144,7 +145,8 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
 			return UNKNOWN_RETURN_EXPRESSION;
@@ -158,7 +160,8 @@ export default class LocalVariable extends Variable {
 					[...this.initPath, ...path],
 					interaction,
 					recursionTracker,
-					origin
+					origin,
+					compositionState
 				);
 			},
 			UNKNOWN_RETURN_EXPRESSION

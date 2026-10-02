@@ -23,6 +23,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
+import { invalidateComposedReturns } from '../utils/returnComposition';
 import LocalVariable from './LocalVariable';
 
 interface TrackedInteraction {
@@ -267,8 +268,12 @@ export default class ParameterVariable extends LocalVariable {
 		// the corresponding return expressions as well and avoid badly performing
 		// and complicated alternatives
 		if (path.length === 0) {
+			if (!this.deoptimizedFields.has(UnknownKey)) {
+				invalidateComposedReturns();
+			}
 			this.deoptimizePath(UNKNOWN_PATH);
 		} else if (!this.deoptimizedFields.has(path[0])) {
+			invalidateComposedReturns();
 			this.deoptimizePath([path[0]]);
 		}
 		return UNKNOWN_RETURN_EXPRESSION;

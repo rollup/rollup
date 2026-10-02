@@ -13,6 +13,7 @@ import {
 } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import GlobalVariable from '../../variables/GlobalVariable';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
@@ -70,14 +71,16 @@ export default class IdentifierBase extends NodeBase {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const [expression, isPure] =
 			this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
+				compositionState
 			);
 		return [expression, isPure || this.isPureFunction(path)];
 	}

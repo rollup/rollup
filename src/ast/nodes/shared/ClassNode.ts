@@ -13,6 +13,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import type ClassBody from '../ClassBody';
 import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
@@ -69,13 +70,15 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,
 			recursionTracker,
-			origin
+			origin,
+			compositionState
 		);
 	}
 

@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import UNASSIGNED from '../../utils/unassigned';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -34,8 +35,6 @@ const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnkn
 	void: () => undefined,
 	'~': value => ~(value as NonNullable<LiteralValue>)
 };
-
-const UNASSIGNED = Symbol('Unassigned');
 
 export default class UnaryExpression extends NodeBase {
 	declare argument: ExpressionNode;

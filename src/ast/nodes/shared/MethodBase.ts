@@ -13,6 +13,7 @@ import {
 	type ObjectPath,
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import type PrivateIdentifier from '../PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import {
@@ -96,13 +97,15 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getAccessedValue()[0].getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,
 			recursionTracker,
-			origin
+			origin,
+			compositionState
 		);
 	}
 
@@ -149,7 +152,9 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 					EMPTY_PATH,
 					NODE_INTERACTION_UNKNOWN_CALL,
 					SHARED_RECURSION_TRACKER,
-					this
+					this,
+					// the cached value must not depend on the composition it is computed in
+					null
 				));
 			} else {
 				return (this.accessedValue = [this.value, false]);

@@ -1,9 +1,9 @@
-import { EMPTY_ARRAY, EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../../NodeInteractions';
 import { type EntityPathTracker, type ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -56,10 +56,10 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 
 	deoptimizeCache(): void {
 		if (this.returnExpression?.[0] !== UNKNOWN_EXPRESSION) {
-			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
+			this.returnExpression = null;
 			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
-			this.expressionsToBeDeoptimized = EMPTY_SET;
-			this.deoptimizableDependentExpressions = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			this.expressionsToBeDeoptimized = new Set();
+			this.deoptimizableDependentExpressions = [];
 			for (const expression of deoptimizableDependentExpressions) {
 				expression.deoptimizeCache();
 			}
@@ -96,7 +96,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 			returnExpression,
 			() => {
 				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+				return returnExpression.getLiteralValueAtPath(path, recursionTracker, this);
 			},
 			UnknownValue
 		);
@@ -106,9 +106,10 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const returnExpression = this.getReturnExpression(recursionTracker);
+		const returnExpression = this.getReturnExpression(recursionTracker, compositionState);
 		if (returnExpression[0] === UNKNOWN_EXPRESSION) {
 			return returnExpression;
 		}
@@ -121,7 +122,8 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 					path,
 					interaction,
 					recursionTracker,
-					origin
+					origin,
+					compositionState
 				);
 				return [expression, isPure || returnExpression[1]];
 			},
@@ -162,6 +164,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	}
 
 	protected abstract getReturnExpression(
-		recursionTracker?: EntityPathTracker
+		recursionTracker?: EntityPathTracker,
+		compositionState?: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean];
 }

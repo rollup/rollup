@@ -9,6 +9,7 @@ import type {
 	WellKnownSymbol
 } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import type { LiteralValue } from '../Literal';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { IncludeChildren } from './Node';
@@ -66,11 +67,19 @@ export class ExpressionEntity implements WritableEntity {
 		return UnknownValue;
 	}
 
+	/**
+	 * When delegating, forward the composition state unchanged; a null state
+	 * means "not inside a memoized composition" and causes a fresh one to be
+	 * created. Implementations that deoptimize expressions during their own
+	 * computation must call invalidateComposedReturns() before the first
+	 * deoptimization.
+	 */
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
 		_interaction: NodeInteractionCalled,
 		_recursionTracker: EntityPathTracker,
-		_origin: DeoptimizableEntity
+		_origin: DeoptimizableEntity,
+		_compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return UNKNOWN_RETURN_EXPRESSION;
 	}
@@ -112,8 +121,20 @@ export class ExpressionEntity implements WritableEntity {
 	}
 }
 
-export const UNKNOWN_EXPRESSION: ExpressionEntity =
-	new (class UnknownExpression extends ExpressionEntity {})();
+export class LiteralExpression extends ExpressionEntity {
+	constructor(
+		private value: LiteralValueOrUnknown,
+		public parent?: ExpressionEntity
+	) {
+		super();
+	}
+
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		return path.length > 0 ? UnknownValue : this.value;
+	}
+}
+
+export const UNKNOWN_EXPRESSION: ExpressionEntity = new LiteralExpression(UnknownValue);
 
 export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: boolean] = [
 	UNKNOWN_EXPRESSION,

@@ -2,6 +2,7 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import type { ReturnCompositionState } from '../../utils/returnComposition';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
 export class ObjectMember extends ExpressionEntity {
@@ -40,13 +41,15 @@ export class ObjectMember extends ExpressionEntity {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[...this.path, ...path],
 			interaction,
 			recursionTracker,
-			origin
+			origin,
+			compositionState
 		);
 	}
 

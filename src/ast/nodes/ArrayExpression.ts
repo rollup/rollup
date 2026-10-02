@@ -7,6 +7,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownInteger
 } from '../utils/PathTracker';
+import type { ReturnCompositionState } from '../utils/returnComposition';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
@@ -48,13 +49,15 @@ export default class ArrayExpression extends NodeBase {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: EntityPathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
+		compositionState: ReturnCompositionState | null
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,
 			recursionTracker,
-			origin
+			origin,
+			compositionState
 		);
 	}
 
