@@ -71,7 +71,7 @@ export async function normalizeOutputOptions(
 		globals: config.globals || {},
 		hashCharacters: config.hashCharacters ?? 'base64',
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
-		importAttributesKey: config.importAttributesKey ?? 'assert',
+		importAttributesKey: config.importAttributesKey ?? 'with',
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
 		interop: getInterop(config),
@@ -80,7 +80,8 @@ export async function normalizeOutputOptions(
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
 		noConflict: config.noConflict || false,
-		onlyExplicitManualChunks: config.onlyExplicitManualChunks || false,
+		onlyExplicitManualChunks:
+			config.onlyExplicitManualChunks ?? typeof config.manualChunks === 'function',
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
 		plugins: await normalizePluginOption(config.plugins),

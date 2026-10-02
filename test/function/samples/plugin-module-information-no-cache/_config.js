@@ -54,6 +54,7 @@ module.exports = defineTest({
 						isIncluded: true,
 						meta: {},
 						moduleSideEffects: true,
+						rawId: ID_MAIN,
 						safeVariableNames: null,
 						syntheticNamedExports: false
 					});

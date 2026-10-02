@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logConstVariableReassignError } from '../../utils/logs';
@@ -24,31 +25,16 @@ import { INTERACTION_ASSIGNED } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class AssignmentExpression extends NodeBase {
-	declare left: PatternNode;
-	declare operator:
-		| '='
-		| '+='
-		| '-='
-		| '*='
-		| '/='
-		| '%='
-		| '<<='
-		| '>>='
-		| '>>>='
-		| '|='
-		| '^='
-		| '&='
-		| '**='
-		| '&&='
-		| '||='
-		| '??=';
-	declare right: ExpressionNode;
+	declare parent: nodes.AssignmentExpressionParent;
+	declare left: nodes.DestructuringPattern;
+	declare operator: ast.AssignmentExpression['operator'];
+	declare right: nodes.Expression;
 	declare type: NodeType.tAssignmentExpression;
 	private isConstReassignment = false;
 

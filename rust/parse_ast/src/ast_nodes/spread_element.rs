@@ -2,12 +2,14 @@ use swc_common::{Span, Spanned};
 use swc_ecma_ast::{Expr, SpreadElement};
 
 use crate::convert_ast::converter::ast_constants::{
-  SPREAD_ELEMENT_ARGUMENT_OFFSET, SPREAD_ELEMENT_RESERVED_BYTES, TYPE_SPREAD_ELEMENT,
+  NODE_TYPE_ID_SPREAD_ELEMENT, SPREAD_ELEMENT_ARGUMENT_OFFSET, SPREAD_ELEMENT_RESERVED_BYTES,
+  TYPE_SPREAD_ELEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_spread_element(&mut self, dot_span: &Span, argument: &Expr) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_SPREAD_ELEMENT>();
     let end_position = self.add_type_and_start(
       &TYPE_SPREAD_ELEMENT,
       dot_span,
@@ -19,6 +21,7 @@ impl AstConverter<'_> {
     self.convert_expression(argument);
     // end
     self.add_end(end_position, &argument.span());
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_spread_element(&mut self, spread_element: &SpreadElement) {

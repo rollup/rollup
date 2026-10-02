@@ -4,22 +4,18 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
-import {
-	type ExpressionNode,
-	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForInStatement extends StatementBase {
-	declare body: StatementNode;
-	declare left: VariableDeclaration | PatternNode;
-	declare right: ExpressionNode;
+export default class ForInStatement extends NodeBase {
+	declare parent: nodes.ForInStatementParent;
+	declare body: nodes.Statement;
+	declare left: VariableDeclaration | nodes.DestructuringPattern;
+	declare right: nodes.Expression;
 	declare type: NodeType.tForInStatement;
 
 	createScope(parentScope: ChildScope): void {
