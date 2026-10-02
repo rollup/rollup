@@ -1,4 +1,3 @@
 'use strict';
 
-require('./main.js');
-
+console.log('dep');
