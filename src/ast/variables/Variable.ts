@@ -72,6 +72,14 @@ export default class Variable extends ExpressionEntity {
 		(this.forbiddenNames ||= new Set()).add(name);
 	}
 
+	/**
+	 * True when reading this binding before its initializer has run throws.
+	 * Function and var bindings are hoisted and therefore not included.
+	 */
+	definesTemporalDeadZone(): boolean {
+		return false;
+	}
+
 	getBaseVariableName(): string {
 		return (
 			this.renderedLikeHoisted?.getBaseVariableName() ||
