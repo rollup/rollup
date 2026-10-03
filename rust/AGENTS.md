@@ -17,7 +17,7 @@
 
 - Integer fields are native-endian on both sides (written with `to_ne_bytes()`, read via `Uint32Array`); f64 literal values are explicitly little-endian (`to_le_bytes()` on the Rust side, `DataView.getFloat64(..., true)` on the JS side). The buffer is 4-byte aligned throughout; strings are padded to multiples of 4 — new fields must preserve alignment
 - Build one `Vec<u8>` strictly forward; reserve header/child slots up front (`add_type_and_start` + `resize`) and patch references via `update_reference_position` (references are 32-bit word indices into the buffer, 0 means absent) — never re-index or walk the buffer to fix offsets; `shrink_to_fit` only at the end
-- `parse_ast` never returns `Result`: parse errors are always encoded as a `ParseError` AST node that JS detects and converts to a thrown error; on NAPI, panics are caught and encoded as `PanicError` the same way, but the WASM build uses `panic_immediate_abort` and simply aborts — keep these protocols
+- `parse_ast` never returns `Result`: parse errors are always encoded as a `ParseError` AST node that JS detects and converts to a thrown error; on NAPI, panics are caught and encoded as `PanicError` the same way, but the WASM build uses `panic=immediate-abort` and simply aborts — keep these protocols
 - Positions must be emitted in ascending order (the UTF-8→UTF-16 converter panics on backwards positions); stored `start`/`end` are UTF-16 offsets, never raw SWC UTF-8 spans
 
 ## Bindings Sync
