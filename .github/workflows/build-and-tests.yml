@@ -96,7 +96,7 @@ jobs:
               set -e &&
               which rustup &&
               rustup target add x86_64-pc-windows-gnu &&
-              rustup component add rust-src --toolchain nightly-2025-07-25-x86_64-pc-windows-gnu &&
+              rustup component add rust-src --toolchain nightly-2026-10-03-x86_64-pc-windows-gnu &&
               npm run build:napi -- --release --target x86_64-pc-windows-gnu
             env:
               MINGW_ARCH: ucrt64
@@ -230,7 +230,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
-          toolchain: nightly-2025-07-25
+          toolchain: nightly-2026-10-03
           components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
           targets: ${{ !matrix.settings.build-std && matrix.settings.target || '' }}
       - name: Setup OpenHarmony SDK
@@ -569,7 +569,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
-          toolchain: nightly-2025-07-25
+          toolchain: nightly-2026-10-03
           components: llvm-tools-preview
           targets: wasm32-unknown-unknown
       - name: Restore Cargo cache
