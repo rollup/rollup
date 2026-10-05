@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import { SCOPE_NODE_FIELDS } from './ast-types.js';
+import { SCOPE_NODE_FIELDS } from './ast-types.ts';
 import {
 	generateNotEditFilesComment,
 	lintRustFile,
