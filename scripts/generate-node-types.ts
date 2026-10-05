@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import { AST_NODES } from './ast-types.js';
+import { AST_NODES } from './ast-types.ts';
 import { generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
