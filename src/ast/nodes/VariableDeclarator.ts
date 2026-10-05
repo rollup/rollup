@@ -12,7 +12,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
-import { INTERACTION_CALLED } from '../NodeInteractions';
+import { INTERACTION_CALLED, type NodeInteractionCalled } from '../NodeInteractions';
 import FunctionScope from '../scopes/FunctionScope';
 import {
 	EMPTY_PATH,
@@ -43,7 +43,7 @@ export default class VariableDeclarator extends NodeBase {
 	declare isUsingDeclaration: boolean;
 	declare isAsyncUsingDeclaration: boolean;
 	declare private disposalFunctions?: Set<FunctionBase>;
-	declare private needsDisposeFallback: boolean;
+	declare private hasDeoptimizedDisposal: boolean;
 
 	declareDeclarator(kind: VariableKind): void {
 		this.isUsingDeclaration = kind === 'using';
@@ -56,9 +56,10 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	deoptimizeCache(): void {
-		if (!this.needsDisposeFallback && this.init) {
-			this.needsDisposeFallback = true;
-			this.includeDisposalMethod(this.init, SYMBOL_DISPOSE_PATH, createInclusionContext());
+		if (!this.hasDeoptimizedDisposal && this.init) {
+			this.hasDeoptimizedDisposal = true;
+			this.init.deoptimizePath(UNKNOWN_PATH);
+			this.init.includePath(UNKNOWN_PATH, createInclusionContext());
 			this.scope.context.requestTreeshakingPass();
 		}
 	}
@@ -141,17 +142,12 @@ export default class VariableDeclarator extends NodeBase {
 		this.included = true;
 		const { id, init } = this;
 		if (init) {
-			if (this.isUsingDeclaration || this.isAsyncUsingDeclaration) {
-				this.needsDisposeFallback = this.isUsingDeclaration;
-				if (
-					this.isAsyncUsingDeclaration &&
-					!this.includeDisposalMethod(init, SYMBOL_ASYNC_DISPOSE_PATH, context)
-				) {
-					this.needsDisposeFallback = true;
-				}
-				if (this.needsDisposeFallback) {
-					this.includeDisposalMethod(init, SYMBOL_DISPOSE_PATH, context);
-				}
+			if (
+				this.isUsingDeclaration ||
+				(this.isAsyncUsingDeclaration &&
+					!this.includeDisposalMethod(init, SYMBOL_ASYNC_DISPOSE_PATH, context))
+			) {
+				this.includeDisposalMethod(init, SYMBOL_DISPOSE_PATH, context);
 			}
 			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
 				const { name, variable } = id;
@@ -171,7 +167,19 @@ export default class VariableDeclarator extends NodeBase {
 	): boolean {
 		const disposalFunction = init.getKnownFunctionAtPath(path, SHARED_RECURSION_TRACKER, this);
 		init.includePath(path, context);
-		if (!disposalFunction) return false;
+		if (!disposalFunction) {
+			const disposalValue = init.getLiteralValueAtPath(path, SHARED_RECURSION_TRACKER, this);
+			if (disposalValue !== null && disposalValue !== undefined) {
+				const interaction: NodeInteractionCalled = {
+					args: [init],
+					type: INTERACTION_CALLED,
+					withNew: false
+				};
+				init.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
+				init.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+			}
+			return false;
+		}
 		const disposalFunctions = (this.disposalFunctions ||= new Set<FunctionBase>());
 		if (!disposalFunctions.has(disposalFunction)) {
 			disposalFunctions.add(disposalFunction);
