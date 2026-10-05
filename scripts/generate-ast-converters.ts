@@ -1,23 +1,23 @@
-#!/usr/bin/env vite-node
+#!/usr/bin/env node
 
-import './generate-ast-macros.js';
-import './generate-ast-to-buffer.js';
-import './generate-ast-types.js';
-import './generate-buffer-parsers.js';
-import './generate-buffer-to-ast.js';
-import './generate-buffer-to-lazy-ast.js';
-import './generate-child-node-keys.js';
-import './generate-node-ids.js';
-import './generate-node-type-strings.js';
-import './generate-node-types.js';
-import './generate-node-unions.js';
-import './generate-rust-constants.js';
-import './generate-scope-constants.js';
-import './generate-string-constants.js';
+import './generate-ast-macros.ts';
+import './generate-ast-to-buffer.ts';
+import './generate-ast-types.ts';
+import './generate-buffer-parsers.ts';
+import './generate-buffer-to-ast.ts';
+import './generate-buffer-to-lazy-ast.ts';
+import './generate-child-node-keys.ts';
+import './generate-node-ids.ts';
+import './generate-node-type-strings.ts';
+import './generate-node-types.ts';
+import './generate-node-unions.ts';
+import './generate-rust-constants.ts';
+import './generate-scope-constants.ts';
+import './generate-string-constants.ts';
 
 // Check if we have sufficient test coverage if new nodes are added
 import { readdirSync } from 'node:fs';
-import { astNodeNamesWithFieldOrder } from './ast-types.js';
+import { astNodeNamesWithFieldOrder } from './ast-types.ts';
 
 const testDirFromRoot = 'test/parse-and-walk/samples/';
 const parseAndWalkTestDir = new URL(`../${testDirFromRoot}`, import.meta.url);
