@@ -1,68 +1,13 @@
 {
   "decisions": {
-    "1112706|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1789100346311,
-      "expiresAt": 1795000000000
-    },
-    "1113686|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336869,
-      "expiresAt": 1795000000000
-    },
-    "1119440|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1795000000000
-    },
-    "1113686|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336870,
-      "expiresAt": 1795000000000
-    },
-    "1119440|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1795000000000
-    },
-    "1240992|chokidar>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1240992|nodemon>chokidar>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1240992|patch-package>find-yarn-workspace-root>micromatch>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1240992|shx>shelljs>fast-glob>micromatch>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1241202|nyc>@istanbuljs/load-nyc-config>js-yaml>argparse>sprintf-js": {
-      "decision": "ignore",
-      "madeAt": 1791260936836,
-      "expiresAt": 1795000000000
-    },
     "1241206|@mermaid-js/layout-tidy-tree>mermaid>katex": {
       "decision": "ignore",
-      "madeAt": 1791260936836,
+      "madeAt": 1791611375950,
       "expiresAt": 1795000000000
     },
     "1241206|@mermaid-js/mermaid-cli>@mermaid-js/layout-tidy-tree>mermaid>katex": {
       "decision": "ignore",
-      "madeAt": 1791260936836,
-      "expiresAt": 1795000000000
-    },
-    "1241332|concurrently>shell-quote": {
-      "decision": "ignore",
-      "madeAt": 1791345901688,
+      "madeAt": 1791611375950,
       "expiresAt": 1795000000000
     }
   },
