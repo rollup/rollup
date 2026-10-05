@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import { astNodeNamesWithFieldOrder } from './ast-types.js';
+import { astNodeNamesWithFieldOrder } from './ast-types.ts';
 import { generateNotEditFilesComment, lintRustFile, toSnakeCase } from './helpers.js';
 
 const BYTES_PER_U32 = 4;

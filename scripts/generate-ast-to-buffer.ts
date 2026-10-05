@@ -1,8 +1,8 @@
-#!/usr/bin/env vite-node
+#!/usr/bin/env node
 
 import { writeFile } from 'node:fs/promises';
-import type { AstNodeName, AstTypeName, FieldDescription, NodeDescription } from './ast-types.js';
-import { astNodeNamesWithFieldOrder } from './ast-types.js';
+import type { AstNodeName, AstTypeName, FieldDescription, NodeDescription } from './ast-types.ts';
+import { astNodeNamesWithFieldOrder } from './ast-types.ts';
 import { generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
