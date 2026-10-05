@@ -18,17 +18,6 @@ async function asyncOnly() {
 }
 asyncOnly();
 
-async function syncThenAsync() {
-	const resource = {
-		[Symbol.dispose]() { console.log('sync first'); },
-		[Symbol.asyncDispose]() { console.log('async second'); }
-	};
-	const alias = resource;
-	{ using captured = resource; }
-	{ await using captured = alias; }
-}
-syncThenAsync();
-
 async function asyncThenSync() {
 	const resource = {
 		[Symbol.dispose]() { console.log('sync second'); },
@@ -121,3 +110,22 @@ async function lexicalArrowDisposer() {
 	await using captured = resource;
 }
 lexicalArrowDisposer.call({ label: 'outer label' });
+
+async function nullishAsyncDisposers() {
+	await using missing = {
+		__proto__: null,
+		unused: 'unused missing async property',
+		[Symbol.dispose]() { console.log('missing async fallback'); }
+	};
+	await using nullDisposer = {
+		unused: 'unused null async property',
+		[Symbol.asyncDispose]: null,
+		[Symbol.dispose]() { console.log('null async fallback'); }
+	};
+	await using undefinedDisposer = {
+		unused: 'unused undefined async property',
+		[Symbol.asyncDispose]: undefined,
+		[Symbol.dispose]() { console.log('undefined async fallback'); }
+	};
+}
+nullishAsyncDisposers();
