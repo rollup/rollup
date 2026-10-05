@@ -33,7 +33,9 @@ module.exports = defineTest({
 				assert.deepStrictEqual(sanitizedBundle, {
 					'entry-main1.js': {
 						exports: ['added'],
+						facadeModuleAttributes: {},
 						facadeModuleId: '**/main1.js',
+						facadeModuleRawId: '**/main1.js',
 						isDynamicEntry: false,
 						isEntry: true,
 						isImplicitEntry: false,
@@ -52,7 +54,9 @@ module.exports = defineTest({
 					},
 					'entry-main2.js': {
 						exports: [],
+						facadeModuleAttributes: {},
 						facadeModuleId: '**/main2.js',
+						facadeModuleRawId: '**/main2.js',
 						isDynamicEntry: false,
 						isEntry: true,
 						isImplicitEntry: false,

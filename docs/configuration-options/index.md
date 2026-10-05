@@ -12,7 +12,7 @@ title: Configuration Options
 
 |  |  |
 | --: | :-- |
-| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string, isResolved: boolean) => boolean` |
+| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string, isResolved: boolean, options: { attributes: Record<string, string>, importerRawId?: string, importerAttributes: Record<string, string> }) => boolean` |
 | CLI: | `-e`/`--external <external-id,another-external-id,...>` |
 
 Either a function that takes an `id` and returns `true` (external) or `false` (not external), or an `Array` of module IDs, or regular expressions to match module IDs, that should remain external to the bundle. Can also be just a single ID or regular expression. The matched IDs should be either:
@@ -50,11 +50,14 @@ When given as a command line argument, it should be a comma-separated list of ID
 rollup -i src/main.js ... -e foo,bar,baz
 ```
 
-When providing a function, it is called with three parameters `(id, parent, isResolved)` that can give you more fine-grained control:
+When providing a function, it is called with four parameters `(id, parent, isResolved, options)` that can give you more fine-grained control:
 
 - `id` is the id of the module in question
 - `parent` is the id of the module doing the import
 - `isResolved` signals whether the `id` has been resolved by e.g. plugins
+- `options.attributes` contains the import attributes of the import
+- `options.importerRawId` is the id of the importing module without import attributes, if there is one
+- `options.importerAttributes` contains the import attributes of the importing module
 
 When creating an `iife` or `umd` bundle, you will need to provide global variable names to replace your external imports via the [`output.globals`](#output-globals) option.
 
@@ -93,6 +96,8 @@ The conversion back to a relative import is done as if `output.file` or `output.
 |  CLI: | `-i`/`--input <filename>`                                |
 
 The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](#output-file) option is used, generated chunk names will follow the [`output.entryFileNames`](#output-entryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
+
+Note that entry points specified here cannot carry import attributes. If you need an entry point that is imported with specific attributes (e.g. a JSON module imported with `{ type: 'json' }`), emit it from a plugin via [`this.emitFile`](../plugin-development/index.md#this-emitfile) with the `attributes` option instead.
 
 Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
@@ -386,7 +391,7 @@ Specifies the format of the generated bundle. One of the following:
 
 |  |  |
 | --: | :-- |
-| Type: | `{ [id: string]: string } \| ((id: string) => string)` |
+| Type: | `{ [id: string]: string } \| ((id: string, options: { attributes: Record<string, string> }) => string)` |
 | CLI: | `-g`/`--globals <external-id:variableName,another-external-id:anotherVariableName,...>` |
 
 Specifies `id: variableName` pairs necessary for external imports in `umd`/`iife` bundles. For example, in a case like this…
@@ -421,7 +426,7 @@ var MyBundle = (function ($) {
 */
 ```
 
-Alternatively, supply a function that will turn an external module ID into a global variable name.
+Alternatively, supply a function that will turn an external module ID into a global variable name. When using the function form, the second parameter contains the import attributes of the external module. For both forms, the module is identified by its `rawId`, i.e. the id without encoded import attributes. As the object form cannot distinguish several import attribute variants of the same module, they would all share one global name; Rollup emits an `AMBIGUOUS_GLOBAL_NAME` warning in this case. Use the function form to give each variant its own global name.
 
 When given as a command line argument, it should be a comma-separated list of `id:variableName` pairs:
 
@@ -815,6 +820,8 @@ See also [`output.intro/output.outro`](#output-intro-output-outro).
 interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;
+	facadeModuleRawId: string | null;
+	facadeModuleAttributes: Record<string, string>;
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
@@ -828,6 +835,8 @@ The `PreRenderedChunk` type provides information about the chunk being generated
 
 - `exports`: The list of exported bindings from the chunk.
 - `facadeModuleId`: The module id of the entry point this chunk is a facade for, or `null` if this is not a facade.
+- `facadeModuleRawId`: The facade module id without import attributes, or `null` if this is not a facade.
+- `facadeModuleAttributes`: The import attributes of the facade module, or an empty object if this is not a facade.
 - `isDynamicEntry`: `true` if this chunk is the target of dynamic `import()` expressions.
 - `isEntry`: `true` if this chunk is an entry point (either from the `input` option or emitted via `this.emitFile`).
 - `isImplicitEntry`: `true` if this chunk was emitted with [`implicitlyLoadedAfterOneOf`](../plugin-development/index.md#this-emitfile) set, indicating it will only be loaded as an entry point if at least one of the specified modules have already been loaded.
@@ -941,7 +950,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 |     CLI: | `--externalImportAttributes`/`--no-externalImportAttributes` |
 | Default: | `true`                                                       |
 
-Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
+Whether to add import attributes to external imports in the output if the output format is `es` or `cjs`. By default, attributes are taken from the input files, but plugins can add or remove attributes when resolving external modules. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
 
 ### output.generatedCode
 
@@ -1151,7 +1160,7 @@ By default, when creating multiple chunks, transitive imports of entry chunks wi
 | -------: | :----------------------------- |
 |    Type: | `"with" \| "assert"`           |
 |     CLI: | `--importAttributesKey <name>` |
-| Default: | `"assert"`                     |
+| Default: | `"with"`                       |
 
 This determines the keyword set that Rollup will use for import attributes.
 
@@ -1455,17 +1464,19 @@ export default {
 
 Allows the creation of custom shared common chunks. The object form can be used for an easier and safer manual chunking, and the function form can be used for a more powerful and controlled behavior.
 
-When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key. Note that it is not necessary for the listed modules themselves to be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
+When using the object form, each property represents a chunk that contains the listed modules as well as all modules that are always loaded together with them, while modules that are also used by other entry points or manual chunks are extracted into separate chunks; see [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks) to change this behavior. The name of the chunk will be determined by the property key. Listed ids are resolved like entry points, so bare package ids work with `@rollup/plugin-node-resolve`, but only listed modules that end up included in the bundle become part of the chunk. For instance
 
 ```javascript
 manualChunks: {
-	lodash: ['lodash'],
+	lodash: ['lodash/get'],
 }
 ```
 
-will merge all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
+will merge the `get` module and the lodash modules only used by it into a manual chunk named `lodash`.
 
-When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependencies will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
+The object form resolves the listed ids without import attributes and thus only assigns the module instance without attributes. Modules imported with import attributes are separate modules whose id encodes the attributes; they can only be assigned via the function form, which receives this full id.
+
+When using the function form, each resolved module id will be passed to the function. If a string is returned, the module is added to the manual chunk with the given name, while its dependencies are chunked normally into separate chunks. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
 
 ```javascript twoslash
 // ---cut-start---
@@ -1480,9 +1491,13 @@ function manualChunks(id) {
 }
 ```
 
-By default, the function form will also merge dependencies of the returned ids into the manualChunk. If you need stricter behavior, you can use [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks), which will be the default in Rollup 5.
+By default, the function form does not add any additional modules to the manual chunk besides the returned modules. If you want manual chunks to behave like entry points and also contain modules that are always loaded together with the returned modules, set [output.onlyExplicitManualChunks](#output-onlyexplicitmanualchunks) to `false`.
 
 Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
+
+If a manual chunk is only loaded via dynamic imports, then for chunking purposes it behaves like a dynamic entry: modules that are always already loaded by the importing chunk are not extracted into the manual chunk but remain in the importing chunk.
+
+If none of the modules of a manual chunk are included in the bundle—for instance because they were fully removed by tree-shaking, or because you only assigned a pure re-export barrel file that your imports bypass—then the (empty) manual chunk will not be generated, but you will receive an `EMPTY_MANUAL_CHUNK` warning.
 
 When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) and [`this.getModuleIds`](../plugin-development/index.md#this-getmoduleids) on the plugin context.
 
@@ -1617,13 +1632,64 @@ console.log(importantValue);
 
 Even though it appears that setting this option to `true` makes the output larger, it actually makes it smaller if a minifier is used. In this case, `export { importantValue as i }` can become e.g. `export{a as i}` or even `export{i}`, while otherwise it would produce `export{ a as importantValue }` because a minifier usually will not change export signatures.
 
+### output.onlyExplicitManualChunks
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| Default: | `false` for the object form of [output.manualChunks](#output-manualchunks), `true` for the function form |
+
+When `true`, manual chunks only contain the modules that are explicitly assigned to them, and their dependencies are chunked normally into separate chunks. When `false`, manual chunks behave like entry points and also contain all modules that are always loaded together with them, while modules that are also used by other entry points or manual chunks are extracted into separate chunks. The option applies to both the object and the function form of [output.manualChunks](#output-manualchunks).
+
+For instance, with
+
+```js
+// src/main.js (entry point)
+import './manual1';
+import './manual2';
+
+console.log('main');
+
+// src/manual1.js
+import './dep.js';
+
+console.log('manual1');
+
+// src/manual2.js
+import './dep.js';
+
+console.log('manual2');
+
+// src/dep.js
+console.log('dep');
+```
+
+and
+
+<!-- prettier-ignore-start -->
+
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').GetManualChunk} */
+// ---cut-end---
+function manualChunks(id) {
+	if (id.endsWith('manual1.js') || id.endsWith('manual2.js')) {
+		return 'manual';
+	}
+}
+```
+
+the `manual` chunk contains only the two manual modules while `dep.js` is chunked normally into a separate chunk that is shared between the `main` and the `manual` chunk. This is the default for the function form and gives you full control over what code goes into which manual chunks—if your manual chunking is very granular, this can prevent import graph inaccuracies and help reduce cache invalidation. When the option is set to `false`, the `manual` chunk behaves like an entry point instead and also contains `dep.js`, as it is always loaded together with the two manual modules.
+
 ### output.paths
 
-|       |                                                        |
-| ----: | :----------------------------------------------------- |
-| Type: | `{ [id: string]: string } \| ((id: string) => string)` |
+|  |  |
+| --: | :-- |
+| Type: | `{ [id: string]: string } \| ((id: string, options: { attributes: Record<string, string> }) => string)` |
 
 Maps external module IDs to paths. External ids are ids that [cannot be resolved](../troubleshooting/index.md#warning-treating-module-as-external-dependency) or ids explicitly provided by the [`external`](#external) option. Paths supplied by `output.paths` will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
+
+When using the function form, the second parameter contains the import attributes of the external module.
 
 ```js twoslash
 // app.js
@@ -3053,7 +3119,7 @@ Configures how long Rollup will wait for further changes until it triggers a reb
 | ----: | :---------------- |
 | Type: | `ChokidarOptions` |
 
-An optional object of watch options that will be passed to the bundled [chokidar](https://github.com/paulmillr/chokidar) instance. See the [chokidar documentation](https://github.com/paulmillr/chokidar#api) to find out what options are available.
+An optional object of watch options that will be passed to the bundled [chokidar](https://github.com/paulmillr/chokidar) instance. See the [chokidar documentation](https://github.com/paulmillr/chokidar#getting-started) to find out what options are available.
 
 ### watch.clearScreen
 
@@ -3141,54 +3207,4 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 |     CLI: | `--externalImportAssertions`/`--no-externalImportAssertions` |
 | Default: | `true`                                                       |
 
-Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
-
-### output.onlyExplicitManualChunks
-
-|       |           |
-| ----: | :-------- |
-| Type: | `boolean` |
-
-If set to true, using the [output.manualChunks](#output-manualchunks) function form won't merge dependencies into the output chunk.
-
-For instance, with
-
-```js
-// src/main.js (entry point)
-import './manual1';
-import './manual2';
-
-console.log('main');
-
-// src/manual1.js
-import './dep.js';
-
-console.log('manual1');
-
-// src/manual2.js
-import './dep.js';
-
-console.log('manual2');
-
-// src/dep.js
-console.log('dep');
-```
-
-and
-
-<!-- prettier-ignore-start -->
-
-```js twoslash
-// ---cut-start---
-/** @type {import('rollup').GetManualChunk} */
-// ---cut-end---
-function manualChunks(id) {
-	if (id.endsWith('manual1.js') && id.endsWith('manual2.js')) {
-		return 'manual';
-	}
-}
-```
-
-the dep.js `export const dep = 'dep';` code, won't be merged into the `manual` output chunk. This gives you full control over what code goes into which manual chunks, and if your manual chunking is very granular, this can prevent import graph inaccuracies and help reduce cache invalidation.
-
-Note: although this option is new in Rollup 4, it is marked as deprecated because it will become the new default for the function form in Rollup 5.
+Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, import attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.

@@ -14,10 +14,10 @@ module.exports = defineTest({
 		plugins: [
 			{
 				generateBundle(options, bundle) {
-					// This also asserts the sorting order, which should be alphabetical
-					// between the manual chunks
 					assert.deepStrictEqual(Object.keys(bundle), [
 						'main-a.js',
+						'generated-dep1.js',
+						'generated-dep2.js',
 						'generated-chunk-c.js',
 						'generated-chunk-b.js'
 					]);

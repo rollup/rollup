@@ -22,6 +22,7 @@ export const URL_OUTPUT_GENERATEDCODE = 'configuration-options/#output-generated
 export const URL_OUTPUT_GENERATEDCODE_SYMBOLS =
 	'configuration-options/#output-generatedcode-symbols';
 export const URL_OUTPUT_GLOBALS = 'configuration-options/#output-globals';
+export const URL_OUTPUT_IMPORTATTRIBUTESKEY = 'configuration-options/#output-importattributeskey';
 export const URL_OUTPUT_INLINEDYNAMICIMPORTS = 'configuration-options/#output-inlinedynamicimports';
 export const URL_OUTPUT_INTEROP = 'configuration-options/#output-interop';
 export const URL_OUTPUT_MANUALCHUNKS = 'configuration-options/#output-manualchunks';
@@ -49,5 +50,6 @@ export const URL_GENERATEBUNDLE = 'plugin-development/#generatebundle';
 export const URL_RENDERDYNAMICIMPORT = 'plugin-development/#renderdynamicimport';
 export const URL_THIS_GETMODULEIDS = 'plugin-development/#this-getmoduleids';
 export const URL_THIS_GETMODULEINFO = 'plugin-development/#this-getmoduleinfo';
+export const URL_THIS_RESOLVE = 'plugin-development/#this-resolve';
 export const URL_LOAD = 'plugin-development/#load';
 export const URL_TRANSFORM = 'plugin-development/#transform';

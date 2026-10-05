@@ -325,6 +325,7 @@ describe('incremental', () => {
 						external: false,
 						meta: {},
 						moduleSideEffects: true,
+						rawId: 'foo',
 						resolvedBy: 'at position 1',
 						syntheticNamedExports: false
 					},
@@ -334,6 +335,7 @@ describe('incremental', () => {
 						external: true,
 						meta: {},
 						moduleSideEffects: true,
+						rawId: 'external',
 						resolvedBy: 'rollup',
 						syntheticNamedExports: false
 					}
@@ -561,6 +563,7 @@ describe('incremental', () => {
 					attributes: {},
 					code: modules[id],
 					moduleSideEffects: true,
+					rawId: id,
 					syntheticNamedExports: false
 				});
 				switch (id) {
@@ -574,6 +577,7 @@ describe('incremental', () => {
 								id: 'bar',
 								meta: {},
 								moduleSideEffects: true,
+								rawId: 'bar',
 								resolvedBy: 'at position 1',
 								syntheticNamedExports: false
 							}
@@ -596,6 +600,7 @@ describe('incremental', () => {
 								id: 'foo',
 								meta: {},
 								moduleSideEffects: true,
+								rawId: 'foo',
 								resolvedBy: 'at position 1',
 								syntheticNamedExports: false
 							}

@@ -42,21 +42,21 @@
   "scripts": {
     "build": "concurrently -c green,blue \"npm run build:wasm\" \"npm:build:ast-converters\" && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
-    "build:napi": "napi build --cwd rust/bindings_napi --platform --dts ../../native.d.ts --no-js --output-dir ../.. --package-json-path ../../package.json",
-    "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
-    "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && shx rm wasm-node/.gitignore",
+    "build:napi": "napi build --cwd rust/bindings_napi --platform --dts native.d.ts --no-js --output-dir ../.. --package-json-path ../../package.json",
+    "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && node scripts/clean-wasm-output.ts wasm",
+    "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && node scripts/clean-wasm-output.ts wasm-node",
     "update:napi": "npm run build:napi && npm run build:copy-native",
     "build:js": "rollup --config rollup.config.ts --configPlugin typescript --forceExit",
     "build:js:node": "rollup --config rollup.config.ts --configPlugin typescript --configIsBuildNode --forceExit",
     "build:prepare": "concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js:node\" && npm run build:copy-native",
     "update:js": "npm run build:js && npm run build:copy-native",
-    "build:copy-native": "shx mkdir -p dist && shx cp rollup.*.node dist/",
-    "dev": "concurrently -kc green,blue 'nodemon --watch rust -e rs --exec \"npm run build:wasm\"' 'vitepress dev docs'",
+    "build:copy-native": "node scripts/copy-native-artifacts.ts",
+    "dev": "concurrently -kc green,blue 'node scripts/rebuild-wasm-on-change.ts' 'vitepress dev docs'",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit",
-    "build:bootstrap": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --forceExit && shx rm -rf dist-build",
-    "build:bootstrap:cjs": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && shx rm -rf dist-build",
+    "build:bootstrap": "node scripts/bootstrap-build.ts",
+    "build:bootstrap:cjs": "node scripts/bootstrap-build.ts --configTest",
     "build:docs": "vitepress build docs",
-    "build:ast-converters": "node scripts/generate-ast-converters.js",
+    "build:ast-converters": "node scripts/generate-ast-converters.ts",
     "preview:docs": "vitepress preview docs",
     "ci:artifacts": "napi artifacts",
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
@@ -84,16 +84,16 @@
     "test:update-snapshots": "node scripts/update-snapshots.js",
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
-    "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:package' 'npm:test:options'",
+    "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:options'",
     "test:coverage": "bash scripts/coverage.sh",
     "test:leak": "npm install --no-save weak-napi@2.0.2 && npm run test:leak:only",
     "test:leak:only": "node --expose-gc test/leak/index.js",
-    "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
-    "test:only:coverage": "node scripts/run-with-coverage-environment.js nyc --reporter lcovonly --reporter html mocha test/test.js",
-    "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit -p . && tsc --noEmit -p scripts && vue-tsc --noEmit -p docs",
+    "test:only:coverage": "node scripts/run-with-coverage-environment.js c8 --reporter lcovonly --reporter html mocha test/test.js",
+    "test:typescript": "scripts/check-typescript.sh",
     "test:browser": "mocha test/browser/index.js",
+    "test:ast": "mocha test/parse-and-walk/index.js",
     "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
   },
   "repository": {
@@ -114,11 +114,7 @@
   },
   "homepage": "https://rollupjs.org/",
   "optionalDependencies": {
-    "@napi-rs/lzma-linux-x64-gnu": "1.5.1",
-    "fsevents": "~2.3.2"
-  },
-  "dependencies": {
-    "@types/estree": "1.0.9"
+    "@napi-rs/lzma-linux-x64-gnu": "1.5.1"
   },
   "devDependenciesComments": {
     "core-js": "We only update manually as every update requires a snapshot update"
@@ -133,22 +129,22 @@
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@eslint/js": "^10.0.1",
-    "@inquirer/prompts": "^7.10.1",
+    "@inquirer/prompts": "^8.7.2",
     "@jridgewell/sourcemap-codec": "^1.6.0",
     "@mermaid-js/mermaid-cli": "^12.0.0",
-    "@napi-rs/cli": "3.4.1",
+    "@napi-rs/cli": "3.7.4",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-buble": "^1.0.3",
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/pluginutils": "^5.4.0",
     "@shikijs/vitepress-twoslash": "^4.4.3",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.43",
+    "@types/node": "^22.19.0",
     "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.8.0",
     "@types/yargs-parser": "^21.0.3",
@@ -159,8 +155,9 @@
     "acorn-jsx": "^5.3.2",
     "buble": "^0.20.0",
     "builtin-modules": "^5.4.0",
-    "chokidar": "^3.6.0",
-    "concurrently": "^9.2.4",
+    "c8": "^12.0.0",
+    "chokidar": "^5.0.0",
+    "concurrently": "^10.0.5",
     "core-js": "3.38.1",
     "date-time": "^4.0.0",
     "es5-shim": "^4.6.7",
@@ -170,8 +167,8 @@
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-unicorn": "^76.0.0",
     "eslint-plugin-vue": "^10.11.1",
+    "find-yarn-workspace-root": "file:stubs/find-yarn-workspace-root",
     "fixturify": "^3.0.0",
-    "flru": "^1.0.2",
     "fs-extra": "^11.4.1",
     "github-api": "^3.4.0",
     "globals": "^17.12.0",
@@ -181,10 +178,8 @@
     "locate-character": "^3.0.0",
     "magic-string": "^1.4.2",
     "memfs": "^4.79.0",
-    "mocha": "^11.8.0",
-    "nodemon": "^3.1.14",
+    "mocha": "^12.0.2",
     "npm-audit-resolver": "^3.0.0-RC.0",
-    "nyc": "^18.0.0",
     "patch-package": "^8.0.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.7",
@@ -197,7 +192,6 @@
     "rollup": "^4.63.5",
     "rollup-plugin-license": "^3.7.1",
     "semver": "^7.8.5",
-    "shx": "^0.4.0",
     "signal-exit": "^4.1.0",
     "source-map": "^0.8.0",
     "source-map-support": "^0.5.21",
@@ -212,11 +206,12 @@
     "vue-eslint-parser": "^10.4.1",
     "vue-tsc": "^3.3.11",
     "wasm-pack": "^0.15.0",
-    "yargs-parser": "^21.1.1"
+    "yargs-parser": "^22.0.0"
   },
   "overrides": {
     "axios": "^1.20.0",
     "esbuild": ">0.24.2",
+    "find-yarn-workspace-root": "$find-yarn-workspace-root",
     "lodash-es": ">4.17.22",
     "path-scurry": {
       "lru-cache": ">=11.0.0"
@@ -232,9 +227,10 @@
     "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges",
     "@emnapi/core": "If missing this fails npm install for Linux ARM",
     "@emnapi/runtime": "If missing this fails npm install for Linux ARM",
-    "@napi-rs/lzma-linux-x64-gnu": "If missing, napi build --use-napi-cross silently skips the cross toolchain and links against the host glibc (#6461)",
+    "@napi-rs/lzma-linux-x64-gnu": "If missing, napi build --use-napi-cross fails (#6461)",
     "react": "If missing this fails npm install for Linux ARM",
-    "react-dom": "If missing this fails npm install for Linux ARM"
+    "react-dom": "If missing this fails npm install for Linux ARM",
+    "find-yarn-workspace-root": "Stub that removes patch-package's vulnerable braces dependency; only used for yarn workspaces"
   },
   "files": [
     "dist/*.node",
@@ -244,8 +240,8 @@
     "dist/es/package.json"
   ],
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=22.18.0",
+    "npm": ">=10.9.3"
   },
   "exports": {
     ".": {

@@ -1,11 +1,13 @@
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class TemplateElement extends NodeBase {
+	declare parent: nodes.TemplateElementParent;
 	declare type: NodeType.tTemplateElement;
 	declare value: {
-		cooked: string | null;
+		cooked?: string;
 		raw: string;
 	};
 
@@ -21,11 +23,6 @@ export default class TemplateElement extends NodeBase {
 
 	hasEffects(): boolean {
 		return false;
-	}
-
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		this.value = esTreeNode.value;
-		return super.parseNode(esTreeNode);
 	}
 
 	render(): void {}

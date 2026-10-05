@@ -10,6 +10,7 @@ module.exports = defineTest({
 			globals: id => id,
 			importAttributesKey: 'assert',
 			name: 'bundle'
-		}
+		},
+		strictDeprecations: false
 	}
 });

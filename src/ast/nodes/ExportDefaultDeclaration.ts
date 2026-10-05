@@ -15,10 +15,10 @@ import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
@@ -41,7 +41,8 @@ function getFunctionIdInsertPosition(code: string, start: number): number {
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	declare declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	declare parent: nodes.ExportDefaultDeclarationParent;
+	declare declaration: FunctionDeclaration | ClassDeclaration | nodes.Expression;
 	declare needsBoundaries: true;
 	declare scope: ModuleScope;
 	declare type: NodeType.tExportDefaultDeclaration;
