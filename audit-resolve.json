@@ -1,51 +1,5 @@
 {
-  "decisions": {
-    "1112706|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1789100346311,
-      "expiresAt": 1795000000000
-    },
-    "1113686|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336869,
-      "expiresAt": 1795000000000
-    },
-    "1119440|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1795000000000
-    },
-    "1113686|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336870,
-      "expiresAt": 1795000000000
-    },
-    "1119440|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1795000000000
-    },
-    "1240992|chokidar>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1240992|nodemon>chokidar>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1240992|patch-package>find-yarn-workspace-root>micromatch>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    },
-    "1240992|shx>shelljs>fast-glob>micromatch>braces": {
-      "decision": "ignore",
-      "madeAt": 1791091338232,
-      "expiresAt": 1795000000000
-    }
-  },
+  "decisions": {},
   "rules": {},
   "version": 1
 }

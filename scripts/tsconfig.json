@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"checkJs": true,
 		"allowJs": true,
+		"erasableSyntaxOnly": true,
 		"forceConsistentCasingInFileNames": true,
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
