@@ -50,11 +50,6 @@
       "madeAt": 1794590117956,
       "expiresAt": 1797182098011
     },
-    "1244623|nodemon>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
-    },
     "1244623|typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch": {
       "decision": "ignore",
       "madeAt": 1793946020078,

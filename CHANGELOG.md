@@ -8,7 +8,7 @@ _2026-10-02_
 
 #### General Changes
 
-- The minimal required Node version is now 22.12.0 (#6532)
+- The minimal required Node version is now 22.18.0 (#6557)
 
 #### Manual Chunk Changes
 
@@ -97,6 +97,7 @@ _2026-10-02_
 - [#6532](https://github.com/rollup/rollup/pull/6532): [v5.0] Require Node.js 22.12.0 (@lukastaegert)
 - [#6533](https://github.com/rollup/rollup/pull/6533): [v5.0] Rework manual chunks for Rollup 5 (@lukastaegert)
 - [#6548](https://github.com/rollup/rollup/pull/6548): [v5.0] Add Mocha GitHub Actions test reports (@lukastaegert)
+- [#6557](https://github.com/rollup/rollup/pull/6557): [v5.0] Remove all consumers of the vulnerable braces dependency (@lukastaegert)
 
 For previous changelogs, see
 

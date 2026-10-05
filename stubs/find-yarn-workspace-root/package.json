@@ -1,0 +1,6 @@
+{
+  "name": "find-yarn-workspace-root",
+  "version": "0.0.0",
+  "description": "Local no-op stub: this repo never uses yarn workspaces, so workspace detection always returns undefined",
+  "main": "index.js"
+}

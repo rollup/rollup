@@ -29,7 +29,7 @@ const runRollupCli = (cliDir, arguments_) =>
 	run(process.execPath, [path.join(cliDir, 'bin/rollup'), ...arguments_]);
 
 const restoreDistribution = () => {
-	// restore the original dist if a previous run crashed midway
+	// restore the original dist if a step crashed midway
 	const backupDir = fs.existsSync(distributionBuildDir)
 		? distributionBuildDir
 		: fs.existsSync(distributionNativeDir)
@@ -55,30 +55,8 @@ describe('smoke test', function () {
 	});
 
 	it('bundles rollup with the rollup in the downloaded dist', () => {
-		fs.renameSync(distributionDir, distributionBuildDir);
-		try {
-			run(process.execPath, [
-				'dist-build/bin/rollup',
-				'--config',
-				'rollup.config.ts',
-				'--configPlugin',
-				'typescript',
-				'--configTest',
-				'--forceExit'
-			]);
-		} catch (error) {
-			restoreDistribution();
-			throw error;
-		}
-		for (const nativeModule of fs
-			.readdirSync(distributionBuildDir)
-			.filter(name => /^rollup\..*\.node$/.test(name))) {
-			fs.copyFileSync(
-				path.join(distributionBuildDir, nativeModule),
-				path.join(distributionDir, nativeModule)
-			);
-		}
-		fs.rmSync(distributionBuildDir, { recursive: true });
+		// the bootstrap script restores the previous build if the build fails
+		run('npm', ['run', 'build:bootstrap:cjs']);
 	});
 
 	it('prints the version from the freshly built dist', () => {
