@@ -480,8 +480,7 @@ jobs:
             git config --global --add safe.directory /home/runner/work/rollup/rollup
             chmod +x dist/bin/rollup
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
-            # tsx cannot be used here because its esbuild binary does not match the container architecture
-            node scripts/bootstrap-build.ts --configTest
+            npm run build:bootstrap:cjs
             npm run test:ast
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
 
@@ -510,7 +509,7 @@ jobs:
             target: aarch64-pc-windows-msvc
             package: win32-arm64-msvc
         node:
-          - '22.12.0'
+          - '22.18.0'
           - 24
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30

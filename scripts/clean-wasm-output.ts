@@ -9,7 +9,7 @@ chdir(fileURLToPath(new URL('..', import.meta.url)));
 const outputDirectory = process.argv[2];
 
 if (!outputDirectory) {
-	console.error('Usage: tsx scripts/clean-wasm-output.ts <wasm-output-directory>');
+	console.error('Usage: node scripts/clean-wasm-output.ts <wasm-output-directory>');
 	exit(1);
 }
 
