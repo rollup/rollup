@@ -221,6 +221,28 @@ export async function run() {
 		};
 		await using captured = resource;
 	}
+	{
+		function disposeAsync() { calls.push(this.label); }
+		const resource = {
+			label: 'getter disposer',
+			get [Symbol.asyncDispose]() { return disposeAsync; }
+		};
+		await using captured = resource;
+	}
+	{
+		function disposeAsync() { calls.push(this.label); }
+		const resource = {
+			label: 'async assigned after null',
+			[Symbol.asyncDispose]: null,
+			[Symbol.dispose]() { calls.push('null async fallback'); }
+		};
+		async function useResource() {
+			await using captured = resource;
+			resource[Symbol.asyncDispose] = disposeAsync;
+		}
+		await useResource();
+		await useResource();
+	}
 	assert.deepStrictEqual(calls, [
 		'nested sync disposal',
 		'mixed sync',
@@ -246,6 +268,47 @@ export async function run() {
 		'uninitialized function',
 		'lexical outer label',
 		'nested arrow receiver',
-		'nested arrow sync'
+		'nested arrow sync',
+		'getter disposer',
+		'null async fallback',
+		'async assigned after null'
+	]);
+}
+
+export async function runConditionalDisposers(condition) {
+	const calls = [];
+	{
+		function dispose() { calls.push(this.label); }
+		using resource = condition
+			? { label: 'first sync resource', [Symbol.dispose]: dispose }
+			: { label: 'second sync resource', [Symbol.dispose]: dispose };
+	}
+	{
+		function disposeAsync() { calls.push(this.label); }
+		await using resource = condition
+			? { label: 'first async resource', [Symbol.asyncDispose]: disposeAsync }
+			: { label: 'second async resource', [Symbol.asyncDispose]: disposeAsync };
+	}
+	{
+		function disposeFirst() {
+			calls.push(this.label + ' first');
+			this.disposed = true;
+		}
+		function disposeSecond() {
+			calls.push(this.label + ' second');
+			this.disposed = true;
+		}
+		const resource = {
+			label: 'conditional disposer',
+			disposed: false,
+			[Symbol.dispose]: condition ? disposeFirst : disposeSecond
+		};
+		{ using captured = resource; }
+		assert.strictEqual(resource.disposed ? 'disposed' : 'pending', 'disposed');
+	}
+	assert.deepStrictEqual(calls, [
+		condition ? 'first sync resource' : 'second sync resource',
+		condition ? 'first async resource' : 'second async resource',
+		condition ? 'conditional disposer first' : 'conditional disposer second'
 	]);
 }
