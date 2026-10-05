@@ -50,6 +50,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
+import type FunctionBase from './shared/FunctionBase';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
@@ -229,6 +230,23 @@ export default class MemberExpression
 					: [...path.slice(0, MAX_PATH_DEPTH), UnknownKey as ObjectPathKey])
 			]);
 		}
+	}
+
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		if (this.variable) {
+			return this.variable.getKnownFunctionAtPath(path, recursionTracker, origin);
+		}
+		if (this.isUndefined) return null;
+		const propertyKey = this.getDynamicPropertyKey();
+		if (propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+			if (propertyKey !== this.propertyKey) this.expressionsToBeDeoptimized.push(origin);
+			return this.object.getKnownFunctionAtPath([propertyKey, ...path], recursionTracker, origin);
+		}
+		return null;
 	}
 
 	getLiteralValueAtPath(

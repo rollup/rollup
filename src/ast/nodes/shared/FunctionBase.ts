@@ -95,6 +95,16 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		return path.length === 0
+			? this
+			: this.getObjectEntity().getKnownFunctionAtPath(path, recursionTracker, origin);
+	}
+
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker,

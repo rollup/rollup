@@ -19,6 +19,7 @@ import type Variable from '../../variables/Variable';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
+import type FunctionBase from './FunctionBase';
 import { type IncludeChildren, NodeBase } from './Node';
 
 const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'await using']);
@@ -56,6 +57,14 @@ export default class IdentifierBase extends NodeBase {
 		// We keep conditional chaining because an unknown Node could have an
 		// Identifier as property that might be deoptimized by default
 		this.variable?.deoptimizePath(path);
+	}
+
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		return this.getVariableRespectingTDZ()!.getKnownFunctionAtPath(path, recursionTracker, origin);
 	}
 
 	getLiteralValueAtPath(

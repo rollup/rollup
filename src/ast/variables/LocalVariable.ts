@@ -22,6 +22,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
+import type FunctionBase from '../nodes/shared/FunctionBase';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { isArrowFunctionExpressionNode, isFunctionExpressionNode } from '../utils/identifyNode';
@@ -121,6 +122,29 @@ export default class LocalVariable extends Variable {
 		} else {
 			this.init.deoptimizePath(limitConcatenatedPathDepth(this.initPath, path));
 		}
+	}
+
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		if (this.isReassigned || path.length + this.initPath.length > MAX_PATH_DEPTH) {
+			return null;
+		}
+		return recursionTracker.withTrackedEntityAtPath(
+			path,
+			this.init,
+			() => {
+				this.expressionsToBeDeoptimized.push(origin);
+				return this.init.getKnownFunctionAtPath(
+					[...this.initPath, ...path],
+					recursionTracker,
+					origin
+				);
+			},
+			null
+		);
 	}
 
 	getLiteralValueAtPath(
