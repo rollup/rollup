@@ -5,7 +5,7 @@ import {
 	lintRustFile,
 	lintTsFile,
 	toScreamingSnakeCase
-} from './helpers.js';
+} from './helpers.ts';
 
 const BYTES_PER_U32 = 4;
 
