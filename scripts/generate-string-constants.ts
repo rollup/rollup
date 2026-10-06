@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import { generateNotEditFilesComment, lintRustFile, lintTsFile } from './helpers.js';
+import { generateNotEditFilesComment, lintRustFile, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 

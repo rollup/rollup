@@ -2,12 +2,12 @@
   "decisions": {
     "1241206|@mermaid-js/layout-tidy-tree>mermaid>katex": {
       "decision": "ignore",
-      "madeAt": 1791611375950,
+      "madeAt": 1791271262340,
       "expiresAt": 1795000000000
     },
     "1241206|@mermaid-js/mermaid-cli>@mermaid-js/layout-tidy-tree>mermaid>katex": {
       "decision": "ignore",
-      "madeAt": 1791611375950,
+      "madeAt": 1791271262340,
       "expiresAt": 1795000000000
     }
   },
