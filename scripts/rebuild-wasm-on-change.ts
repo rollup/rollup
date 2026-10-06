@@ -1,5 +1,6 @@
 import chokidar from 'chokidar';
 import { spawn } from 'node:child_process';
+import type { Stats } from 'node:fs';
 
 const DEBOUNCE_MILLISECONDS = 1000;
 let isRebuilding = false;
@@ -35,7 +36,7 @@ const scheduleRebuild = (): void => {
 };
 
 const watcher = chokidar.watch('rust', {
-	ignored: (path, stats) => {
+	ignored: (path: string, stats?: Stats) => {
 		if (stats?.isFile()) return !path.endsWith('.rs');
 		return /(^|[\\/])target([\\/]|$)/.test(path);
 	}
