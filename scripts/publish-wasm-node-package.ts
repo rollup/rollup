@@ -1,8 +1,8 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readJson, runWithEcho } from './helpers.js';
-import { MAIN_PACKAGE } from './release-constants.js';
+import { readJson, runWithEcho } from './helpers.ts';
+import { MAIN_PACKAGE } from './release-constants.ts';
 
 const WASM_NODE_PACKAGE_INFO = {
 	description: 'Next-generation ES module bundler with Node wasm',
@@ -11,15 +11,11 @@ const WASM_NODE_PACKAGE_INFO = {
 const COPIED_FILES_OR_DIRS = ['LICENSE.md', 'dist'];
 const PACKAGE_DIR = fileURLToPath(new URL('../wasm-node-package', import.meta.url));
 
-/**
- * @param {string[]} pathSegments
- * @return {string}
- */
-function getOutputPath(...pathSegments) {
+function getOutputPath(...pathSegments: string[]): string {
 	return path.resolve(PACKAGE_DIR, ...pathSegments);
 }
 
-export default async function publishWasmNodePackage() {
+export default async function publishWasmNodePackage(): Promise<void> {
 	await mkdir(PACKAGE_DIR);
 
 	const mainPackage = await readJson(MAIN_PACKAGE);
