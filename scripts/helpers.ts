@@ -3,61 +3,46 @@ import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
+import { blue, bold, cyan, green, magenta, red, yellow } from './colors.ts';
 
 const colors = [cyan, yellow, blue, red, green, magenta];
 let nextColorIndex = 0;
 
-/**
- * @param {string} command
- * @param {string[]} parameters
- * @param {Parameters<typeof spawn>[2]=} options
- * @return {Promise<void>}
- */
-export function runWithEcho(command, parameters, options) {
+export function runWithEcho(
+	command: string,
+	parameters: string[],
+	options?: Parameters<typeof spawn>[2]
+): Promise<void> {
 	const color = colors[nextColorIndex];
 	nextColorIndex = (nextColorIndex + 1) % colors.length;
-	return /** @type {Promise<void>} */ (
-		new Promise((resolve, reject) => {
-			const commandString = formatCommand(command, parameters);
-			console.error(bold(`\n${color('Run>')} ${commandString}`));
+	return new Promise((resolve, reject) => {
+		const commandString = formatCommand(command, parameters);
+		console.error(bold(`\n${color('Run>')} ${commandString}`));
 
-			const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
+		const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
 
-			childProcess.on('close', code => {
-				if (code) {
-					reject(new Error(`"${commandString}" exited with code ${code}.`));
-				} else {
-					console.error(bold(`${color('Finished>')} ${commandString}\n`));
-					resolve();
-				}
-			});
-		})
-	);
+		childProcess.on('close', code => {
+			if (code) {
+				reject(new Error(`"${commandString}" exited with code ${code}.`));
+			} else {
+				console.error(bold(`${color('Finished>')} ${commandString}\n`));
+				resolve();
+			}
+		});
+	});
 }
 
 const ALREADY_PUBLISHED_ERROR_MESSAGE = 'You cannot publish over the previously published versions';
 const TRANSPARENCY_LOG_CONFLICT_ERROR_CODE = 'TLOG_CREATE_ENTRY_ERROR';
 const PUBLISH_ATTEMPTS = 2;
 
-/**
- * @typedef {Parameters<typeof spawn>[2] & { skipIfAlreadyPublished?: boolean }} PublishOptions
- */
+type PublishOptions = Parameters<typeof spawn>[2] & { skipIfAlreadyPublished?: boolean };
 
-/**
- * A transparency log conflict means the upload never happened, and a fresh process signs the
- * provenance statement with a new key, so retrying does not conflict again. Skipping a version
- * that an earlier run already published makes a failed release resumable.
- * @param {string} command
- * @param {string[]} parameters
- * @param {PublishOptions=} options
- * @return {Promise<void>}
- */
 export async function runPublish(
-	command,
-	parameters,
-	{ skipIfAlreadyPublished = false, ...options } = {}
-) {
+	command: string,
+	parameters: string[],
+	{ skipIfAlreadyPublished = false, ...options }: PublishOptions = {}
+): Promise<void> {
 	const commandString = formatCommand(command, parameters);
 	for (let attempt = 1; attempt <= PUBLISH_ATTEMPTS; attempt++) {
 		const { exitCode, output } = await runCapturingOutput(command, parameters, options);
@@ -76,13 +61,11 @@ export async function runPublish(
 	}
 }
 
-/**
- * @param {string} command
- * @param {string[]} parameters
- * @param {Parameters<typeof spawn>[2]=} options
- * @return {Promise<{ exitCode: number | null, output: string }>}
- */
-function runCapturingOutput(command, parameters, options) {
+function runCapturingOutput(
+	command: string,
+	parameters: string[],
+	options: Parameters<typeof spawn>[2]
+): Promise<{ exitCode: number | null; output: string }> {
 	const color = colors[nextColorIndex];
 	nextColorIndex = (nextColorIndex + 1) % colors.length;
 	const commandString = formatCommand(command, parameters);
@@ -113,12 +96,7 @@ function runCapturingOutput(command, parameters, options) {
 	});
 }
 
-/**
- * @param {string} command
- * @param {string[]} parameters
- * @return {Promise<string>}
- */
-export function runAndGetStdout(command, parameters) {
+export function runAndGetStdout(command: string, parameters: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const childProcess = spawn(command, parameters);
 		let stdout = '';
@@ -136,29 +114,16 @@ export function runAndGetStdout(command, parameters) {
 	});
 }
 
-/**
- * @param {string} command
- * @param {string[]} parameters
- * @return {string}
- */
-function formatCommand(command, parameters) {
+function formatCommand(command: string, parameters: string[]): string {
 	return [command, ...parameters].join(' ');
 }
 
-/**
- * @param {string} file
- * @returns {Promise<Record<string, any>>}
- */
-export async function readJson(file) {
+export async function readJson(file: string): Promise<Record<string, any>> {
 	const content = await readFile(file, 'utf8');
 	return JSON.parse(content);
 }
 
-/**
- * @param {URL} file
- * @return {Promise<void>}
- */
-export async function lintTsFile(file) {
+export async function lintTsFile(file: URL): Promise<void> {
 	const eslint = new ESLint({ fix: true });
 	const results = await eslint.lintFiles([fileURLToPath(file)]);
 	await ESLint.outputFixes(results);
@@ -169,46 +134,26 @@ export async function lintTsFile(file) {
 	}
 }
 
-/**
- * @param {URL} file
- * @return {Promise<void>}
- */
-export function lintRustFile(file) {
+export function lintRustFile(file: URL): Promise<void> {
 	return runWithEcho('rustfmt', [fileURLToPath(file)]);
 }
 
-/**
- * Replace the first letters with lowercase while maintaining camel casing
- * @param {string} string
- * @returns {string}
- */
-export function firstLettersLowercase(string) {
+// Lowercase the first letters while maintaining camel casing, e.g. "ASTNode" -> "astNode"
+export function firstLettersLowercase(string: string): string {
 	return string.replace(/^[A-Z]+/, match =>
 		match.length === 1 ? match.toLowerCase() : match.slice(0, -1).toLowerCase() + match.slice(-1)
 	);
 }
 
-/**
- * @param {string} string
- * @returns {string}
- */
-export function toSnakeCase(string) {
+export function toSnakeCase(string: string): string {
 	return string.replace(/(?<!^)([A-Z])([a-z])/g, '_$1$2').toLowerCase();
 }
 
-/**
- * @param {string} string
- * @returns {string}
- */
-export function toScreamingSnakeCase(string) {
+export function toScreamingSnakeCase(string: string): string {
 	return string.replace(/(?<!^)([A-Z])([a-z])/g, '_$1$2').toUpperCase();
 }
 
-/**
- * @param {string} filePath
- * @returns {string}
- */
-export function generateNotEditFilesComment(filePath) {
+export function generateNotEditFilesComment(filePath: string): string {
 	return `// This file is generated by ${path.relative(process.cwd(), fileURLToPath(filePath)).replaceAll('\\', '/')}.
 // Do not edit this file directly.\n\n`;
 }

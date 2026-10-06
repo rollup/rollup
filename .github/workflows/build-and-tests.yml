@@ -40,6 +40,8 @@ jobs:
         uses: ./.github/actions/install-and-cache-node-deps
       - name: Lint
         run: npm run ci:lint
+      - name: Release Script Tests
+        run: npm run test:scripts
       - name: Vulnerabilities
         run: npm run check-audit
       - name: CLI Docs
