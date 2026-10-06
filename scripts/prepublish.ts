@@ -4,10 +4,10 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { readJson, runWithEcho } from './helpers.js';
-import publishWasmNodePackage from './publish-wasm-node-package.js';
-import { CHANGELOG, MAIN_PACKAGE } from './release-constants.js';
-import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpers.js';
+import { readJson, runWithEcho } from './helpers.ts';
+import publishWasmNodePackage from './publish-wasm-node-package.ts';
+import { CHANGELOG, MAIN_PACKAGE } from './release-constants.ts';
+import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpers.ts';
 
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
@@ -41,11 +41,7 @@ await writeFile(
 	)
 );
 
-/**
- * @param {boolean} isPreRelease
- * @return {Promise<void>}
- */
-async function verifyChangelog(isPreRelease) {
+async function verifyChangelog(isPreRelease: boolean): Promise<void> {
 	const changelog = await readFile(CHANGELOG, 'utf8');
 	const { currentVersion, text } = getFirstChangelogEntry(changelog);
 	if (currentVersion !== version) {

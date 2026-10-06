@@ -1,6 +1,6 @@
 declare module 'github-api' {
 	export interface Repo {
-		listPullRequests(filter: { state: string }): Promise<{
+		listPullRequests(filter: { state: string; head?: string }): Promise<{
 			data: { number: number; title: string; head: { sha: string } }[];
 		}>;
 

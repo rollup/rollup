@@ -1,17 +1,28 @@
-import GitHub from 'github-api';
+import GitHub, { type Repo } from 'github-api';
 import { readFile } from 'node:fs/promises';
 import { exit } from 'node:process';
-import { runAndGetStdout } from './helpers.js';
+import { runAndGetStdout } from './helpers.ts';
 
-/**
- * @param {string} changelog
- * @returns {{ currentVersion: string, index: number, previousVersion: string, text: string }}
- */
-export function getFirstChangelogEntry(changelog) {
+export interface IncludedPR {
+	authors: string[];
+	/** which PRs are closed by this */
+	closed: number[];
+	pr: number;
+	text: string;
+}
+
+export interface ChangelogEntry {
+	currentVersion: string;
+	index: number;
+	previousVersion: string;
+	text: string;
+}
+
+export function getFirstChangelogEntry(changelog: string): ChangelogEntry {
 	const match = changelog.match(
 		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+(-\d+)?)[\S\s]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
 	);
-	if (!match || !match.groups || typeof match.index !== 'number') {
+	if (!match?.groups || typeof match.index !== 'number') {
 		throw new Error('Could not detect any changelog entry.');
 	}
 	const {
@@ -21,23 +32,14 @@ export function getFirstChangelogEntry(changelog) {
 	return { currentVersion, index, previousVersion, text };
 }
 
-/**
- * @typedef {object} IncludedPR
- * @property {string[]} authors
- * @property {number[]} closed - which PRs are closed by this
- * @property {number} pr
- * @property {string} text
- */
-
-/**
- * @param {string} fromVersion
- * @param {string} toVersion
- * @param {import('github-api').Repo} repo
- * @param {string|null} currentBranch We only have a branch when locally prepare a release, otherwise we use the sha to find the PR
- * @param {boolean} isPreRelease
- * @returns {Promise<IncludedPR[]>}
- */
-export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch, isPreRelease) {
+export async function getIncludedPRs(
+	fromVersion: string,
+	toVersion: string,
+	repo: Repo,
+	// We only have a branch when locally preparing a release, otherwise we use the sha to find the PR
+	currentBranch: string | null,
+	isPreRelease: boolean
+): Promise<IncludedPR[]> {
 	const [commits, commitSha] = await Promise.all([
 		runAndGetStdout('git', [
 			'--no-pager',
@@ -48,8 +50,8 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 		runAndGetStdout('git', ['rev-parse', toVersion])
 	]);
 	const getPrRegExp = /^(.+)\s\(#(\d+)\)$/gm;
-	const prs = [];
-	let match;
+	const prs: { pr: number; text: string }[] = [];
+	let match: RegExpExecArray | null;
 	while ((match = getPrRegExp.exec(commits))) {
 		prs.push({ pr: Number(match[2]), text: match[1].split('\n')[0] });
 	}
@@ -83,7 +85,7 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 			otherAuthors.delete(mainAuthor);
 			const bodyWithoutComments = pullRequest.body.replace(/<!--[\S\s]*?-->/g, '');
 			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;
-			const closed = [];
+			const closed: number[] = [];
 			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
 				closed.push(Number(match[4]));
 			}
@@ -97,10 +99,7 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 	);
 }
 
-/**
- * @return {Promise<GitHub>}
- */
-export async function getGithubApi() {
+export async function getGithubApi(): Promise<GitHub> {
 	const GITHUB_TOKEN = '.github_token';
 	try {
 		const token = (await readFile(GITHUB_TOKEN, 'utf8')).trim();
@@ -118,17 +117,10 @@ export async function getGithubApi() {
 	}
 }
 
-/**
- * @param {string} version
- * @return {string}
- */
-export function getGitTag(version) {
+export function getGitTag(version: string): string {
 	return `v${version}`;
 }
 
-/**
- * @return {Promise<string>}
- */
-export function getCurrentCommitMessage() {
+export function getCurrentCommitMessage(): Promise<string> {
 	return runAndGetStdout('git', ['--no-pager', 'log', '-1', '--pretty=%B']);
 }

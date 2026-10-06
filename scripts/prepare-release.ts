@@ -4,24 +4,26 @@ import { select } from '@inquirer/prompts';
 import { readFile, writeFile } from 'node:fs/promises';
 import { chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
+import type { ReleaseType } from 'semver';
 import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
-import { bold, cyan } from './colors.js';
-import { readJson, runAndGetStdout, runWithEcho } from './helpers.js';
+import { bold, cyan } from './colors.ts';
+import { readJson, runAndGetStdout, runWithEcho } from './helpers.ts';
 import {
 	BROWSER_PACKAGE,
 	CHANGELOG,
 	MAIN_BRANCH,
 	MAIN_LOCKFILE,
 	MAIN_PACKAGE
-} from './release-constants.js';
+} from './release-constants.ts';
 import {
 	getFirstChangelogEntry,
 	getGithubApi,
 	getGitTag,
-	getIncludedPRs
-} from './release-helpers.js';
+	getIncludedPRs,
+	type IncludedPR
+} from './release-helpers.ts';
 
 console.log(
 	`-----------------------------------------------------------------------------
@@ -89,17 +91,12 @@ try {
 
 await pushChanges(gitTag);
 
-/**
- * @param {Record<string,any>} mainPackage
- * @param {boolean} isMainBranch
- * @return {Promise<string>}
- */
-async function getNewVersion(mainPackage, isMainBranch) {
+async function getNewVersion(
+	mainPackage: Record<string, any>,
+	isMainBranch: boolean
+): Promise<string> {
 	const { version } = mainPackage;
-	/**
-	 * @type {import('semver').ReleaseType[]}
-	 */
-	const availableIncrements = isMainBranch
+	const availableIncrements: ReleaseType[] = isMainBranch
 		? ['patch', 'minor']
 		: semverPreRelease(version)
 			? ['prerelease']
@@ -107,7 +104,7 @@ async function getNewVersion(mainPackage, isMainBranch) {
 
 	return await select({
 		choices: availableIncrements.map(increment => {
-			const value = /** @type {string} */ (semverInc(version, increment));
+			const value = semverInc(version, increment) as string;
 			return {
 				name: `${increment} (${value})`,
 				short: increment,
@@ -118,13 +115,11 @@ async function getNewVersion(mainPackage, isMainBranch) {
 	});
 }
 
-/**
- * @param {string} version
- * @param {string} changelog
- * @param {import('./release-helpers.js').IncludedPR[]} includedPRs
- * @return {Promise<void>}
- */
-async function addStubChangelogEntry(version, changelog, includedPRs) {
+async function addStubChangelogEntry(
+	version: string,
+	changelog: string,
+	includedPRs: IncludedPR[]
+): Promise<void> {
 	const { currentVersion, index } = getFirstChangelogEntry(changelog);
 	if (currentVersion === version) {
 		console.error(
@@ -148,12 +143,7 @@ breaking changes in the release while the tests are running.`)
 	);
 }
 
-/**
- * @param {string} version
- * @param {import('./release-helpers.js').IncludedPR[]} prs
- * @return {string}
- */
-function getNewLogEntry(version, prs) {
+function getNewLogEntry(version: string, prs: IncludedPR[]): string {
 	if (prs.length === 0) {
 		throw new Error(`Release does not contain any PRs`);
 	}
@@ -185,12 +175,7 @@ ${prs
 	.join('\n')}`;
 }
 
-/**
- * @param {string} headline
- * @param {number} pr
- * @return {string}
- */
-function getDummyLogSection(headline, pr) {
+function getDummyLogSection(headline: string, pr: number): string {
 	return `### ${headline}
 
 - [replace me] (#${pr})
@@ -198,20 +183,13 @@ function getDummyLogSection(headline, pr) {
 `;
 }
 
-/**
- * @return {Promise<void>}
- */
-async function installDependenciesAndLint() {
+async function installDependenciesAndLint(): Promise<void> {
 	await runWithEcho('npm', ['ci', '--ignore-scripts']);
 	await runWithEcho('npm', ['run', 'check-audit']);
 	await runWithEcho('npm', ['run', 'ci:lint']);
 }
 
-/**
- * @param {string} version
- * @return {Promise<void>}
- */
-async function waitForChangelogUpdate(version) {
+async function waitForChangelogUpdate(version: string): Promise<void> {
 	let changelogEntry = '';
 	while (true) {
 		await runWithEcho('npx', ['prettier', '--write', CHANGELOG]);
@@ -230,14 +208,12 @@ async function waitForChangelogUpdate(version) {
 	}
 }
 
-/**
- * @param {Record<string,any>} mainPackage
- * @param {Record<string,any>} mainLockFile
- * @param {Record<string,any>} browserPackage
- * @param {string} newVersion
- * @return {Promise<Awaited<void>[]>}
- */
-function updatePackages(mainPackage, mainLockFile, browserPackage, newVersion) {
+function updatePackages(
+	mainPackage: Record<string, any>,
+	mainLockFile: Record<string, any>,
+	browserPackage: Record<string, any>,
+	newVersion: string
+): Promise<void[]> {
 	return Promise.all([
 		writeFile(MAIN_PACKAGE, updatePackageVersionAndGetString(mainPackage, newVersion)),
 		writeFile(MAIN_LOCKFILE, updateLockFileVersionAndGetString(mainLockFile, newVersion)),
@@ -245,34 +221,28 @@ function updatePackages(mainPackage, mainLockFile, browserPackage, newVersion) {
 	]);
 }
 
-/**
- * @param {Record<string,any>} packageContent
- * @param {string} version
- * @return {string}
- */
-function updatePackageVersionAndGetString(packageContent, version) {
+function updatePackageVersionAndGetString(
+	packageContent: Record<string, any>,
+	version: string
+): string {
 	packageContent.version = version;
 	return JSON.stringify(packageContent, null, 2) + '\n';
 }
 
-/**
- * @param {Record<string,any>} lockfileContent
- * @param {string} version
- * @return {string}
- */
-function updateLockFileVersionAndGetString(lockfileContent, version) {
+function updateLockFileVersionAndGetString(
+	lockfileContent: Record<string, any>,
+	version: string
+): string {
 	lockfileContent.version = version;
 	lockfileContent.packages[''].version = version;
 	return JSON.stringify(lockfileContent, null, 2) + '\n';
 }
 
-/**
- * @param {string} newVersion
- * @param {string} gitTag
- * @param {boolean} isMainBranch
- * @return {Promise<void>}
- */
-async function commitChanges(newVersion, gitTag, isMainBranch) {
+async function commitChanges(
+	newVersion: string,
+	gitTag: string,
+	isMainBranch: boolean
+): Promise<void> {
 	await runWithEcho('git', [
 		'add',
 		MAIN_PACKAGE,
@@ -284,11 +254,7 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 	await runWithEcho('git', ['tag', gitTag]);
 }
 
-/**
- * @param {string} gitTag
- * @return {Promise<unknown>}
- */
-function pushChanges(gitTag) {
+function pushChanges(gitTag: string): Promise<unknown> {
 	return Promise.all([
 		runWithEcho('git', ['push', 'origin', 'HEAD']),
 		runWithEcho('git', ['push', 'origin', gitTag])
