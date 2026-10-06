@@ -1,6 +1,6 @@
 declare module 'github-api' {
 	export interface Repo {
-		listPullRequests(filter: { state: string }): Promise<{
+		listPullRequests(filter: { state: string; head?: string }): Promise<{
 			data: { number: number; title: string; head: { sha: string } }[];
 		}>;
 
@@ -8,7 +8,7 @@ declare module 'github-api' {
 			data: { author: { login: string } | null; commit: { author: { name: string } } }[];
 		}>;
 
-		getPullRequest(pr: number): Promise<{ data: { body: string; user: { login: string } } }>;
+		getPullRequest(pr: number): Promise<{ data: { body: string | null; user: { login: string } } }>;
 
 		createRelease(release: { body: string; name: string; tag_name: string }): Promise<void>;
 	}

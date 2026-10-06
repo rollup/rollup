@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import type { FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
-import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.js';
+import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 

@@ -15,6 +15,11 @@
       "madeAt": 1793513491605,
       "expiresAt": 1797000000000
     },
+    "1244012|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793514573219,
+      "expiresAt": 1797000000000
+    },
     "1244012|c8>test-exclude>glob>minimatch": {
       "decision": "ignore",
       "madeAt": 1793513491605,
