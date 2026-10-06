@@ -39,6 +39,21 @@ __2025-02-01__
 
 - Add another thing (#102)`;
 
+const SINGLE_ENTRY_CHANGELOG = `## 4.9.1
+
+__2025-02-01__
+
+### Bug Fixes
+
+- Fix a bit (#101)
+
+### Features
+
+- Add another thing (#102)
+
+For previous changelogs, please see the CHANGELOG-4.md file.
+`;
+
 function useReleaseEnvironment(): () => void {
 	const savedEnvironment = {
 		CI: process.env.CI,
@@ -122,13 +137,39 @@ describe('postpublish', () => {
 		);
 	});
 
+	it('creates release notes from a single-entry changelog with a links block for a regular release', async () => {
+		await withWorkspace(
+			{
+				commits: ['Fix a bug (#101)'],
+				releases: [{ changelog: SINGLE_ENTRY_CHANGELOG, version: '4.9.1' }]
+			},
+			async workspace => {
+				workspace.githubState.pullRequests.set(101, {
+					body: 'Fixes #201.',
+					user: { login: 'pr-author-101' }
+				});
+
+				process.chdir(workspace.repoPath);
+				const restoreEnvironment = useReleaseEnvironment();
+				try {
+					await importPostpublish(workspace, workspace.githubState);
+				} finally {
+					restoreEnvironment();
+				}
+
+				assert.deepEqual(workspace.githubState.createdReleases, [
+					{ body: RELEASE_BODY_4_9_1, name: 'v4.9.1', tag_name: 'v4.9.1' }
+				]);
+				assert.equal(workspace.originBranchExists('documentation-published'), true);
+			}
+		);
+	});
+
 	it('comments with a pre-release note but creates no release or documentation branch for a pre-release', async () => {
 		await withWorkspace(
 			{
-				releases: [
-					{ changelog: RELEASE_CHANGELOG, version: '4.9.1' },
-					{ changelog: RELEASE_CHANGELOG, version: '4.9.1-1' }
-				]
+				changelog: 'Unparseable.\n',
+				releases: [{ version: '4.9.1' }, { version: '4.9.1-1' }]
 			},
 			async workspace => {
 				workspace.githubState.openPullRequests.push({
@@ -154,6 +195,7 @@ describe('postpublish', () => {
 					}
 				]);
 				assert.equal(workspace.originBranchExists('documentation-published'), false);
+				assert.equal(await workspace.readFileInWorkspace('CHANGELOG.md'), 'Unparseable.\n');
 			}
 		);
 	});

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { readJson, runWithEcho } from './helpers.ts';
 import publishWasmNodePackage from './publish-wasm-node-package.ts';
 import { CHANGELOG, MAIN_PACKAGE } from './release-constants.ts';
-import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpers.ts';
+import { getChangelogEntry, getCurrentCommitMessage } from './release-helpers.ts';
 
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
@@ -21,7 +21,9 @@ if (!matched) {
 	);
 }
 const isPreRelease = !!matched[1];
-await verifyChangelog(isPreRelease);
+if (!isPreRelease) {
+	await verifyChangelogEntry(version);
+}
 
 await runWithEcho('npm', ['publish'], { cwd: path.resolve('browser') });
 await publishWasmNodePackage();
@@ -41,21 +43,15 @@ await writeFile(
 	)
 );
 
-async function verifyChangelog(isPreRelease: boolean): Promise<void> {
+async function verifyChangelogEntry(version: string): Promise<void> {
 	const changelog = await readFile(CHANGELOG, 'utf8');
-	const { currentVersion, text } = getFirstChangelogEntry(changelog);
-	if (currentVersion !== version) {
-		if (isPreRelease) {
-			console.log(
-				`There is no changelog entry for version "${version}", the last entry is for version "${currentVersion}". This is OK for a pre-release.`
-			);
-			return;
-		}
-		throw new Error(
-			`There is no changelog entry for version "${version}", the last entry is for version "${currentVersion}".`
-		);
+	const entry = getChangelogEntry(changelog, version);
+	if (entry === null) {
+		throw new Error(`There is no changelog entry for version "${version}".`);
 	}
-	if (text.includes('[replace me]')) {
-		throw new Error(`The changelog entry must not contain placeholders. The text was:\n${text}`);
+	if (entry.text.includes('[replace me]')) {
+		throw new Error(
+			`The changelog entry must not contain placeholders. The text was:\n${entry.text}`
+		);
 	}
 }

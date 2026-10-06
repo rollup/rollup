@@ -2,7 +2,7 @@
 
 import { select } from '@inquirer/prompts';
 import { readFile, writeFile } from 'node:fs/promises';
-import { chdir, exit } from 'node:process';
+import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import type { ReleaseType } from 'semver';
 import semverInc from 'semver/functions/inc.js';
@@ -18,10 +18,11 @@ import {
 	MAIN_PACKAGE
 } from './release-constants.ts';
 import {
-	getFirstChangelogEntry,
+	getChangelogEntry,
 	getGithubApi,
 	getGitTag,
 	getIncludedPRs,
+	getPreviousReleaseTag,
 	type IncludedPR
 } from './release-helpers.ts';
 
@@ -41,16 +42,16 @@ const [gh, currentBranch] = await Promise.all([
 	runAndGetStdout('git', ['branch', '--show-current']),
 	runWithEcho('git', ['pull', '--ff-only'])
 ]);
-const [mainPackage, mainLockFile, browserPackage, repo, changelog] = await Promise.all([
+const [mainPackage, mainLockFile, browserPackage, repo] = await Promise.all([
 	readJson(MAIN_PACKAGE),
 	readJson(MAIN_LOCKFILE),
 	readJson(BROWSER_PACKAGE),
-	gh.getRepo('rollup', 'rollup'),
-	readFile(CHANGELOG, 'utf8')
+	gh.getRepo('rollup', 'rollup')
 ]);
 const isMainBranch = currentBranch === MAIN_BRANCH;
+const previousReleaseTag = await getPreviousReleaseTag();
 const includedPRs = await getIncludedPRs(
-	`v${getFirstChangelogEntry(changelog).currentVersion}`,
+	previousReleaseTag,
 	'HEAD',
 	repo,
 	currentBranch,
@@ -69,11 +70,16 @@ console.log(
 console.log();
 
 const newVersion = await getNewVersion(mainPackage, isMainBranch);
-
 const gitTag = getGitTag(newVersion);
+if (await tagExists(gitTag)) {
+	throw new Error(
+		`Tag "${gitTag}" already exists. To prepare this release again, remove it via \`git tag -d ${gitTag}\` first.`
+	);
+}
+
 try {
 	if (isMainBranch) {
-		await addStubChangelogEntry(newVersion, changelog, includedPRs);
+		await updateChangelogEntry(newVersion, includedPRs);
 	}
 	await updatePackages(mainPackage, mainLockFile, browserPackage, newVersion);
 	await installDependenciesAndLint();
@@ -115,32 +121,74 @@ async function getNewVersion(
 	});
 }
 
-async function addStubChangelogEntry(
-	version: string,
-	changelog: string,
-	includedPRs: IncludedPR[]
-): Promise<void> {
-	const { currentVersion, index } = getFirstChangelogEntry(changelog);
-	if (currentVersion === version) {
-		console.error(
-			`Changelog entry for version "${version}" already exists. Please remove the entry and commit the change before trying again.`
+async function updateChangelogEntry(newVersion: string, includedPRs: IncludedPR[]): Promise<void> {
+	const changelog = await readFile(CHANGELOG, 'utf8');
+	const entry = getChangelogEntry(changelog, newVersion);
+	if (entry === null) {
+		const insertPosition = getChangelogEntryInsertPosition(changelog);
+		await writeFile(
+			CHANGELOG,
+			changelog.slice(0, insertPosition) +
+				`${getNewLogEntry(newVersion, includedPRs)}\n\n` +
+				changelog.slice(insertPosition)
 		);
-		exit(1);
-	}
-
-	await writeFile(
-		CHANGELOG,
-		changelog.slice(0, index) +
-			getNewLogEntry(version, includedPRs) +
-			'\n\n' +
-			changelog.slice(index)
-	);
-
-	console.log(
-		cyan(`A stub for the release notes was added to the beginning of "${CHANGELOG}".
+		console.log(
+			cyan(`A stub for the release notes was added to the beginning of "${CHANGELOG}".
 Please edit this file to add useful information about bug fixes, features and
 breaking changes in the release while the tests are running.`)
+		);
+		return;
+	}
+	if (includedPRs.length === 0) {
+		console.log(
+			cyan(
+				`The changelog entry for "${newVersion}" was left unchanged because the release does not contain any pull requests.`
+			)
+		);
+		return;
+	}
+	const updatedEntryText = regeneratePullRequestsSection(entry.text, includedPRs);
+	await writeFile(
+		CHANGELOG,
+		changelog.slice(0, entry.index) +
+			updatedEntryText +
+			changelog.slice(entry.index + entry.text.length)
 	);
+}
+
+function getChangelogEntryInsertPosition(changelog: string): number {
+	const firstEntryMatch = changelog.match(/^## /m);
+	if (firstEntryMatch && typeof firstEntryMatch.index === 'number') {
+		return firstEntryMatch.index;
+	}
+	const previousChangelogsMatch = changelog.match(/^For previous changelogs/m);
+	if (previousChangelogsMatch && typeof previousChangelogsMatch.index === 'number') {
+		return previousChangelogsMatch.index;
+	}
+	const titleMatch = changelog.match(/^# .*$/m);
+	if (titleMatch && typeof titleMatch.index === 'number' && typeof titleMatch[0] === 'string') {
+		const afterTitle = titleMatch.index + titleMatch[0].length;
+		return afterTitle + (/^\n*/.exec(changelog.slice(afterTitle))?.[0].length ?? 0);
+	}
+	return 0;
+}
+
+function regeneratePullRequestsSection(entryText: string, prs: IncludedPR[]): string {
+	const pullRequestsMatch = /^### Pull Requests$/m.exec(entryText);
+	if (!pullRequestsMatch || typeof pullRequestsMatch.index !== 'number') {
+		return `${entryText}\n\n${createPullRequestsSection(prs)}`;
+	}
+	const remainderAfterHeading = entryText.slice(
+		pullRequestsMatch.index + pullRequestsMatch[0].length
+	);
+	const nextSectionMatch = remainderAfterHeading.match(/\n#{1,3} /);
+	const followingText =
+		typeof nextSectionMatch?.index === 'number'
+			? remainderAfterHeading.slice(nextSectionMatch.index + 1)
+			: '';
+	return `${entryText.slice(0, pullRequestsMatch.index)}${createPullRequestsSection(prs)}${
+		followingText ? `\n\n${followingText}` : ''
+	}`;
 }
 
 function getNewLogEntry(version: string, prs: IncludedPR[]): string {
@@ -165,7 +213,11 @@ function getNewLogEntry(version: string, prs: IncludedPR[]): string {
 
 _${date}_
 
-${sections}### Pull Requests
+${sections}${createPullRequestsSection(prs)}`;
+}
+
+function createPullRequestsSection(prs: IncludedPR[]): string {
+	return `### Pull Requests
 
 ${prs
 	.map(
@@ -190,17 +242,22 @@ async function installDependenciesAndLint(): Promise<void> {
 }
 
 async function waitForChangelogUpdate(version: string): Promise<void> {
-	let changelogEntry = '';
+	let previousEntry = '';
 	while (true) {
 		await runWithEcho('npx', ['prettier', '--write', CHANGELOG]);
 		const changelog = await readFile(CHANGELOG, 'utf8');
-		const { text: newEntry } = getFirstChangelogEntry(changelog);
-		if (newEntry === changelogEntry) {
+		const entry = getChangelogEntry(changelog, version);
+		if (entry === null) {
+			throw new Error(
+				`The changelog entry for version "${version}" is missing. Do not remove or rename the "## ${version}" heading while editing the changelog.`
+			);
+		}
+		if (entry.text === previousEntry) {
 			console.log(cyan('No further changes, continuing release.'));
 			break;
 		}
-		changelogEntry = newEntry;
-		console.log(cyan('You generated the following changelog entry:\n') + changelogEntry);
+		previousEntry = entry.text;
+		console.log(cyan('You generated the following changelog entry:\n') + previousEntry);
 		await select({
 			choices: ['ok'],
 			message: `Please edit the changelog or confirm the changelog is acceptable to continue to release "${version}".`
@@ -252,6 +309,16 @@ async function commitChanges(
 	]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await runWithEcho('git', ['tag', gitTag]);
+}
+
+async function tagExists(tag: string): Promise<boolean> {
+	try {
+		return (
+			(await runAndGetStdout('git', ['rev-parse', '-q', '--verify', `refs/tags/${tag}`])).length > 0
+		);
+	} catch {
+		return false;
+	}
 }
 
 function pushChanges(gitTag: string): Promise<unknown> {

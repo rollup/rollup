@@ -1,8 +1,14 @@
 import { describe, it } from 'mocha';
 import assert from 'node:assert/strict';
-import { ENTRY_4_8_0, ENTRY_4_9_0, withWorkspace, type Workspace } from './fixtures.ts';
+import {
+	captureConsoleLogs,
+	ENTRY_4_8_0,
+	ENTRY_4_9_0,
+	withWorkspace,
+	type Workspace
+} from './fixtures.ts';
 
-const RELEASE_CHANGELOG = `## 4.9.1
+const SINGLE_ENTRY_CHANGELOG = `## 4.9.1
 
 __2025-02-01__
 
@@ -14,9 +20,7 @@ __2025-02-01__
 
 - Add another thing (#102)
 
-${ENTRY_4_9_0}
-
-${ENTRY_4_8_0}
+For previous changelogs, please see the CHANGELOG-4.md file.
 `;
 
 const PLACEHOLDER_CHANGELOG = `## 4.9.1
@@ -37,24 +41,10 @@ async function importPrepublish(workspace: Workspace): Promise<void> {
 	await import(workspace.scriptPath('prepublish.ts'));
 }
 
-async function captureConsoleLogs(run: () => Promise<void>): Promise<string[]> {
-	const consoleLogs: string[] = [];
-	const originalConsoleLog = console.log;
-	console.log = (message: unknown): void => {
-		consoleLogs.push(String(message));
-	};
-	try {
-		await run();
-	} finally {
-		console.log = originalConsoleLog;
-	}
-	return consoleLogs;
-}
-
 describe('prepublish', () => {
 	it('publishes browser and wasm-node packages before napi prepublish for a regular release', async () => {
 		await withWorkspace(
-			{ releases: [{ changelog: RELEASE_CHANGELOG, version: '4.9.1' }] },
+			{ releases: [{ changelog: SINGLE_ENTRY_CHANGELOG, version: '4.9.1' }] },
 			async workspace => {
 				await captureConsoleLogs(async () => importPrepublish(workspace));
 
@@ -75,18 +65,15 @@ describe('prepublish', () => {
 		);
 	});
 
-	it('publishes a pre-release commit without a changelog entry', async () => {
-		await withWorkspace({ commits: ['4.9.1-1'] }, async workspace => {
-			const consoleLogs = await captureConsoleLogs(async () => importPrepublish(workspace));
+	it('publishes a pre-release commit without reading the changelog', async () => {
+		await withWorkspace({ changelog: 'Unparseable.\n', commits: ['4.9.1-1'] }, async workspace => {
+			await captureConsoleLogs(async () => importPrepublish(workspace));
 
-			assert.match(
-				consoleLogs.join('\n'),
-				/no changelog entry for version "4\.9\.1-1", the last entry is for version "4\.9\.0"\. This is OK for a pre-release\./
-			);
 			assert.deepEqual((await workspace.readNpmLog()).slice(0, 2), [
 				`${workspace.repoPath}/browser publish`,
 				`${workspace.repoPath}/wasm-node-package publish`
 			]);
+			assert.equal(await workspace.readFileInWorkspace('CHANGELOG.md'), 'Unparseable.\n');
 		});
 	});
 
@@ -94,7 +81,7 @@ describe('prepublish', () => {
 		await withWorkspace({ commits: ['4.9.2'] }, async workspace => {
 			await assert.rejects(
 				async () => importPrepublish(workspace),
-				/There is no changelog entry for version "4\.9\.2", the last entry is for version "4\.9\.0"\./
+				/There is no changelog entry for version "4\.9\.2"\./
 			);
 			assert.deepEqual(await workspace.readNpmLog(), []);
 		});

@@ -6,10 +6,11 @@ import { cyan } from './colors.ts';
 import { runWithEcho } from './helpers.ts';
 import { CHANGELOG, DOCUMENTATION_BRANCH } from './release-constants.ts';
 import {
+	getChangelogEntry,
 	getCurrentCommitMessage,
-	getFirstChangelogEntry,
 	getGitTag,
 	getIncludedPRs,
+	getPreviousReleaseTag,
 	type IncludedPR
 } from './release-helpers.ts';
 
@@ -25,9 +26,8 @@ if (!(env.CI && env.ROLLUP_RELEASE && env.GITHUB_TOKEN)) {
 }
 
 const gh = new GitHub({ token: env.GITHUB_TOKEN });
-const [newVersion, changelog, repo, issues] = await Promise.all([
+const [newVersion, repo, issues] = await Promise.all([
 	getCurrentCommitMessage(),
-	readFile(CHANGELOG, 'utf8'),
 	gh.getRepo('rollup', 'rollup'),
 	gh.getIssues('rollup', 'rollup')
 ]);
@@ -38,24 +38,18 @@ if (!matched) {
 }
 
 const isPreRelease = !!matched[1];
-
-const firstEntry = getFirstChangelogEntry(changelog);
-const [previousVersion, changelogEntry] =
-	firstEntry.currentVersion === newVersion
-		? [firstEntry.previousVersion, firstEntry.text]
-		: [firstEntry.currentVersion, null];
-const includedPRs = await getIncludedPRs(
-	`v${previousVersion}`,
-	`v${newVersion}`,
-	repo,
-	null,
-	isPreRelease
-);
-
 const gitTag = getGitTag(newVersion);
-if (changelogEntry) {
-	await createReleaseNotes(changelogEntry, gitTag);
+const previousVersion = await getPreviousReleaseTag(gitTag);
+const includedPRs = await getIncludedPRs(previousVersion, gitTag, repo, null, isPreRelease);
+
+if (!isPreRelease) {
+	const changelog = await readFile(CHANGELOG, 'utf8');
+	const releaseEntry = getChangelogEntry(changelog, newVersion);
+	if (releaseEntry !== null) {
+		await createReleaseNotes(releaseEntry.text, gitTag);
+	}
 }
+
 await postReleaseComments(includedPRs, issues, newVersion);
 
 if (!isPreRelease) {

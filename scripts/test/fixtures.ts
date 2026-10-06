@@ -21,12 +21,17 @@ const RELEASE_SCRIPT_FILES = [
 	'release-helpers.ts'
 ];
 const BASE_VERSION = '4.9.0';
+const CHANGELOG_TITLE = '# rollup changelog';
 const ENTRY_4_8_0 = '## 4.8.0\n\n__2024-11-30__\n\n### Bug Fixes\n\n- Nothing important (#98)';
 const ENTRY_4_9_0 = '## 4.9.0\n\n__2025-01-15__\n\n### Features\n\n- Add a thing (#99)';
-const INITIAL_CHANGELOG = `${ENTRY_4_8_0}\n`;
 
-export const DEFAULT_CHANGELOG = `${ENTRY_4_9_0}\n\n${ENTRY_4_8_0}\n`;
+export const DEFAULT_CHANGELOG_BODY = `${ENTRY_4_9_0}\n\n${ENTRY_4_8_0}\n`;
+export const DEFAULT_CHANGELOG = `${CHANGELOG_TITLE}\n\n${DEFAULT_CHANGELOG_BODY}`;
+export const CANNED_CHANGELOG_BODY = `## 4.9.0\n\n__2025-01-15__\n\n### Features\n\n#### General Changes\n\n- Add a thing (#99)\n\nFor previous changelogs, see\n\n- [Rollup 4.x](./CHANGELOG-4.md)\n- [Rollup 3.x](./CHANGELOG-3.md)\n- [Rollup 2.x](./CHANGELOG-2.md)\n- [Rollup 1.x](./CHANGELOG-1.md)\n- [Rollup 0.x](./CHANGELOG-0.md)\n`;
+export const CANNED_CHANGELOG = `${CHANGELOG_TITLE}\n\n${CANNED_CHANGELOG_BODY}`;
 export { ENTRY_4_8_0, ENTRY_4_9_0 };
+
+const INITIAL_CHANGELOG = `${CHANGELOG_TITLE}\n\n${ENTRY_4_8_0}\n`;
 
 interface ReleaseCommit {
 	changelog?: string;
@@ -37,6 +42,7 @@ export interface WorkspaceOptions {
 	branch?: string;
 	changelog?: string;
 	commits?: string[];
+	preTaggedCommits?: { message: string; tag?: string }[];
 	releases?: ReleaseCommit[];
 }
 
@@ -60,7 +66,7 @@ export interface FakeGitHubState {
 		number,
 		{ author: { login: string } | null; commit: { author: { name: string } } }[]
 	>;
-	pullRequests: Map<number, { body: string; user: { login: string } }>;
+	pullRequests: Map<number, { body: string | null; user: { login: string } }>;
 }
 
 interface SavedEnvironmentValues {
@@ -259,6 +265,20 @@ export function createGithubApiMocks(state: FakeGitHubState): { 'github-api': un
 	return { 'github-api': createGithubApiMockModule(state) };
 }
 
+export async function captureConsoleLogs(run: () => Promise<void>): Promise<string[]> {
+	const consoleLogs: string[] = [];
+	const originalConsoleLog = console.log;
+	console.log = (message: unknown): void => {
+		consoleLogs.push(String(message));
+	};
+	try {
+		await run();
+	} finally {
+		console.log = originalConsoleLog;
+	}
+	return consoleLogs;
+}
+
 function createChoiceValues(choices: readonly unknown[]): unknown[] {
 	return choices.map(choice =>
 		typeof choice === 'object' && choice !== null && 'value' in choice
@@ -337,15 +357,24 @@ async function createWorkspace(options: WorkspaceOptions): Promise<Workspace> {
 	runGit(['commit', '-m', 'Add a thing (#99)'], repoPath);
 	runGit(['tag', 'v4.9.0'], repoPath);
 
+	for (const preTaggedCommit of options.preTaggedCommits ?? []) {
+		runGit(['commit', '--allow-empty', '-m', preTaggedCommit.message], repoPath);
+		if (preTaggedCommit.tag) {
+			runGit(['tag', preTaggedCommit.tag], repoPath);
+		}
+	}
+
 	for (const commitMessage of options.commits ?? []) {
 		runGit(['commit', '--allow-empty', '-m', commitMessage], repoPath);
 	}
 
 	for (const release of options.releases ?? []) {
-		await writeChangelog(release.changelog ?? DEFAULT_CHANGELOG, repoPath);
+		if (release.changelog !== undefined) {
+			await writeChangelog(release.changelog, repoPath);
+		}
 		await writePackageFiles(release.version, repoPath);
 		runGit(['add', '-A'], repoPath);
-		runGit(['commit', '-m', release.version], repoPath);
+		runGit(['commit', '--allow-empty', '-m', release.version], repoPath);
 		runGit(['tag', `v${release.version}`], repoPath);
 	}
 
