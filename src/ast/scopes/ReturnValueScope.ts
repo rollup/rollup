@@ -1,5 +1,7 @@
 import type { NodeInteractionCalled } from '../NodeInteractions';
+import type { IdentifierWithVariable } from '../nodes/Identifier';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import { ReturnedIdentifier } from '../nodes/shared/ReturnedIdentifier';
 import SpreadElement from '../nodes/SpreadElement';
 import { isIdentifierNode } from '../utils/identifyNode';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
@@ -83,7 +85,9 @@ export default class ReturnValueScope extends ParameterScope {
 			// return, so the return expression can be resolved to that variable
 			const [firstExpression] = returnExpressions;
 			if (firstExpression && this.returnExpressionsResolveToSameVariable(firstExpression)) {
-				this.returnExpression = firstExpression;
+				this.returnExpression = firstExpression.variable.isTargetOfAssignment
+					? new ReturnedIdentifier(firstExpression)
+					: firstExpression;
 			} else {
 				this.returnExpression = UNKNOWN_EXPRESSION;
 				for (const expression of returnExpressions) {
@@ -93,7 +97,9 @@ export default class ReturnValueScope extends ParameterScope {
 		}
 	}
 
-	private returnExpressionsResolveToSameVariable(firstExpression: ExpressionEntity): boolean {
+	private returnExpressionsResolveToSameVariable(
+		firstExpression: ExpressionEntity
+	): firstExpression is IdentifierWithVariable {
 		if (!isIdentifierNode(firstExpression) || firstExpression.variable === null) {
 			return false;
 		}

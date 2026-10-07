@@ -36,3 +36,40 @@ function getHoisted(condition) {
 }
 
 console.log(getHoisted(globalThis.condition).a ? 'x' : 'y');
+
+// Returning a variable that is the target of an assignment stays conservative
+// so that lazy initializations are not resolved to the declaration value; the
+// decision is variable-wide, wherever the assignment happens
+var useSymbolAsUid;
+
+function requireUseSymbolAsUid(condition) {
+	if (condition) return useSymbolAsUid;
+	useSymbolAsUid = globalThis.symbolDetection;
+	return useSymbolAsUid;
+}
+
+console.log(/*@__PURE__*/ requireUseSymbolAsUid(globalThis.condition) ? 'detected' : 'not detected');
+
+// This also holds when the assignment happens in a different function
+var lazyInit;
+
+function initLazy() {
+	lazyInit = globalThis.initialValue;
+}
+
+function getLazy(condition) {
+	if (condition) return lazyInit;
+	initLazy();
+	return lazyInit;
+}
+
+console.log(/*@__PURE__*/ getLazy(globalThis.condition) ? 'initialized' : 'not initialized');
+
+// A returned variable that is never assigned is still resolved to its initial value
+function getKnown(condition) {
+	const known = 'known value';
+	if (condition) return known;
+	return known;
+}
+
+console.log(getKnown(globalThis.condition) ? 'truthy' : 'falsy');
