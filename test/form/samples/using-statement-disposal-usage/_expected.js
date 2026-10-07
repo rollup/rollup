@@ -108,6 +108,9 @@ async function nullishAsyncDisposers() {
 		__proto__: null,
 		[Symbol.dispose]() { console.log('missing async fallback'); }
 	};
+	await using inheritedMissing = {
+		[Symbol.dispose]() { console.log('inherited missing async fallback'); }
+	};
 	await using nullDisposer = {
 		[Symbol.asyncDispose]: null,
 		[Symbol.dispose]() { console.log('null async fallback'); }
