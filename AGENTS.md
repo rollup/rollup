@@ -78,6 +78,12 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - Test names and descriptions use clear, descriptive language of the expected behavior, e.g. "description: 'does X when Y happens"
 - Category selection, runner contracts and pitfalls: see `test/AGENTS.md`
 
+## CI Workflows
+
+- When calling `gh api` in workflows: passing any `-f`/`-F` field switches the request to POST unless `--method` is given, and only `-F` (not `-f`) reads values starting with `@` from a file.
+- REPL artefacts are published automatically for same-repo PRs; for fork PRs a maintainer additionally needs to add the "x⁸ ⚙️ build repl artefacts" label, which immediately records a SHA-bound authorization status on the PR head and is removed again. The gate is enforced by the trusted publish workflow, which re-validates the PR state and head SHA before uploading — not by the untrusted build. They are served from the S3 bucket that rollupjs.org loads REPL artefacts from — changing this gating is a security-relevant decision.
+- The `pull_request_target` "Authorize REPL artefacts" workflow runs in a trusted context and must never check out or execute fork code.
+
 ## GitHub Issues and Pull Requests
 
 - Issues need to follow the corresponding template in `.github/ISSUE_TEMPLATE/*`
