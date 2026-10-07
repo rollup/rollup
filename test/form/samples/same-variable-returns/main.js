@@ -98,3 +98,47 @@ function getDestructuredObject(condition) {
 console.log(
 	/*@__PURE__*/ getDestructuredObject(globalThis.condition) ? 'initialized' : 'not initialized'
 );
+
+// A single return of an assigned variable is not resolved to its initial value
+var lazySingleton;
+
+function getLazySingleton() {
+	if (!lazySingleton) lazySingleton = globalThis.initialValue;
+	return lazySingleton;
+}
+
+console.log(/*@__PURE__*/ getLazySingleton() ? 'initialized' : 'not initialized');
+
+// A single return of a variable that is never assigned is still resolved to its value
+const single = 'single known value';
+
+function getSingle() {
+	return single;
+}
+
+console.log(getSingle() ? 'truthy' : 'falsy');
+
+// A single return of a variable that is only assigned from unused code is still
+// not resolved to its initial value
+let deadSetterFlag = false;
+
+function unusedSetter() {
+	deadSetterFlag = globalThis.newValue;
+}
+
+function isDeadSetterFlag() {
+	return deadSetterFlag;
+}
+
+if (isDeadSetterFlag()) console.log('dead setter ran');
+
+// The same is true when a variable is returned by an arrow function
+var arrowTarget;
+
+function assignArrowTarget() {
+	arrowTarget = globalThis.newValue;
+}
+
+const getArrowTarget = () => arrowTarget;
+
+console.log(/*@__PURE__*/ getArrowTarget() ? 'initialized' : 'not initialized');

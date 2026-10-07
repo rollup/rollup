@@ -78,21 +78,19 @@ export default class ReturnValueScope extends ParameterScope {
 
 	private updateReturnExpression() {
 		const { returnExpressions } = this;
-		if (returnExpressions.length === 1) {
-			this.returnExpression = returnExpressions[0];
+		const [firstExpression] = returnExpressions;
+		// A single return, or the same variable returned on all paths, can be
+		// resolved to that variable
+		if (firstExpression && this.returnExpressionsResolveToSameVariable(firstExpression)) {
+			this.returnExpression = firstExpression.variable.isTargetOfAssignment
+				? new ReturnedIdentifier(firstExpression)
+				: firstExpression;
+		} else if (returnExpressions.length === 1) {
+			this.returnExpression = firstExpression;
 		} else {
-			// Returning the same variable on all paths is equivalent to a single
-			// return, so the return expression can be resolved to that variable
-			const [firstExpression] = returnExpressions;
-			if (firstExpression && this.returnExpressionsResolveToSameVariable(firstExpression)) {
-				this.returnExpression = firstExpression.variable.isTargetOfAssignment
-					? new ReturnedIdentifier(firstExpression)
-					: firstExpression;
-			} else {
-				this.returnExpression = UNKNOWN_EXPRESSION;
-				for (const expression of returnExpressions) {
-					expression.deoptimizePath(UNKNOWN_PATH);
-				}
+			this.returnExpression = UNKNOWN_EXPRESSION;
+			for (const expression of returnExpressions) {
+				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 	}
