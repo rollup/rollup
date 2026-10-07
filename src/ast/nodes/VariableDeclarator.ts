@@ -44,6 +44,7 @@ export default class VariableDeclarator extends NodeBase {
 	declare isAsyncUsingDeclaration: boolean;
 	declare private disposalFunctions?: Set<FunctionBase>;
 	declare private hasDeoptimizedDisposal: boolean;
+	declare private hasIncludedDisposalReceiver: boolean;
 
 	declareDeclarator(kind: VariableKind): void {
 		this.isUsingDeclaration = kind === 'using';
@@ -82,12 +83,13 @@ export default class VariableDeclarator extends NodeBase {
 		const { id, init } = this;
 		if (!this.included) this.includeNode(context);
 		init?.include(context, includeChildrenRecursively);
-		if (this.disposalFunctions && init) {
+		if (this.disposalFunctions && init && !this.hasIncludedDisposalReceiver) {
 			for (const disposalFunction of this.disposalFunctions) {
 				if (
 					disposalFunction.scope instanceof FunctionScope &&
 					disposalFunction.scope.thisVariable.included
 				) {
+					this.hasIncludedDisposalReceiver = true;
 					init.includePath(UNKNOWN_PATH, context);
 					break;
 				}
@@ -142,12 +144,28 @@ export default class VariableDeclarator extends NodeBase {
 		this.included = true;
 		const { id, init } = this;
 		if (init) {
-			if (
-				this.isUsingDeclaration ||
-				(this.isAsyncUsingDeclaration &&
-					!this.includeDisposalMethod(init, SYMBOL_ASYNC_DISPOSE_PATH, context))
-			) {
-				this.includeDisposalMethod(init, SYMBOL_DISPOSE_PATH, context);
+			if (this.isUsingDeclaration || this.isAsyncUsingDeclaration) {
+				const disposalInteraction: NodeInteractionCalled = {
+					args: [init],
+					type: INTERACTION_CALLED,
+					withNew: false
+				};
+				if (
+					this.isUsingDeclaration ||
+					!this.includeDisposalMethodAndCheckIfKnownFunction(
+						init,
+						SYMBOL_ASYNC_DISPOSE_PATH,
+						disposalInteraction,
+						context
+					)
+				) {
+					this.includeDisposalMethodAndCheckIfKnownFunction(
+						init,
+						SYMBOL_DISPOSE_PATH,
+						disposalInteraction,
+						context
+					);
+				}
 			}
 			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
 				const { name, variable } = id;
@@ -160,9 +178,10 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	private includeDisposalMethod(
+	private includeDisposalMethodAndCheckIfKnownFunction(
 		init: ExpressionNode,
 		path: ObjectPath,
+		disposalInteraction: NodeInteractionCalled,
 		context: InclusionContext
 	): boolean {
 		const disposalFunction = init.getKnownFunctionAtPath(path, SHARED_RECURSION_TRACKER, this);
@@ -170,13 +189,12 @@ export default class VariableDeclarator extends NodeBase {
 		if (!disposalFunction) {
 			const disposalValue = init.getLiteralValueAtPath(path, SHARED_RECURSION_TRACKER, this);
 			if (disposalValue !== null && disposalValue !== undefined) {
-				const interaction: NodeInteractionCalled = {
-					args: [init],
-					type: INTERACTION_CALLED,
-					withNew: false
-				};
-				init.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
-				init.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+				init.deoptimizeArgumentsOnInteractionAtPath(
+					disposalInteraction,
+					path,
+					SHARED_RECURSION_TRACKER
+				);
+				init.includeCallArgumentsWhenCalledAtPath(path, disposalInteraction, context);
 			}
 			return false;
 		}
@@ -184,7 +202,7 @@ export default class VariableDeclarator extends NodeBase {
 		if (!disposalFunctions.has(disposalFunction)) {
 			disposalFunctions.add(disposalFunction);
 			disposalFunction.deoptimizeArgumentsOnInteractionAtPath(
-				{ args: [init], type: INTERACTION_CALLED, withNew: false },
+				disposalInteraction,
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER
 			);
