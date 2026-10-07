@@ -58,3 +58,28 @@ function getLazy(condition) {
 console.log(/*@__PURE__*/ getLazy(globalThis.condition) ? 'initialized' : 'not initialized');
 
 console.log('truthy' );
+
+// Destructuring assignments to the returned variable are tracked as well
+var destructuredArray;
+
+function getDestructuredArray(condition) {
+	if (condition) return destructuredArray;
+	[, ...destructuredArray] = globalThis.initialValues;
+	return destructuredArray;
+}
+
+console.log(
+	/*@__PURE__*/ getDestructuredArray(globalThis.condition) ? 'initialized' : 'not initialized'
+);
+
+var destructuredObject;
+
+function getDestructuredObject(condition) {
+	if (condition) return destructuredObject;
+	({ destructured: destructuredObject = 'default value' } = globalThis.initialValues);
+	return destructuredObject;
+}
+
+console.log(
+	/*@__PURE__*/ getDestructuredObject(globalThis.condition) ? 'initialized' : 'not initialized'
+);
