@@ -1,0 +1,160 @@
+name: Build PR artefacts
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - opened
+      - reopened
+      - labeled
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-current:
+    name: Build current artefacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: nightly-2025-07-25
+          components: rust-src
+      - name: Restore Cargo cache for WASM builds
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cargo-cache
+            rust/target/
+          key: wasm32-unknown-unknown-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: wasm32-unknown-unknown-cargo-ubuntu-latest
+      - name: Restore Cargo cache for native builds
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cargo-cache
+            rust/target/
+          key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Build artefacts
+        run: >-
+          npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' &&
+          npm run build:copy-native && npm run build:bootstrap && npm run build:copy-native
+      - name: Upload REPL artefacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: repl-artefacts
+          path: |
+            browser/dist/rollup.browser.js
+            browser/dist/rollup.browser.js.map
+            browser/dist/bindings_wasm_bg.wasm
+          if-no-files-found: error
+          retention-days: 1
+      - name: Upload current dist artefact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: current
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  build-previous:
+    name: Build previous artefacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # A failure here must not prevent the REPL artefacts from being published
+    continue-on-error: true
+    outputs:
+      previous-uploaded: ${{ steps.upload-previous.conclusion }}
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: nightly-2025-07-25
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cargo-cache
+            rust/target/
+          key: x86_64-unknown-linux-gnu-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: x86_64-unknown-linux-gnu-cargo-ubuntu-latest
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Build artefacts
+        # The CJS-only bootstrap is sufficient for the benchmark and, unlike the
+        # full bootstrap in build-current, does not require the WASM build
+        run: >-
+          npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' &&
+          npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
+      - name: Upload previous dist artefact
+        id: upload-previous
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: previous
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  benchmark:
+    name: Run performance benchmark
+    needs: [build-current, build-previous]
+    # build-previous is continue-on-error, so its job result is always "success"
+    if: ${{ needs.build-current.result == 'success' && needs.build-previous.outputs.previous-uploaded == 'success' }}
+    # A benchmark failure must not prevent the REPL artefacts from being published
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Download current and previous artefacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: '@(current|previous)'
+          path: _benchmark
+      - name: Change rollup import in internal benchmark
+        run: |
+          echo "export { rollup as previousRollup, VERSION as previousVersion } from '../../_benchmark/previous/rollup.js';" > ./scripts/perf-report/rollup-artefacts.js
+          echo "export { rollup as newRollup } from '../../_benchmark/current/rollup.js';" >> ./scripts/perf-report/rollup-artefacts.js
+      - name: Run internal benchmark
+        run: node --expose-gc scripts/perf-report/index.js
+      - name: Upload performance report artefact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: performance-report
+          path: _benchmark/result.md
+          if-no-files-found: error
+          retention-days: 1
