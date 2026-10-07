@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
   ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET, ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
   TYPE_ARROW_FUNCTION_EXPRESSION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::AstConverter;
 use crate::store_arrow_function_expression_flags;
 
 impl AstConverter<'_> {
@@ -26,7 +26,7 @@ impl AstConverter<'_> {
         &annotations,
         end_position + ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
-          convert_annotation(&mut ast_converter.buffer, annotation);
+          ast_converter.convert_annotation(annotation);
           true
         },
       );

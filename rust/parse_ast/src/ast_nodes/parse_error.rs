@@ -1,9 +1,13 @@
 use crate::convert_ast::converter::ast_constants::{
   PARSE_ERROR_MESSAGE_OFFSET, PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR,
 };
-use crate::convert_ast::converter::update_reference_position;
+use crate::convert_ast::converter::{swap_32_bit_fields, update_reference_position};
 
-pub(crate) fn get_parse_error_buffer(error_buffer: &[u8], utf_16_pos: &u32) -> Vec<u8> {
+pub(crate) fn get_parse_error_buffer(
+  error_buffer: &[u8],
+  utf_16_pos: &u32,
+  swap_byte_order: bool,
+) -> Vec<u8> {
   // type
   let mut buffer = TYPE_PARSE_ERROR.to_vec();
   // start
@@ -13,6 +17,11 @@ pub(crate) fn get_parse_error_buffer(error_buffer: &[u8], utf_16_pos: &u32) -> V
   buffer.resize(end_position + PARSE_ERROR_RESERVED_BYTES, 0);
   // message, the string is already converted to a buffer via convert_string
   update_reference_position(&mut buffer, end_position + PARSE_ERROR_MESSAGE_OFFSET);
+  let message_position = buffer.len() + 4;
   buffer.extend_from_slice(&error_buffer[4..]);
+  if swap_byte_order {
+    let end_position = buffer.len();
+    swap_32_bit_fields(&mut buffer, vec![(message_position, end_position)]);
+  }
   buffer
 }
