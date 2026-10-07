@@ -1,4 +1,4 @@
-const obj = { mutated: false, noEffect() {} };
+const obj = { mutated: false};
 
 function foo() {
 	return x => {

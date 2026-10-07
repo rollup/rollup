@@ -20,4 +20,4 @@ const w = {
 	})
 };
 
-w.toString().charCodeAt(0); // retained
+w.toString().charCodeAt(); // retained

@@ -6,12 +6,13 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 		default: 1,
 		foo: 1
 	};
-	var b, defaultCompat, defaultCompat__default, externalAuto, externalDefault, externalDefaultOnly;
+	var b, defaultCompat, defaultCompat__default, foo, externalAuto, externalDefault, externalDefaultOnly;
 	return {
 		setters: [function () {}, function (module) {
 			b = module.b;
 			defaultCompat = module;
 			defaultCompat__default = module.default;
+			foo = module.foo;
 			var setter = { __proto__: null, foo: module.foo };
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];

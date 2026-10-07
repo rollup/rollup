@@ -24,6 +24,7 @@ import type { LiteralValueOrUnknown } from './Expression';
 import {
 	deoptimizeInteraction,
 	ExpressionEntity,
+	includeInteraction,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
@@ -400,6 +401,46 @@ export class ObjectEntity extends ExpressionEntity {
 			property.includePath(includedPath, context);
 		}
 		this.prototypeExpression?.includePath(path, context);
+	}
+
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		// Mirrors deoptimizeArgumentsOnInteractionAtPath, falling back to
+		// including all arguments when the exact property cannot be tracked
+		const [key, ...subPath] = path;
+		if (
+			this.hasLostTrack ||
+			this.hasUnknownDeoptimizedProperty ||
+			!isConcreteKey(key) ||
+			this.deoptimizedPaths.get(key) ||
+			(typeof key === 'string' && INTEGER_REG_EXP.test(key) && this.hasUnknownDeoptimizedInteger)
+		) {
+			includeInteraction(interaction, context);
+			return;
+		}
+		const properties = this.propertiesAndGettersByKey.get(key);
+		if (properties !== undefined) {
+			// This mirrors the "this" argument inclusion of includeInteraction
+			interaction.args[0]?.includePath(UNKNOWN_PATH, context);
+			for (const property of properties) {
+				property.includeCallArgumentsWhenCalledAtPath(subPath, interaction, context);
+			}
+			return;
+		}
+		if (
+			this.unmatchablePropertiesAndGetters.length > 0 ||
+			(typeof key === 'string' &&
+				INTEGER_REG_EXP.test(key) &&
+				this.unknownIntegerProps.length > 0) ||
+			!this.prototypeExpression
+		) {
+			includeInteraction(interaction, context);
+			return;
+		}
+		this.prototypeExpression.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

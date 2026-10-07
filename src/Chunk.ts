@@ -872,6 +872,8 @@ export default class Chunk {
 							this.imports.add(importedVariable);
 						}
 					}
+				} else if (exportingModule instanceof ExternalModule && importedVariable.included) {
+					includedReexports.push(importedVariable);
 				}
 			}
 		}
@@ -1374,7 +1376,10 @@ export default class Chunk {
 				renderedLength = source.length();
 				if (renderedLength) {
 					if (compact && source.lastLine().includes('//')) source.append('\n');
-					magicString.addSource(source);
+					magicString.addSource({
+						content: source,
+						indentExclusionRanges: rendered.indentExclusionRanges
+					});
 					usedModules.push(module);
 				}
 				const namespace = module.namespace;

@@ -1,6 +1,7 @@
 import type { NodeInteractionCalled } from '../NodeInteractions';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import SpreadElement from '../nodes/SpreadElement';
+import { isIdentifierNode } from '../utils/identifyNode';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ParameterScope from './ParameterScope';
@@ -74,13 +75,30 @@ export default class ReturnValueScope extends ParameterScope {
 	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}
 
 	private updateReturnExpression() {
-		if (this.returnExpressions.length === 1) {
-			this.returnExpression = this.returnExpressions[0];
+		const { returnExpressions } = this;
+		if (returnExpressions.length === 1) {
+			this.returnExpression = returnExpressions[0];
 		} else {
-			this.returnExpression = UNKNOWN_EXPRESSION;
-			for (const expression of this.returnExpressions) {
-				expression.deoptimizePath(UNKNOWN_PATH);
+			// Returning the same variable on all paths is equivalent to a single
+			// return, so the return expression can be resolved to that variable
+			const [firstExpression] = returnExpressions;
+			if (firstExpression && this.returnExpressionsResolveToSameVariable(firstExpression)) {
+				this.returnExpression = firstExpression;
+			} else {
+				this.returnExpression = UNKNOWN_EXPRESSION;
+				for (const expression of returnExpressions) {
+					expression.deoptimizePath(UNKNOWN_PATH);
+				}
 			}
 		}
+	}
+
+	private returnExpressionsResolveToSameVariable(firstExpression: ExpressionEntity): boolean {
+		if (!isIdentifierNode(firstExpression) || firstExpression.variable === null) {
+			return false;
+		}
+		return this.returnExpressions.every(
+			expression => isIdentifierNode(expression) && expression.variable === firstExpression.variable
+		);
 	}
 }
