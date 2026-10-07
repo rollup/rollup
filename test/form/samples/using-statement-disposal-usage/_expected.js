@@ -1,3 +1,7 @@
+const namespaceResource = {
+	[Symbol.asyncDispose]() { console.log('namespace async'); }
+};
+
 function syncOnly() {
 	const resource = {
 		[Symbol.dispose]() { console.log('sync'); }};
@@ -121,3 +125,52 @@ async function nullishAsyncDisposers() {
 	};
 }
 nullishAsyncDisposers();
+
+async function namespaceMember() {
+	await using captured = namespaceResource;
+	await using missing = undefined;
+}
+namespaceMember();
+
+async function computedMember() {
+	const key = 'resource';
+	const resources = {
+		resource: {
+			[Symbol.dispose]() { console.log('unused computed sync'); },
+			[Symbol.asyncDispose]() { console.log('computed async'); }
+		}
+	};
+	await using captured = resources[key];
+}
+computedMember();
+
+async function unknownMember() {
+	const resources = {
+		resource: {
+			[Symbol.dispose]() { console.log('unknown member sync'); },
+			[Symbol.asyncDispose]() { console.log('unknown member async'); }
+		}
+	};
+	await using captured = resources[globalThis.resourceKey];
+}
+unknownMember();
+
+async function functionResource() {
+	function resource() {}
+	resource[Symbol.dispose] = () => console.log('function sync');
+	await using captured = resource;
+}
+functionResource();
+
+async function reassignedResource() {
+	let resource = {
+		[Symbol.dispose]() { console.log('first sync'); },
+		[Symbol.asyncDispose]() { console.log('first async'); }
+	};
+	resource = {
+		[Symbol.dispose]() { console.log('second sync'); },
+		[Symbol.asyncDispose]() { console.log('second async'); }
+	};
+	await using captured = resource;
+}
+reassignedResource();
