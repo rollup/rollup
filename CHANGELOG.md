@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.64.2
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Fix a regression where certain CoreJS helpers were wrongly tree-shaken (#6562)
+- Do not show errors from closeBundle if there were also build errors (#6554)
+
+### Pull Requests
+
+- [#6554](https://github.com/rollup/rollup/pull/6554): Preserve build errors when closeBundle fails (@Jo2234, @lukastaegert)
+- [#6561](https://github.com/rollup/rollup/pull/6561): Rework REPL artefacts and performance report workflows (@lukastaegert)
+- [#6562](https://github.com/rollup/rollup/pull/6562): Do not resolve values of assigned variables returned on all paths (@lukastaegert)
+
 ## 4.64.1
 
 _2026-10-07_
