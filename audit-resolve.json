@@ -59,6 +59,11 @@
       "decision": "ignore",
       "madeAt": 1791260936836,
       "expiresAt": 1795000000000
+    },
+    "1241332|concurrently>shell-quote": {
+      "decision": "ignore",
+      "madeAt": 1791345901688,
+      "expiresAt": 1795000000000
     }
   },
   "rules": {},
