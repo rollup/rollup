@@ -14,6 +14,7 @@ import {
 } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
+import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
@@ -72,6 +73,7 @@ export default class VariableDeclaration extends NodeBase {
 
 	initialise(): void {
 		super.initialise();
+		if (this.kind === 'await using') markTopLevelAwait(this);
 		for (const declarator of this.declarations) {
 			declarator.declareDeclarator(this.kind);
 		}
