@@ -44,6 +44,26 @@
       "decision": "ignore",
       "madeAt": 1791091338232,
       "expiresAt": 1795000000000
+    },
+    "1241202|nyc>@istanbuljs/load-nyc-config>js-yaml>argparse>sprintf-js": {
+      "decision": "ignore",
+      "madeAt": 1791260936836,
+      "expiresAt": 1795000000000
+    },
+    "1241206|@mermaid-js/layout-tidy-tree>mermaid>katex": {
+      "decision": "ignore",
+      "madeAt": 1791260936836,
+      "expiresAt": 1795000000000
+    },
+    "1241206|@mermaid-js/mermaid-cli>@mermaid-js/layout-tidy-tree>mermaid>katex": {
+      "decision": "ignore",
+      "madeAt": 1791260936836,
+      "expiresAt": 1795000000000
+    },
+    "1241332|concurrently>shell-quote": {
+      "decision": "ignore",
+      "madeAt": 1791345901688,
+      "expiresAt": 1795000000000
     }
   },
   "rules": {},

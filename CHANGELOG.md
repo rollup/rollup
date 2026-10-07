@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.64.1
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Slightly improve performance when rendering ES output (#6534)
+
+### Pull Requests
+
+- [#6534](https://github.com/rollup/rollup/pull/6534): Avoid repeated export name scans when rendering ES chunks (@irontaek, @lukastaegert)
+- [#6552](https://github.com/rollup/rollup/pull/6552): chore(ci): remove redundant rust-src setup (@TrickyPi, @lukastaegert)
+- [#6555](https://github.com/rollup/rollup/pull/6555): Lock file maintenance (@renovate[bot], @lukastaegert)
+
 ## 4.64.0
 
 _2026-10-02_
