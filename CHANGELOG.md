@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.64.3
+
+_2026-10-08_
+
+### Bug Fixes
+
+- Fix a performance regression when bundling code with deeply nested property calls (#6565)
+
+### Pull Requests
+
+- [#6565](https://github.com/rollup/rollup/pull/6565): Fix path-dependent explosion when including call arguments of reassigned variables (@lukastaegert)
+
 ## 4.64.2
 
 _2026-10-07_
