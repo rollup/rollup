@@ -2,7 +2,7 @@ use crate::convert_ast::converter::ast_constants::{
   PANIC_ERROR_MESSAGE_OFFSET, PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR,
 };
 use crate::convert_ast::converter::{
-  convert_string, swap_32_bit_fields, update_reference_position,
+  convert_string, reverse_32_bit_words, update_reference_position,
 };
 
 pub(crate) fn get_panic_error_buffer(message: &str, swap_byte_order: bool) -> Vec<u8> {
@@ -16,8 +16,7 @@ pub(crate) fn get_panic_error_buffer(message: &str, swap_byte_order: bool) -> Ve
   let message_position = buffer.len() + 4;
   convert_string(&mut buffer, message);
   if swap_byte_order {
-    let end_position = buffer.len();
-    swap_32_bit_fields(&mut buffer, vec![(message_position, end_position)]);
+    reverse_32_bit_words(&mut buffer[..message_position]);
   }
   buffer
 }

@@ -844,15 +844,16 @@ pub(crate) fn swap_32_bit_fields(buffer: &mut [u8], mut raw_byte_ranges: Vec<(us
   raw_byte_ranges.sort_unstable();
   let mut position = 0;
   for (start, end) in raw_byte_ranges {
-    while position < start {
-      buffer[position..position + 4].reverse();
-      position += 4;
-    }
+    reverse_32_bit_words(&mut buffer[position..start]);
     position = end;
   }
-  while position < buffer.len() {
-    buffer[position..position + 4].reverse();
-    position += 4;
+  reverse_32_bit_words(&mut buffer[position..]);
+}
+
+pub(crate) fn reverse_32_bit_words(bytes: &mut [u8]) {
+  debug_assert!(bytes.len().is_multiple_of(4));
+  for word in bytes.chunks_exact_mut(4) {
+    word.reverse();
   }
 }
 

@@ -1,7 +1,7 @@
 use crate::convert_ast::converter::ast_constants::{
   PARSE_ERROR_MESSAGE_OFFSET, PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR,
 };
-use crate::convert_ast::converter::{swap_32_bit_fields, update_reference_position};
+use crate::convert_ast::converter::{reverse_32_bit_words, update_reference_position};
 
 pub(crate) fn get_parse_error_buffer(
   error_buffer: &[u8],
@@ -20,8 +20,7 @@ pub(crate) fn get_parse_error_buffer(
   let message_position = buffer.len() + 4;
   buffer.extend_from_slice(&error_buffer[4..]);
   if swap_byte_order {
-    let end_position = buffer.len();
-    swap_32_bit_fields(&mut buffer, vec![(message_position, end_position)]);
+    reverse_32_bit_words(&mut buffer[..message_position]);
   }
   buffer
 }
