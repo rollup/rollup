@@ -102,6 +102,10 @@ export default class AssignmentPattern extends NodeBase implements DeclarationPa
 		this.right.render(code, options);
 	}
 
+	setAssignedValue(value: ExpressionEntity): void {
+		this.left.setAssignedValue(value);
+	}
+
 	applyDeoptimizations() {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
