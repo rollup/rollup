@@ -1,0 +1,3 @@
+var run;
+run = callback => callback();
+run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { run(function () { console.log('inner'); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
