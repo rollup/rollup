@@ -83,7 +83,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - `gh api`: passing any `-f`/`-F` field switches the request to POST unless `--method` is given, and only `-F` (not `-f`) reads values starting with `@` from a file.
 - `pull_request_target` and `workflow_run` workflows run in a trusted context and must never check out or execute fork code or build outputs.
 - Fork PRs publish REPL artefacts only after a maintainer adds the "x⁸ ⚙️ build repl artefacts" label, which records a head-SHA-bound authorization that the trusted publish workflow re-validates — never gate in the build workflow, fork PRs control its contents. The artefacts are served via rollupjs.org, so changing this gating is a security-relevant decision.
-- The testing-instructions comment wording is duplicated between the "PR testing instructions" and "Publish PR artefacts" workflows and must be kept in sync.
+- The testing-instructions comment wording and its install-location allowlist (`^[A-Za-z0-9._/-]+$`, guarding against markdown/shell injection via fork-controlled repository and branch names) are duplicated between the "PR testing instructions" and "Publish PR artefacts" workflows and must be kept in sync.
 
 ## GitHub Issues and Pull Requests
 

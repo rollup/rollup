@@ -149,6 +149,22 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ needs.prepare.outputs.pr-number }}/bindings_wasm_bg.wasm
+      - name: Check that the install location is safe to post
+        id: validate
+        env:
+          LC_ALL: C
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          # Same allowlist as in the "PR testing instructions" workflow: the
+          # fork-controlled repository and branch names are posted verbatim
+          # into a copyable command and must not be able to inject anything.
+          if [[ "$HEAD_REPO" =~ ^[A-Za-z0-9._/-]+$ && "$HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "safe=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the testing instructions comment as the repository or branch name contains characters outside the allowlist"
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Find comment
         uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         id: findComment
@@ -175,6 +191,7 @@ jobs:
           fi
           echo "repl-url=${PREVIEW_URL:-https://rollupjs.org}/repl/?pr=$PR_NUMBER" >> "$GITHUB_OUTPUT"
       - name: Create or update comment
+        if: ${{ steps.validate.outputs.safe == 'true' }}
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           comment-id: ${{ steps.findComment.outputs.comment-id }}

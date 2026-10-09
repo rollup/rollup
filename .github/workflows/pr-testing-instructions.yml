@@ -31,8 +31,25 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-includes: 'Thank you for your contribution!'
-      - name: Create comment if it is missing
+      - name: Check that the install location is safe to post
         if: ${{ steps.findComment.outputs.comment-id == '' }}
+        id: validate
+        env:
+          LC_ALL: C
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          # The repository and branch names are fork-controlled and are
+          # posted verbatim into a copyable command, so anything outside
+          # this allowlist is skipped to prevent markdown or shell injection.
+          if [[ "$HEAD_REPO" =~ ^[A-Za-z0-9._/-]+$ && "$HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "safe=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the testing instructions comment as the repository or branch name contains characters outside the allowlist"
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create comment if it is missing
+        if: ${{ steps.findComment.outputs.comment-id == '' && steps.validate.outputs.safe == 'true' }}
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
