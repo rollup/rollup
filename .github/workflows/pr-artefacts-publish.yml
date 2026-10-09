@@ -102,7 +102,7 @@ jobs:
   upload-repl-artefacts:
     name: Upload REPL artefacts and add comment
     needs: prepare
-    if: ${{ needs.prepare.outputs.has-repl-artefacts == 'true' && needs.prepare.outputs.repl-authorized == 'true' }}
+    if: ${{ needs.prepare.outputs.pr-found == 'true' && needs.prepare.outputs.has-repl-artefacts == 'true' && needs.prepare.outputs.repl-authorized == 'true' }}
     permissions:
       pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
       actions: read # for downloading workflow run artifacts
@@ -149,6 +149,22 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ needs.prepare.outputs.pr-number }}/bindings_wasm_bg.wasm
+      - name: Check that the install location is safe to post
+        id: validate
+        env:
+          LC_ALL: C
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          # Same allowlist as in the "PR testing instructions" workflow: the
+          # fork-controlled repository and branch names are posted verbatim
+          # into a copyable command and must not be able to inject anything.
+          if [[ "$HEAD_REPO" =~ ^[A-Za-z0-9._/-]+$ && "$HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "safe=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the testing instructions comment as the repository or branch name contains characters outside the allowlist"
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Find comment
         uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         id: findComment
@@ -175,6 +191,7 @@ jobs:
           fi
           echo "repl-url=${PREVIEW_URL:-https://rollupjs.org}/repl/?pr=$PR_NUMBER" >> "$GITHUB_OUTPUT"
       - name: Create or update comment
+        if: ${{ steps.validate.outputs.safe == 'true' }}
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           comment-id: ${{ steps.findComment.outputs.comment-id }}
@@ -189,9 +206,99 @@ jobs:
             npm install ${{ github.event.workflow_run.head_repository.full_name }}#${{ github.event.workflow_run.head_branch }}
             ```
 
-            Notice: Ensure you have installed the latest nightly Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
+            Notice: To build the native dependencies, you need [Rustup](https://www.rust-lang.org/tools/install) installed; the required nightly toolchain is then picked up automatically from `rust-toolchain.toml`.
 
-            or load it into the REPL: ${{ steps.repl-url.outputs.repl-url }}
+            Or load it into the REPL: ${{ steps.repl-url.outputs.repl-url }}
+
+            _The REPL artefacts are built from commit `${{ github.event.workflow_run.head_sha }}`._
+
+  note-outdated-repl-artefacts:
+    name: Note outdated REPL artefacts
+    needs: prepare
+    # Complement of the upload-repl-artefacts condition: when a successful
+    # build does not publish artefacts, the REPL link in the comment still
+    # points at the artefacts of an older commit and readers are warned.
+    if: ${{ needs.prepare.outputs.pr-found == 'true' && !(needs.prepare.outputs.has-repl-artefacts == 'true' && needs.prepare.outputs.repl-authorized == 'true') }}
+    permissions:
+      pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
+        id: findComment
+        with:
+          issue-number: ${{ needs.prepare.outputs.pr-number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Thank you for your contribution!'
+      - name: Add or refresh outdated warning
+        if: ${{ steps.findComment.outputs.comment-id != '' }}
+        id: warn
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          COMMENT_ID: ${{ steps.findComment.outputs.comment-id }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -o pipefail
+          gh api "/repos/$REPOSITORY/issues/comments/$COMMENT_ID" --jq .body > comment-body.md.orig
+
+          # There is nothing to warn about while the comment does not yet
+          # contain a REPL link.
+          if ! grep -q 'load it into the REPL' comment-body.md.orig; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Drop a previously added warning so this step is idempotent, and
+          # trim trailing blank lines to keep the warning placement stable.
+          awk '
+            /^> \[!WARNING\]$/ { exit }
+            { lines[NR] = $0 }
+            END {
+              last = 0
+              for (i = NR; i >= 1; i--) {
+                if (lines[i] !~ /^[[:space:]]*$/) { last = i; break }
+              }
+              for (i = 1; i <= last; i++) print lines[i]
+            }
+          ' comment-body.md.orig > comment-body.md
+
+          ARTEFACT_SHA=$(sed -n 's/.*built from commit `\([0-9a-f]\{40\}\)`.*/\1/p' comment-body.md | head -n 1)
+
+          # Only warn when the published artefacts do not represent the
+          # current PR head, e.g. after an unauthorized fork push. Leaving
+          # the warning out also cleans up a stale one.
+          if [[ "$ARTEFACT_SHA" != "$HEAD_SHA" ]]; then
+            if [[ -n "$ARTEFACT_SHA" ]]; then
+              ARTEFACT_DESCRIPTION="commit \`$ARTEFACT_SHA\`"
+            else
+              ARTEFACT_DESCRIPTION="an earlier commit"
+            fi
+            {
+              echo ""
+              echo ""
+              echo "> [!WARNING]"
+              echo "> The REPL link above is outdated: the available artefacts represent $ARTEFACT_DESCRIPTION and do not include the latest changes of this pull request."
+            } >> comment-body.md
+          fi
+
+          # Rewriting the body marks the comment as edited, so skip the
+          # update when the comment does not change. Command substitution
+          # ignores trailing newline differences, e.g. the one "gh api --jq"
+          # appends to the fetched body.
+          if [[ "$(cat comment-body.md.orig)" == "$(cat comment-body.md)" ]]; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Update comment
+        if: ${{ steps.warn.outputs.updated == 'true' }}
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          comment-id: ${{ steps.findComment.outputs.comment-id }}
+          issue-number: ${{ needs.prepare.outputs.pr-number }}
+          edit-mode: replace
+          body-path: comment-body.md
 
   report-performance:
     name: Report performance
