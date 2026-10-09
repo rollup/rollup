@@ -1,5 +1,5 @@
 diff --git a/node_modules/vitepress/dist/node/index.d.ts b/node_modules/vitepress/dist/node/index.d.ts
-index 03aef89..c8103db 100644
+index 03aef89..9734b50 100644
 --- a/node_modules/vitepress/dist/node/index.d.ts
 +++ b/node_modules/vitepress/dist/node/index.d.ts
 @@ -1950,7 +1950,6 @@ interface TocPluginOptions {
@@ -10,3 +10,13 @@ index 03aef89..c8103db 100644
    export type State = StateCore
    export type RenderHref = (slug: string, state: State) => string;
    export type RenderAttrs = (slug: string, state: State) => Record<string, string | number>;
+diff --git a/node_modules/vitepress/types/default-theme.d.ts b/node_modules/vitepress/types/default-theme.d.ts
+index 10681a8..60ed1ef 100644
+--- a/node_modules/vitepress/types/default-theme.d.ts
++++ b/node_modules/vitepress/types/default-theme.d.ts
+@@ -1,4 +1,4 @@
+-import type MarkdownIt from 'markdown-it'
++import type { MarkdownIt } from 'markdown-it'
+ import type { Options as MiniSearchOptions } from 'minisearch'
+ import type { ComputedRef, Ref, ShallowRef } from 'vue'
+ import type { DocSearchProps } from './docsearch.js'

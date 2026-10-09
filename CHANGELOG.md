@@ -1,5 +1,120 @@
 # rollup changelog
 
+## 4.64.3
+
+_2026-10-08_
+
+### Bug Fixes
+
+- Fix a performance regression when bundling code with deeply nested property calls (#6565)
+
+### Pull Requests
+
+- [#6565](https://github.com/rollup/rollup/pull/6565): Fix path-dependent explosion when including call arguments of reassigned variables (@lukastaegert)
+
+## 4.64.2
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Fix a regression where certain CoreJS helpers were wrongly tree-shaken (#6562)
+- Do not show errors from closeBundle if there were also build errors (#6554)
+
+### Pull Requests
+
+- [#6554](https://github.com/rollup/rollup/pull/6554): Preserve build errors when closeBundle fails (@Jo2234, @lukastaegert)
+- [#6561](https://github.com/rollup/rollup/pull/6561): Rework REPL artefacts and performance report workflows (@lukastaegert)
+- [#6562](https://github.com/rollup/rollup/pull/6562): Do not resolve values of assigned variables returned on all paths (@lukastaegert)
+
+## 4.64.1
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Slightly improve performance when rendering ES output (#6534)
+
+### Pull Requests
+
+- [#6534](https://github.com/rollup/rollup/pull/6534): Avoid repeated export name scans when rendering ES chunks (@irontaek, @lukastaegert)
+- [#6552](https://github.com/rollup/rollup/pull/6552): chore(ci): remove redundant rust-src setup (@TrickyPi, @lukastaegert)
+- [#6555](https://github.com/rollup/rollup/pull/6555): Lock file maintenance (@renovate[bot], @lukastaegert)
+
+## 4.64.0
+
+_2026-10-02_
+
+### Features
+
+- Improve try-catch deoptimization to cover calling methods on objects (#6541)
+
+### Bug Fixes
+
+- Fix a situation where some feature-detections of core-js were not triggering properly (#6541)
+
+### Pull Requests
+
+- [#6541](https://github.com/rollup/rollup/pull/6541): Retain callbacks of helper methods called from try statements (@lukastaegert)
+- [#6542](https://github.com/rollup/rollup/pull/6542): Run additional tests as part of the coverage job (@lukastaegert)
+- [#6544](https://github.com/rollup/rollup/pull/6544): Update msys2/setup-msys2 digest to ec48f7c (@renovate[bot], @lukastaegert)
+- [#6545](https://github.com/rollup/rollup/pull/6545): Update minor/patch updates (@renovate[bot])
+- [#6546](https://github.com/rollup/rollup/pull/6546): Update dependency @mermaid-js/mermaid-cli to v12 (@renovate[bot])
+- [#6547](https://github.com/rollup/rollup/pull/6547): Update Rust crate swc_compiler_base to v65 (@renovate[bot])
+
+## 4.63.6
+
+_2026-10-01_
+
+### Bug Fixes
+
+- Ensure external reexports are always imported when used in a reified dynamic namespace (#6540)
+
+### Pull Requests
+
+- [#6527](https://github.com/rollup/rollup/pull/6527): Update minor/patch updates (@renovate[bot])
+- [#6529](https://github.com/rollup/rollup/pull/6529): Update dependency eslint-plugin-unicorn to v76 (@renovate[bot])
+- [#6530](https://github.com/rollup/rollup/pull/6530): Lock file maintenance (@renovate[bot])
+- [#6535](https://github.com/rollup/rollup/pull/6535): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6540](https://github.com/rollup/rollup/pull/6540): Import external re-exports used by shared-chunk namespace objects (@00200200)
+
+## 4.63.5
+
+_2026-09-24_
+
+### Bug Fixes
+
+- Fix an issue where watch mode would hang instead of terminating when closing via Ctrl+C (#6521)
+- Avoid starting overlapping watch mode runs when plugins invalidate files at the wrong time (#6526)
+- Fix many edge cases where watch mode events were not properly emitted to listeners, especially when errors occur (#6526)
+
+### Pull Requests
+
+- [#6520](https://github.com/rollup/rollup/pull/6520): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6521](https://github.com/rollup/rollup/pull/6521): Terminate watch mode via natural process exit when possible (@lukastaegert)
+- [#6523](https://github.com/rollup/rollup/pull/6523): Protect cc pin against renovate lock file maintenance (@lukastaegert)
+- [#6525](https://github.com/rollup/rollup/pull/6525): docs: fix typos 'interations' and 'coresponding' (@haimingZZ)
+- [#6526](https://github.com/rollup/rollup/pull/6526): fix(watch): prevent overlapping runs and other run lifecycle bugs (@lukastaegert)
+
+## 4.63.4
+
+_2026-09-19_
+
+### Bug Fixes
+
+- Ensure meta information of the cached module is exposed in `shouldTransformCachedModule` (#6442)
+- Do not create invalid code if import attribute values contain special characters (#6502)
+
+### Pull Requests
+
+- [#6429](https://github.com/rollup/rollup/pull/6429): ci: collect Rust coverage from JS tests in dedicated job (@lukastaegert)
+- [#6442](https://github.com/rollup/rollup/pull/6442): fix: expose cached module meta during cache checks (@ychampion, @lukastaegert)
+- [#6496](https://github.com/rollup/rollup/pull/6496): docs: name the parameter runHook actually takes (@darkdi, @lukastaegert)
+- [#6502](https://github.com/rollup/rollup/pull/6502): Escape quotes and backslashes in import attribute values (@dylanpulver, @lukastaegert)
+- [#6517](https://github.com/rollup/rollup/pull/6517): Improve agent instructions (@lukastaegert)
+- [#6518](https://github.com/rollup/rollup/pull/6518): fix(deps): update minor/patch updates (@renovate[bot])
+- [#6519](https://github.com/rollup/rollup/pull/6519): Request Copilot code review via workflow (@lukastaegert)
+
 ## 4.63.3
 
 _2026-09-14_

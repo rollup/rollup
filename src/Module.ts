@@ -1,6 +1,6 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
 import { locate } from 'locate-character';
-import MagicString from 'magic-string';
+import MagicString, { type ExclusionRange } from 'magic-string';
 import { parseAsync } from '../native';
 import { convertProgram } from './ast/bufferParsers';
 import type { InclusionContext } from './ast/ExecutionContext';
@@ -119,6 +119,7 @@ export interface AstContext {
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
 	addImportSource: (importSource: string) => void;
+	addIndentExclusionRange: (range: ExclusionRange) => void;
 	code: string;
 	deoptimizationTracker: EntityPathTracker;
 	error: (properties: RollupLog, pos: number) => never;
@@ -272,6 +273,7 @@ export default class Module {
 	private exportedVariablesByName: Map<string, Variable> | null = null;
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private readonly exportShimVariable = new ExportShimVariable(this);
+	private indentExclusionRanges: ExclusionRange[] = [];
 	private readonly namespaceReexportsByName = new Map<
 		string,
 		| [null]
@@ -829,7 +831,12 @@ export default class Module {
 		this.options.onLog(level, properties);
 	}
 
-	render(options: RenderOptions): { source: MagicString; usesTopLevelAwait: boolean } {
+	render(options: RenderOptions): {
+		indentExclusionRanges: ExclusionRange[];
+		source: MagicString;
+		usesTopLevelAwait: boolean;
+	} {
+		this.indentExclusionRanges = [];
 		const source = this.magicString.clone();
 		this.ast!.render(source, options);
 		source.trim();
@@ -837,7 +844,7 @@ export default class Module {
 		if (usesTopLevelAwait && options.format !== 'es' && options.format !== 'system') {
 			return error(logInvalidFormatForTopLevelAwait(this.id, options.format));
 		}
-		return { source, usesTopLevelAwait };
+		return { indentExclusionRanges: this.indentExclusionRanges, source, usesTopLevelAwait };
 	}
 
 	async setSource({
@@ -891,8 +898,7 @@ export default class Module {
 		const fileName = this.id;
 
 		this.magicString = new MagicString(code, {
-			filename: (this.excludeFromSourcemap ? null : fileName)!, // don't include plugin helpers in sourcemap
-			indentExclusionRanges: []
+			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
 
 		this.astContext = {
@@ -901,6 +907,7 @@ export default class Module {
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
 			addImportSource: this.addImportSource.bind(this),
+			addIndentExclusionRange: (range: ExclusionRange) => this.indentExclusionRanges.push(range),
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
@@ -1046,11 +1053,10 @@ export default class Module {
 		return null;
 	}
 
-	updateOptions({
-		meta,
-		moduleSideEffects,
-		syntheticNamedExports
-	}: Partial<PartialNull<ModuleOptions>>): void {
+	updateOptions(
+		{ meta, moduleSideEffects, syntheticNamedExports }: Partial<PartialNull<ModuleOptions>>,
+		{ replaceExistingMeta = false }: { replaceExistingMeta?: boolean } = EMPTY_OBJECT
+	): void {
 		if (moduleSideEffects != null) {
 			this.info.moduleSideEffects = moduleSideEffects;
 		}
@@ -1058,6 +1064,11 @@ export default class Module {
 			this.info.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
+			if (replaceExistingMeta) {
+				for (const key of Object.keys(this.info.meta)) {
+					delete this.info.meta[key];
+				}
+			}
 			Object.assign(this.info.meta, meta);
 		}
 	}

@@ -3,7 +3,7 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import { deoptimizeInteraction, includeInteractionWithoutThis } from '../nodes/shared/Expression';
 import { isArrowFunctionExpressionNode, isFunctionExpressionNode } from '../utils/identifyNode';
-import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
 import type Variable from './Variable';
 
 export interface PromiseHandler {
@@ -55,7 +55,11 @@ export class ObjectPromiseHandler implements PromiseHandler {
 			(isFunctionExpressionNode(interaction.args[1]) ||
 				isArrowFunctionExpressionNode(interaction.args[1]))
 		) {
-			interaction.args[1].includeCallArguments(this.interaction, context);
+			interaction.args[1].includeCallArgumentsWhenCalledAtPath(
+				EMPTY_PATH,
+				this.interaction,
+				context
+			);
 		}
 	}
 }

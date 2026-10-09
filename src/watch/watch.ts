@@ -1,6 +1,7 @@
 import { createFilter } from '@rollup/pluginutils';
 import path from 'node:path';
 import process from 'node:process';
+import type { GraphWatchHooks } from '../Graph';
 import { rollupInternal } from '../rollup/rollup';
 import type {
 	ChangeEvent,
@@ -12,6 +13,7 @@ import type {
 	WatcherOptions
 } from '../rollup/types';
 import { FileWatcher } from './fileWatcher';
+import { waitForAllAndRethrowFirstFailure } from './WatchEmitter';
 
 const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'buggy' | null>> = {
 	create: {
@@ -33,12 +35,13 @@ const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'bug
 
 export class Watcher {
 	readonly emitter: RollupWatcher;
+	closed = false;
 
 	private buildDelay = 0;
 	private buildTimeout: ReturnType<typeof setTimeout> | null = null;
-	private closed = false;
 	private readonly invalidatedIds = new Map<string, ChangeEvent>();
 	private rerun = false;
+	// Starts held so that invalidations before the initial run only request a rerun.
 	private running = true;
 	private readonly tasks: Task[];
 
@@ -51,21 +54,25 @@ export class Watcher {
 				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
-		process.nextTick(() => this.run().catch(error => this.reportError(error)));
+		process.nextTick(() => this.runExclusively(() => this.run()));
 	}
 
 	async close(): Promise<void> {
 		if (this.closed) return;
 		this.closed = true;
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
-		for (const task of this.tasks) {
-			task.close();
+		try {
+			await waitForAllAndRethrowFirstFailure([
+				...this.tasks.map(task => task.close()),
+				this.emitter.emit('close')
+			]);
+		} finally {
+			this.emitter.removeAllListeners();
 		}
-		await this.emitter.emit('close');
-		this.emitter.removeAllListeners();
 	}
 
 	invalidate(file?: { event: ChangeEvent; id: string }): void {
+		if (this.closed) return;
 		if (file) {
 			const previousEvent = this.invalidatedIds.get(file.id);
 			const event = previousEvent ? eventsRewrites[previousEvent][file.event] : file.event;
@@ -86,24 +93,68 @@ export class Watcher {
 
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 
-		this.buildTimeout = setTimeout(async () => {
+		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
-			try {
-				await Promise.all(
-					[...this.invalidatedIds].map(([id, event]) => this.emitter.emit('change', id, { event }))
-				);
-				this.invalidatedIds.clear();
-				await this.emitter.emit('restart');
-				this.emitter.removeListenersForCurrentRun();
-				await this.run();
-			} catch (error: any) {
-				await this.reportError(error);
-			}
+			this.runExclusively(() => this.announceChangesAndRebuild());
 		}, this.buildDelay);
 	}
 
-	private async reportError(error: any): Promise<void> {
+	// The running flag spans the whole cycle, including async listeners, so
+	// that invalidations meanwhile only request a rerun.
+	private async runExclusively(cycle: () => Promise<void>): Promise<void> {
+		this.running = true;
+		try {
+			await cycle();
+		} catch (error: any) {
+			await this.reportError(error);
+		} finally {
+			this.running = false;
+		}
+		if (this.rerun) {
+			this.rerun = false;
+			this.invalidate();
+		}
+	}
+
+	private async announceChangesAndRebuild(): Promise<void> {
+		await this.announcePendingChanges();
+		if (this.closed || !this.hasInvalidatedTask()) return;
+		await this.emitter.emit('restart');
+		await this.announcePendingChanges();
+		if (this.closed) return;
+		this.emitter.removeListenersForCurrentRun();
+		await this.run();
+	}
+
+	// The upcoming run consumes announced changes via the task flags, making
+	// their rerun requests obsolete. The reset must directly follow the last
+	// emptiness check so that no change slips through unannounced.
+	private async announcePendingChanges(): Promise<void> {
+		while (this.invalidatedIds.size > 0 && !this.closed) {
+			await this.announceChangeBatch();
+		}
+		this.rerun = false;
+	}
+
+	// Cleared before emitting so that changes arriving during slow hooks,
+	// including follow-ups of the same file, form the next batch instead of
+	// being dropped with this one.
+	private async announceChangeBatch(): Promise<void> {
+		const changes = [...this.invalidatedIds];
 		this.invalidatedIds.clear();
+		await waitForAllAndRethrowFirstFailure(
+			changes.flatMap(([id, event]) => [
+				...this.tasks.map(task => task.announceChange(id, event)),
+				this.emitter.emit('change', id, { event })
+			])
+		);
+	}
+
+	private hasInvalidatedTask(): boolean {
+		return this.tasks.some(task => task.isInvalidated());
+	}
+
+	private async reportError(error: any): Promise<void> {
 		await this.emitter.emit('event', {
 			code: 'ERROR',
 			error,
@@ -115,29 +166,16 @@ export class Watcher {
 	}
 
 	private async run(): Promise<void> {
-		this.running = true;
-		// Drop a rerun request left over from a failed run: honoring it after this run
-		// would start an empty run that removes the plugin event listeners of this run.
-		this.rerun = false;
-		try {
-			await this.emitter.emit('event', {
-				code: 'START'
-			});
-
-			for (const task of this.tasks) {
-				await task.run();
-			}
-		} finally {
-			this.running = false;
+		await this.emitter.emit('event', {
+			code: 'START'
+		});
+		for (const task of this.tasks) {
+			await task.run();
 		}
-
+		if (this.closed) return;
 		await this.emitter.emit('event', {
 			code: 'END'
 		});
-		if (this.rerun) {
-			this.rerun = false;
-			this.invalidate();
-		}
 	}
 }
 
@@ -145,7 +183,6 @@ export class Task {
 	cache: RollupCache = { modules: [] };
 	watchFiles: string[] = [];
 
-	private closed = false;
 	private readonly fileWatcher: FileWatcher;
 	private filter: (id: string) => boolean;
 	private invalidated = true;
@@ -156,6 +193,7 @@ export class Task {
 	private watched = new Set<string>();
 	private readonly watcher: Watcher;
 	private readonly watchOptions: WatcherOptions;
+	private watchHooks: GraphWatchHooks | null = null;
 
 	constructor(watcher: Watcher, options: MergedRollupOptions) {
 		this.watcher = watcher;
@@ -177,9 +215,15 @@ export class Task {
 		});
 	}
 
-	close(): void {
-		this.closed = true;
+	async announceChange(id: string, event: ChangeEvent): Promise<void> {
+		await this.watchHooks?.watchChange(id, { event });
+	}
+
+	async close(): Promise<void> {
 		this.fileWatcher.close();
+		const watchHooks = this.watchHooks;
+		this.watchHooks = null;
+		await watchHooks?.closeWatcher();
 	}
 
 	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }): void {
@@ -195,8 +239,12 @@ export class Task {
 		this.watchOptions.onInvalidate?.(id);
 	}
 
+	isInvalidated(): boolean {
+		return this.invalidated;
+	}
+
 	async run(): Promise<void> {
-		if (!this.invalidated) return;
+		if (!this.invalidated || this.watcher.closed) return;
 		this.invalidated = false;
 
 		const options = {
@@ -211,17 +259,22 @@ export class Task {
 			input: this.options.input,
 			output: this.outputFiles
 		});
+		if (this.watcher.closed) {
+			return;
+		}
 		let result: RollupBuild | null = null;
 
 		try {
-			result = await rollupInternal(options, this.watcher.emitter);
-			if (this.closed) {
+			result = await rollupInternal(options, watchHooks => {
+				if (!this.watcher.closed) this.watchHooks = watchHooks;
+			});
+			if (this.watcher.closed) {
 				return;
 			}
 			this.updateWatchedFiles(result);
 			if (!this.skipWrite) {
 				await Promise.all(this.outputs.map(output => result!.write(output)));
-				if (this.closed) {
+				if (this.watcher.closed) {
 					return;
 				}
 				this.updateWatchedFiles(result!);
@@ -234,7 +287,7 @@ export class Task {
 				result
 			});
 		} catch (error: any) {
-			if (!this.closed) {
+			if (!this.watcher.closed) {
 				if (Array.isArray(error.watchFiles)) {
 					for (const id of error.watchFiles) {
 						this.watchFile(id);

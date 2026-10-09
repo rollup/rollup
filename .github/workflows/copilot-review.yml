@@ -1,0 +1,46 @@
+name: Copilot Code Review
+
+# pull_request_target grants the workflow a write token also for pull requests
+# from forks, which is required to request reviewers. This workflow never
+# checks out or executes code from the pull request, so the elevated
+# permissions should be safe.
+on:
+  pull_request_target:
+    types:
+      - opened
+      - ready_for_review
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  request-copilot-review:
+    name: Request Copilot review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: >-
+      github.event.pull_request.base.ref == github.event.repository.default_branch &&
+      !github.event.pull_request.draft
+    steps:
+      - name: Request Copilot Review
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          requested=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
+            --jq 'any(.users[].login | ascii_downcase; . == "copilot" or . == "copilot-pull-request-reviewer[bot]")')
+          reviewed=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews?per_page=100" \
+            | jq -s 'any(.[][]; .user.login == "copilot-pull-request-reviewer[bot]")')
+
+          if [ "$requested" = "true" ] || [ "$reviewed" = "true" ]; then
+            echo 'Copilot is already requested or has already reviewed this pull request.'
+            exit 0
+          fi
+
+          gh api --method POST \
+            "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
+            -f 'reviewers[]=copilot-pull-request-reviewer[bot]'

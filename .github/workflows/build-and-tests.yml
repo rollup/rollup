@@ -98,7 +98,6 @@ jobs:
               set -e &&
               which rustup &&
               rustup target add x86_64-pc-windows-gnu &&
-              rustup component add rust-src --toolchain nightly-2025-07-25-x86_64-pc-windows-gnu &&
               npm run build:napi -- --release --target x86_64-pc-windows-gnu
             env:
               MINGW_ARCH: ucrt64
@@ -218,7 +217,7 @@ jobs:
         if: ${{ matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
           node-version: 24.10.0
-      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         with:
           msystem: ${{ matrix.settings.msystem }}
@@ -227,7 +226,6 @@ jobs:
             rustup:p
             nodejs:p
             rust-wasm:p
-            rust-src:p
           update: true
           path-type: inherit
           release: false
@@ -245,19 +243,16 @@ jobs:
         if: matrix.settings.cache-cargo != false
         with:
           path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
         if: ${{ matrix.settings.cross == 'zig' }}
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
+        uses: taiki-e/install-action@183e4297cca2404691e9380e1307288dced5c82a # v2.87.25
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -328,12 +323,9 @@ jobs:
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload wasm artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -367,9 +359,6 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
             .cargo-cache
             rust/target/
           key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
@@ -379,7 +368,7 @@ jobs:
         uses: ./.github/actions/install-and-cache-node-deps
 
       - name: Build (OpenBSD)
-        uses: cross-platform-actions/action@faa0c6197e94aacf1c5956460152c8380d3560a5 # v1.5.0
+        uses: cross-platform-actions/action@e0b9770014ba65d5e0815f15b74031c3a635f641 # v1.6.0
         with:
           operating_system: ${{ matrix.os.name }}
           architecture: ${{ matrix.os.architecture }}
@@ -394,9 +383,6 @@ jobs:
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
             .cargo-cache
             rust/target/
           key: x86_64-unknown-openbsd-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
@@ -458,7 +444,7 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
       - name: Run Smoke Test
-        uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # v3.2.0
+        uses: uraimo/run-on-arch-action@fa1f3e7de95534497266c7265950b5188355fbfb # v3.2.1
         with:
           arch: ${{ matrix.settings.arch }}
           distro: ${{ matrix.settings.distro }}
@@ -495,7 +481,7 @@ jobs:
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
 
   test:
-    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
+    name: Test Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
       - build-openbsd
@@ -521,22 +507,6 @@ jobs:
         node:
           - '18.20.0'
           - 24
-        include:
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-              package: linux-x64-gnu
-            node: 24
-            command: 'ci:coverage'
-            additionalName: ' with Coverage'
-            coverage: true
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-              package: linux-x64-gnu
-            node: '18.20.0'
-            command: 'ci:test:all'
-            additionalName: ' with Additional Tests'
         exclude:
           # Windows ARM builds were not provided for a while
           - settings:
@@ -571,16 +541,77 @@ jobs:
           node -e "console.log(require('rollup'))"
       - name: Test Rollup
         shell: bash
-        run: cp artifacts/*/*.node dist/ && npm run ${{ matrix.command || 'test:only' }}
+        run: cp artifacts/*/*.node dist/ && npm run test:only
         env:
           CI: true
+
+  coverage-and-additional-tests:
+    name: Coverage and Additional Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.10.0
+      - name: Install and Cache Node Dependencies
+        uses: ./.github/actions/install-and-cache-node-deps
+      - name: Install leak test dependency
+        # Installed up front so that npm's tree reconciliation cannot modify
+        # node_modules while tests run; scripts are unnecessary as weak-napi
+        # ships the linux-x64 prebuild that node-gyp-build loads at runtime.
+        run: npm install --no-save --ignore-scripts weak-napi@2.0.2
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: nightly-2025-07-25
+          components: llvm-tools-preview
+          targets: wasm32-unknown-unknown
+      - name: Restore Cargo cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cargo-cache
+            rust/target/
+          key: coverage-and-additional-tests-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            coverage-and-additional-tests-cargo-ubuntu-latest
+            coverage-cargo-ubuntu-latest
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@183e4297cca2404691e9380e1307288dced5c82a # v2.87.25
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-llvm-cov@0.8.7
+      - name: Build and run tests with coverage
+        # continue-on-error so the coverage upload still runs when tests fail;
+        # the final step then fails the job.
+        id: run-tests
+        continue-on-error: true
+        run: bash scripts/coverage.sh ci:coverage
+      - name: Save Cargo cache
+        if: github.ref == 'refs/heads/master'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cargo-cache
+            rust/target/
+          key: coverage-and-additional-tests-cargo-ubuntu-latest-${{ hashFiles('rust/Cargo.lock') }}
       - name: Upload coverage
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        if: matrix.coverage
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           fail_ci_if_error: true
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/rust.lcov,coverage/lcov.info
+          disable_search: true
+      - name: Fail if the coverage run failed
+        if: ${{ steps.run-tests.outcome == 'failure' }}
+        run: |
+          echo "::error::The coverage run failed; see the Build and run tests with coverage step"
+          exit 1
 
   publish:
     permissions:
@@ -595,6 +626,7 @@ jobs:
       - lint
       - test
       - smoke-test
+      - coverage-and-additional-tests
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:

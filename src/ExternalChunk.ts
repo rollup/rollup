@@ -68,7 +68,7 @@ export function formatAttributes(
 		return null;
 	}
 	const assertionEntries: [key: string, value: string][] = Object.entries(attributes).map(
-		([key, value]) => [key, `'${value}'`]
+		([key, value]) => [key, JSON.stringify(value)]
 	);
 	if (assertionEntries.length > 0) {
 		return getObject(assertionEntries, { lineBreakIndent: null });

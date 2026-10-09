@@ -8,7 +8,9 @@ import {
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED
 } from '../NodeInteractions';
+import type ArrowFunctionExpression from '../nodes/ArrowFunctionExpression';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type FunctionExpression from '../nodes/FunctionExpression';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import {
@@ -22,6 +24,7 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import { isArrowFunctionExpressionNode, isFunctionExpressionNode } from '../utils/identifyNode';
 import { limitConcatenatedPathDepth, MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { IncludedPathTracker } from '../utils/PathTracker';
 import {
@@ -40,6 +43,9 @@ export default class LocalVariable extends Variable {
 	readonly module: Module;
 
 	protected additionalInitializers: ExpressionEntity[] | null = null;
+	// A possibly incomplete list of functions assigned to this variable; only used
+	// to retain call arguments of assigned try-catch helpers, never for value queries
+	private assignedFunctions: (ArrowFunctionExpression | FunctionExpression)[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: EntityPathTracker;
@@ -235,19 +241,63 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (this.isReassigned) {
+			// The value may still be one of the assigned functions, whose try-catch
+			// helpers need their call arguments retained
+			includeInteraction(interaction, context);
+			if (path.length === 0) {
+				this.includeCallArgumentsOfAssignedTryCatchHelpers(interaction, context);
+			}
+			return;
+		}
 		if (
-			this.isReassigned ||
 			context.includedCallArguments.has(this.init) ||
-			// This can be removed again once we can include arguments when called at
-			// a specific path
-			this.initPath.length > 0
+			path.length + this.initPath.length > MAX_PATH_DEPTH
 		) {
 			includeInteraction(interaction, context);
-		} else {
-			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(interaction, context);
-			context.includedCallArguments.delete(this.init);
+			return;
+		}
+		context.includedCallArguments.add(this.init);
+		this.init.includeCallArgumentsWhenCalledAtPath(
+			[...this.initPath, ...path],
+			interaction,
+			context
+		);
+		context.includedCallArguments.delete(this.init);
+	}
+
+	private includeCallArgumentsOfAssignedTryCatchHelpers(
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (this.initPath.length === 0) {
+			this.includeCallArgumentsOfTryCatchHelper(this.init, interaction, context);
+		}
+		for (const assignedFunction of this.assignedFunctions ?? EMPTY_ARRAY) {
+			this.includeCallArgumentsOfTryCatchHelper(assignedFunction, interaction, context);
+		}
+	}
+
+	private includeCallArgumentsOfTryCatchHelper(
+		value: ExpressionEntity,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		if (isArrowFunctionExpressionNode(value) || isFunctionExpressionNode(value)) {
+			if (value.scope.hasParameterCalledFromTryStatement()) {
+				value.scope.includeCallArguments(interaction, context);
+			}
+		}
+	}
+
+	addReassignedValue(value: ExpressionEntity): void {
+		if (isArrowFunctionExpressionNode(value) || isFunctionExpressionNode(value)) {
+			(this.assignedFunctions ??= []).push(value);
 		}
 	}
 

@@ -64,6 +64,17 @@ exports.withTimeout = function withTimeout(promise, timeoutMs, onTimeout) {
 	]);
 };
 
+/**
+ * @returns {{promise: Promise<void>, resolve: (value?: void) => void}}
+ */
+exports.createDeferred = function createDeferred() {
+	let resolve;
+	const promise = new Promise(resolution => {
+		resolve = resolution;
+	});
+	return { promise, resolve };
+};
+
 function normaliseError(error) {
 	if (!error) {
 		throw new Error(`Expected an error but got ${JSON.stringify(error)}`);

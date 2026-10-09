@@ -1,6 +1,6 @@
 import pkg from '../../package.json' with { type: 'json' };
 import Bundle from '../Bundle';
-import Graph from '../Graph';
+import Graph, { type RegisterWatchHooks } from '../Graph';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import initWasm from '../utils/initWasm';
 import { getLogger } from '../utils/logger';
@@ -34,8 +34,7 @@ import type {
 	RollupBuild,
 	RollupOptions,
 	RollupOptionsFunction,
-	RollupOutput,
-	RollupWatcher
+	RollupOutput
 } from './types';
 
 const rollupVersion = pkg.version;
@@ -49,17 +48,17 @@ export default function rollup(rawInputOptions: RollupOptions): Promise<RollupBu
 
 export async function rollupInternal(
 	rawInputOptions: RollupOptions,
-	watcher: RollupWatcher | null
+	registerWatchHooks: RegisterWatchHooks | null
 ): Promise<RollupBuild> {
 	const { options: inputOptions, unsetOptions: unsetInputOptions } = await getInputOptions(
 		rawInputOptions,
-		watcher !== null
+		registerWatchHooks !== null
 	);
 	initialiseTimers(inputOptions);
 
 	await initWasm();
 
-	const graph = new Graph(inputOptions, watcher);
+	const graph = new Graph(inputOptions, registerWatchHooks);
 
 	// remove the cache object from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
@@ -89,16 +88,16 @@ export async function rollupInternal(
 					...error_,
 					message: `There was an error during the build:\n  ${error_.message}\nAdditionally, handling the error in the 'buildEnd' hook caused the following error:\n  ${buildEndError.message}`
 				});
-				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]);
+				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]).catch(() => {});
 				throw compoundError;
 			}
-			await graph.pluginDriver.hookParallel('closeBundle', [error_]);
+			await graph.pluginDriver.hookParallel('closeBundle', [error_]).catch(() => {});
 			throw error_;
 		}
 		try {
 			await graph.pluginDriver.hookParallel('buildEnd', []);
 		} catch (buildEndError: any) {
-			await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]);
+			await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]).catch(() => {});
 			throw buildEndError;
 		}
 	});

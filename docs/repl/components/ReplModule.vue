@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { defineEmits, defineProps, ref } from 'vue';
 import type { Module } from '../../types';
 import ReplEditor from './ReplEditor.vue';
 

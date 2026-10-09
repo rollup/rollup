@@ -1,5 +1,12 @@
 const assert = require('node:assert');
-const { existsSync, readdirSync, readFileSync, rmSync, unlinkSync } = require('node:fs');
+const {
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	unlinkSync,
+	writeFileSync
+} = require('node:fs');
 const { rm, unlink, writeFile, mkdir } = require('node:fs/promises');
 const path = require('node:path');
 const { hrtime } = require('node:process');
@@ -8,7 +15,7 @@ const { copy } = require('fs-extra');
  * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { atomicWriteFileSync, wait, withTimeout } = require('../testHelpers');
+const { atomicWriteFileSync, createDeferred, wait, withTimeout } = require('../testHelpers');
 
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const TEMP_DIR = path.join(__dirname, '../_tmp');
@@ -609,6 +616,8 @@ describe('rollup.watch', function () {
 		let calls = 0;
 		let context1;
 		let context2;
+		let closeWatcherContext1;
+		let closeWatcherContext2;
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: ENTRY_FILE,
@@ -624,7 +633,8 @@ describe('rollup.watch', function () {
 						context1 = this;
 					},
 					closeWatcher() {
-						assert.strictEqual(context1, this);
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						closeWatcherContext1 = this;
 						calls++;
 					}
 				},
@@ -634,13 +644,14 @@ describe('rollup.watch', function () {
 						context2 = this;
 					},
 					closeWatcher() {
-						assert.strictEqual(context2, this);
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						closeWatcherContext2 = this;
 						calls++;
 					}
 				}
 			]
 		});
-		return sequence(watcher, [
+		await sequence(watcher, [
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
@@ -649,12 +660,12 @@ describe('rollup.watch', function () {
 				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.ok(context1);
 				assert.ok(context2);
-				watcher.once('close', () => {
-					assert.strictEqual(calls, 2);
-				});
-				watcher.close();
 			}
 		]);
+		await watcher.close();
+		assert.strictEqual(calls, 2);
+		assert.strictEqual(closeWatcherContext1, context1);
+		assert.strictEqual(closeWatcherContext2, context2);
 	});
 
 	it('watches a file in code-splitting mode', async () => {
@@ -900,6 +911,1370 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	it('does not start overlapping runs when a change happens while a watchChange hook is running', async () => {
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const watchChangeIds = [];
+		let hasTriggeredSecondChange = false;
+		const { promise: watchedInvalidation, resolve: resolveWatchedInvalidation } = createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(WATCHED_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				},
+				async watchChange(id, { event }) {
+					// Ignore the initial scan event for the added watch file.
+					if (event === 'create') return;
+					watchChangeIds.push(id);
+					if (id !== ENTRY_FILE || hasTriggeredSecondChange) return;
+					hasTriggeredSecondChange = true;
+					// A second watched file changes while this hook is still running.
+					// Without coalescing, this starts a second run cycle that overlaps
+					// with the run triggered by the first change.
+					atomicWriteFileSync(WATCHED_ID, 'updated');
+					// Keep the change event pending until the second change was
+					// observed so that it is guaranteed to arrive in this window.
+					await withTimeout(watchedInvalidation, 5000, () => {
+						throw new Error('the change of the watched file was not detected');
+					});
+				},
+				async transform() {
+					await wait(500);
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					// The initial scan of the added watch file must not resolve the
+					// handshake before the second change was triggered.
+					if (id === WATCHED_ID && hasTriggeredSecondChange) {
+						resolveWatchedInvalidation();
+					}
+				}
+			}
+		});
+		const eventCodes = [];
+		watcher.on('event', event => eventCodes.push(event.code));
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				atomicWriteFileSync(ENTRY_FILE, 'export default 21;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 21);
+				// Duplicate change events can occur, e.g. for atomic writes, but
+				// both files must be announced and no runs may overlap.
+				assert.deepStrictEqual([...new Set(watchChangeIds)], [ENTRY_FILE, WATCHED_ID]);
+				assertRunsDoNotOverlapAndAreNotEmpty(eventCodes);
+			}
+		]);
+	});
+
+	it('announces follow-up changes of the same file that arrive while the previous change is still announced', async () => {
+		const DEP_ID = path.join(INPUT_DIR, 'dep');
+		const receivedChangeEvents = [];
+		let hasDeletedDependency = false;
+		let dependencyInvalidationCount = 0;
+		let dependencyInvalidationCountAtDeletion;
+		let hasObservedFollowUpChange = false;
+		let hasObservedFollowUpChangeWhenRebuildStarted;
+		let announcedEventsWhenRebuildStarted;
+		const { promise: dependencyInvalidation, resolve: resolveDependencyInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(DEP_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(DEP_ID);
+				},
+				async watchChange(id, { event }) {
+					// Ignore the initial scan event for the added watch file:
+					// changes delivered while the update announcement is held
+					// count as follow-up changes.
+					if (event === 'create' && !hasDeletedDependency) return;
+					receivedChangeEvents.push({ event, id });
+					if (id !== DEP_ID || event !== 'update' || hasDeletedDependency) return;
+					hasDeletedDependency = true;
+					// Give the file watcher time to re-arm the file it just announced
+					// and to deliver remaining events for the update: immediate
+					// follow-up changes can be missed by the watcher backend.
+					await wait(300);
+					dependencyInvalidationCountAtDeletion = dependencyInvalidationCount;
+					// The follow-up change: deleting the file while its update is
+					// still being announced must not be swallowed with the batch
+					// it follows.
+					unlinkSync(DEP_ID);
+					await withTimeout(dependencyInvalidation, 5000, () => {
+						throw new Error('the deletion of the watched file was not detected');
+					});
+					hasObservedFollowUpChange = true;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id !== DEP_ID) return;
+					dependencyInvalidationCount++;
+					if (
+						dependencyInvalidationCountAtDeletion !== undefined &&
+						dependencyInvalidationCount > dependencyInvalidationCountAtDeletion
+					) {
+						resolveDependencyInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('event', watcherEvent => {
+			if (
+				watcherEvent.code !== 'BUNDLE_START' ||
+				announcedEventsWhenRebuildStarted ||
+				!receivedChangeEvents.some(({ id, event }) => id === DEP_ID && event === 'update')
+			) {
+				return;
+			}
+			announcedEventsWhenRebuildStarted = receivedChangeEvents
+				.filter(({ id }) => id === DEP_ID)
+				.map(({ event }) => event);
+			hasObservedFollowUpChangeWhenRebuildStarted = hasObservedFollowUpChange;
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				// A non-atomic write avoids duplicate change events from the
+				// rename of an atomic write.
+				writeFileSync(DEP_ID, 'updated');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				assert.ok(
+					announcedEventsWhenRebuildStarted,
+					'no rebuild was started after the update was announced'
+				);
+				assert.ok(
+					announcedEventsWhenRebuildStarted.length > 1,
+					`the follow-up change was not announced before the rebuild started: ${announcedEventsWhenRebuildStarted}`
+				);
+				assert.ok(
+					hasObservedFollowUpChangeWhenRebuildStarted,
+					'the rebuild started while the previous change was still being announced'
+				);
+			}
+		]);
+	});
+
+	it('absorbs changes that arrive while the restart event is emitted without starting an empty run', async () => {
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const watchChangeIds = [];
+		const eventCodes = [];
+		let closeWatcherRuns = 0;
+		let isEntryFileChangeTriggered = false;
+		let hasTriggeredRestartChange = false;
+		let watchChangeIdsWhenRebuildStarted;
+		const { promise: watchedInvalidation, resolve: resolveWatchedInvalidation } = createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(WATCHED_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				},
+				watchChange(id, { event }) {
+					// Ignore the initial scan event for the added watch file.
+					if (event !== 'create') {
+						watchChangeIds.push(id);
+					}
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					// The initial scan of the added watch file must not resolve the
+					// handshake before the restart change was triggered.
+					if (id === WATCHED_ID && hasTriggeredRestartChange) {
+						resolveWatchedInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('restart', async () => {
+			// Ignore the restart triggered by the initial scan of the added watch
+			// file and only observe the restart for the entry file change.
+			if (!isEntryFileChangeTriggered || hasTriggeredRestartChange) return;
+			hasTriggeredRestartChange = true;
+			atomicWriteFileSync(WATCHED_ID, 'updated');
+			// Hold the restart event until the change was observed so that it is
+			// guaranteed to arrive in this window.
+			await withTimeout(watchedInvalidation, 5000, () => {
+				throw new Error('the change of the watched file was not detected');
+			});
+		});
+		watcher.on('event', watcherEvent => {
+			eventCodes.push(watcherEvent.code);
+			if (
+				watcherEvent.code !== 'BUNDLE_START' ||
+				watchChangeIdsWhenRebuildStarted ||
+				!isEntryFileChangeTriggered
+			) {
+				return;
+			}
+			watchChangeIdsWhenRebuildStarted = [...watchChangeIds];
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				isEntryFileChangeTriggered = true;
+				atomicWriteFileSync(ENTRY_FILE, 'export default 21;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 21);
+			}
+		]);
+		assert.ok(
+			watchChangeIdsWhenRebuildStarted,
+			'no rebuild was started after the entry file change'
+		);
+		assert.ok(
+			watchChangeIdsWhenRebuildStarted.includes(WATCHED_ID),
+			`the restart change was not announced before the rebuild started: ${watchChangeIdsWhenRebuildStarted}`
+		);
+		assertRunsDoNotOverlapAndAreNotEmpty(eventCodes);
+		assert.strictEqual(closeWatcherRuns, 1);
+	});
+
+	it('keeps the plugin event listeners when a rerun has nothing left to rebuild', async () => {
+		const watchChangeIds = [];
+		const eventCodes = [];
+		let closeWatcherRuns = 0;
+		let isEntryFileChangeTriggered = false;
+		let hasWrittenDuringRebuildStart = false;
+		let watchChangeCountWhenConsumingBuildEnded;
+		const { promise: rebuildInvalidation, resolve: resolveRebuildInvalidation } = createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				watchChange(id) {
+					watchChangeIds.push(id);
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenDuringRebuildStart) {
+						resolveRebuildInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('event', async watcherEvent => {
+			eventCodes.push(watcherEvent.code);
+			if (
+				watcherEvent.code === 'BUNDLE_END' &&
+				hasWrittenDuringRebuildStart &&
+				watchChangeCountWhenConsumingBuildEnded === undefined
+			) {
+				watchChangeCountWhenConsumingBuildEnded = watchChangeIds.length;
+				return;
+			}
+			if (
+				watcherEvent.code !== 'START' ||
+				!isEntryFileChangeTriggered ||
+				hasWrittenDuringRebuildStart
+			) {
+				return;
+			}
+			// Give the file watcher time to re-arm the changed file so that it
+			// observes this change: immediate follow-up changes can be missed by
+			// the watcher backend.
+			await wait(300);
+			hasWrittenDuringRebuildStart = true;
+			// This change arrives after the run started but before it reads the
+			// files, so the current build consumes it. Non-atomic writes avoid
+			// duplicate change events from the rename of an atomic write.
+			writeFileSync(ENTRY_FILE, 'export default 22;');
+			// Hold the START event until the change was observed so that it is
+			// guaranteed to arrive in this window.
+			await withTimeout(rebuildInvalidation, 5000, () => {
+				throw new Error('the change of the entry file was not detected');
+			});
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				isEntryFileChangeTriggered = true;
+				writeFileSync(ENTRY_FILE, 'export default 21;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 22);
+				assert.ok(
+					watchChangeCountWhenConsumingBuildEnded !== undefined,
+					'the build that consumed the change did not complete'
+				);
+				assert.ok(
+					watchChangeIds.length > watchChangeCountWhenConsumingBuildEnded,
+					`the change was not announced after the build that consumed it: ${watchChangeIds}`
+				);
+			}
+		]);
+		// Additional full runs can legitimately be triggered by duplicate change
+		// events, but no run may be empty: an empty run removes the plugin
+		// event listeners without a replacement.
+		assertRunsDoNotOverlapAndAreNotEmpty(eventCodes);
+		assert.strictEqual(closeWatcherRuns, 1);
+	});
+
+	it('announces a change that arrived during a failed run when the next run is triggered', async () => {
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const announcedIds = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenWatchedFile = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let reportedError = null;
+		const { promise: watchedInvalidation, resolve: resolveWatchedInvalidation } = createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		await writeFile(WATCHED_ID, 'initial');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					// The initial scan of the added watch file must not resolve the
+					// handshake before the change was triggered.
+					if (id === WATCHED_ID && hasWrittenWatchedFile) {
+						resolveWatchedInvalidation();
+					}
+				}
+			}
+		});
+		// The change event is observed through the persistent watcher
+		// listeners: the run below fails before its build replaces the plugin
+		// event listeners of the previous run.
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						// This change arrives while the run is active, so it can only
+						// request a rerun. The error reporting below must not wipe its
+						// announcement.
+						hasWrittenWatchedFile = true;
+						writeFileSync(WATCHED_ID, 'updated');
+						await withTimeout(watchedInvalidation, 5000, () => {
+							throw new Error('the change of the watched file was not detected');
+						});
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+						// Give the file watcher time so its throttling does not
+						// swallow the notification for the recovery write below.
+						// Another change then triggers the recovery run that
+						// announces the change from above.
+						await wait(300);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 45;');
+					}
+					if (
+						event.code === 'BUNDLE_END' &&
+						announcedIdCountWhenErrorWasReported !== undefined &&
+						run(BUNDLE_FILE) === 45
+					) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the recovery run was not completed');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.strictEqual(run(BUNDLE_FILE), 45);
+		const announcedAfterError = announcedIds.slice(announcedIdCountWhenErrorWasReported);
+		assert.ok(
+			announcedAfterError.includes(WATCHED_ID),
+			`the change that arrived during the failed run was not announced: ${announcedIds}`
+		);
+	});
+
+	it('rebuilds without another change when a run fails with a pending rerun', async () => {
+		const announcedIds = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFileDuringRebuild = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let reportedError = null;
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFileDuringRebuild) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (hasTriggeredFailingRebuild && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						await wait(300);
+						// This change arrives while the run is active, so it can only
+						// request a rerun. The failed run must honor that request on
+						// its own instead of idling until another change arrives.
+						hasWrittenEntryFileDuringRebuild = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the failed run');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		const announcedAfterError = announcedIds.slice(announcedIdCountWhenErrorWasReported);
+		assert.ok(
+			announcedAfterError.includes(ENTRY_FILE),
+			`the change that arrived during the failed run was not announced: ${announcedIds}`
+		);
+	});
+
+	it('rebuilds without another change when a watchChange hook fails with a pending rerun', async () => {
+		let hasTriggeredFailingAnnouncement = false;
+		let hasWrittenEntryFileDuringAnnouncement = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				async watchChange(id, { event }) {
+					if (id !== ENTRY_FILE || event !== 'update' || hasTriggeredFailingAnnouncement) {
+						return;
+					}
+					hasTriggeredFailingAnnouncement = true;
+					// Give the file watcher time to re-arm the changed file so that
+					// it observes this change: immediate follow-up changes can be
+					// missed by the watcher backend.
+					await wait(300);
+					// This change arrives while the announcement is still held, so
+					// it can only request a rerun. The failed announcement below
+					// must honor that request on its own instead of idling until
+					// another change arrives.
+					hasWrittenEntryFileDuringAnnouncement = true;
+					writeFileSync(ENTRY_FILE, 'export default 45;');
+					await withTimeout(entryFileInvalidation, 5000, () => {
+						throw new Error('the change of the entry file was not detected');
+					});
+					throw new Error('watchChange failed');
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFileDuringAnnouncement) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'watchChange failed') {
+							reject(
+								new Error(
+									`the failing announcement reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+					}
+					if (event.code === 'BUNDLE_END' && reportedError && run(BUNDLE_FILE) === 45) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the failed announcement');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'watchChange failed');
+		assert.strictEqual(run(BUNDLE_FILE), 45);
+	});
+
+	it('does not announce a change while the END listener of the completed run is still pending', async () => {
+		const announcedIds = [];
+		let announcedIdCountWhenEndListenerWasReleased;
+		let isInitialRunCompleted = false;
+		let hasWrittenEntryFile = false;
+		const { promise: endListenerReleased, resolve: resolveEndListenerReleased } = createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						// Give the file watcher time to re-arm the entry file so
+						// that it observes this change: immediate follow-up
+						// changes can be missed by the watcher backend.
+						await wait(300);
+						// This change is observed while the END event is still
+						// being handled: it must not be announced before this
+						// handler is done.
+						hasWrittenEntryFile = true;
+						writeFileSync(ENTRY_FILE, 'export default 43;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						// Give a potentially overlapping next cycle time to
+						// announce the change before its absence is asserted.
+						await wait(400);
+						announcedIdCountWhenEndListenerWasReleased = announcedIds.length;
+						resolveEndListenerReleased();
+					}
+					if (event.code === 'BUNDLE_END' && isInitialRunCompleted && run(BUNDLE_FILE) === 43) {
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the END listener was released');
+			}
+		);
+		await withTimeout(endListenerReleased, 5000, () => {
+			throw new Error('the END listener did not complete');
+		});
+		assert.strictEqual(
+			announcedIdCountWhenEndListenerWasReleased,
+			0,
+			'the change was announced while the END listener was still pending'
+		);
+		assert.ok(
+			announcedIds.includes(ENTRY_FILE),
+			`the change was not announced after the END listener was released: ${announcedIds}`
+		);
+	});
+
+	it('does not announce a change while the ERROR listener of a failed run is still pending', async () => {
+		const announcedIds = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFile = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let announcedIdCountWhenErrorListenerWasReleased;
+		let reportedError = null;
+		const { promise: errorListenerReleased, resolve: resolveErrorListenerReleased } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (hasTriggeredFailingRebuild && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+						// Give the file watcher time to re-arm the changed file
+						// so that it observes this change: immediate follow-up
+						// changes can be missed by the watcher backend.
+						await wait(300);
+						// This change is observed while the ERROR event is
+						// still being handled: it must not be announced before
+						// this handler is done.
+						hasWrittenEntryFile = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						// Give a potentially overlapping next cycle time to
+						// announce the change before its absence is asserted.
+						await wait(400);
+						announcedIdCountWhenErrorListenerWasReleased = announcedIds.length;
+						resolveErrorListenerReleased();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the ERROR listener was released');
+			}
+		);
+		await withTimeout(errorListenerReleased, 5000, () => {
+			throw new Error('the ERROR listener did not complete');
+		});
+		assert.strictEqual(reportedError.message, 'listener failed');
+		assert.strictEqual(
+			announcedIdCountWhenErrorListenerWasReleased,
+			announcedIdCountWhenErrorWasReported,
+			'the change was announced while the ERROR listener was still pending'
+		);
+		assert.ok(
+			announcedIds.slice(announcedIdCountWhenErrorListenerWasReleased).includes(ENTRY_FILE),
+			`the change was not announced after the ERROR listener was released: ${announcedIds}`
+		);
+	});
+
+	it('does not announce a change while the ERROR listener of a failed change announcement is still pending', async () => {
+		const announcedIds = [];
+		let hasTriggeredFailingAnnouncement = false;
+		let hasWrittenEntryFile = false;
+		let isInitialRunCompleted = false;
+		let announcedIdCountWhenErrorWasReported;
+		let announcedIdCountWhenErrorListenerWasReleased;
+		let reportedError = null;
+		const { promise: errorListenerReleased, resolve: resolveErrorListenerReleased } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				watchChange(id) {
+					if (id !== ENTRY_FILE || hasTriggeredFailingAnnouncement) return;
+					hasTriggeredFailingAnnouncement = true;
+					throw new Error('watchChange failed');
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						if (hasTriggeredFailingAnnouncement && run(BUNDLE_FILE) === 45) {
+							resolve();
+						}
+					}
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'watchChange failed') {
+							reject(
+								new Error(
+									`the failing announcement reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						announcedIdCountWhenErrorWasReported = announcedIds.length;
+						// Give the file watcher time to re-arm the changed file
+						// so that it observes this change: immediate follow-up
+						// changes can be missed by the watcher backend.
+						await wait(300);
+						// This change is observed while the ERROR event is
+						// still being handled: it must not be announced before
+						// this handler is done.
+						hasWrittenEntryFile = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						// Give a potentially overlapping next cycle time to
+						// announce the change before its absence is asserted.
+						await wait(400);
+						announcedIdCountWhenErrorListenerWasReleased = announcedIds.length;
+						resolveErrorListenerReleased();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher did not rebuild after the ERROR listener was released');
+			}
+		);
+		await withTimeout(errorListenerReleased, 5000, () => {
+			throw new Error('the ERROR listener did not complete');
+		});
+		assert.strictEqual(reportedError.message, 'watchChange failed');
+		assert.strictEqual(
+			announcedIdCountWhenErrorListenerWasReleased,
+			announcedIdCountWhenErrorWasReported,
+			'the change was announced while the ERROR listener was still pending'
+		);
+		assert.ok(
+			announcedIds.slice(announcedIdCountWhenErrorListenerWasReleased).includes(ENTRY_FILE),
+			`the change was not announced after the ERROR listener was released: ${announcedIds}`
+		);
+	});
+
+	it('does not announce a change while the sibling of a failed change listener is still pending', async () => {
+		const announcedIds = [];
+		let announcedIdCountWhenChangeWasObserved;
+		let hasFailedChangeListener = false;
+		let hasHeldChangeListener = false;
+		let hasWrittenEntryFile = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		const { promise: firstChangeObserved, resolve: resolveFirstChangeObserved } = createDeferred();
+		const { promise: pendingListenerReleased, resolve: resolvePendingListenerReleased } =
+			createDeferred();
+		const { promise: recoveryRunCompleted, resolve: resolveRecoveryRunCompleted } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFile) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		watcher.on('change', async () => {
+			if (!hasHeldChangeListener) {
+				hasHeldChangeListener = true;
+				announcedIdCountWhenChangeWasObserved = announcedIds.length;
+				resolveFirstChangeObserved();
+				await withTimeout(pendingListenerReleased, 10_000, () => {
+					throw new Error('the pending change listener was never released');
+				});
+			}
+		});
+		watcher.on('change', () => {
+			if (!hasFailedChangeListener) {
+				hasFailedChangeListener = true;
+				throw new Error('change listener failed');
+			}
+		});
+		watcher.on('event', async event => {
+			if (event.code === 'BUNDLE_END') {
+				await event.result.close();
+				if (run(BUNDLE_FILE) === 45) {
+					resolveRecoveryRunCompleted();
+				}
+			}
+			if (event.code === 'END' && !isInitialRunCompleted) {
+				isInitialRunCompleted = true;
+				await wait(100);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+				return;
+			}
+			if (event.code === 'ERROR') {
+				reportedError = event.error;
+			}
+		});
+		await withTimeout(firstChangeObserved, 5000, () => {
+			throw new Error('the failed change listener was not called');
+		});
+		// Give the file watcher time to re-arm the changed file so that it
+		// observes this change: immediate follow-up changes can be missed by
+		// the watcher backend.
+		await wait(300);
+		hasWrittenEntryFile = true;
+		writeFileSync(ENTRY_FILE, 'export default 45;');
+		await withTimeout(entryFileInvalidation, 5000, () => {
+			throw new Error('the change of the entry file was not detected');
+		});
+		// Give a potentially overlapping next cycle time to announce the change
+		// before its absence is asserted.
+		await wait(400);
+		const announcedIdCountWhenPendingListenerWasReleased = announcedIds.length;
+		resolvePendingListenerReleased();
+		assert.strictEqual(
+			announcedIdCountWhenPendingListenerWasReleased,
+			announcedIdCountWhenChangeWasObserved,
+			'the change was announced while the sibling of the failed change listener was still pending'
+		);
+		await withTimeout(recoveryRunCompleted, 10_000, () => {
+			throw new Error('the watcher did not rebuild after the pending change listener was released');
+		});
+		assert.strictEqual(reportedError.message, 'change listener failed');
+		assert.ok(
+			announcedIds.slice(announcedIdCountWhenPendingListenerWasReleased).includes(ENTRY_FILE),
+			`the change was not announced after the pending change listener was released: ${announcedIds}`
+		);
+	});
+
+	it('does not honor a pending rerun when the error reporting fails', async () => {
+		const eventCodes = [];
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFileDuringRebuild = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		const { promise: errorReportFailed, resolve: resolveErrorReportFailed } = createDeferred();
+		const { promise: recoveryRunCompleted, resolve: resolveRecoveryRunCompleted } =
+			createDeferred();
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		const unhandledRejections = [];
+		const onUnhandledRejection = reason => {
+			unhandledRejections.push(reason);
+		};
+		process.on('unhandledRejection', onUnhandledRejection);
+		const otherRejectionListeners = process
+			.listeners('unhandledRejection')
+			.filter(listener => listener !== onUnhandledRejection);
+		for (const listener of otherRejectionListeners) {
+			process.removeListener('unhandledRejection', listener);
+		}
+		try {
+			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			watcher = rollup.watch({
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				watch: {
+					onInvalidate(id) {
+						if (id === ENTRY_FILE && hasWrittenEntryFileDuringRebuild) {
+							resolveEntryFileInvalidation();
+						}
+					}
+				}
+			});
+			watcher.on('event', event => eventCodes.push(event.code));
+			watcher.on('event', async event => {
+				if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+				}
+				if (event.code === 'END' && !isInitialRunCompleted) {
+					isInitialRunCompleted = true;
+					await wait(100);
+					atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+					return;
+				}
+				if (event.code === 'BUNDLE_START' && isInitialRunCompleted && !hasTriggeredFailingRebuild) {
+					hasTriggeredFailingRebuild = true;
+					await wait(300);
+					// This change arrives while the run is active, so it can only
+					// request a rerun.
+					hasWrittenEntryFileDuringRebuild = true;
+					writeFileSync(ENTRY_FILE, 'export default 45;');
+					await withTimeout(entryFileInvalidation, 5000, () => {
+						throw new Error('the change of the entry file was not detected');
+					});
+					await wait(300);
+					throw new Error('listener failed');
+				}
+				if (event.code === 'ERROR') {
+					reportedError = event.error;
+					resolveErrorReportFailed();
+					throw new Error('reporting failed');
+				}
+				if (event.code === 'END' && hasTriggeredFailingRebuild && run(BUNDLE_FILE) === 46) {
+					resolveRecoveryRunCompleted();
+				}
+			});
+			await withTimeout(errorReportFailed, 5000, () => {
+				throw new Error('the error report did not fail');
+			});
+			assert.strictEqual(
+				reportedError.message,
+				'listener failed',
+				`the failing rebuild reported an unexpected error: ${reportedError.message}`
+			);
+			await wait(400);
+			assert.strictEqual(
+				eventCodes.filter(code => code === 'START').length,
+				2,
+				'the pending rerun was honored despite the failed error reporting'
+			);
+			atomicWriteFileSync(ENTRY_FILE, 'export default 46;');
+			await withTimeout(recoveryRunCompleted, 10_000, () => {
+				throw new Error('the recovery run was not completed');
+			});
+			assert.strictEqual(
+				eventCodes.filter(code => code === 'START').length,
+				3,
+				'the watcher did not recover with a fresh change after the failed error reporting'
+			);
+			assert.strictEqual(run(BUNDLE_FILE), 46);
+			assert.deepStrictEqual(
+				unhandledRejections.map(reason => reason?.message),
+				['reporting failed'],
+				`the failed error reporting produced unexpected rejections: ${unhandledRejections}`
+			);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+			for (const listener of otherRejectionListeners) {
+				process.on('unhandledRejection', listener);
+			}
+		}
+	});
+
+	it('announces changes to and closes the plugins of the last build when a run fails before building', async () => {
+		const announcedIds = [];
+		const pluginChangeIds = [];
+		let announcedIdCountWhenRunFailed;
+		let closeWatcherRuns = 0;
+		let failNextStart = false;
+		let hasStartedRecoveryBuild = false;
+		let isInitialRunCompleted = false;
+		let pluginChangeCountWhenRunFailed;
+		let pluginChangeIdsBeforeRecoveryBuild;
+		let announcedIdsBeforeRecoveryBuild;
+		let reportedError = null;
+		const { promise: recoveryBuildStarted, resolve: resolveRecoveryBuildStarted } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				watchChange(id) {
+					pluginChangeIds.push(id);
+				},
+				closeWatcher() {
+					closeWatcherRuns++;
+				}
+			}
+		});
+		watcher.on('change', id => {
+			announcedIds.push(id);
+		});
+		watcher.on('event', async event => {
+			if (event.code === 'BUNDLE_END') {
+				await event.result.close();
+			}
+			if (event.code === 'END' && !isInitialRunCompleted) {
+				isInitialRunCompleted = true;
+				failNextStart = true;
+				await wait(100);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+				return;
+			}
+			if (event.code === 'START' && failNextStart) {
+				failNextStart = false;
+				throw new Error('START listener failed');
+			}
+			if (event.code === 'ERROR' && reportedError === null) {
+				reportedError = event.error;
+				pluginChangeCountWhenRunFailed = pluginChangeIds.length;
+				announcedIdCountWhenRunFailed = announcedIds.length;
+				await wait(300);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 45;');
+				return;
+			}
+			if (event.code === 'BUNDLE_START' && !hasStartedRecoveryBuild && reportedError !== null) {
+				hasStartedRecoveryBuild = true;
+				pluginChangeIdsBeforeRecoveryBuild = pluginChangeIds.slice(pluginChangeCountWhenRunFailed);
+				announcedIdsBeforeRecoveryBuild = announcedIds.slice(announcedIdCountWhenRunFailed);
+				await watcher.close();
+				resolveRecoveryBuildStarted();
+			}
+		});
+		await withTimeout(recoveryBuildStarted, 10_000, () => {
+			throw new Error('the recovery build was not started');
+		});
+		assert.strictEqual(reportedError.message, 'START listener failed');
+		assert.ok(
+			announcedIdsBeforeRecoveryBuild.includes(ENTRY_FILE),
+			`the change was not announced to the user listeners: ${announcedIdsBeforeRecoveryBuild}`
+		);
+		assert.ok(
+			pluginChangeIdsBeforeRecoveryBuild.includes(ENTRY_FILE),
+			`the change was not announced to the plugins: ${pluginChangeIdsBeforeRecoveryBuild}`
+		);
+		assert.strictEqual(
+			closeWatcherRuns,
+			1,
+			'the closeWatcher hook of the last build was not called'
+		);
+	});
+
+	it('keeps notifying the plugins of a config that was not rebuilt', async () => {
+		const otherConfigChangeIds = [];
+		let otherConfigChangeCountAfterPartialRebuild;
+		let otherConfigCloseWatcherRuns = 0;
+		const MAIN1 = path.join(INPUT_DIR, 'main1.js');
+		const MAIN2 = path.join(INPUT_DIR, 'main2.js');
+		await copy(path.join(SAMPLES_DIR, 'multiple'), INPUT_DIR);
+		watcher = rollup.watch([
+			{
+				input: MAIN1,
+				output: { file: BUNDLE_FILE, format: 'cjs', exports: 'auto' }
+			},
+			{
+				input: MAIN2,
+				output: {
+					file: path.join(OUTPUT_DIR, 'other-bundle.js'),
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					watchChange(id) {
+						otherConfigChangeIds.push(id);
+					},
+					closeWatcher() {
+						otherConfigCloseWatcherRuns++;
+					}
+				}
+			}
+		]);
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => atomicWriteFileSync(MAIN1, 'export default 44;'),
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				otherConfigChangeCountAfterPartialRebuild = otherConfigChangeIds.length;
+				atomicWriteFileSync(MAIN1, 'export default 45;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 45);
+				assert.ok(
+					otherConfigChangeIds.length > otherConfigChangeCountAfterPartialRebuild,
+					'the plugins of the non-rebuilt config were not notified'
+				);
+			}
+		]);
+		await watcher.close();
+		assert.strictEqual(otherConfigCloseWatcherRuns, 1);
+	});
+
+	it('does not schedule the recovery run when the watcher is closed while the error is reported', async () => {
+		let buildStarts = 0;
+		let hasTriggeredFailingRebuild = false;
+		let hasWrittenEntryFileDuringRebuild = false;
+		let isInitialRunCompleted = false;
+		let reportedError = null;
+		const { promise: entryFileInvalidation, resolve: resolveEntryFileInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === ENTRY_FILE && hasWrittenEntryFileDuringRebuild) {
+						resolveEntryFileInvalidation();
+					}
+				}
+			}
+		});
+		await withTimeout(
+			new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+						return;
+					}
+					if (
+						event.code === 'BUNDLE_START' &&
+						isInitialRunCompleted &&
+						!hasTriggeredFailingRebuild
+					) {
+						hasTriggeredFailingRebuild = true;
+						await wait(300);
+						// This change arrives while the run is active, so it only
+						// requests a rerun that the failed run honors below.
+						hasWrittenEntryFileDuringRebuild = true;
+						writeFileSync(ENTRY_FILE, 'export default 45;');
+						await withTimeout(entryFileInvalidation, 5000, () => {
+							throw new Error('the change of the entry file was not detected');
+						});
+						throw new Error('listener failed');
+					}
+					if (event.code === 'ERROR') {
+						reportedError = event.error;
+						if (event.error.message !== 'listener failed') {
+							reject(
+								new Error(
+									`the failing rebuild reported an unexpected error: ${event.error.message}`
+								)
+							);
+							return;
+						}
+						// Closing while the error is reported leaves the pending
+						// rerun: honoring it must not schedule another build.
+						await watcher.close();
+						resolve();
+					}
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while its error was reported');
+			}
+		);
+		assert.strictEqual(reportedError.message, 'listener failed');
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+	});
+
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
 		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
@@ -1030,6 +2405,411 @@ describe('rollup.watch', function () {
 				assert.deepStrictEqual(events, ['START', 'BUNDLE_START']);
 			}
 		]);
+	});
+
+	it('does not start a build when the watcher is closed while change events are still announced', async () => {
+		let buildStarts = 0;
+		let isInitialRunCompleted = false;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				},
+				async watchChange() {
+					// Closing the watcher while its change announcement is still
+					// pending must not start the build below it.
+					await watcher.close();
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while its change events were announced');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+	});
+
+	it('does not announce changes to the plugins after the watcher was closed', async () => {
+		const pluginChangeIds = [];
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		let didTriggerFirstUpdate = false;
+		let hasWrittenSecondUpdate = false;
+		let pluginChangeCountWhenClosed = 0;
+		const { promise: secondUpdateInvalidation, resolve: resolveSecondUpdateInvalidation } =
+			createDeferred();
+		await copy(path.join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			watch: {
+				onInvalidate(id) {
+					if (id === WATCHED_ID && hasWrittenSecondUpdate) {
+						resolveSecondUpdateInvalidation();
+					}
+				}
+			},
+			plugins: {
+				buildStart() {
+					this.addWatchFile(WATCHED_ID);
+				},
+				async watchChange(id) {
+					pluginChangeIds.push(id);
+					if (id === WATCHED_ID && !didTriggerFirstUpdate) {
+						didTriggerFirstUpdate = true;
+						await wait(300);
+						hasWrittenSecondUpdate = true;
+						writeFileSync(WATCHED_ID, 'second');
+						await withTimeout(secondUpdateInvalidation, 5000, () => {
+							throw new Error('the second change of the watched file was not detected');
+						});
+						await watcher.close();
+						pluginChangeCountWhenClosed = pluginChangeIds.length;
+					}
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !didTriggerFirstUpdate) {
+						await wait(100);
+						atomicWriteFileSync(WATCHED_ID, 'first');
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while its change events were announced');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(
+			pluginChangeIds.length,
+			pluginChangeCountWhenClosed,
+			'a change was announced to the plugins after the watcher was closed'
+		);
+	});
+
+	it('removes onCurrentRun listeners when the next run starts', async () => {
+		const currentRunChangeIds = [];
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				watcher.onCurrentRun('change', id => {
+					currentRunChangeIds.push(id);
+				});
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.deepStrictEqual(
+					currentRunChangeIds,
+					[ENTRY_FILE],
+					'the onCurrentRun listener was not called for the change that started this run'
+				);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 44);
+				assert.deepStrictEqual(
+					currentRunChangeIds,
+					[ENTRY_FILE],
+					'the onCurrentRun listener was not removed with the previous run'
+				);
+			}
+		]);
+	});
+
+	it('still removes the listeners when a close listener fails', async () => {
+		const changeIds = [];
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', event => {
+					if (event.code === 'END') resolve();
+				});
+			}),
+			10_000,
+			() => {
+				throw new Error('the initial build did not complete');
+			}
+		);
+		watcher.on('change', id => {
+			changeIds.push(id);
+		});
+		watcher.on('close', () => {
+			throw new Error('close listener failed');
+		});
+		await assert.rejects(watcher.close(), { message: 'close listener failed' });
+		await watcher.emit('change', 'some-file', { event: 'update' });
+		assert.deepStrictEqual(
+			changeIds,
+			[],
+			'the listeners were not removed after the close listener failed'
+		);
+	});
+
+	it('still removes the listeners when a close listener fails on an early close', async () => {
+		const changeIds = [];
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		watcher.on('change', id => {
+			changeIds.push(id);
+		});
+		watcher.on('close', () => {
+			throw new Error('close listener failed');
+		});
+		await assert.rejects(watcher.close(), { message: 'close listener failed' });
+		await watcher.emit('change', 'some-file', { event: 'update' });
+		assert.deepStrictEqual(
+			changeIds,
+			[],
+			'the listeners were not removed after the close listener failed'
+		);
+	});
+
+	it('does not run the initial build when the watcher is closed right away', async () => {
+		let buildStarts = 0;
+		let isCloseEmitted = false;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		watcher.on('close', () => {
+			isCloseEmitted = true;
+		});
+		await watcher.close();
+		assert.ok(isCloseEmitted, 'the close event was not emitted');
+		await wait(400);
+		assert.strictEqual(buildStarts, 0);
+	});
+
+	it('does not start a build when the watcher is closed while the START event is emitted', async () => {
+		let buildStarts = 0;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'START') {
+						await watcher.close();
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while the START event was emitted');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 0);
+	});
+
+	it('does not start a build when the watcher is closed while the BUNDLE_START event is emitted', async () => {
+		let buildStarts = 0;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'BUNDLE_START') {
+						await watcher.close();
+					}
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while the BUNDLE_START event was emitted');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 0);
+	});
+
+	it('does not start a build when the watcher is closed while the restart event is emitted', async () => {
+		let buildStarts = 0;
+		let isInitialRunCompleted = false;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: {
+				buildStart() {
+					buildStarts++;
+				}
+			}
+		});
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('event', async event => {
+					if (event.code === 'END' && !isInitialRunCompleted) {
+						isInitialRunCompleted = true;
+						await wait(100);
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
+					}
+				});
+				watcher.on('restart', async () => {
+					// Closing the watcher while its restart event is still being
+					// emitted must not start the build below it.
+					await watcher.close();
+				});
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed while the restart event was emitted');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+	});
+
+	it('does not build the remaining configs when the watcher is closed during an earlier config', async () => {
+		let buildStarts = 0;
+		let otherConfigBuildStarts = 0;
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		watcher = rollup.watch([
+			{
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						buildStarts++;
+					},
+					load() {
+						watcher.close();
+					}
+				}
+			},
+			{
+				input: ENTRY_FILE,
+				output: {
+					file: path.join(OUTPUT_DIR, 'other-bundle.js'),
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						otherConfigBuildStarts++;
+					}
+				}
+			}
+		]);
+		await withTimeout(
+			new Promise(resolve => {
+				watcher.on('close', resolve);
+			}),
+			10_000,
+			() => {
+				throw new Error('the watcher was not closed during the first config');
+			}
+		);
+		await wait(400);
+		assert.strictEqual(buildStarts, 1);
+		assert.strictEqual(otherConfigBuildStarts, 0);
 	});
 
 	it('stops watching files that are no longer part of the graph', async () => {
@@ -2184,4 +3964,21 @@ function sequence(watcher, events, timeout = 300) {
 function getTimeDiffInMs(previous) {
 	const [seconds, nanoseconds] = hrtime(previous);
 	return seconds * 1e3 + nanoseconds / 1e6;
+}
+
+function assertRunsDoNotOverlapAndAreNotEmpty(eventCodes) {
+	let isInsideRun = false;
+	let isInsideBundle = false;
+	for (const code of eventCodes) {
+		if (code === 'START') {
+			assert.ok(!isInsideRun, `runs must not overlap: ${eventCodes.join(' ')}`);
+			isInsideRun = true;
+			isInsideBundle = false;
+		} else if (code === 'BUNDLE_START') {
+			isInsideBundle = true;
+		} else if (code === 'END') {
+			assert.ok(isInsideBundle, `an empty run was started: ${eventCodes.join(' ')}`);
+			isInsideRun = false;
+		}
+	}
 }
