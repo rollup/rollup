@@ -48,7 +48,7 @@ const astMacros = astNodeNamesWithFieldOrder
 					fieldConverters += `
     let ${fieldName}_position = end_position + ${reservedBytes};
     $self.buffer[${fieldName}_position..${fieldName}_position + ${2 * BYTES_PER_U32}].copy_from_slice(&$${fieldName}_value.to_le_bytes());
-    $self.add_raw_byte_range(${fieldName}_position, ${fieldName}_position + ${2 * BYTES_PER_U32});`;
+    $self.add_unswapped_byte_range(${fieldName}_position, ${fieldName}_position + ${2 * BYTES_PER_U32});`;
 					reservedBytes += BYTES_PER_U32;
 					break;
 				}

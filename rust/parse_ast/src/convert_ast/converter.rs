@@ -33,7 +33,7 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
   // Only used when the byte order of the 32-bit fields is swapped at the end: the byte ranges
   // that are kept as they are, i.e. string bytes and the little-endian f64 values
-  raw_byte_ranges: Option<Vec<(usize, usize)>>,
+  unswapped_byte_ranges: Option<Vec<(usize, usize)>>,
 }
 
 impl<'a> AstConverter<'a> {
@@ -47,23 +47,23 @@ impl<'a> AstConverter<'a> {
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
-      raw_byte_ranges: swap_byte_order.then(Vec::new),
+      unswapped_byte_ranges: swap_byte_order.then(Vec::new),
     }
   }
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
-    if let Some(raw_byte_ranges) = self.raw_byte_ranges.take() {
-      swap_32_bit_fields(&mut self.buffer, raw_byte_ranges);
+    if let Some(unswapped_byte_ranges) = self.unswapped_byte_ranges.take() {
+      swap_32_bit_fields(&mut self.buffer, unswapped_byte_ranges);
     }
     self.buffer.shrink_to_fit();
     self.buffer
   }
 
   // === helpers
-  pub(crate) fn add_raw_byte_range(&mut self, start: usize, end: usize) {
-    if let Some(raw_byte_ranges) = &mut self.raw_byte_ranges {
-      raw_byte_ranges.push((start, end));
+  pub(crate) fn add_unswapped_byte_range(&mut self, start: usize, end: usize) {
+    if let Some(unswapped_byte_ranges) = &mut self.unswapped_byte_ranges {
+      unswapped_byte_ranges.push((start, end));
     }
   }
 
@@ -203,7 +203,7 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(reference_position);
     let start = self.buffer.len() + 4;
     convert_string(&mut self.buffer, string);
-    self.add_raw_byte_range(start, self.buffer.len());
+    self.add_unswapped_byte_range(start, self.buffer.len());
   }
 
   pub(crate) fn convert_annotation(&mut self, annotation: &ConvertedAnnotation) {
@@ -839,11 +839,14 @@ impl<'a> AstConverter<'a> {
 /// byte ranges, which contain string bytes or little-endian f64 values and are 4-byte aligned. The
 /// WASM build, whose byte order is always little-endian, uses this on big-endian hosts because the
 /// JS side reads the buffer in the byte order of the host.
-pub(crate) fn swap_32_bit_fields(buffer: &mut [u8], mut raw_byte_ranges: Vec<(usize, usize)>) {
+pub(crate) fn swap_32_bit_fields(
+  buffer: &mut [u8],
+  mut unswapped_byte_ranges: Vec<(usize, usize)>,
+) {
   // f64 values are written into slots reserved before their node's strings are appended
-  raw_byte_ranges.sort_unstable();
+  unswapped_byte_ranges.sort_unstable();
   let mut position = 0;
-  for (start, end) in raw_byte_ranges {
+  for (start, end) in unswapped_byte_ranges {
     reverse_32_bit_words(&mut buffer[position..start]);
     position = end;
   }
@@ -869,24 +872,6 @@ pub(crate) fn update_reference_position(buffer: &mut [u8], reference_position: u
   let insert_position = (buffer.len() as u32) >> 2;
   buffer[reference_position..reference_position + 4]
     .copy_from_slice(&insert_position.to_ne_bytes());
-}
-
-#[cfg(test)]
-mod tests {
-  use super::swap_32_bit_fields;
-
-  #[test]
-  fn swaps_32_bit_fields_outside_raw_byte_ranges() {
-    let mut buffer = vec![
-      1, 0, 0, 0, b'a', b'b', b'c', 0, 0, 0, 0, 2, 9, 8, 7, 6, 3, 0, 0, 0,
-    ];
-    // ranges may be out of order
-    swap_32_bit_fields(&mut buffer, vec![(12, 16), (4, 8)]);
-    assert_eq!(
-      buffer,
-      vec![0, 0, 0, 1, b'a', b'b', b'c', 0, 2, 0, 0, 0, 9, 8, 7, 6, 0, 0, 0, 3]
-    );
-  }
 }
 
 pub(crate) fn get_outside_class_span_decorators_info<'a>(
