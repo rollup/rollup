@@ -80,10 +80,10 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 ## CI Workflows
 
-- When calling `gh api` in workflows: passing any `-f`/`-F` field switches the request to POST unless `--method` is given, and only `-F` (not `-f`) reads values starting with `@` from a file.
-- The `pull_request_target` workflows ("Authorize REPL artefacts", "PR testing instructions") run in a trusted context and must never check out or execute fork code.
-- REPL artefacts are published automatically for same-repo PRs; for fork PRs a maintainer additionally needs to add the "x⁸ ⚙️ build repl artefacts" label, which immediately records a SHA-bound authorization status on the PR head and is removed again. The gate is enforced by the trusted publish workflow, which re-validates the PR state and head SHA before uploading — not by the untrusted build. They are served from the S3 bucket that rollupjs.org loads REPL artefacts from — changing this gating is a security-relevant decision.
-- The "PR testing instructions" workflow posts the local testing instructions comment when a PR is created, reopened or pushed. The "Publish PR artefacts" workflow later replaces that comment with the full version containing the REPL link once REPL artefacts are published, and appends an "outdated" warning to it when a successful build does not publish them. The comment wording is duplicated between the two workflows and must be kept in sync.
+- `gh api`: passing any `-f`/`-F` field switches the request to POST unless `--method` is given, and only `-F` (not `-f`) reads values starting with `@` from a file.
+- `pull_request_target` and `workflow_run` workflows run in a trusted context and must never check out or execute fork code or build outputs.
+- Fork PRs publish REPL artefacts only after a maintainer adds the "x⁸ ⚙️ build repl artefacts" label, which records a head-SHA-bound authorization that the trusted publish workflow re-validates — never gate in the build workflow, fork PRs control its contents. The artefacts are served via rollupjs.org, so changing this gating is a security-relevant decision.
+- The testing-instructions comment wording is duplicated between the "PR testing instructions" and "Publish PR artefacts" workflows and must be kept in sync.
 
 ## GitHub Issues and Pull Requests
 
