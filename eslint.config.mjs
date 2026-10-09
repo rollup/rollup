@@ -115,7 +115,8 @@ export default tseslint.config(
 						deps: false,
 						dir: false,
 						pkg: false,
-						proto: false
+						proto: false,
+						repo: false
 					}
 				}
 			],
