@@ -16,6 +16,8 @@ const fixturify = require('fixturify');
 const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../testHelpers.js');
 
+require('./ast-buffer.js');
+
 runTestSuiteWithSamples(
 	'browser',
 	path.resolve(__dirname, 'samples'),

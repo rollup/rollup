@@ -44,7 +44,11 @@ impl Emitter for ErrorEmitter {
   }
 }
 
-pub(crate) fn try_with_handler<F>(code: &str, op: F) -> Result<Program, Vec<u8>>
+pub(crate) fn try_with_handler<F>(
+  code: &str,
+  swap_byte_order: bool,
+  op: F,
+) -> Result<Program, Vec<u8>>
 where
   F: FnOnce(&Handler) -> Result<Program, Error>,
 {
@@ -58,14 +62,14 @@ where
 
   result.map_err(|_| {
     if handler.has_errors() {
-      create_error_buffer(&wr, code)
+      create_error_buffer(&wr, code, swap_byte_order)
     } else {
       panic!("Unexpected error in parse")
     }
   })
 }
 
-fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {
+fn create_error_buffer(wr: &Writer, code: &str, swap_byte_order: bool) -> Vec<u8> {
   let mut lock = wr.0.lock();
   let error_buffer = take(&mut *lock);
   let pos = u32::from_ne_bytes(error_buffer[0..4].try_into().unwrap());
@@ -77,5 +81,5 @@ fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {
     }
     utf_16_pos += char.len_utf16() as u32;
   }
-  get_parse_error_buffer(&error_buffer, &utf_16_pos)
+  get_parse_error_buffer(&error_buffer, &utf_16_pos, swap_byte_order)
 }

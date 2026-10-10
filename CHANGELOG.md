@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.64.4
+
+_2026-10-10_
+
+### Bug Fixes
+
+- Support the Rollup WASM build on big-endian hosts (#6559)
+
+### Pull Requests
+
+- [#6559](https://github.com/rollup/rollup/pull/6559): fix: read the AST buffer correctly on big-endian hosts (@pkubaj, @lukastaegert)
+- [#6566](https://github.com/rollup/rollup/pull/6566): Update dtolnay/rust-toolchain digest to 89b1218 (@renovate[bot], @lukastaegert)
+- [#6567](https://github.com/rollup/rollup/pull/6567): Update minor/patch updates (@renovate[bot])
+- [#6568](https://github.com/rollup/rollup/pull/6568): Update dependency eslint-plugin-unicorn to v77 (@renovate[bot], @lukastaegert)
+- [#6569](https://github.com/rollup/rollup/pull/6569): Improve PR testing instructions comments (@lukastaegert)
+
 ## 4.64.3
 
 _2026-10-08_

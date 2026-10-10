@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
   NEW_EXPRESSION_ANNOTATIONS_OFFSET, NEW_EXPRESSION_ARGUMENTS_OFFSET, NEW_EXPRESSION_CALLEE_OFFSET,
   NEW_EXPRESSION_RESERVED_BYTES, TYPE_NEW_EXPRESSION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_new_expression(&mut self, new_expression: &NewExpr) {
@@ -26,7 +26,7 @@ impl AstConverter<'_> {
         &annotations,
         end_position + NEW_EXPRESSION_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
-          convert_annotation(&mut ast_converter.buffer, annotation);
+          ast_converter.convert_annotation(annotation);
           true
         },
       );

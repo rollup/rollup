@@ -29,6 +29,7 @@ impl<'task> ScopedTask<'task> for ParseTask {
       mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
+      false,
     ))
   }
 
@@ -44,7 +45,10 @@ pub fn parse<'env>(
   allow_return_outside_function: bool,
   jsx: bool,
 ) -> Result<BufferSlice<'env>> {
-  BufferSlice::from_data(env, parse_ast(code, allow_return_outside_function, jsx))
+  BufferSlice::from_data(
+    env,
+    parse_ast(code, allow_return_outside_function, jsx, false),
+  )
 }
 
 #[napi]
