@@ -1,3 +1,4 @@
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
@@ -6,18 +7,21 @@ import {
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
-import {
-	EMPTY_PATH,
-	type ObjectPath,
-	UNKNOWN_INTEGER_PATH,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_INTEGER_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
 	UNKNOWN_LITERAL_NUMBER,
 	UNKNOWN_LITERAL_STRING
 } from '../../values';
-import { ExpressionEntity, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import type { LiteralValueOrUnknown } from './Expression';
+import {
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownTruthyValue,
+	UnknownValue
+} from './Expression';
 
 type MethodDescription = {
 	callsArgs: number[] | null;
@@ -35,7 +39,7 @@ type MethodDescription = {
 );
 
 export class Method extends ExpressionEntity {
-	constructor(private readonly description: MethodDescription) {
+	constructor(protected readonly description: MethodDescription) {
 		super();
 	}
 
@@ -52,9 +56,20 @@ export class Method extends ExpressionEntity {
 		}
 	}
 
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		_recursionTracker: EntityPathTracker,
+		_origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (path.length) return UnknownValue;
+		return UnknownTruthyValue;
+	}
+
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		{ args }: NodeInteractionCalled
+		{ args }: NodeInteractionCalled,
+		_recursionTracker: EntityPathTracker,
+		_origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return UNKNOWN_RETURN_EXPRESSION;
