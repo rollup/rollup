@@ -29,6 +29,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './Expression';
+import type FunctionBase from './FunctionBase';
 import type { IncludeChildren } from './Node';
 
 export interface ObjectProperty {
@@ -257,6 +258,22 @@ export class ObjectEntity extends ExpressionEntity {
 			property.deoptimizePath(subPath);
 		}
 		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [path[0], UnknownKey] : path);
+	}
+
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		const key = path[0];
+		// Setters can shadow data properties or inherited methods without appearing in the getter map.
+		if (!isConcreteKey(key) || this.settersByKey.has(key) || this.unmatchableSetters.length > 0) {
+			return null;
+		}
+		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
+		return expressionAtPath
+			? expressionAtPath.getKnownFunctionAtPath(path.slice(1), recursionTracker, origin)
+			: this.prototypeExpression?.getKnownFunctionAtPath(path, recursionTracker, origin) || null;
 	}
 
 	getLiteralValueAtPath(

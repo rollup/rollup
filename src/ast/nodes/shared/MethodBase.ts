@@ -20,6 +20,7 @@ import {
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION
 } from './Expression';
+import type FunctionBase from './FunctionBase';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -90,6 +91,16 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	deoptimizePath(path: ObjectPath): void {
 		this.getAccessedValue()[0].deoptimizePath(path);
+	}
+
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		return this.kind === 'get' || this.kind === 'set'
+			? null
+			: this.value.getKnownFunctionAtPath(path, recursionTracker, origin);
 	}
 
 	getLiteralValueAtPath(
