@@ -13,11 +13,13 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
+import type ThisVariable from '../../variables/ThisVariable';
 import type ClassBody from '../ClassBody';
 import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
+import PropertyDefinition from '../PropertyDefinition';
 import { isStaticBlock } from '../StaticBlock';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase, onlyIncludeSelf } from './Node';
@@ -32,6 +34,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare decorators: Decorator[];
 	declare private classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
+	private instanceEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new ChildScope(parentScope, parentScope.context);
@@ -96,7 +99,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					(this.classConstructor === null
 						? this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)
 						: this.classConstructor.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
-					false
+					this.hasEffectsOnInstanceFieldInitialization(context)
 			: this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
@@ -138,6 +141,45 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			}
 		}
 		this.scope.context.requestTreeshakingPass();
+	}
+
+	private hasEffectsOnInstanceFieldInitialization(context: HasEffectsContext): boolean {
+		const fieldValues: ExpressionNode[] = [];
+		for (const definition of this.body.body) {
+			if (
+				definition instanceof PropertyDefinition &&
+				!definition.static &&
+				definition.value !== null
+			) {
+				fieldValues.push(definition.value);
+			}
+		}
+		if (fieldValues.length === 0) return false;
+		const { replacedVariableInits } = context;
+		const thisVariable = this.getInstanceThisVariable();
+		const thisInit = replacedVariableInits.get(thisVariable);
+		replacedVariableInits.set(thisVariable, this.getInstanceEntity());
+		const hasEffects = fieldValues.some(value => value.hasEffects(context));
+		if (thisInit) {
+			replacedVariableInits.set(thisVariable, thisInit);
+		} else {
+			replacedVariableInits.delete(thisVariable);
+		}
+		return hasEffects;
+	}
+
+	private getInstanceThisVariable(): ThisVariable {
+		return this.body.scope.instanceScope.variables.get('this') as ThisVariable;
+	}
+
+	private getInstanceEntity(): ObjectEntity {
+		if (this.instanceEntity === null) {
+			this.instanceEntity = new ObjectEntity(new Map(), new ObjectMember(this, ['prototype']));
+			// This makes sure that all deoptimizations of "this" are applied to the
+			// instance entity.
+			this.getInstanceThisVariable().addArgumentForDeoptimization(this.instanceEntity);
+		}
+		return this.instanceEntity;
 	}
 
 	private getObjectEntity(): ObjectEntity {
