@@ -425,6 +425,8 @@ jobs:
             distro: ubuntu_latest
             target: s390x-unknown-linux-gnu
             use-nvm: true
+            # big-endian: also check that the WASM build produces the same output as the native one
+            smoke-test-wasm: true
           # I could not find a way to install Node without compiling from source
           #          - arch: riscv64
           #            distro: ubuntu_latest
@@ -443,6 +445,17 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
+      - name: Download wasm-node artifact
+        if: ${{ matrix.settings.smoke-test-wasm }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bindings-wasm-node
+          path: dist-wasm/
+      - name: Build wasm-node dist
+        if: ${{ matrix.settings.smoke-test-wasm }}
+        run: |
+          cp -r dist/. dist-wasm/
+          cp native.wasm.js dist-wasm/native.js
       - name: Run Smoke Test
         uses: uraimo/run-on-arch-action@fa1f3e7de95534497266c7265950b5188355fbfb # v3.2.1
         with:
@@ -479,6 +492,13 @@ jobs:
             node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit
             cp dist-build/rollup.*.node dist/
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
+            if [[ -n "${{ matrix.settings.smoke-test-wasm }}" ]]; then
+              node dist-wasm/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
+              printf 'export const value = -1.5 + 1e-310;\nexport const text = `héllo ${value}`;\n' > smoke.js
+              dist/bin/rollup smoke.js --format es --silent > smoke-native.js
+              node dist-wasm/bin/rollup smoke.js --format es --silent > smoke-wasm.js
+              diff smoke-native.js smoke-wasm.js
+            fi
 
   test:
     name: Test Node ${{ matrix.node }} (${{ matrix.settings.target }})

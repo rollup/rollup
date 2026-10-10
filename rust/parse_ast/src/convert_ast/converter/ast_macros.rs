@@ -518,6 +518,7 @@ macro_rules! store_literal_number {
     // value
     let value_position = end_position + 8;
     $self.buffer[value_position..value_position + 8].copy_from_slice(&$value_value.to_le_bytes());
+    $self.add_unswapped_byte_range(value_position, value_position + 8);
     // end
     $self.add_end(end_position, &$span);
   };

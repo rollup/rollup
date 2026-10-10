@@ -17,7 +17,16 @@ mod ast_nodes;
 mod convert_ast;
 mod error_emit;
 
-pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
+/// With `swap_byte_order`, the 32-bit fields of the buffer are written in the opposite of the
+/// native byte order. The WASM build, whose byte order is always little-endian, uses this on
+/// big-endian hosts because the JS side reads the buffer in the byte order of the host. Strings and
+/// the f64 values, which are always little-endian, are not affected.
+pub fn parse_ast(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  swap_byte_order: bool,
+) -> Vec<u8> {
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
   let syntax = Syntax::Es(EsSyntax {
@@ -36,7 +45,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let result = catch_unwind(AssertUnwindSafe(|| {
-      let result = try_with_handler(&code_reference, |handler| {
+      let result = try_with_handler(&code_reference, swap_byte_order, |handler| {
         parse_js(
           cm,
           file,
@@ -51,7 +60,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
         Err(buffer) => buffer,
         Ok(program) => {
           let annotations = comments.take_annotations();
-          let converter = AstConverter::new(&code_reference, &annotations);
+          let converter = AstConverter::new(&code_reference, &annotations, swap_byte_order);
           converter.convert_ast_to_buffer(&program)
         }
       }
@@ -64,7 +73,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, jsx: bool) -
       } else {
         "Unknown rust panic message"
       };
-      get_panic_error_buffer(msg)
+      get_panic_error_buffer(msg, swap_byte_order)
     })
   })
 }
