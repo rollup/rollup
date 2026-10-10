@@ -36,6 +36,14 @@ import {
 } from '../utils/PathTracker';
 import Variable from './Variable';
 
+const temporalDeadZoneKinds = new Set<VariableKind>([
+	'await using',
+	'class',
+	'const',
+	'let',
+	'using'
+]);
+
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
 
@@ -78,6 +86,10 @@ export default class LocalVariable extends Variable {
 				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
+	}
+
+	definesTemporalDeadZone(): boolean {
+		return temporalDeadZoneKinds.has(this.kind);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(

@@ -52,6 +52,12 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
+	definesTemporalDeadZone(): boolean {
+		// `export default function` is hoisted. Classes and other expressions initialize
+		// the default binding when the statement runs.
+		return !(this.init instanceof FunctionDeclaration);
+	}
+
 	forbidName(name: string) {
 		const original = this.getOriginalVariable();
 		if (original === this) {
