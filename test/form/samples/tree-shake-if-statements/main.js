@@ -55,7 +55,7 @@ if (false) {
 
 if (false) {
 	console.log('removed');
-	var c;
+	var c; //
 }
 console.log(c);
 
@@ -75,4 +75,18 @@ if (console.log('effect'), false) {
 	console.log('removed');
 } else {
 	console.log('kept');
+}
+
+var a;
+if (a = false) {
+	console.log('removed');
+} else {
+	console.log('kept');
+}
+
+var d;
+if ((d = function () { return true })()) {
+	console.log('kept');
+} else {
+	console.log('removed');
 }
