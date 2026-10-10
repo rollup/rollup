@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.64.5
+
+_2026-10-10_
+
+### Bug Fixes
+
+- Prevent cycles when using indirect top-level await for dynamic imports (#6516)
+
+### Pull Requests
+
+- [#6516](https://github.com/rollup/rollup/pull/6516): fix: prevent cycles for indirectly awaited dynamic imports (@ryanchou1994, @lukastaegert)
+
 ## 4.64.4
 
 _2026-10-10_
