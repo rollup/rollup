@@ -1,9 +1,8 @@
 import type { InclusionContext } from '../ExecutionContext';
+import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import type { ObjectPath } from '../utils/PathTracker';
-import ArrowFunctionExpression from './ArrowFunctionExpression';
 import type * as NodeType from './NodeType';
-import FunctionNode from './shared/FunctionNode';
-import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {
 	declare argument: ExpressionNode;
@@ -20,11 +19,7 @@ export default class AwaitExpression extends NodeBase {
 
 	initialise(): void {
 		super.initialise();
-		let parent = this.parent;
-		do {
-			if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression) return;
-		} while ((parent = (parent as Node).parent as Node));
-		this.scope.context.usesTopLevelAwait = true;
+		markTopLevelAwait(this);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

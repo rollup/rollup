@@ -3,6 +3,7 @@ import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -57,6 +58,7 @@ export default class ForOfStatement extends StatementBase {
 
 	initialise() {
 		super.initialise();
+		if (this.await) markTopLevelAwait(this);
 		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
