@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+const { default: MagicString } = require('magic-string');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
@@ -639,5 +640,76 @@ describe('incremental', () => {
 		assert.deepStrictEqual(cachedModules[1].meta, { transform: { calls: 3, id: 'entry' } });
 		assert.strictEqual(cachedModules[2].id, 'bar');
 		assert.deepStrictEqual(cachedModules[2].meta, { transform: { calls: 2, id: 'bar' } });
+	});
+
+	it('reflects a changed sourcemap of an unchanged source in the output', async () => {
+		let header = '// header';
+		const sourcemapPlugin = {
+			name: 'sourcemap-plugin',
+			resolveId: id => id,
+			load(id) {
+				const magicString = new MagicString(`${header}\nexport default 42;\n`);
+				magicString.replace(/\/\/ [^\n]*\n/, '');
+				return {
+					code: magicString.toString(),
+					map: magicString.generateMap({ includeContent: true, source: id })
+				};
+			}
+		};
+		const generate = async cache => {
+			const bundle = await rollup.rollup({ input: 'entry', cache, plugins: [sourcemapPlugin] });
+			const { output } = await bundle.generate({ format: 'es', sourcemap: true });
+			return [bundle, output[0].map];
+		};
+
+		const [firstBundle, firstMap] = await generate();
+		header = '// a different header';
+		const [secondBundle, secondMap] = await generate(firstBundle);
+
+		assert.deepStrictEqual(
+			secondMap.sourcesContent,
+			['// a different header\nexport default 42;\n'],
+			'the new sourcemap should be used for the cached module'
+		);
+		assert.notDeepStrictEqual(secondMap, firstMap);
+		assert.strictEqual(
+			secondBundle.cache.modules[0].originalSourcemap.sourcesContent[0],
+			'// a different header\nexport default 42;\n',
+			'the cache should contain the new sourcemap'
+		);
+	});
+
+	it('reuses a cached module when the load hook returns an equal sourcemap object', async () => {
+		let transformCalls = 0;
+		const sourcemapPlugin = {
+			name: 'sourcemap-plugin',
+			resolveId: id => id,
+			load(id) {
+				const magicString = new MagicString('// header\nexport default 42;\n');
+				magicString.replace(/\/\/ [^\n]*\n/, '');
+				return {
+					code: magicString.toString(),
+					// A new object with unchanged content, as most plugins return
+					map: magicString.generateMap({ includeContent: true, source: id })
+				};
+			},
+			transform(code, id) {
+				transformCalls++;
+				const magicString = new MagicString(code);
+				magicString.append('export const transformed = 1;\n');
+				return {
+					code: magicString.toString(),
+					map: magicString.generateMap({ includeContent: true, source: id })
+				};
+			}
+		};
+		const firstBundle = await rollup.rollup({ input: 'entry', plugins: [sourcemapPlugin] });
+		assert.strictEqual(transformCalls, 1);
+		await rollup.rollup({ input: 'entry', plugins: [sourcemapPlugin], cache: firstBundle });
+		assert.strictEqual(
+			transformCalls,
+			1,
+			'an equal sourcemap should not invalidate the module cache'
+		);
 	});
 });
