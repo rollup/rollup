@@ -9,8 +9,8 @@ export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
 export const UnknownWellKnown = Symbol('Unknown Well-Known');
 export const SymbolToStringTag = Symbol('Symbol.toStringTag');
-export const SymbolDispose = Symbol('Symbol.asyncDispose');
-export const SymbolAsyncDispose = Symbol('Symbol.dispose');
+export const SymbolDispose = Symbol('Symbol.dispose');
+export const SymbolAsyncDispose = Symbol('Symbol.asyncDispose');
 export const SymbolHasInstance = Symbol('Symbol.hasInstance');
 
 interface SymbolSet<T extends symbol> extends Set<T> {
