@@ -7,7 +7,12 @@ import {
 	SymbolDispose
 } from '../../utils/PathTracker';
 import type { LiteralValueOrUnknown } from './Expression';
-import { deoptimizeInteraction, ExpressionEntity, UnknownValue } from './Expression';
+import {
+	deoptimizeInteraction,
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UnknownValue
+} from './Expression';
 import {
 	METHOD_RETURNS_BOOLEAN,
 	METHOD_RETURNS_STRING,
@@ -57,5 +62,18 @@ export const OBJECT_PROTOTYPE = new ObjectEntity(
 		['valueOf', METHOD_RETURNS_UNKNOWN]
 	]),
 	OBJECT_PROTOTYPE_FALLBACK,
+	true
+);
+
+// Generator prototypes inherit disposal methods from the iterator prototypes
+export const GENERATOR_PROTOTYPE = new ObjectEntity(
+	[{ key: SymbolDispose, kind: 'init', property: UNKNOWN_EXPRESSION }],
+	OBJECT_PROTOTYPE,
+	true
+);
+
+export const ASYNC_GENERATOR_PROTOTYPE = new ObjectEntity(
+	[{ key: SymbolAsyncDispose, kind: 'init', property: UNKNOWN_EXPRESSION }],
+	OBJECT_PROTOTYPE,
 	true
 );

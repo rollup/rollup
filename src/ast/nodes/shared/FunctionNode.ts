@@ -15,7 +15,11 @@ import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
-import { OBJECT_PROTOTYPE } from './ObjectPrototype';
+import {
+	ASYNC_GENERATOR_PROTOTYPE,
+	GENERATOR_PROTOTYPE,
+	OBJECT_PROTOTYPE
+} from './ObjectPrototype';
 import type { DeclarationPatternNode } from './Pattern';
 
 export default class FunctionNode extends FunctionBase {
@@ -135,10 +139,15 @@ export default class FunctionNode extends FunctionBase {
 				{
 					key: 'prototype',
 					kind: 'init',
-					property: new ObjectEntity([], OBJECT_PROTOTYPE)
+					property: new ObjectEntity([], this.getPrototypeOfPrototype())
 				}
 			],
 			OBJECT_PROTOTYPE
 		));
+	}
+
+	private getPrototypeOfPrototype(): ObjectEntity {
+		if (!this.generator) return OBJECT_PROTOTYPE;
+		return this.async ? ASYNC_GENERATOR_PROTOTYPE : GENERATOR_PROTOTYPE;
 	}
 }
