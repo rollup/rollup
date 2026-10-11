@@ -28,7 +28,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
-          toolchain: nightly-2025-07-25
+          toolchain: nightly-2026-09-11
           components: rust-src
       - name: Restore Cargo cache for WASM builds
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -90,7 +90,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
-          toolchain: nightly-2025-07-25
+          toolchain: nightly-2026-09-11
       - name: Restore Cargo cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
