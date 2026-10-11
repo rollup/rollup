@@ -230,7 +230,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
-          toolchain: nightly-2025-07-25
+          toolchain: nightly-2026-09-11
           components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
           targets: ${{ !matrix.settings.build-std && matrix.settings.target || '' }}
       - name: Setup OpenHarmony SDK
@@ -576,7 +576,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
-          toolchain: nightly-2025-07-25
+          toolchain: nightly-2026-09-11
           components: llvm-tools-preview
           targets: wasm32-unknown-unknown
       - name: Restore Cargo cache
