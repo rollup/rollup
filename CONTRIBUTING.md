@@ -24,8 +24,8 @@ Make sure you use the same toolchain version as specified in the `/rust-toolchai
 
 ```shell
 # Use the precise toolchain version from rust-toolchain.toml
-rustup toolchain install nightly-2025-07-25
-rustup default nightly-2025-07-25
+rustup toolchain install nightly-2026-09-11
+rustup default nightly-2026-09-11
 rustup component add rust-src
 ```
 
