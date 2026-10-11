@@ -12,7 +12,12 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
-import { INTERACTION_CALLED, type NodeInteractionCalled } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	type NodeInteractionAccessed,
+	type NodeInteractionCalled
+} from '../NodeInteractions';
 import FunctionScope from '../scopes/FunctionScope';
 import {
 	EMPTY_PATH,
@@ -145,27 +150,27 @@ export default class VariableDeclarator extends NodeBase {
 		const { id, init } = this;
 		if (init) {
 			if (this.isUsingDeclaration || this.isAsyncUsingDeclaration) {
-				const disposalInteraction: NodeInteractionCalled = {
-					args: [init],
-					type: INTERACTION_CALLED,
-					withNew: false
+				const disposalInteractions: DisposalInteractions = {
+					access: { args: [init], type: INTERACTION_ACCESSED },
+					call: { args: [init], type: INTERACTION_CALLED, withNew: false }
 				};
 				if (
 					this.isUsingDeclaration ||
 					!this.includeDisposalMethodAndCheckIfKnownFunction(
 						init,
 						SYMBOL_ASYNC_DISPOSE_PATH,
-						disposalInteraction,
+						disposalInteractions,
 						context
 					)
 				) {
 					this.includeDisposalMethodAndCheckIfKnownFunction(
 						init,
 						SYMBOL_DISPOSE_PATH,
-						disposalInteraction,
+						disposalInteractions,
 						context
 					);
 				}
+				this.scope.context.requestTreeshakingPass();
 			}
 			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
 				const { name, variable } = id;
@@ -181,20 +186,17 @@ export default class VariableDeclarator extends NodeBase {
 	private includeDisposalMethodAndCheckIfKnownFunction(
 		init: ExpressionNode,
 		path: ObjectPath,
-		disposalInteraction: NodeInteractionCalled,
+		{ access, call }: DisposalInteractions,
 		context: InclusionContext
 	): boolean {
+		init.deoptimizeArgumentsOnInteractionAtPath(access, path, SHARED_RECURSION_TRACKER);
 		const disposalFunction = init.getKnownFunctionAtPath(path, SHARED_RECURSION_TRACKER, this);
 		init.includePath(path, context);
 		if (!disposalFunction) {
 			const disposalValue = init.getLiteralValueAtPath(path, SHARED_RECURSION_TRACKER, this);
 			if (disposalValue !== null && disposalValue !== undefined) {
-				init.deoptimizeArgumentsOnInteractionAtPath(
-					disposalInteraction,
-					path,
-					SHARED_RECURSION_TRACKER
-				);
-				init.includeCallArgumentsWhenCalledAtPath(path, disposalInteraction, context);
+				init.deoptimizeArgumentsOnInteractionAtPath(call, path, SHARED_RECURSION_TRACKER);
+				init.includeCallArgumentsWhenCalledAtPath(path, call, context);
 			}
 			return false;
 		}
@@ -202,7 +204,7 @@ export default class VariableDeclarator extends NodeBase {
 		if (!disposalFunctions.has(disposalFunction)) {
 			disposalFunctions.add(disposalFunction);
 			disposalFunction.deoptimizeArgumentsOnInteractionAtPath(
-				disposalInteraction,
+				call,
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER
 			);
@@ -212,6 +214,11 @@ export default class VariableDeclarator extends NodeBase {
 }
 
 VariableDeclarator.prototype.applyDeoptimizations = doNotDeoptimize;
+
+interface DisposalInteractions {
+	access: NodeInteractionAccessed;
+	call: NodeInteractionCalled;
+}
 
 const SYMBOL_DISPOSE_PATH: ObjectPath = [SymbolDispose];
 const SYMBOL_ASYNC_DISPOSE_PATH: ObjectPath = [SymbolAsyncDispose];
