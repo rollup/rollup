@@ -94,8 +94,8 @@ async function assignedReceiverReader() {
 	const disposer = disposeAsync;
 	const resource = {
 		label: 'receiver label',
-		unused: 'retained with receiver',
-		[Symbol.dispose]() { console.log('retained sync'); },
+		unused: 'removed',
+		[Symbol.dispose]() { console.log('removed sync'); },
 		[Symbol.asyncDispose]: disposer
 	};
 	await using captured = resource;
@@ -184,3 +184,15 @@ async function reassignedResource() {
 	await using captured = resource;
 }
 reassignedResource();
+
+function receiverPathsUsedByDisposer() {
+	using resource = {
+		used: 1,
+		unused: 2,
+		[Symbol.dispose]() {
+			console.log(this.used);
+		},
+		[Symbol.asyncDispose]() {}
+	};
+}
+receiverPathsUsedByDisposer();
