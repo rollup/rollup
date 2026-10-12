@@ -13,7 +13,6 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
-import type ThisVariable from '../../variables/ThisVariable';
 import type ClassBody from '../ClassBody';
 import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
@@ -33,8 +32,9 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare superClass: ExpressionNode | null;
 	declare decorators: Decorator[];
 	declare private classConstructor: MethodDefinition | null;
+	declare private instanceEntity: ObjectEntity;
+	private instanceFieldValues: ExpressionNode[] | null = null;
 	private objectEntity: ObjectEntity | null = null;
-	private instanceEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new ChildScope(parentScope, parentScope.context);
@@ -117,6 +117,10 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	initialise(): void {
 		super.initialise();
 		this.id?.declare('class', EMPTY_PATH, this);
+		this.instanceEntity = new ObjectEntity(new Map(), new ObjectMember(this, ['prototype']));
+		// This makes sure that all deoptimizations of "this" are applied to the
+		// instance entity, even if the class is only instantiated by unknown code.
+		this.body.scope.instanceThisVariable.addArgumentForDeoptimization(this.instanceEntity);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
 				this.classConstructor = method;
@@ -144,21 +148,12 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	private hasEffectsOnInstanceFieldInitialization(context: HasEffectsContext): boolean {
-		const fieldValues: ExpressionNode[] = [];
-		for (const definition of this.body.body) {
-			if (
-				definition instanceof PropertyDefinition &&
-				!definition.static &&
-				definition.value !== null
-			) {
-				fieldValues.push(definition.value);
-			}
-		}
+		const fieldValues = this.getInstanceFieldValues();
 		if (fieldValues.length === 0) return false;
 		const { replacedVariableInits } = context;
-		const thisVariable = this.getInstanceThisVariable();
+		const thisVariable = this.body.scope.instanceThisVariable;
 		const thisInit = replacedVariableInits.get(thisVariable);
-		replacedVariableInits.set(thisVariable, this.getInstanceEntity());
+		replacedVariableInits.set(thisVariable, this.instanceEntity);
 		const hasEffects = fieldValues.some(value => value.hasEffects(context));
 		if (thisInit) {
 			replacedVariableInits.set(thisVariable, thisInit);
@@ -168,18 +163,20 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		return hasEffects;
 	}
 
-	private getInstanceThisVariable(): ThisVariable {
-		return this.body.scope.instanceScope.variables.get('this') as ThisVariable;
-	}
-
-	private getInstanceEntity(): ObjectEntity {
-		if (this.instanceEntity === null) {
-			this.instanceEntity = new ObjectEntity(new Map(), new ObjectMember(this, ['prototype']));
-			// This makes sure that all deoptimizations of "this" are applied to the
-			// instance entity.
-			this.getInstanceThisVariable().addArgumentForDeoptimization(this.instanceEntity);
+	private getInstanceFieldValues(): ExpressionNode[] {
+		if (this.instanceFieldValues === null) {
+			this.instanceFieldValues = [];
+			for (const definition of this.body.body) {
+				if (
+					definition instanceof PropertyDefinition &&
+					!definition.static &&
+					definition.value !== null
+				) {
+					this.instanceFieldValues.push(definition.value);
+				}
+			}
 		}
-		return this.instanceEntity;
+		return this.instanceFieldValues;
 	}
 
 	private getObjectEntity(): ObjectEntity {

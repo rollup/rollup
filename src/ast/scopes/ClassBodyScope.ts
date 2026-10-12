@@ -6,6 +6,7 @@ import ChildScope from './ChildScope';
 
 export default class ClassBodyScope extends ChildScope {
 	readonly instanceScope: ChildScope;
+	readonly instanceThisVariable: ThisVariable;
 	readonly thisVariable: LocalVariable;
 
 	constructor(parent: ChildScope, classNode: ClassNode) {
@@ -16,7 +17,8 @@ export default class ClassBodyScope extends ChildScope {
 			(this.thisVariable = new LocalVariable('this', null, classNode, EMPTY_PATH, context, 'other'))
 		);
 		this.instanceScope = new ChildScope(this, context);
-		this.instanceScope.variables.set('this', new ThisVariable(context));
+		this.instanceThisVariable = new ThisVariable(context);
+		this.instanceScope.variables.set('this', this.instanceThisVariable);
 	}
 
 	findLexicalBoundary(): ChildScope {
