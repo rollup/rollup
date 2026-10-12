@@ -127,7 +127,7 @@ export default abstract class FunctionBase extends NodeBase {
 				origin
 			);
 		}
-		if (this.async) {
+		if (this.async || this.generator) {
 			if (!this.deoptimizedReturn) {
 				this.deoptimizedReturn = true;
 				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
