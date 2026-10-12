@@ -18,7 +18,6 @@ import {
 	type NodeInteractionAccessed,
 	type NodeInteractionCalled
 } from '../NodeInteractions';
-import FunctionScope from '../scopes/FunctionScope';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -47,9 +46,9 @@ export default class VariableDeclarator extends NodeBase {
 	declare type: NodeType.tVariableDeclarator;
 	declare isUsingDeclaration: boolean;
 	declare isAsyncUsingDeclaration: boolean;
-	declare private disposalFunctions?: Set<FunctionBase>;
+	declare private disposalCall?: NodeInteractionCalled;
+	declare private disposalFunction?: FunctionBase;
 	declare private hasDeoptimizedDisposal: boolean;
-	declare private hasIncludedDisposalReceiver: boolean;
 
 	declareDeclarator(kind: VariableKind): void {
 		this.isUsingDeclaration = kind === 'using';
@@ -87,19 +86,12 @@ export default class VariableDeclarator extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const { id, init } = this;
 		if (!this.included) this.includeNode(context);
-		init?.include(context, includeChildrenRecursively);
-		if (this.disposalFunctions && init && !this.hasIncludedDisposalReceiver) {
-			for (const disposalFunction of this.disposalFunctions) {
-				if (
-					disposalFunction.scope instanceof FunctionScope &&
-					disposalFunction.scope.thisVariable.included
-				) {
-					this.hasIncludedDisposalReceiver = true;
-					init.includePath(UNKNOWN_PATH, context);
-					break;
-				}
-			}
+		const { disposalCall, disposalFunction } = this;
+		// Before including init so that newly included receiver paths are included in this pass
+		if (disposalFunction && disposalCall) {
+			disposalFunction.includeCallArgumentsWhenCalledAtPath(EMPTY_PATH, disposalCall, context);
 		}
+		init?.include(context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively) {
 			id.include(context, includeChildrenRecursively);
@@ -200,15 +192,13 @@ export default class VariableDeclarator extends NodeBase {
 			}
 			return false;
 		}
-		const disposalFunctions = (this.disposalFunctions ||= new Set<FunctionBase>());
-		if (!disposalFunctions.has(disposalFunction)) {
-			disposalFunctions.add(disposalFunction);
-			disposalFunction.deoptimizeArgumentsOnInteractionAtPath(
-				call,
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER
-			);
-		}
+		this.disposalFunction = disposalFunction;
+		this.disposalCall = call;
+		disposalFunction.deoptimizeArgumentsOnInteractionAtPath(
+			call,
+			EMPTY_PATH,
+			SHARED_RECURSION_TRACKER
+		);
 		return true;
 	}
 }

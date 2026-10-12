@@ -28,8 +28,11 @@ export default class FunctionScope extends ReturnValueScope {
 
 	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
 		super.includeCallArguments(interaction, context);
+		const { args } = interaction;
+		if (args[0]) {
+			this.thisVariable.includeArgumentPaths(args[0], context);
+		}
 		if (this.argumentsVariable.included) {
-			const { args } = interaction;
 			for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
 				const argument = args[argumentIndex];
 				if (argument) {
