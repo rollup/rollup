@@ -716,6 +716,8 @@ export default class Chunk {
 
 		const renderedDependencies = [...this.getRenderedDependencies().values()];
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
+		const renderedExportNames =
+			format === 'es' && new Set(renderedExports.map(({ exported }) => exported));
 		let hasExports = renderedExports.length > 0;
 		let hasDefaultExport = false;
 		for (const renderedDependency of renderedDependencies) {
@@ -725,9 +727,9 @@ export default class Chunk {
 				if (!hasDefaultExport && reexports.some(reexport => reexport.reexported === 'default')) {
 					hasDefaultExport = true;
 				}
-				if (format === 'es') {
+				if (renderedExportNames) {
 					renderedDependency.reexports = reexports.filter(
-						({ reexported }) => !renderedExports.find(({ exported }) => exported === reexported)
+						({ reexported }) => !renderedExportNames.has(reexported)
 					);
 				}
 			}

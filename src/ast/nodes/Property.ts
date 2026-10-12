@@ -118,6 +118,10 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
 
+	setAssignedValue(value: ExpressionEntity): void {
+		(this.value as PatternNode).setAssignedValue(value);
+	}
+
 	private getPathInProperty(destructuredInitPath: ObjectPath): ObjectPath {
 		return destructuredInitPath.at(-1) === UnknownKey
 			? destructuredInitPath

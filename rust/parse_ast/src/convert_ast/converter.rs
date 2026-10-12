@@ -31,25 +31,42 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) buffer: Vec<u8>,
   pub(crate) code: &'a [u8],
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
+  // Only used when the byte order of the 32-bit fields is swapped at the end: the byte ranges
+  // that are kept as they are, i.e. string bytes and the little-endian f64 values
+  unswapped_byte_ranges: Option<Vec<(usize, usize)>>,
 }
 
 impl<'a> AstConverter<'a> {
-  pub(crate) fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
+  pub(crate) fn new(
+    code: &'a str,
+    annotations: &'a [AnnotationWithType],
+    swap_byte_order: bool,
+  ) -> Self {
     Self {
       // This is just a wild guess and should be revisited from time to time
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
+      unswapped_byte_ranges: swap_byte_order.then(Vec::new),
     }
   }
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
+    if let Some(unswapped_byte_ranges) = self.unswapped_byte_ranges.take() {
+      swap_32_bit_fields(&mut self.buffer, unswapped_byte_ranges);
+    }
     self.buffer.shrink_to_fit();
     self.buffer
   }
 
   // === helpers
+  pub(crate) fn add_unswapped_byte_range(&mut self, start: usize, end: usize) {
+    if let Some(unswapped_byte_ranges) = &mut self.unswapped_byte_ranges {
+      unswapped_byte_ranges.push((start, end));
+    }
+  }
+
   pub(crate) fn add_type_and_start(
     &mut self,
     node_type: &[u8; 4],
@@ -184,7 +201,24 @@ impl<'a> AstConverter<'a> {
   // TODO SWC deduplicate strings and see if we can easily compare atoms
   pub(crate) fn convert_string(&mut self, string: &str, reference_position: usize) {
     self.update_reference_position(reference_position);
+    let start = self.buffer.len() + 4;
     convert_string(&mut self.buffer, string);
+    self.add_unswapped_byte_range(start, self.buffer.len());
+  }
+
+  pub(crate) fn convert_annotation(&mut self, annotation: &ConvertedAnnotation) {
+    // start
+    self
+      .buffer
+      .extend_from_slice(&annotation.start.to_ne_bytes());
+    // end
+    self.buffer.extend_from_slice(&annotation.end.to_ne_bytes());
+    // kind, an index into the fixed strings and thus a 32-bit field
+    self.buffer.extend_from_slice(match annotation.kind {
+      AnnotationKind::Pure => &STRING_PURE,
+      AnnotationKind::NoSideEffects => &STRING_NOSIDEEFFECTS,
+      AnnotationKind::SourceMappingUrl => &STRING_SOURCEMAP,
+    });
   }
 
   pub(crate) fn update_reference_position(&mut self, reference_position: usize) {
@@ -801,17 +835,29 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub(crate) fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {
-  // start
-  buffer.extend_from_slice(&annotation.start.to_ne_bytes());
-  // end
-  buffer.extend_from_slice(&annotation.end.to_ne_bytes());
-  // kind
-  buffer.extend_from_slice(match annotation.kind {
-    AnnotationKind::Pure => &STRING_PURE,
-    AnnotationKind::NoSideEffects => &STRING_NOSIDEEFFECTS,
-    AnnotationKind::SourceMappingUrl => &STRING_SOURCEMAP,
-  });
+/// Reverses the bytes of every 32-bit field of the buffer, i.e. of everything except for the given
+/// byte ranges, which contain string bytes or little-endian f64 values and are 4-byte aligned. The
+/// WASM build, whose byte order is always little-endian, uses this on big-endian hosts because the
+/// JS side reads the buffer in the byte order of the host.
+pub(crate) fn swap_32_bit_fields(
+  buffer: &mut [u8],
+  mut unswapped_byte_ranges: Vec<(usize, usize)>,
+) {
+  // f64 values are written into slots reserved before their node's strings are appended
+  unswapped_byte_ranges.sort_unstable();
+  let mut position = 0;
+  for (start, end) in unswapped_byte_ranges {
+    reverse_32_bit_words(&mut buffer[position..start]);
+    position = end;
+  }
+  reverse_32_bit_words(&mut buffer[position..]);
+}
+
+pub(crate) fn reverse_32_bit_words(bytes: &mut [u8]) {
+  debug_assert!(bytes.len().is_multiple_of(4));
+  for word in bytes.chunks_exact_mut(4) {
+    word.reverse();
+  }
 }
 
 pub(crate) fn convert_string(buffer: &mut Vec<u8>, string: &str) {

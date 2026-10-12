@@ -1,0 +1,65 @@
+name: PR testing instructions
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
+
+jobs:
+  add-testing-instructions:
+    name: Add testing instructions comment if missing
+    # This workflow runs in a trusted context and must never check out or
+    # otherwise execute PR code. It only posts static instructions.
+    # The REPL link is added later by the "Publish PR artefacts" workflow,
+    # which replaces this comment once REPL artefacts are published.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Find testing instructions comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
+        id: findComment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Thank you for your contribution!'
+      - name: Check that the install location is safe to post
+        if: ${{ steps.findComment.outputs.comment-id == '' }}
+        id: validate
+        env:
+          LC_ALL: C
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          # The repository and branch names are fork-controlled and are
+          # posted verbatim into a copyable command, so anything outside
+          # this allowlist is skipped to prevent markdown or shell injection.
+          if [[ "$HEAD_REPO" =~ ^[A-Za-z0-9._/-]+$ && "$HEAD_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "safe=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping the testing instructions comment as the repository or branch name contains characters outside the allowlist"
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create comment if it is missing
+        if: ${{ steps.findComment.outputs.comment-id == '' && steps.validate.outputs.safe == 'true' }}
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### Thank you for your contribution! ❤️
+
+            You can try out this pull request locally by installing Rollup via
+
+            ```bash
+            npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
+            ```
+
+            Notice: To build the native dependencies, you need [Rustup](https://www.rust-lang.org/tools/install) installed; the required nightly toolchain is then picked up automatically from `rust-toolchain.toml`.

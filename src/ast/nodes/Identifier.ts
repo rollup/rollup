@@ -49,6 +49,9 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 			this.isVariableReference = true;
+			if (this.assignmentInteraction) {
+				this.variable.markTargetOfAssignment();
+			}
 		}
 	}
 

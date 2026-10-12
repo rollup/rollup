@@ -1,5 +1,74 @@
 # rollup changelog
 
+## 4.64.5
+
+_2026-10-10_
+
+### Bug Fixes
+
+- Prevent cycles when using indirect top-level await for dynamic imports (#6516)
+
+### Pull Requests
+
+- [#6516](https://github.com/rollup/rollup/pull/6516): fix: prevent cycles for indirectly awaited dynamic imports (@ryanchou1994, @lukastaegert)
+
+## 4.64.4
+
+_2026-10-10_
+
+### Bug Fixes
+
+- Support the Rollup WASM build on big-endian hosts (#6559)
+
+### Pull Requests
+
+- [#6559](https://github.com/rollup/rollup/pull/6559): fix: read the AST buffer correctly on big-endian hosts (@pkubaj, @lukastaegert)
+- [#6566](https://github.com/rollup/rollup/pull/6566): Update dtolnay/rust-toolchain digest to 89b1218 (@renovate[bot], @lukastaegert)
+- [#6567](https://github.com/rollup/rollup/pull/6567): Update minor/patch updates (@renovate[bot])
+- [#6568](https://github.com/rollup/rollup/pull/6568): Update dependency eslint-plugin-unicorn to v77 (@renovate[bot], @lukastaegert)
+- [#6569](https://github.com/rollup/rollup/pull/6569): Improve PR testing instructions comments (@lukastaegert)
+
+## 4.64.3
+
+_2026-10-08_
+
+### Bug Fixes
+
+- Fix a performance regression when bundling code with deeply nested property calls (#6565)
+
+### Pull Requests
+
+- [#6565](https://github.com/rollup/rollup/pull/6565): Fix path-dependent explosion when including call arguments of reassigned variables (@lukastaegert)
+
+## 4.64.2
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Fix a regression where certain CoreJS helpers were wrongly tree-shaken (#6562)
+- Do not show errors from closeBundle if there were also build errors (#6554)
+
+### Pull Requests
+
+- [#6554](https://github.com/rollup/rollup/pull/6554): Preserve build errors when closeBundle fails (@Jo2234, @lukastaegert)
+- [#6561](https://github.com/rollup/rollup/pull/6561): Rework REPL artefacts and performance report workflows (@lukastaegert)
+- [#6562](https://github.com/rollup/rollup/pull/6562): Do not resolve values of assigned variables returned on all paths (@lukastaegert)
+
+## 4.64.1
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Slightly improve performance when rendering ES output (#6534)
+
+### Pull Requests
+
+- [#6534](https://github.com/rollup/rollup/pull/6534): Avoid repeated export name scans when rendering ES chunks (@irontaek, @lukastaegert)
+- [#6552](https://github.com/rollup/rollup/pull/6552): chore(ci): remove redundant rust-src setup (@TrickyPi, @lukastaegert)
+- [#6555](https://github.com/rollup/rollup/pull/6555): Lock file maintenance (@renovate[bot], @lukastaegert)
+
 ## 4.64.0
 
 _2026-10-02_

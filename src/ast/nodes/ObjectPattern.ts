@@ -11,6 +11,7 @@ import * as NodeType from './NodeType';
 import type Property from './Property';
 import type RestElement from './RestElement';
 import type { ExpressionEntity } from './shared/Expression';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -132,6 +133,15 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 			if (lastSeparatorPos) {
 				code.remove(lastSeparatorPos, this.end - 1);
 			}
+		}
+	}
+
+	setAssignedValue(value: ExpressionEntity): void {
+		super.setAssignedValue(value);
+		// Destructuring assigns each target only some subpath of the assigned
+		// value, which is not tracked
+		for (const property of this.properties) {
+			property.setAssignedValue(UNKNOWN_EXPRESSION);
 		}
 	}
 }

@@ -202,7 +202,8 @@ export function getChunkAssignments(
 		dynamicImportsByEntry,
 		entriesAndManualChunksCount
 	);
-	const awaitedAlreadyLoadedAtomsByEntry = getAlreadyLoadedAtomsByEntry(
+	// Warning: This will consume dynamicallyDependentEntriesByAwaitedDynamicEntry.
+	const awaitedAlreadyLoadedAtomsByEntry = getAwaitedAlreadyLoadedAtomsByEntry(
 		staticDependencyAtomsByEntry,
 		dynamicallyDependentEntriesByAwaitedDynamicEntry,
 		awaitedDynamicImportsByEntry,
@@ -314,13 +315,16 @@ function analyzeModuleGraph(
 	for (const currentEntryModules of allEntriesAndManualChunks) {
 		const dynamicImportsForCurrentEntry = new Set<Module>();
 		const awaitedDynamicImportsForCurrentEntry = new Set<Module>();
+		const dynamicEntriesForCurrentEntry = new Set<Module>();
 		dynamicImportModulesByEntry[entryOrManualChunkIndex] = dynamicImportsForCurrentEntry;
 		awaitedDynamicImportModulesByEntry[entryOrManualChunkIndex] =
 			awaitedDynamicImportsForCurrentEntry;
 		const staticDependencies = new Set(currentEntryModules);
+		let hasTopLevelAwait = false;
 		// If we have a very large manual chunk, tracking if it is already added to the dependencies will improve performance
 		const addedManualChunks = new Set<Module[]>();
 		for (const module of staticDependencies) {
+			hasTopLevelAwait ||= module.hasTopLevelAwait();
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryOrManualChunkIndex);
 			const manualChunkMembers = manualChunkModulesByModule.get(module);
 			if (manualChunkMembers && !addedManualChunks.has(manualChunkMembers)) {
@@ -340,18 +344,14 @@ function analyzeModuleGraph(
 				if (
 					resolution instanceof Module &&
 					resolution.includedDynamicImporters.length > 0 &&
-					!allEntriesSet.has(resolution)
+					(dynamicEntryModules.has(resolution) || !allEntriesSet.has(resolution))
 				) {
-					dynamicEntryModules.add(resolution);
-					allEntriesSet.add(resolution);
-					allEntriesAndManualChunks.push([resolution]);
-					dynamicImportsForCurrentEntry.add(resolution);
-					for (const includedTopLevelAwaitingDynamicImporter of resolution.includedTopLevelAwaitingDynamicImporters) {
-						if (staticDependencies.has(includedTopLevelAwaitingDynamicImporter)) {
-							awaitedDynamicEntryModules.add(resolution);
-							awaitedDynamicImportsForCurrentEntry.add(resolution);
-							break;
-						}
+					dynamicEntriesForCurrentEntry.add(resolution);
+					if (!allEntriesSet.has(resolution)) {
+						dynamicEntryModules.add(resolution);
+						allEntriesSet.add(resolution);
+						allEntriesAndManualChunks.push([resolution]);
+						dynamicImportsForCurrentEntry.add(resolution);
 					}
 				}
 			}
@@ -361,6 +361,13 @@ function analyzeModuleGraph(
 					allEntriesSet.add(dependency);
 					allEntriesAndManualChunks.push([dependency]);
 				}
+			}
+		}
+		// A dynamic import can be awaited indirectly through a static dependency.
+		if (hasTopLevelAwait) {
+			for (const dynamicEntry of dynamicEntriesForCurrentEntry) {
+				awaitedDynamicEntryModules.add(dynamicEntry);
+				awaitedDynamicImportsForCurrentEntry.add(dynamicEntry);
 			}
 		}
 		entryOrManualChunkIndex++;
@@ -380,11 +387,14 @@ function analyzeModuleGraph(
 	return {
 		awaitedDynamicImportsByEntry,
 		dependentEntriesByModule,
-		dynamicallyDependentEntriesByAwaitedDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
-			dependentEntriesByModule,
-			awaitedDynamicEntries,
-			allEntriesAndManualChunks,
-			dynamicEntry => dynamicEntry.includedTopLevelAwaitingDynamicImporters
+		dynamicallyDependentEntriesByAwaitedDynamicEntry: addAwaitingEntries(
+			getDynamicallyDependentEntriesByDynamicEntry(
+				dependentEntriesByModule,
+				awaitedDynamicEntries,
+				allEntriesAndManualChunks,
+				dynamicEntry => dynamicEntry.includedTopLevelAwaitingDynamicImporters
+			),
+			awaitedDynamicImportsByEntry
 		),
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
@@ -448,6 +458,26 @@ function getDynamicImportsByEntry(
 		dynamicImportsByEntry[index++] = dynamicImports;
 	}
 	return dynamicImportsByEntry;
+}
+
+// A dynamic entry can be awaited by an entry even if the importing module does
+// not have a top-level await itself, e.g. if the import is inside a function
+// that is awaited in the entry. In that case, the entry is still evaluating
+// when the dynamic entry is executed, so we add all awaiting entries here.
+function addAwaitingEntries(
+	dynamicallyDependentEntriesByAwaitedDynamicEntry: Map<number, Set<number>>,
+	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[]
+): Map<number, Set<number>> {
+	for (const [entryIndex, awaitedDynamicImports] of awaitedDynamicImportsByEntry.entries()) {
+		for (const dynamicEntryIndex of awaitedDynamicImports) {
+			getOrCreate(
+				dynamicallyDependentEntriesByAwaitedDynamicEntry,
+				dynamicEntryIndex,
+				getNewSet<number>
+			).add(entryIndex);
+		}
+	}
+	return dynamicallyDependentEntriesByAwaitedDynamicEntry;
 }
 
 function getDynamicallyDependentEntriesByDynamicEntry(
@@ -581,6 +611,47 @@ function getAlreadyLoadedAtomsByEntry(
 		}
 	}
 	return alreadyLoadedAtomsByEntry;
+}
+
+// Warning: This will consume dynamicallyDependentEntriesByAwaitedDynamicEntry.
+function getAwaitedAlreadyLoadedAtomsByEntry(
+	staticDependencyAtomsByEntry: bigint[],
+	dynamicallyDependentEntriesByAwaitedDynamicEntry: Map<number, Set<number>>,
+	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[],
+	allEntriesCount: number
+) {
+	// Unlike already loaded atoms, this is a union and not an intersection: If
+	// any importer that is still evaluating while it awaits a dynamic entry has
+	// loaded an atom, merging that atom into the chunk of this importer would
+	// create a cycle. Entries that are not awaited have no such atoms.
+	const awaitedAlreadyLoadedAtomsByEntry: bigint[] = new Array(allEntriesCount).fill(0n);
+	for (const [
+		dynamicEntryIndex,
+		dynamicallyDependentEntries
+	] of dynamicallyDependentEntriesByAwaitedDynamicEntry) {
+		// We delete here so that they can be added again if necessary to be handled
+		// again by the loop
+		dynamicallyDependentEntriesByAwaitedDynamicEntry.delete(dynamicEntryIndex);
+		const knownLoadedAtoms = awaitedAlreadyLoadedAtomsByEntry[dynamicEntryIndex];
+		let updatedLoadedAtoms = knownLoadedAtoms;
+		for (const entryIndex of dynamicallyDependentEntries) {
+			updatedLoadedAtoms |=
+				staticDependencyAtomsByEntry[entryIndex] | awaitedAlreadyLoadedAtomsByEntry[entryIndex];
+		}
+		// If the knownLoadedAtoms changed, all awaited dynamic imports of this
+		// entry need to be updated again
+		if (updatedLoadedAtoms !== knownLoadedAtoms) {
+			awaitedAlreadyLoadedAtomsByEntry[dynamicEntryIndex] = updatedLoadedAtoms;
+			for (const dynamicImport of awaitedDynamicImportsByEntry[dynamicEntryIndex]) {
+				getOrCreate(
+					dynamicallyDependentEntriesByAwaitedDynamicEntry,
+					dynamicImport,
+					getNewSet<number>
+				).add(dynamicEntryIndex);
+			}
+		}
+	}
+	return awaitedAlreadyLoadedAtomsByEntry;
 }
 
 /**

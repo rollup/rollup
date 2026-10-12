@@ -88,16 +88,16 @@ export async function rollupInternal(
 					...error_,
 					message: `There was an error during the build:\n  ${error_.message}\nAdditionally, handling the error in the 'buildEnd' hook caused the following error:\n  ${buildEndError.message}`
 				});
-				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]);
+				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]).catch(() => {});
 				throw compoundError;
 			}
-			await graph.pluginDriver.hookParallel('closeBundle', [error_]);
+			await graph.pluginDriver.hookParallel('closeBundle', [error_]).catch(() => {});
 			throw error_;
 		}
 		try {
 			await graph.pluginDriver.hookParallel('buildEnd', []);
 		} catch (buildEndError: any) {
-			await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]);
+			await graph.pluginDriver.hookParallel('closeBundle', [buildEndError]).catch(() => {});
 			throw buildEndError;
 		}
 	});

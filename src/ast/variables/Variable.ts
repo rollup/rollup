@@ -32,6 +32,13 @@ export default class Variable extends ExpressionEntity {
 		(this as { isReassigned: boolean }).isReassigned = true;
 	}
 
+	// Unlike isReassigned, set eagerly during binding for every assignment,
+	// including ones that are never included
+	readonly isTargetOfAssignment = false;
+	markTargetOfAssignment() {
+		(this as { isTargetOfAssignment: boolean }).isTargetOfAssignment = true;
+	}
+
 	constructor(public name: string) {
 		super();
 	}
