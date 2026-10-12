@@ -15,7 +15,6 @@
       "matchUpdateTypes": [
         "minor",
         "patch",
-        "lockFileMaintenance",
         "pin"
       ],
       "groupName": "minor/patch updates",
@@ -104,7 +103,12 @@
   "automerge": false,
   "internalChecksFilter": "strict",
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": true,
+    "schedule": [
+      "* 18-23 * * 4",
+      "* 0-5 * * 5"
+    ],
+    "automerge": true
   },
   "minimumReleaseAge": "3 days",
   "schedule": [
