@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.64.6
+
+_2026-10-13_
+
+### Bug Fixes
+
+- Do not tree-shake side effects in class instance fields (#6551)
+- Extend top-level-await detection to handle asynchronous for...of loops and async disposal (#6563)
+
+### Pull Requests
+
+- [#6551](https://github.com/rollup/rollup/pull/6551): Retain instance field initializers with side effects when instantiating a class (@SulimanAbdulrazzaq, @lukastaegert)
+- [#6563](https://github.com/rollup/rollup/pull/6563): Recognize top-level asynchronous loops and disposal (@TrickyPi)
+- [#6570](https://github.com/rollup/rollup/pull/6570): Lock file maintenance (@renovate[bot])
+- [#6571](https://github.com/rollup/rollup/pull/6571): Align lock file maintenance with other updates (@lukastaegert)
+- [#6573](https://github.com/rollup/rollup/pull/6573): Make addWatchFile watch test robust against watcher start-up timing (@lukastaegert)
+
 ## 4.64.5
 
 _2026-10-10_
