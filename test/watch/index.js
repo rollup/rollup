@@ -3502,7 +3502,6 @@ describe('rollup.watch', function () {
 
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', async () => {
-			const watchChangeIds = new Set();
 			const buildEndFile = path.resolve(path.join(INPUT_DIR, 'buildEnd'));
 			const buildStartFile = path.resolve(path.join(INPUT_DIR, 'buildStart'));
 			const generateBundleFile = path.resolve(path.join(INPUT_DIR, 'generateBUndle'));
@@ -3527,6 +3526,10 @@ describe('rollup.watch', function () {
 			];
 			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			await Promise.all(watchFiles.map(file => writeFile(file, 'initial')));
+			const missingWatchChangeIds = new Set(watchFiles);
+			const { promise: allWatchChangesAnnounced, resolve: resolveAllWatchChangesAnnounced } =
+				createDeferred();
+			let isTrackingWatchChanges = false;
 
 			watcher = rollup.watch({
 				input: ENTRY_FILE,
@@ -3567,31 +3570,50 @@ describe('rollup.watch', function () {
 						this.addWatchFile(writeBundleFile);
 					},
 					watchChange(id) {
-						watchChangeIds.add(id);
+						if (
+							isTrackingWatchChanges &&
+							missingWatchChangeIds.delete(id) &&
+							missingWatchChangeIds.size === 0
+						) {
+							resolveAllWatchChangesAnnounced();
+						}
 					}
 				}
 			});
-			return sequence(watcher, [
-				'START',
-				'BUNDLE_START',
-				'BUNDLE_END',
-				'END',
-				async () => {
-					assert.strictEqual(run(BUNDLE_FILE), 42);
-					// sometimes the watcher is triggered during the initial run
-					watchChangeIds.clear();
-
-					await Promise.all(watchFiles.map(file => writeFile(file, 'changed')));
-				},
-				'START',
-				'BUNDLE_START',
-				'BUNDLE_END',
-				'END',
-				() => {
-					assert.strictEqual(run(BUNDLE_FILE), 42);
-					assert.deepStrictEqual([...watchChangeIds].sort(), watchFiles.sort());
+			const waitForWatcherEvent = eventCode =>
+				new Promise((resolve, reject) => {
+					const listener = event => {
+						if (event.code === eventCode) {
+							resolve(event);
+						} else if (event.code === 'ERROR') {
+							reject(event.error);
+						} else {
+							watcher.once('event', listener);
+						}
+					};
+					watcher.once('event', listener);
+				});
+			await withTimeout(waitForWatcherEvent('END'), 10_000, () => {
+				throw new Error('The initial build did not finish.');
+			});
+			assert.strictEqual(run(BUNDLE_FILE), 42);
+			isTrackingWatchChanges = true;
+			const retryDeadline = Date.now() + 5000;
+			// File watchers may drop changes that happen before they are fully
+			// initialized, hence missing changes are written again until announced.
+			while (missingWatchChangeIds.size > 0) {
+				if (Date.now() > retryDeadline) {
+					throw new Error(
+						`Missing watchChange events for ${[...missingWatchChangeIds].join(', ')}`
+					);
 				}
-			]);
+				await Promise.all([...missingWatchChangeIds].map(file => writeFile(file, 'changed')));
+				await Promise.race([allWatchChangesAnnounced, wait(300)]);
+			}
+			await withTimeout(waitForWatcherEvent('END'), 10_000, () => {
+				throw new Error('The rebuild after the changes did not finish.');
+			});
+			assert.strictEqual(run(BUNDLE_FILE), 42);
 		});
 
 		it('respects changed watched files in the load hook', async () => {
