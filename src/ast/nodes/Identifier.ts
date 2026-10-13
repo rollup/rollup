@@ -49,6 +49,9 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 			this.isVariableReference = true;
+			if (this.assignmentInteraction) {
+				this.variable.markTargetOfAssignment();
+			}
 		}
 	}
 
@@ -79,6 +82,9 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 
 	deoptimizeAssignment(destructuredInitPath: ObjectPath, init: ExpressionEntity) {
 		this.deoptimizePath(EMPTY_PATH);
+		if (destructuredInitPath.length === 0) {
+			this.variable?.addReassignedValue(init);
+		}
 		init.deoptimizePath([...destructuredInitPath, UnknownKey]);
 	}
 

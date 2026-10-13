@@ -60,7 +60,7 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 	var main = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
 		get a () { return exports.a; },
-		foo: foo
+		foo: defaultCompat.foo
 	}, [defaultCompat__namespace]);
 
 	Object.defineProperty(exports, "foo", {

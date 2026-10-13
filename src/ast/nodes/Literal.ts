@@ -1,4 +1,3 @@
-import type MagicString from 'magic-string';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import {
@@ -101,9 +100,9 @@ export default class Literal<
 		return super.parseNode(esTreeNode);
 	}
 
-	render(code: MagicString): void {
+	render(): void {
 		if (typeof this.value === 'string') {
-			(code.indentExclusionRanges as [number, number][]).push([this.start + 1, this.end - 1]);
+			this.scope.context.addIndentExclusionRange([this.start + 1, this.end - 1]);
 		}
 	}
 }

@@ -144,12 +144,21 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 	function close(code: number | null | undefined): true {
 		process.removeListener('uncaughtException', closeWithError);
-		// removing a non-existent listener is a no-op
-		process.stdin.removeListener('end', close);
 		if (configWatcher) configWatcher.close();
-		Promise.resolve(watcher?.close()).finally(() => {
-			process.exit(typeof code === 'number' ? code : 0);
-		});
+		Promise.resolve(watcher?.close())
+			.finally(() => {
+				// The numeric branch is only evaluated while the process is already exiting,
+				// after coverage tools have written their counters.
+				/* istanbul ignore next */
+				const exitCode = typeof code === 'number' ? code : 0;
+				process.exitCode = exitCode;
+				// Calling process.exit directly can deadlock while V8 background tasks are
+				// still running, see https://github.com/nodejs/node/issues/54918. Letting the
+				// process exit naturally avoids this, but plugins may keep handles open.
+				// The ".unref()" ensures this handler does not block exit
+				setTimeout(() => process.exit(exitCode), 200).unref();
+			})
+			.catch(error => handleError(error, true));
 		// Tell signal-exit that we are handling this gracefully
 		return true;
 	}

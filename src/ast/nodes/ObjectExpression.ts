@@ -98,6 +98,14 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		this.getObjectEntity().includePath(path, context);
 	}
 
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		this.getObjectEntity().includeCallArgumentsWhenCalledAtPath(path, interaction, context);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,

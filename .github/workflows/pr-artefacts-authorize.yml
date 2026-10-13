@@ -1,0 +1,44 @@
+name: Authorize REPL artefacts
+
+on:
+  pull_request_target:
+    types:
+      - labeled
+
+permissions:
+  statuses: write # for recording the head-SHA-bound upload authorization
+  pull-requests: write # for removing the one-shot label
+
+jobs:
+  authorize:
+    name: Record authorization and remove label
+    # This workflow runs in a trusted context and must never check out or
+    # otherwise execute fork code.
+    if: ${{ github.event.label.name == 'x⁸ ⚙️ build repl artefacts' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      REPL_ARTEFACTS_LABEL: 'x⁸ ⚙️ build repl artefacts'
+    steps:
+      - name: Record authorization for the labeled head
+        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABELER: ${{ github.event.sender.login }}
+        run: |
+          gh api --silent --method POST "/repos/$REPOSITORY/statuses/$HEAD_SHA" \
+            -f state=success \
+            -f context=repl-artefacts-authorization \
+            -f description="Authorized via the \"$REPL_ARTEFACTS_LABEL\" label by @$LABELER"
+      - name: Remove label
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # The label is a one-shot trigger: it is removed immediately so that
+          # it can never authorize a later push.
+          gh pr edit "$PR_NUMBER" --repo "$REPOSITORY" --remove-label "$REPL_ARTEFACTS_LABEL"
