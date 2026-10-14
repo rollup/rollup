@@ -4,9 +4,11 @@ use swc_ecma_ast::{Class, Ident};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
   CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
-  CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SUPER_CLASS_OFFSET,
+  CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
+  CLASS_DECLARATION_SUPER_CLASS_OFFSET, NODE_TYPE_ID_CLASS_DECLARATION,
+  NODE_TYPE_ID_CLASS_EXPRESSION, TYPE_CLASS_DECLARATION,
 };
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::{AstConverter, DeclarationKind, ScopeType};
 
 impl AstConverter<'_> {
   pub(crate) fn store_class_node(
@@ -16,6 +18,12 @@ impl AstConverter<'_> {
     class: &Class,
     outside_class_span_decorators_insert_position: Option<u32>,
   ) {
+    let is_declaration = node_type == &TYPE_CLASS_DECLARATION;
+    let walk_entry = if is_declaration {
+      self.on_node_enter::<NODE_TYPE_ID_CLASS_DECLARATION>()
+    } else {
+      self.on_node_enter::<NODE_TYPE_ID_CLASS_EXPRESSION>()
+    };
     let end_position = self.add_type_and_start(
       node_type,
       &class.span,
@@ -45,10 +53,27 @@ impl AstConverter<'_> {
       body_start_search = class.decorators.last().unwrap().span.hi.0 - 1;
     }
     // id
-    if let Some(identifier) = identifier {
+    // A ClassDeclaration name binds in the parent/current lexical scope, so the
+    // ClassScope is pushed only after the id is recorded. A ClassExpression name
+    // binds in the class's own ClassScope, so the scope is pushed first.
+    if !is_declaration {
+      self.push_scope(
+        ScopeType::Class,
+        end_position + CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
+    }
+    if let Some(class_name) = identifier {
       self.update_reference_position(end_position + CLASS_DECLARATION_ID_OFFSET);
-      self.convert_identifier(identifier);
-      body_start_search = identifier.span.hi.0 - 1;
+      self.with_declaration_kind(DeclarationKind::Lexical, |ast_converter| {
+        ast_converter.convert_identifier(class_name);
+      });
+      body_start_search = class_name.span.hi.0 - 1;
+    }
+    if is_declaration {
+      self.push_scope(
+        ScopeType::Class,
+        end_position + CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
+      );
     }
     // super_class
     if let Some(super_class) = class.super_class.as_ref() {
@@ -63,5 +88,7 @@ impl AstConverter<'_> {
     self.store_class_body(&class.body, class_body_start, class.span.hi.0 - 1);
     // end
     self.add_end(end_position, &class.span);
+    self.pop_scope();
+    self.on_node_exit(walk_entry);
   }
 }

@@ -1,5 +1,7 @@
-import { D as DEP } from './generated-dynamic.js';
+const DEP = 'DEP';
 
-Promise.all([import('./generated-dynamic.js').then(function (n) { return n.b; }), import('./generated-dynamic.js').then(function (n) { return n.d; }), import('./generated-dynamic.js').then(function (n) { return n.a; })]).then(
+Promise.all([import('./generated-dynamic.js'), import('./generated-dynamic2.js'), import('./generated-dynamic3.js')]).then(
 	results => console.log(results, DEP)
 );
+
+export { DEP as D };

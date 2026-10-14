@@ -11,17 +11,19 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
-	declare arguments: ExpressionNode[];
-	declare callee: ExpressionNode;
+	declare parent: nodes.NewExpressionParent;
+	declare arguments: nodes.Expression[];
+	declare callee: nodes.Expression;
 	declare type: NodeType.tNewExpression;
 	declare private interaction: NodeInteractionCalled;
 	/** Marked with #__PURE__ annotation */
-	declare annotationPure?: boolean;
+	annotationPure?: boolean;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

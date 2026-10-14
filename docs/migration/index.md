@@ -1,10 +1,72 @@
 ---
-title: Migrating to Rollup 4
+title: Migrating to Rollup 5
 ---
 
 # {{ $frontmatter.title }}
 
 [[toc]]
+
+This is a list of the most important topics you may encounter when migrating from Rollup 4 to Rollup 5. For a full list of breaking changes, we advise you to consult the
+
+- [Rollup 5 changelog](https://github.com/rollup/rollup/blob/master/CHANGELOG.md#500)
+
+For how to migrate from earlier versions, [see below](#migrating-to-rollup-4).
+
+## Prerequisites
+
+Make sure you run at least Node 22.18.0 and update all your Rollup plugins to their latest versions.
+
+## Changes to the Plugin API
+
+The most significant change in Rollup 5 is that **import attributes are now part of a module's identity**. This means that importing the same resolved module with different import attributes no longer emits a warning but instead creates separate, distinct modules. See [Module identity](../plugin-development/index.md#module-identity) for details on the `rawId`, `attributes`, and composite `id` properties this introduces.
+
+Since the `id` of a module now encodes import attributes, plugins that match on the `id` of a module need to account for the encoded attributes, e.g. by matching on the `rawId` in the handler or by allowing a query suffix in the `id` filter of `load`/`transform` hooks, e.g. `/\.json($|\?)/`.
+
+### Renamed and added hook options
+
+Several output-phase hooks had their `attributes` option renamed to `moduleAttributes` for consistency, and a `moduleRawId` option was added alongside it:
+
+- In [`resolveFileUrl`](../plugin-development/index.md#resolvefileurl) and [`resolveImportMeta`](../plugin-development/index.md#resolveimportmeta), the `attributes` option was renamed to `moduleAttributes`, and `moduleRawId` was added.
+- In [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport), `moduleRawId` and `moduleAttributes` were added for the importing module, and `targetModuleRawId` was added alongside the existing `targetModuleAttributes`.
+
+The build-phase hooks [`load`](../plugin-development/index.md#load), [`transform`](../plugin-development/index.md#transform), and [`shouldTransformCachedModule`](../plugin-development/index.md#shouldtransformcachedmodule) now receive a `rawId` option alongside `attributes`, and [`resolveId`](../plugin-development/index.md#resolveid) and [`resolveDynamicImport`](../plugin-development/index.md#resolvedynamicimport) now receive `importerRawId` alongside `importerAttributes`.
+
+### `this.resolve` and `this.load` accept `UniqueModuleId`
+
+The `importer` parameter of [`this.resolve`](../plugin-development/index.md#this-resolve) and the `id` parameter of [`this.load`](../plugin-development/index.md#this-load) now accept a [`UniqueModuleId`](../plugin-development/index.md#this-getmoduleinfo) — either a string (interpreted as the full module id, which may contain encoded import attributes) or an object `{ rawId, attributes }`. The deprecated `importerAttributes` option of `this.resolve` can still be used together with a string `importer` for backwards compatibility, but will be removed in a future version.
+
+### `this.emitFile` and `this.getModuleInfo`
+
+[`this.emitFile`](../plugin-development/index.md#this-emitfile) now accepts `attributes` on emitted chunks, and the `importer` and `implicitlyLoadedAfterOneOf` options accept `UniqueModuleId` values. [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) accepts a `UniqueModuleId` and the returned `ModuleInfo` now includes `rawId` and `attributes` (moved from `ModuleOptions`).
+
+### Removed `INCONSISTENT_IMPORT_ATTRIBUTES` warning
+
+The `INCONSISTENT_IMPORT_ATTRIBUTES` warning is gone. Previously, importing the same module with different attributes triggered this warning; now each combination of `rawId` and `attributes` is a distinct module. If you were filtering or handling this warning, remove that logic.
+
+### `load` and `transform` returning `attributes` is now deprecated
+
+Returning `attributes` from the [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook is now deprecated and will emit a `DEPRECATED_FEATURE` warning; previously, it was silently ignored unless `strictDeprecations` was enabled. Attributes are determined at resolution time and cannot be overridden by these hooks.
+
+### New fields on output types
+
+`PreRenderedChunk`, `RenderedChunk`, and `OutputChunk` now expose `facadeModuleRawId` and `facadeModuleAttributes`. `RenderedModule` now exposes `rawId` and `attributes`.
+
+### `external`, `output.globals`, and `output.paths`
+
+The function forms of [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) now receive an additional `options` parameter containing `attributes` (and, for `external`, `importerRawId` and `importerAttributes`).
+
+The object forms of `output.globals` and `output.paths` are keyed by the `rawId` of external modules, i.e. the id without encoded import attributes; all import attribute variants of a module share one entry. If several variants of the same external module would be assigned the same global name this way, Rollup emits an `AMBIGUOUS_GLOBAL_NAME` warning; use the function form to give each variant its own global name.
+
+## Reworked manual chunks
+
+Manual chunks no longer absorb their full transitive dependency subtree. Instead, they either behave like entry points or contain exactly their assigned modules, controlled by [`onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks), which now applies to both the object and the function form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), with `false` as default for the object form and `true` for the function form:
+
+- When `onlyExplicitManualChunks` is `false` (object form by default), a manual chunk behaves like an entry point: it contains the listed modules and all modules that are always loaded together with them, while modules that are shared with other entries or manual chunks are extracted into separate chunks.
+- When `onlyExplicitManualChunks` is `true` (function form by default), the chunk contains exactly the modules that are explicitly assigned to it, and their dependencies are chunked normally into separate chunks. If you relied on the function form merging dependencies into your manual chunks, either set `onlyExplicitManualChunks: false` or list the dependencies yourself.
+
+If none of the modules of a manual chunk are included in the bundle—for instance because you only listed a pure re-export barrel file that your imports bypass—the chunk is no longer emitted. Previously, such a chunk still received the dependencies of the listed module; now Rollup skips it and emits an `EMPTY_MANUAL_CHUNK` warning. Also, the text of the `CIRCULAR_CHUNK` warning has changed.
+
+## Migrating to Rollup 4
 
 This is a list of the most important topics you may encounter when migrating from Rollup 3 to Rollup 4. For a full list of breaking changes, we advise you to consult the
 

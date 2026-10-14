@@ -1,18 +1,18 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
-	type StatementNode
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class DoWhileStatement extends StatementBase {
-	declare body: StatementNode;
-	declare test: ExpressionNode;
+export default class DoWhileStatement extends NodeBase {
+	declare parent: nodes.DoWhileStatementParent;
+	declare body: nodes.Statement;
+	declare test: nodes.Expression;
 	declare type: NodeType.tDoWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {

@@ -9,12 +9,13 @@
 - **incremental**: behavior across multiple runs with cache; **sourcemaps**: map assertions
 - Do not add new tests to `test/hooks` (legacy plugin-interface suite) — use `function` tests instead
 - `test/misc` and `test/incremental` are hand-written mocha files: add the file AND require it from the category `index.js`
+- `test/smoke` is a standalone suite invoked via `npm run test:smoke` in the cross-arch CI smoke job; it is NOT part of `test:only` as it rebuilds `dist/` via the config test and, when `dist-wasm/` exists, also runs `test:ast` against the WASM dist
 - `test/watch` tests are code in `watch/index.js`; its `samples/` only holds input files — no `_config.js` per watch test
 - All runners test the built `dist/` artifact, never `src/`
 
 ## Running Tests
 
-- Fast loop: add `solo: true` to the `_config.js`, run `npm run build:quick` then `npm run test:quick` (bails on first failure). Remove `solo` before committing — it disables the entire suite
+- Fast loop: add `solo: true` to the `_config.js`, run `npm run build:quick` then `npm run test:quick` (bails on first failure). Remove `solo` before committing — it disables the entire suite and fails the CI run, where mocha forbids `.only`
 - `test:quick` does not run browser tests, and some CLI tests require the ES build and fail without it — use the full build and `npm run test:all` before declaring those green
 - On Windows, `core.symlinks true` is required or symlink-based tests fail
 - `npm run test:update-snapshots` walks ALL form and chunking-form samples and copies `_actual`/`_actual.js` over `_expected`, throwing when any sample lacks output — a full (non-bailed) prior run must have produced fresh `_actual` output everywhere

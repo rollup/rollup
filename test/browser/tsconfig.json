@@ -1,8 +1,12 @@
 {
   "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["esnext", "dom"]
+  },
   "include": [
     "**/_config.js",
     "./index.js",
+    "./ast-buffer.js",
     "./define.d.ts"
   ]
 }

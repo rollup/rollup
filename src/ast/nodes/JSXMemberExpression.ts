@@ -1,12 +1,14 @@
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import type JSXIdentifier from './JSXIdentifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class JSXMemberExpression extends NodeBase {
+	declare parent: nodes.JSXMemberExpressionParent;
 	declare type: NodeType.tJSXMemberExpression;
-	declare object: JSXMemberExpression | JSXIdentifier;
+	declare object: nodes.JSXTagNameExpression;
 	declare property: JSXIdentifier;
 
 	includeNode(context: InclusionContext) {
