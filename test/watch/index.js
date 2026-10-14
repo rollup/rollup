@@ -3812,8 +3812,11 @@ describe('rollup.watch', function () {
 		it('reports the creation of initially missing watched files when several of them are in the same directory', async () => {
 			const extensionlessWatchId = path.join(INPUT_DIR, 'dep');
 			const watchedId = path.join(INPUT_DIR, 'dep.js');
-			let isCreationReported = false;
-			const { promise: creationReported, resolve: resolveCreationReported } = createDeferred();
+			// Which missing file wins chokidar's shared directory throttle
+			// depends on registration order, so the creation of both files must
+			// be reported to reproduce the issue independent of that ordering.
+			const reportedCreations = new Set();
+			const { promise: creationsReported, resolve: resolveCreationsReported } = createDeferred();
 			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			watcher = rollup.watch({
 				input: ENTRY_FILE,
@@ -3828,9 +3831,11 @@ describe('rollup.watch', function () {
 						this.addWatchFile(watchedId);
 					},
 					watchChange(id, { event }) {
-						if (id === watchedId && event === 'create') {
-							isCreationReported = true;
-							resolveCreationReported();
+						if (event === 'create' && (id === extensionlessWatchId || id === watchedId)) {
+							reportedCreations.add(id);
+							if (reportedCreations.size === 2) {
+								resolveCreationsReported();
+							}
 						}
 					}
 				}
@@ -3840,13 +3845,15 @@ describe('rollup.watch', function () {
 			});
 			const retryDeadline = Date.now() + 5000;
 			// File watchers may drop changes that happen before they are fully
-			// initialized, hence the file is created again until the creation is reported.
-			while (!isCreationReported) {
+			// initialized, hence the files are created again until the creations
+			// are reported.
+			while (reportedCreations.size < 2) {
 				if (Date.now() > retryDeadline) {
-					throw new Error('The creation of the watched file was not reported.');
+					throw new Error('The creation of the watched files was not reported.');
 				}
+				atomicWriteFileSync(extensionlessWatchId, '');
 				atomicWriteFileSync(watchedId, '');
-				await Promise.race([creationReported, wait(300)]);
+				await Promise.race([creationsReported, wait(300)]);
 			}
 			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
 				throw new Error('The rebuild after the creation did not finish.');
