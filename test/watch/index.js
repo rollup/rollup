@@ -3580,20 +3580,7 @@ describe('rollup.watch', function () {
 					}
 				}
 			});
-			const waitForWatcherEvent = eventCode =>
-				new Promise((resolve, reject) => {
-					const listener = event => {
-						if (event.code === eventCode) {
-							resolve(event);
-						} else if (event.code === 'ERROR') {
-							reject(event.error);
-						} else {
-							watcher.once('event', listener);
-						}
-					};
-					watcher.once('event', listener);
-				});
-			await withTimeout(waitForWatcherEvent('END'), 10_000, () => {
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
 				throw new Error('The initial build did not finish.');
 			});
 			assert.strictEqual(run(BUNDLE_FILE), 42);
@@ -3610,7 +3597,7 @@ describe('rollup.watch', function () {
 				await Promise.all([...missingWatchChangeIds].map(file => writeFile(file, 'changed')));
 				await Promise.race([allWatchChangesAnnounced, wait(300)]);
 			}
-			await withTimeout(waitForWatcherEvent('END'), 10_000, () => {
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
 				throw new Error('The rebuild after the changes did not finish.');
 			});
 			assert.strictEqual(run(BUNDLE_FILE), 42);
@@ -3822,6 +3809,50 @@ describe('rollup.watch', function () {
 			]);
 		});
 
+		it('reports the creation of initially missing watched files when several of them are in the same directory', async () => {
+			const extensionlessWatchId = path.join(INPUT_DIR, 'dep');
+			const watchedId = path.join(INPUT_DIR, 'dep.js');
+			let isCreationReported = false;
+			const { promise: creationReported, resolve: resolveCreationReported } = createDeferred();
+			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			watcher = rollup.watch({
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						this.addWatchFile(extensionlessWatchId);
+						this.addWatchFile(watchedId);
+					},
+					watchChange(id, { event }) {
+						if (id === watchedId && event === 'create') {
+							isCreationReported = true;
+							resolveCreationReported();
+						}
+					}
+				}
+			});
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The initial build did not finish.');
+			});
+			const retryDeadline = Date.now() + 5000;
+			// File watchers may drop changes that happen before they are fully
+			// initialized, hence the file is created again until the creation is reported.
+			while (!isCreationReported) {
+				if (Date.now() > retryDeadline) {
+					throw new Error('The creation of the watched file was not reported.');
+				}
+				atomicWriteFileSync(watchedId, '');
+				await Promise.race([creationReported, wait(300)]);
+			}
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The rebuild after the creation did not finish.');
+			});
+		});
+
 		it('respects unlinked and re-added watched files', async () => {
 			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			await writeFile(path.join(INPUT_DIR, 'dep'), '');
@@ -3915,6 +3946,21 @@ function run(file) {
 	const resolved = require.resolve(file);
 	delete require.cache[resolved];
 	return require(resolved);
+}
+
+function waitForWatcherEvent(watcher, eventCode) {
+	return new Promise((resolve, reject) => {
+		const listener = event => {
+			if (event.code === eventCode) {
+				resolve(event);
+			} else if (event.code === 'ERROR') {
+				reject(event.error);
+			} else {
+				watcher.once('event', listener);
+			}
+		};
+		watcher.once('event', listener);
+	});
 }
 
 function sequence(watcher, events, timeout = 300) {
