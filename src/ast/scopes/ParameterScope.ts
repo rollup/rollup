@@ -51,6 +51,12 @@ export default class ParameterScope extends ChildScope {
 		this.hasRest = hasRest;
 	}
 
+	hasParameterCalledFromTryStatement(): boolean {
+		return this.parameters.some(parameterVariables =>
+			parameterVariables.some(variable => variable.calledFromTryStatement)
+		);
+	}
+
 	includeCallArguments({ args }: NodeInteractionCalled, context: InclusionContext): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;

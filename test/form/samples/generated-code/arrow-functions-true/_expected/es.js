@@ -1,6 +1,6 @@
 import 'externalNoImport';
 import * as defaultCompat from 'external';
-import defaultCompat__default, { b } from 'external';
+import defaultCompat__default, { b, foo } from 'external';
 export * from 'external';
 export { foo } from 'external';
 import externalAuto from 'externalAuto';

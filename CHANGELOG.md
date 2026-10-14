@@ -1,5 +1,146 @@
 # rollup changelog
 
+## 4.64.6
+
+_2026-10-13_
+
+### Bug Fixes
+
+- Do not tree-shake side effects in class instance fields (#6551)
+- Extend top-level-await detection to handle asynchronous for...of loops and async disposal (#6563)
+
+### Pull Requests
+
+- [#6551](https://github.com/rollup/rollup/pull/6551): Retain instance field initializers with side effects when instantiating a class (@SulimanAbdulrazzaq, @lukastaegert)
+- [#6563](https://github.com/rollup/rollup/pull/6563): Recognize top-level asynchronous loops and disposal (@TrickyPi)
+- [#6570](https://github.com/rollup/rollup/pull/6570): Lock file maintenance (@renovate[bot])
+- [#6571](https://github.com/rollup/rollup/pull/6571): Align lock file maintenance with other updates (@lukastaegert)
+- [#6573](https://github.com/rollup/rollup/pull/6573): Make addWatchFile watch test robust against watcher start-up timing (@lukastaegert)
+
+## 4.64.5
+
+_2026-10-10_
+
+### Bug Fixes
+
+- Prevent cycles when using indirect top-level await for dynamic imports (#6516)
+
+### Pull Requests
+
+- [#6516](https://github.com/rollup/rollup/pull/6516): fix: prevent cycles for indirectly awaited dynamic imports (@ryanchou1994, @lukastaegert)
+
+## 4.64.4
+
+_2026-10-10_
+
+### Bug Fixes
+
+- Support the Rollup WASM build on big-endian hosts (#6559)
+
+### Pull Requests
+
+- [#6559](https://github.com/rollup/rollup/pull/6559): fix: read the AST buffer correctly on big-endian hosts (@pkubaj, @lukastaegert)
+- [#6566](https://github.com/rollup/rollup/pull/6566): Update dtolnay/rust-toolchain digest to 89b1218 (@renovate[bot], @lukastaegert)
+- [#6567](https://github.com/rollup/rollup/pull/6567): Update minor/patch updates (@renovate[bot])
+- [#6568](https://github.com/rollup/rollup/pull/6568): Update dependency eslint-plugin-unicorn to v77 (@renovate[bot], @lukastaegert)
+- [#6569](https://github.com/rollup/rollup/pull/6569): Improve PR testing instructions comments (@lukastaegert)
+
+## 4.64.3
+
+_2026-10-08_
+
+### Bug Fixes
+
+- Fix a performance regression when bundling code with deeply nested property calls (#6565)
+
+### Pull Requests
+
+- [#6565](https://github.com/rollup/rollup/pull/6565): Fix path-dependent explosion when including call arguments of reassigned variables (@lukastaegert)
+
+## 4.64.2
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Fix a regression where certain CoreJS helpers were wrongly tree-shaken (#6562)
+- Do not show errors from closeBundle if there were also build errors (#6554)
+
+### Pull Requests
+
+- [#6554](https://github.com/rollup/rollup/pull/6554): Preserve build errors when closeBundle fails (@Jo2234, @lukastaegert)
+- [#6561](https://github.com/rollup/rollup/pull/6561): Rework REPL artefacts and performance report workflows (@lukastaegert)
+- [#6562](https://github.com/rollup/rollup/pull/6562): Do not resolve values of assigned variables returned on all paths (@lukastaegert)
+
+## 4.64.1
+
+_2026-10-07_
+
+### Bug Fixes
+
+- Slightly improve performance when rendering ES output (#6534)
+
+### Pull Requests
+
+- [#6534](https://github.com/rollup/rollup/pull/6534): Avoid repeated export name scans when rendering ES chunks (@irontaek, @lukastaegert)
+- [#6552](https://github.com/rollup/rollup/pull/6552): chore(ci): remove redundant rust-src setup (@TrickyPi, @lukastaegert)
+- [#6555](https://github.com/rollup/rollup/pull/6555): Lock file maintenance (@renovate[bot], @lukastaegert)
+
+## 4.64.0
+
+_2026-10-02_
+
+### Features
+
+- Improve try-catch deoptimization to cover calling methods on objects (#6541)
+
+### Bug Fixes
+
+- Fix a situation where some feature-detections of core-js were not triggering properly (#6541)
+
+### Pull Requests
+
+- [#6541](https://github.com/rollup/rollup/pull/6541): Retain callbacks of helper methods called from try statements (@lukastaegert)
+- [#6542](https://github.com/rollup/rollup/pull/6542): Run additional tests as part of the coverage job (@lukastaegert)
+- [#6544](https://github.com/rollup/rollup/pull/6544): Update msys2/setup-msys2 digest to ec48f7c (@renovate[bot], @lukastaegert)
+- [#6545](https://github.com/rollup/rollup/pull/6545): Update minor/patch updates (@renovate[bot])
+- [#6546](https://github.com/rollup/rollup/pull/6546): Update dependency @mermaid-js/mermaid-cli to v12 (@renovate[bot])
+- [#6547](https://github.com/rollup/rollup/pull/6547): Update Rust crate swc_compiler_base to v65 (@renovate[bot])
+
+## 4.63.6
+
+_2026-10-01_
+
+### Bug Fixes
+
+- Ensure external reexports are always imported when used in a reified dynamic namespace (#6540)
+
+### Pull Requests
+
+- [#6527](https://github.com/rollup/rollup/pull/6527): Update minor/patch updates (@renovate[bot])
+- [#6529](https://github.com/rollup/rollup/pull/6529): Update dependency eslint-plugin-unicorn to v76 (@renovate[bot])
+- [#6530](https://github.com/rollup/rollup/pull/6530): Lock file maintenance (@renovate[bot])
+- [#6535](https://github.com/rollup/rollup/pull/6535): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6540](https://github.com/rollup/rollup/pull/6540): Import external re-exports used by shared-chunk namespace objects (@00200200)
+
+## 4.63.5
+
+_2026-09-24_
+
+### Bug Fixes
+
+- Fix an issue where watch mode would hang instead of terminating when closing via Ctrl+C (#6521)
+- Avoid starting overlapping watch mode runs when plugins invalidate files at the wrong time (#6526)
+- Fix many edge cases where watch mode events were not properly emitted to listeners, especially when errors occur (#6526)
+
+### Pull Requests
+
+- [#6520](https://github.com/rollup/rollup/pull/6520): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6521](https://github.com/rollup/rollup/pull/6521): Terminate watch mode via natural process exit when possible (@lukastaegert)
+- [#6523](https://github.com/rollup/rollup/pull/6523): Protect cc pin against renovate lock file maintenance (@lukastaegert)
+- [#6525](https://github.com/rollup/rollup/pull/6525): docs: fix typos 'interations' and 'coresponding' (@haimingZZ)
+- [#6526](https://github.com/rollup/rollup/pull/6526): fix(watch): prevent overlapping runs and other run lifecycle bugs (@lukastaegert)
+
 ## 4.63.4
 
 _2026-09-19_

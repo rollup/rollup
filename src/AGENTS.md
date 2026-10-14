@@ -48,7 +48,7 @@
 
 ## Watch Mode
 
-- Watch reuses `rollupInternal` with a non-null watcher — never duplicate build logic in `src/watch/`
+- Watch reuses `rollupInternal` with non-null `registerWatchHooks` — never duplicate build logic in `src/watch/`
 - Module invalidation (marking, nulling `originalCode`) is immediate; only the rebuild is coalesced: change events accumulate in `invalidatedIds`, and while a run is active a rerun is scheduled instead
-- Graph-registered listeners (`watchChange`/`closeWatcher`) are per-run: they survive the completed run to receive its events and are cleared after the `change`/`restart` emissions, right before the next run; user handlers persist
+- Each Task holds the `watchChange`/`closeWatcher` hooks of its latest Graph; a Graph hands them over at construction, replacing the previous ones. The Watcher calls them next to the `change`/`close` events. `onCurrentRun` is only for third parties
 - Transform-dependency invalidation nulls `originalCode` on cached modules to force re-transform

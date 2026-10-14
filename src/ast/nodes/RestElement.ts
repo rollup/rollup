@@ -95,6 +95,10 @@ export default class RestElement extends NodeBase implements DeclarationPatternN
 		(this.argument as DeclarationPatternNode).markDeclarationReached();
 	}
 
+	setAssignedValue(value: ExpressionEntity): void {
+		this.argument.setAssignedValue(value);
+	}
+
 	applyDeoptimizations() {
 		this.deoptimized = true;
 		if (this.declarationInit !== null) {

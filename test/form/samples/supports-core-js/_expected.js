@@ -7734,7 +7734,7 @@ function requireObjectIsExtensible () {
 
 	// eslint-disable-next-line es/no-object-isextensible -- safe
 	var $isExtensible = Object.isExtensible;
-	var FAILS_ON_PRIMITIVES = fails(function () { });
+	var FAILS_ON_PRIMITIVES = fails(function () { $isExtensible(1); });
 
 	// `Object.isExtensible` method
 	// https://tc39.es/ecma262/#sec-object.isextensible
@@ -10111,7 +10111,7 @@ function requireEs_object_isFrozen () {
 	// eslint-disable-next-line es/no-object-isfrozen -- safe
 	var $isFrozen = Object.isFrozen;
 
-	var FORCED = ARRAY_BUFFER_NON_EXTENSIBLE || fails(function () { });
+	var FORCED = ARRAY_BUFFER_NON_EXTENSIBLE || fails(function () { $isFrozen(1); });
 
 	// `Object.isFrozen` method
 	// https://tc39.es/ecma262/#sec-object.isfrozen
@@ -10141,7 +10141,7 @@ function requireEs_object_isSealed () {
 	// eslint-disable-next-line es/no-object-issealed -- safe
 	var $isSealed = Object.isSealed;
 
-	var FORCED = ARRAY_BUFFER_NON_EXTENSIBLE || fails(function () { });
+	var FORCED = ARRAY_BUFFER_NON_EXTENSIBLE || fails(function () { $isSealed(1); });
 
 	// `Object.isSealed` method
 	// https://tc39.es/ecma262/#sec-object.issealed

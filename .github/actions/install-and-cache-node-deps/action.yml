@@ -10,8 +10,8 @@ runs:
         path:  |
           node_modules
           ~/.npm
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-        restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('patches/**') }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('patches/**') }}-
     - name: Pin npm version and install Node dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: |
@@ -66,4 +66,4 @@ runs:
         path: |
           node_modules
           ~/.npm
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('patches/**') }}-${{ hashFiles('package-lock.json') }}

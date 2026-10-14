@@ -3,7 +3,7 @@ use swc_ecma_ast::{Expr, Lit, ModuleItem, Program, Stmt};
 use crate::convert_ast::converter::ast_constants::{
   PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET, PROGRAM_RESERVED_BYTES, TYPE_PROGRAM,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_program(&mut self, body: ModuleItemsOrStatements) {
@@ -66,7 +66,7 @@ impl AstConverter<'_> {
         &invalid_annotations,
         end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
-          convert_annotation(&mut ast_converter.buffer, annotation);
+          ast_converter.convert_annotation(annotation);
           true
         },
       );

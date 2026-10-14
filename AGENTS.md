@@ -78,9 +78,16 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - Test names and descriptions use clear, descriptive language of the expected behavior, e.g. "description: 'does X when Y happens"
 - Category selection, runner contracts and pitfalls: see `test/AGENTS.md`
 
+## CI Workflows
+
+- `gh api`: passing any `-f`/`-F` field switches the request to POST unless `--method` is given, and only `-F` (not `-f`) reads values starting with `@` from a file.
+- `pull_request_target` and `workflow_run` workflows run in a trusted context and must never check out or execute fork code or build outputs.
+- Fork PRs publish REPL artefacts only after a maintainer adds the "x⁸ ⚙️ build repl artefacts" label, which records a head-SHA-bound authorization that the trusted publish workflow re-validates — never gate in the build workflow, fork PRs control its contents. The artefacts are served via rollupjs.org, so changing this gating is a security-relevant decision.
+- The testing-instructions comment wording and its install-location allowlist (`^[A-Za-z0-9._/-]+$`, guarding against markdown/shell injection via fork-controlled repository and branch names) are duplicated between the "PR testing instructions" and "Publish PR artefacts" workflows and must be kept in sync.
+
 ## GitHub Issues and Pull Requests
 
-- Issues need to follow the coresponding template in `.github/ISSUE_TEMPLATE/*`
+- Issues need to follow the corresponding template in `.github/ISSUE_TEMPLATE/*`
 - Pull requests need to follow `.github/PULL_REQUEST_TEMPLATE.md`.
 - Bugfixes and features need tests; for a bugfix, add a regression test that fails without the fix, in the same change as the fix.
 - When changing or adding a feature, check if documentation in `docs/*/index.md` should be changed and update it in the same pull request.
