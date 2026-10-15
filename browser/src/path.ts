@@ -52,13 +52,13 @@ export function join(...segments: string[]): string {
 	const joined = segments.filter(Boolean).join('/');
 	if (joined === '') return '.';
 	const absolute = ANY_SLASH_REGEX.test(joined[0]);
-	const normalized = normalizePathSegments(joined.split(ANY_SLASH_REGEX), absolute);
+	const normalized = normalizePathSegments(joined.split(ANY_SLASH_REGEX), absolute).join('/');
 	const result = (absolute ? '/' : '') + (normalized || (absolute ? '' : '.'));
 	// node:path keeps a trailing slash
 	return TRAILING_SLASHES_REGEX.test(joined) && !result.endsWith('/') ? result + '/' : result;
 }
 
-function normalizePathSegments(parts: string[], absolute = false): string {
+function normalizePathSegments(parts: string[], absolute = false): string[] {
 	const normalized: string[] = [];
 	// A drive like "C:" is the root of the path, so ".." cannot climb above it
 	const root = DRIVE_REGEX.test(parts[0]) ? 1 : 0;
@@ -73,21 +73,14 @@ function normalizePathSegments(parts: string[], absolute = false): string {
 			normalized.push(part);
 		}
 	}
-	return normalized.join('/');
+	return normalized;
 }
 
 export function relative(from: string, to: string): string {
 	// "." and ".." segments are collapsed on both sides first, as node:path
 	// does, so that "/a/./b" and "/a/b" describe the same location.
-	const fromParts = normalizePathSegments(from.split(ANY_SLASH_REGEX), isAbsolute(from))
-		.split('/')
-		.filter(Boolean);
-	const toParts = normalizePathSegments(to.split(ANY_SLASH_REGEX), isAbsolute(to))
-		.split('/')
-		.filter(Boolean);
-
-	if (fromParts[0] === '.') fromParts.shift();
-	if (toParts[0] === '.') toParts.shift();
+	const fromParts = normalizePathSegments(from.split(ANY_SLASH_REGEX), isAbsolute(from));
+	const toParts = normalizePathSegments(to.split(ANY_SLASH_REGEX), isAbsolute(to));
 
 	while (fromParts[0] && toParts[0] && fromParts[0] === toParts[0]) {
 		fromParts.shift();
@@ -117,7 +110,7 @@ export function resolve(...paths: string[]): string {
 			parts.push(...path.split(ANY_SLASH_REGEX));
 		}
 	}
-	const normalized = normalizePathSegments(parts, isAbsoluteResult);
+	const normalized = normalizePathSegments(parts, isAbsoluteResult).join('/');
 	if (!isAbsoluteResult) return normalized || '/';
 	// Windows absolute paths (e.g. "C:/path") must not get a leading "/" prepended.
 	// Unix absolute paths must start with "/".
