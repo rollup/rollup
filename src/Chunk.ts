@@ -116,6 +116,7 @@ export type ChunkExports = {
 	expression: string | null;
 	hoisted: boolean;
 	local: string;
+	needsLiveBinding: boolean;
 }[];
 
 export interface ReexportSpecifier {
@@ -953,7 +954,8 @@ export default class Chunk {
 				exported: exportName,
 				expression,
 				hoisted,
-				local
+				local,
+				needsLiveBinding: variable.isReassigned
 			});
 		}
 		return exports;

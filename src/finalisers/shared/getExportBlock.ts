@@ -88,11 +88,23 @@ export function getExportBlock(
 		}
 	}
 
-	for (const { exported, local } of exports) {
+	for (const { exported, local, needsLiveBinding } of exports) {
 		const lhs = `exports${getPropertyAccess(exported)}`;
 		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
+			if (needsLiveBinding) {
+				const [left, right] = getDirectReturnFunction([], {
+					functionReturn: true,
+					lineBreakIndent: null,
+					name: null
+				});
+				exportBlock +=
+					`Object.defineProperty(exports,${_}${JSON.stringify(exported)},${_}{${n}` +
+					`${t}enumerable:${_}true,${n}` +
+					`${t}get:${_}${left}${rhs}${right}${n}});`;
+				continue;
+			}
 			exportBlock +=
 				exported === '__proto__'
 					? `Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
