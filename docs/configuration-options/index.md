@@ -2228,6 +2228,8 @@ const bar = require('your-lib').bar;
 const { default: foo, bar } = require('your-lib');
 ```
 
+Named exports remain live when the exported variable is reassigned, including when the same variable is exported under multiple names. CommonJS consumers must read the properties of the exports object to observe updates; destructuring `require(...)` copies their current values.
+
 Note: There are some tools such as Babel, TypeScript, Webpack, and `@rollup/plugin-commonjs` that are capable of resolving a CommonJS `require(...)` call with an ES module. If you are generating CommonJS output that is meant to be interchangeable with ESM output for those tools, you should always use `named` export mode. The reason is that most of those tools will by default return the namespace of an ES module on `require` where the default export is the `.default` property.
 
 In other words for those tools, you cannot create a package interface where `const lib = require("your-lib")` yields the same as `import lib from "your-lib"`. With named export mode however, `const {lib} = require("your-lib")` will be equivalent to `import {lib} from "your-lib"`.
