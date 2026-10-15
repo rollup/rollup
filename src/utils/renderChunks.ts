@@ -59,14 +59,16 @@ export async function renderChunks(
 		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
 		placeholders,
-		renderedChunksByPlaceholder
+		renderedChunksByPlaceholder,
+		usedFileNames
 	} = await transformChunksAndGenerateContentHashes(
 		renderedChunks,
 		chunkGraph,
 		outputOptions,
 		pluginDriver,
 		getHash,
-		log
+		log,
+		bundle
 	);
 	const hashesByPlaceholder = generateFinalHashes(
 		renderedChunksByPlaceholder,
@@ -74,6 +76,7 @@ export async function renderChunks(
 		initialHashesByPlaceholder,
 		placeholders,
 		bundle,
+		usedFileNames,
 		getHash
 	);
 	addChunksToBundle(
@@ -205,7 +208,8 @@ async function transformChunksAndGenerateContentHashes(
 	outputOptions: NormalizedOutputOptions,
 	pluginDriver: PluginDriver,
 	getHash: GetHash,
-	log: LogHandler
+	log: LogHandler,
+	bundle: OutputBundleWithPlaceholders
 ) {
 	const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 	const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
@@ -217,7 +221,7 @@ async function transformChunksAndGenerateContentHashes(
 	} of renderedChunks) {
 		if (hashPlaceholder) placeholders.add(hashPlaceholder);
 	}
-	await Promise.all(
+	const transformedChunks = await Promise.all(
 		renderedChunks.map(
 			async ({
 				chunk,
@@ -240,93 +244,141 @@ async function transformChunksAndGenerateContentHashes(
 						log
 					))
 				};
-				const { code, map } = transformedChunk;
-				const sourcemapHashPlaceholder = preliminarySourcemapFileName?.hashPlaceholder;
-				const normalizedSourcemap =
-					map &&
-					(sourcemapHashPlaceholder || (hashPlaceholder && outputOptions.sourcemap === 'inline'))
-						? replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
-								map.toString(),
-								placeholders
-							)
-						: null;
-				if (map && sourcemapHashPlaceholder) {
-					initialHashesByPlaceholder.set(
-						sourcemapHashPlaceholder,
-						getHash(normalizedSourcemap!.transformedCode).slice(0, sourcemapHashPlaceholder.length)
-					);
-				}
-
-				if (hashPlaceholder) {
-					// To create a reproducible content-only hash, all placeholders are
-					// replaced with the same value before hashing
-					const { containedPlaceholders, transformedCode } =
-						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
-					let contentToHash = transformedCode;
-					if (map && outputOptions.sourcemap !== 'hidden') {
-						// Normalize raw map data and file names before base64 or URL encoding
-						// can hide placeholders and make hashes depend on chunk order.
-						let sourcemapPlaceholders: Set<string>;
-						if (outputOptions.sourcemap === 'inline') {
-							const { containedPlaceholders: inlinePlaceholders, transformedCode: sourcemapJson } =
-								normalizedSourcemap!;
-							sourcemapPlaceholders = inlinePlaceholders;
-							contentToHash += `//# ${SOURCEMAPPING_URL}=data:application/json,${sourcemapJson}\n`;
-						} else {
-							const {
-								containedPlaceholders: externalPlaceholders,
-								transformedCode: sourcemapFileName
-							} = replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
-								replacePlaceholders(
-									preliminarySourcemapFileName?.fileName ?? `${fileName}.map`,
-									initialHashesByPlaceholder
-								),
-								placeholders
-							);
-							sourcemapPlaceholders = externalPlaceholders;
-							contentToHash += getSourceMapComment(
-								sourcemapFileName,
-								map,
-								outputOptions.sourcemap,
-								outputOptions.sourcemapBaseUrl
-							);
-						}
-						for (const placeholder of sourcemapPlaceholders) {
-							containedPlaceholders.add(placeholder);
-						}
-					}
-					const hashAugmentation = pluginDriver.hookReduceValueSync(
-						'augmentChunkHash',
-						'',
-						[chunk.getRenderedChunkInfo()],
-						(augmentation, pluginHash) => {
-							if (pluginHash) {
-								augmentation += pluginHash;
-							}
-							return augmentation;
-						}
-					);
-					if (hashAugmentation) {
-						contentToHash += hashAugmentation;
-					}
-					renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
-					hashDependenciesByPlaceholder.set(hashPlaceholder, {
-						containedPlaceholders,
-						contentHash: getHash(contentToHash)
-					});
-				} else {
-					nonHashedChunksWithPlaceholders.push(transformedChunk);
-				}
+				const hashAugmentation = hashPlaceholder
+					? pluginDriver.hookReduceValueSync(
+							'augmentChunkHash',
+							'',
+							[chunk.getRenderedChunkInfo()],
+							(augmentation, pluginHash) => augmentation + (pluginHash || '')
+						)
+					: '';
+				return {
+					hashAugmentation,
+					hashPlaceholder,
+					preliminarySourcemapFileName,
+					transformedChunk
+				};
 			}
 		)
 	);
+	const usedFileNames = new Set(bundle[lowercaseBundleKeys]);
+	for (const {
+		transformedChunk,
+		hashPlaceholder,
+		preliminarySourcemapFileName,
+		hashAugmentation
+	} of transformedChunks) {
+		const { map } = transformedChunk;
+		const sourcemapHashPlaceholder = preliminarySourcemapFileName?.hashPlaceholder;
+		if (map && sourcemapHashPlaceholder) {
+			const { transformedCode: normalizedSourcemap } =
+				replacePlaceholdersWithDefaultAndGetContainedPlaceholders(map.toString(), placeholders);
+			initialHashesByPlaceholder.set(
+				sourcemapHashPlaceholder,
+				outputOptions.sourcemap === 'inline'
+					? getHash(normalizedSourcemap).slice(0, sourcemapHashPlaceholder.length)
+					: getUniqueHash(
+							normalizedSourcemap,
+							preliminarySourcemapFileName.fileName,
+							sourcemapHashPlaceholder,
+							usedFileNames,
+							getHash
+						)
+			);
+		}
+
+		if (hashPlaceholder) {
+			renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
+			hashDependenciesByPlaceholder.set(
+				hashPlaceholder,
+				getChunkHash(
+					transformedChunk,
+					outputOptions,
+					getHash,
+					placeholders,
+					initialHashesByPlaceholder,
+					hashAugmentation
+				)
+			);
+		} else {
+			nonHashedChunksWithPlaceholders.push(transformedChunk);
+		}
+	}
 	return {
 		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
 		placeholders,
-		renderedChunksByPlaceholder
+		renderedChunksByPlaceholder,
+		usedFileNames
 	};
+}
+
+function getChunkHash(
+	{ code, map, fileName, sourcemapFileName }: RenderedChunkWithPlaceholders,
+	outputOptions: NormalizedOutputOptions,
+	getHash: GetHash,
+	placeholders: Set<string>,
+	initialHashesByPlaceholder: Map<string, string>,
+	hashAugmentation: string
+): HashResult {
+	// To create a reproducible content-only hash, all placeholders are
+	// replaced with the same value before hashing
+	const { containedPlaceholders, transformedCode } =
+		replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
+	let contentToHash = transformedCode;
+	if (map && outputOptions.sourcemap !== 'hidden') {
+		// Normalize raw map data and file names before base64 or URL encoding
+		// can hide placeholders and make hashes depend on chunk order.
+		let sourcemapPlaceholders: Set<string>;
+		if (outputOptions.sourcemap === 'inline') {
+			const { containedPlaceholders: inlinePlaceholders, transformedCode: sourcemapJson } =
+				replacePlaceholdersWithDefaultAndGetContainedPlaceholders(map.toString(), placeholders);
+			sourcemapPlaceholders = inlinePlaceholders;
+			contentToHash += `//# ${SOURCEMAPPING_URL}=data:application/json,${sourcemapJson}\n`;
+		} else {
+			const { containedPlaceholders: externalPlaceholders, transformedCode: normalizedFileName } =
+				replacePlaceholdersWithDefaultAndGetContainedPlaceholders(
+					replacePlaceholders(sourcemapFileName ?? `${fileName}.map`, initialHashesByPlaceholder),
+					placeholders
+				);
+			sourcemapPlaceholders = externalPlaceholders;
+			contentToHash += getSourceMapComment(
+				normalizedFileName,
+				map,
+				outputOptions.sourcemap,
+				outputOptions.sourcemapBaseUrl
+			);
+		}
+		for (const placeholder of sourcemapPlaceholders) {
+			containedPlaceholders.add(placeholder);
+		}
+	}
+	if (hashAugmentation) {
+		contentToHash += hashAugmentation;
+	}
+	return { containedPlaceholders, contentHash: getHash(contentToHash) };
+}
+
+function getUniqueHash(
+	contentToHash: string,
+	fileName: string,
+	placeholder: string,
+	usedFileNames: Set<string>,
+	getHash: GetHash
+) {
+	let finalFileName: string;
+	let finalHash: string | undefined;
+	do {
+		// In case of a hash collision, create a hash of the hash
+		if (finalHash) {
+			contentToHash = finalHash;
+		}
+		finalHash = getHash(contentToHash).slice(0, placeholder.length);
+		finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash).toLowerCase();
+	} while (usedFileNames.has(finalFileName));
+	usedFileNames.add(finalFileName);
+	return finalHash;
 }
 
 function generateFinalHashes(
@@ -335,6 +387,7 @@ function generateFinalHashes(
 	initialHashesByPlaceholder: Map<string, string>,
 	placeholders: Set<string>,
 	bundle: OutputBundleWithPlaceholders,
+	usedFileNames: Set<string>,
 	getHash: GetHash
 ) {
 	const hashesByPlaceholder = new Map<string, string>(initialHashesByPlaceholder);
@@ -351,17 +404,8 @@ function generateFinalHashes(
 				hashDependencyPlaceholders.add(containedPlaceholder);
 			}
 		}
-		let finalFileName: string | undefined;
-		let finalHash: string | undefined;
-		do {
-			// In case of a hash collision, create a hash of the hash
-			if (finalHash) {
-				contentToHash = finalHash;
-			}
-			finalHash = getHash(contentToHash).slice(0, placeholder.length);
-			finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
-		} while (bundle[lowercaseBundleKeys].has(finalFileName.toLowerCase()));
-		bundle[finalFileName] = FILE_PLACEHOLDER;
+		const finalHash = getUniqueHash(contentToHash, fileName, placeholder, usedFileNames, getHash);
+		bundle[replaceSinglePlaceholder(fileName, placeholder, finalHash)] = FILE_PLACEHOLDER;
 		hashesByPlaceholder.set(placeholder, finalHash);
 	}
 	return hashesByPlaceholder;
