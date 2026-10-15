@@ -64,6 +64,11 @@
       "decision": "ignore",
       "madeAt": 1791345901688,
       "expiresAt": 1795000000000
+    },
+    "1241206|@mermaid-js/mermaid-cli>katex": {
+      "decision": "ignore",
+      "madeAt": 1791963061700,
+      "expiresAt": 1795000000000
     }
   },
   "rules": {},

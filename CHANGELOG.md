@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.64.7
+
+_2026-10-15_
+
+### Bug Fixes
+
+- Fix an issue where watching not-yet-created files from plugins did not work if several shared a directory (#6575)
+
+### Pull Requests
+
+- [#6575](https://github.com/rollup/rollup/pull/6575): Report creation of missing watch files sharing a directory on Linux (@lukastaegert)
+
 ## 4.64.6
 
 _2026-10-13_
