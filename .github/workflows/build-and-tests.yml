@@ -230,7 +230,7 @@ jobs:
           path-type: inherit
           release: false
       - name: Install Toolchain
-        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
           toolchain: nightly-2025-07-25
           components: ${{ matrix.settings.build-std && 'rust-src' || '' }}
@@ -584,7 +584,7 @@ jobs:
         # ships the linux-x64 prebuild that node-gyp-build loads at runtime.
         run: npm install --no-save --ignore-scripts weak-napi@2.0.2
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
           toolchain: nightly-2025-07-25
           components: llvm-tools-preview
