@@ -289,6 +289,53 @@ describe('sourcemap chunk hashes', () => {
 		});
 	}
 
+	it('derives the sourcemapFileName of inline sourcemaps from the sourcemap content', async () => {
+		const options = { sourcemap: 'inline', sourcemapFileNames: '[name]-[hash].map' };
+		const chunksWithSources = await generateChunks(options);
+		const chunksWithoutSources = await generateChunks({
+			...options,
+			sourcemapExcludeSources: true
+		});
+		for (const { name, sourcemapFileName } of chunksWithSources) {
+			assert.match(sourcemapFileName, new RegExp(`^${name}-[\\w-]{8}\\.map$`));
+			assert.notEqual(
+				sourcemapFileName,
+				chunksWithoutSources.find(chunk => chunk.name === name).sourcemapFileName
+			);
+		}
+	});
+
+	it('assigns the same sourcemapFileName to identical inline sourcemaps', async () => {
+		const collisionBundle = await rollup.rollup({
+			input: ['x', 'y', 'z'],
+			plugins: [
+				loader({
+					x: `import 'main';`,
+					y: `import 'main';`,
+					z: `import 'main';`,
+					main: `console.log('main');`
+				})
+			]
+		});
+		try {
+			const { output } = await collisionBundle.generate({
+				format: 'es',
+				entryFileNames: '[hash].js',
+				sourcemap: 'inline',
+				sourcemapFileNames: '[hash].map'
+			});
+			const chunks = output.filter(file => file.type === 'chunk');
+			assert.equal(chunks.length, 3);
+			const getSourcemapFileName = name =>
+				chunks.find(chunk => chunk.name === name).sourcemapFileName;
+			assert.equal(getSourcemapFileName('y'), getSourcemapFileName('z'));
+			assert.notEqual(getSourcemapFileName('x'), getSourcemapFileName('y'));
+			assert.equal(new Set(chunks.map(chunk => chunk.fileName)).size, 3);
+		} finally {
+			await collisionBundle.close();
+		}
+	});
+
 	for (const options of [
 		{ sourcemap: 'inline' },
 		{ sourcemap: true, sourcemapBaseUrl: 'https://example.com/maps/' },
