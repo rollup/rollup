@@ -190,9 +190,10 @@ export function getChunkAssignments(
 			chunkDefinitions
 		)
 	);
+	const manualChunkAtoms = getManualChunkAtoms(manualChunkModules, dependentEntriesByModule);
 	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(
 		entriesAndManualChunksCount,
-		chunkAtoms
+		concatLazy([chunkAtoms, manualChunkAtoms])
 	);
 	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
 	// If we no longer want this, we should make a copy here.
@@ -218,6 +219,7 @@ export function getChunkAssignments(
 	const { chunks, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
+			manualChunkAtoms,
 			staticDependencyAtomsByEntry,
 			alreadyLoadedAtomsByEntry,
 			minChunkSize
@@ -548,9 +550,24 @@ function* getModulesWithDependentEntriesAndHandleTLACycles(
 	}
 }
 
+function getManualChunkAtoms(
+	manualChunkModules: readonly Module[][],
+	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>
+): ModulesWithDependentEntries[] {
+	return manualChunkModules.map(modules => {
+		const dependentEntries = new Set<number>();
+		for (const module of modules) {
+			for (const entryIndex of dependentEntriesByModule.get(module)!) {
+				dependentEntries.add(entryIndex);
+			}
+		}
+		return { dependentEntries, modules };
+	});
+}
+
 function getStaticDependencyAtomsByEntry(
 	entriesAndManualChunksCount: number,
-	chunkAtoms: ModulesWithDependentEntries[]
+	chunkAtoms: Iterable<ModulesWithDependentEntries>
 ) {
 	// The indices correspond to the indices in allEntries. The atoms correspond
 	// to bits in the bigint values where chunk 0 is the lowest bit.
@@ -682,13 +699,14 @@ function removeUnnecessaryDependentEntries(
 
 function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	chunkAtoms: ModulesWithDependentEntries[],
+	manualChunkAtoms: ModulesWithDependentEntries[],
 	staticDependencyAtomsByEntry: bigint[],
 	alreadyLoadedAtomsByEntry: bigint[],
 	minChunkSize: number
 ) {
 	const chunksBySignature: Record<string, ChunkDescription> = Object.create(null);
 	const chunkByModule = new Map<Module, ChunkDescription>();
-	const sizeByAtom: number[] = new Array(chunkAtoms.length);
+	const sizeByAtom: number[] = new Array(chunkAtoms.length + manualChunkAtoms.length);
 	let sideEffectAtoms = 0n;
 	let atomMask = 1n;
 	let index = 0;
@@ -714,42 +732,68 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			size: 0
 		});
 
-		let atomSize = 0;
-		let pure = true;
 		for (const module of modules) {
 			chunkByModule.set(module, chunk);
-			// Unfortunately, we cannot take tree-shaking into account here because
-			// rendering did not happen yet, but we can detect empty modules
-			if (module.isIncluded()) {
-				pure &&= !module.hasEffects();
-				// we use a trivial size for the default minChunkSize to improve
-				// performance
-				atomSize += minChunkSize > 1 ? module.estimateSize() : 1;
-			}
 		}
+		const { pure, size } = getAtomPurityAndSize(modules, minChunkSize);
 		if (!pure) {
 			sideEffectAtoms |= atomMask;
 		}
-		sizeByAtom[index++] = atomSize;
+		sizeByAtom[index++] = size;
 
 		chunk.containedAtoms |= atomMask;
 		chunk.modules.push(...modules);
 		chunk.pure &&= pure;
-		chunk.size += atomSize;
+		chunk.size += size;
+		atomMask <<= 1n;
+	}
+	// Manual chunks are not merged, but chunks importing them need to know
+	// their size and side effects
+	const manualChunkAtomByModule = new Map<Module, bigint>();
+	for (const { modules } of manualChunkAtoms) {
+		for (const module of modules) {
+			manualChunkAtomByModule.set(module, atomMask);
+		}
+		const { pure, size } = getAtomPurityAndSize(modules, minChunkSize);
+		if (!pure) {
+			sideEffectAtoms |= atomMask;
+		}
+		sizeByAtom[index++] = size;
 		atomMask <<= 1n;
 	}
 	const chunks = Object.values(chunksBySignature);
 	sideEffectAtoms |= addChunkDependenciesAndGetExternalSideEffectAtoms(
 		chunks,
 		chunkByModule,
+		manualChunkAtomByModule,
 		atomMask
 	);
 	return { chunks, sideEffectAtoms, sizeByAtom };
 }
 
+function getAtomPurityAndSize(
+	modules: readonly Module[],
+	minChunkSize: number
+): { pure: boolean; size: number } {
+	let pure = true;
+	let size = 0;
+	for (const module of modules) {
+		// Unfortunately, we cannot take tree-shaking into account here because
+		// rendering did not happen yet, but we can detect empty modules
+		if (module.isIncluded()) {
+			pure &&= !module.hasEffects();
+			// we use a trivial size for the default minChunkSize to improve
+			// performance
+			size += minChunkSize > 1 ? module.estimateSize() : 1;
+		}
+	}
+	return { pure, size };
+}
+
 function addChunkDependenciesAndGetExternalSideEffectAtoms(
 	chunks: ChunkDescription[],
 	chunkByModule: Map<Module, ChunkDescription>,
+	manualChunkAtomByModule: Map<Module, bigint>,
 	nextAvailableAtomMask: bigint
 ): bigint {
 	const signatureByExternalModule = new Map<ExternalModule, bigint>();
@@ -771,9 +815,16 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
 					}
 				} else {
 					const dependencyChunk = chunkByModule.get(dependency);
-					if (dependencyChunk && dependencyChunk !== chunk) {
-						dependencies.add(dependencyChunk);
-						dependencyChunk.dependentChunks.add(chunk);
+					if (dependencyChunk) {
+						if (dependencyChunk !== chunk) {
+							dependencies.add(dependencyChunk);
+							dependencyChunk.dependentChunks.add(chunk);
+						}
+					} else {
+						const manualChunkAtom = manualChunkAtomByModule.get(dependency);
+						if (manualChunkAtom) {
+							chunk.containedAtoms |= manualChunkAtom;
+						}
 					}
 				}
 			}
