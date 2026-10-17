@@ -3580,20 +3580,7 @@ describe('rollup.watch', function () {
 					}
 				}
 			});
-			const waitForWatcherEvent = eventCode =>
-				new Promise((resolve, reject) => {
-					const listener = event => {
-						if (event.code === eventCode) {
-							resolve(event);
-						} else if (event.code === 'ERROR') {
-							reject(event.error);
-						} else {
-							watcher.once('event', listener);
-						}
-					};
-					watcher.once('event', listener);
-				});
-			await withTimeout(waitForWatcherEvent('END'), 10_000, () => {
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
 				throw new Error('The initial build did not finish.');
 			});
 			assert.strictEqual(run(BUNDLE_FILE), 42);
@@ -3610,7 +3597,7 @@ describe('rollup.watch', function () {
 				await Promise.all([...missingWatchChangeIds].map(file => writeFile(file, 'changed')));
 				await Promise.race([allWatchChangesAnnounced, wait(300)]);
 			}
-			await withTimeout(waitForWatcherEvent('END'), 10_000, () => {
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
 				throw new Error('The rebuild after the changes did not finish.');
 			});
 			assert.strictEqual(run(BUNDLE_FILE), 42);
@@ -3788,6 +3775,7 @@ describe('rollup.watch', function () {
 		});
 
 		it('respects initially missing added watched files', async () => {
+			const watchedId = path.join(INPUT_DIR, 'dep');
 			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			watcher = rollup.watch({
 				input: ENTRY_FILE,
@@ -3798,28 +3786,94 @@ describe('rollup.watch', function () {
 				},
 				plugins: {
 					transform() {
-						this.addWatchFile(path.join(INPUT_DIR, 'dep'));
-						return `export default ${existsSync(path.join(INPUT_DIR, 'dep'))}`;
+						this.addWatchFile(watchedId);
+						return `export default ${existsSync(watchedId)}`;
 					}
 				}
 			});
-			return sequence(watcher, [
-				'START',
-				'BUNDLE_START',
-				'BUNDLE_END',
-				'END',
-				() => {
-					assert.strictEqual(run(BUNDLE_FILE), false);
-					atomicWriteFileSync(path.join(INPUT_DIR, 'dep'), '');
-				},
-				'START',
-				'BUNDLE_START',
-				'BUNDLE_END',
-				'END',
-				() => {
-					assert.strictEqual(run(BUNDLE_FILE), true);
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The initial build did not finish.');
+			});
+			assert.strictEqual(run(BUNDLE_FILE), false);
+			const retryDeadline = Date.now() + 5000;
+			// File watchers may drop changes that happen before they are fully
+			// initialized, and watcher start-up can trigger spurious additional
+			// rebuilds, hence the file is created again until a rebuild picks
+			// up its existence.
+			while (readBundleResult() !== true) {
+				if (Date.now() > retryDeadline) {
+					throw new Error('The creation of the watched file did not trigger a rebuild.');
 				}
-			]);
+				atomicWriteFileSync(watchedId, '');
+				await wait(300);
+			}
+		});
+
+		it('reports the creation of initially missing watched files when several of them are in the same directory', async () => {
+			const extensionlessWatchId = path.join(INPUT_DIR, 'dep');
+			const watchedId = path.join(INPUT_DIR, 'dep.js');
+			let writtenBundleCount = 0;
+			let isCreationReported = false;
+			const { promise: creationReported, resolve: resolveCreationReported } = createDeferred();
+			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			watcher = rollup.watch({
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						// The extension-less resolution candidate is registered one
+						// build before the file that is actually created so that
+						// its directory listener reliably wins chokidar's shared
+						// directory throttle. Like theme/theme.js in
+						// https://github.com/rollup/rollup/issues/6574, it is never
+						// created itself.
+						this.addWatchFile(extensionlessWatchId);
+						if (writtenBundleCount > 0) {
+							this.addWatchFile(watchedId);
+						}
+					},
+					writeBundle() {
+						writtenBundleCount++;
+					},
+					watchChange(id) {
+						// When the initial creation is dropped by the file watcher,
+						// rewrites are reported as updates, so any event proves
+						// that the missing file is watched.
+						if (id === watchedId) {
+							isCreationReported = true;
+							resolveCreationReported();
+						}
+					}
+				}
+			});
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The initial build did not finish.');
+			});
+			const registrationDeadline = Date.now() + 5000;
+			while (writtenBundleCount < 2) {
+				if (Date.now() > registrationDeadline) {
+					throw new Error('The rebuild to register the second watched file did not start.');
+				}
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
+				await wait(300);
+			}
+			const retryDeadline = Date.now() + 5000;
+			// File watchers may drop changes that happen before they are fully
+			// initialized, hence the file is created again until the creation is reported.
+			while (!isCreationReported) {
+				if (Date.now() > retryDeadline) {
+					throw new Error('The creation of the watched file was not reported.');
+				}
+				atomicWriteFileSync(watchedId, '');
+				await Promise.race([creationReported, wait(300)]);
+			}
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The rebuild after the creation did not finish.');
+			});
 		});
 
 		it('respects unlinked and re-added watched files', async () => {
@@ -3915,6 +3969,30 @@ function run(file) {
 	const resolved = require.resolve(file);
 	delete require.cache[resolved];
 	return require(resolved);
+}
+
+function readBundleResult() {
+	try {
+		return run(BUNDLE_FILE);
+	} catch {
+		// The bundle may be in the middle of being written.
+		return undefined;
+	}
+}
+
+function waitForWatcherEvent(watcher, eventCode) {
+	return new Promise((resolve, reject) => {
+		const listener = event => {
+			if (event.code === eventCode) {
+				resolve(event);
+			} else if (event.code === 'ERROR') {
+				reject(event.error);
+			} else {
+				watcher.once('event', listener);
+			}
+		};
+		watcher.once('event', listener);
+	});
 }
 
 function sequence(watcher, events, timeout = 300) {
