@@ -11,6 +11,7 @@ const { rm, unlink, writeFile, mkdir } = require('node:fs/promises');
 const path = require('node:path');
 const { hrtime } = require('node:process');
 const { copy } = require('fs-extra');
+const { default: MagicString } = require('magic-string');
 /**
  * @type {import("../../src/rollup/types")} Rollup
  */
@@ -3235,6 +3236,58 @@ describe('rollup.watch', function () {
 			'END',
 			() => {
 				assert.strictEqual(run(BUNDLE_FILE), 42);
+			}
+		]);
+	});
+
+	it('updates the sourcemap if the load hook returns a different sourcemap but with the same code', async () => {
+		await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+		// Only the stripped header differs, so the load hook returns the same code
+		// for both contents and the module can be taken from the cache.
+		atomicWriteFileSync(ENTRY_FILE, '// header\nexport default 42;\n');
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			plugins: {
+				load(id) {
+					this.addWatchFile(id);
+					const magicString = new MagicString(readFileSync(id, 'utf8'));
+					magicString.replace(/\/\/ [^\n]*\n/, '');
+					return {
+						code: magicString.toString(),
+						map: magicString.generateMap({ hires: true, includeContent: true })
+					};
+				}
+			},
+			output: {
+				file: BUNDLE_FILE,
+				sourcemapFile: BUNDLE_FILE + '.map',
+				format: 'cjs',
+				exports: 'auto',
+				sourcemap: true
+			}
+		});
+		let initialMap;
+		await sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				initialMap = readFileSync(BUNDLE_FILE + '.map', 'utf8');
+				atomicWriteFileSync(ENTRY_FILE, '// a longer header\nexport default 42;\n');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				assert.notStrictEqual(
+					readFileSync(BUNDLE_FILE + '.map', 'utf8'),
+					initialMap,
+					'the sourcemap was not updated although the load hook returned a different sourcemap'
+				);
 			}
 		]);
 	});
