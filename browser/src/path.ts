@@ -35,7 +35,7 @@ export function dirname(path: string): string {
 
 	if (trimmed === '') return path ? '/' : '.';
 	// A drive root like "C:/" keeps the drive as its directory.
-	if (path !== trimmed && /^[A-Za-z]:$/.test(trimmed)) return trimmed;
+	if (path !== trimmed && DRIVE_REGEX.test(trimmed)) return trimmed;
 	return '.';
 }
 
@@ -85,11 +85,6 @@ export function relative(from: string, to: string): string {
 	while (fromParts[0] && toParts[0] && fromParts[0] === toParts[0]) {
 		fromParts.shift();
 		toParts.shift();
-	}
-
-	while (toParts[0] === '..' && fromParts.length > 0) {
-		toParts.shift();
-		fromParts.pop();
 	}
 
 	while (fromParts.pop()) {
