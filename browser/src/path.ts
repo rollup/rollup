@@ -58,7 +58,7 @@ export function join(...segments: string[]): string {
 	return TRAILING_SLASHES_REGEX.test(joined) && !result.endsWith('/') ? result + '/' : result;
 }
 
-function normalizePathSegments(parts: string[], absolute = false): string[] {
+function normalizePathSegments(parts: string[], absolute: boolean): string[] {
 	const normalized: string[] = [];
 	// A drive like "C:" is the root of the path, so ".." cannot climb above it
 	const root = DRIVE_REGEX.test(parts[0]) ? 1 : 0;
