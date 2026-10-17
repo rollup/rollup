@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.64.9
+
+_2026-10-17_
+
+### Bug Fixes
+
+- Ensure export live-bindings are properly maintained for aliased exports (#6576)
+- Retain typed array constructor calls if the argument has iteration side effects (#6582)
+
+### Pull Requests
+
+- [#6576](https://github.com/rollup/rollup/pull/6576): Fix live bindings for aliased reassigned exports (@oxura, @lukastaegert)
+- [#6582](https://github.com/rollup/rollup/pull/6582): Retain typed array constructors that iterate their argument (@joshuablac, @lukastaegert)
+
 ## 4.64.8
 
 _2026-10-17_
