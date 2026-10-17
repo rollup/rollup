@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.64.8
+
+_2026-10-17_
+
+### Bug Fixes
+
+- Ensure chunk hashes change when sourcemap comments change (#6509)
+- Resolve some relative import resolution edge cases (#6522)
+
+### Pull Requests
+
+- [#6509](https://github.com/rollup/rollup/pull/6509): fix: include sourcemap comments in chunk hashes (@snoopuppy582, @wangxpych, @lukastaegert)
+- [#6522](https://github.com/rollup/rollup/pull/6522): fix(browser): match node's join and relative for "." and ".." segments (@luantaraschi, @lukastaegert)
+- [#6577](https://github.com/rollup/rollup/pull/6577): Update dtolnay/rust-toolchain digest to 686976e (@renovate[bot])
+- [#6578](https://github.com/rollup/rollup/pull/6578): Update minor/patch updates (@renovate[bot])
+- [#6579](https://github.com/rollup/rollup/pull/6579): Update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6580](https://github.com/rollup/rollup/pull/6580): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6581](https://github.com/rollup/rollup/pull/6581): Update dependency eslint-plugin-unicorn to v78 (@renovate[bot])
+
 ## 4.64.7
 
 _2026-10-15_
