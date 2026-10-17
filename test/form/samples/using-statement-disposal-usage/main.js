@@ -189,10 +189,24 @@ function receiverPathsUsedByDisposer() {
 	using resource = {
 		used: 1,
 		unused: 2,
+		nested: { used: 3, unused: 4 },
 		[Symbol.dispose]() {
-			console.log(this.used);
+			console.log(this.used, this.nested.used);
 		},
 		[Symbol.asyncDispose]() {}
 	};
 }
 receiverPathsUsedByDisposer();
+
+function disposeWithReceiverPaths() {
+	console.log(this.used, this.nested.used);
+}
+function receiverPathsUsedBySeparateDisposer() {
+	using resource = {
+		used: 1,
+		unused: 2,
+		nested: { used: 3, unused: 4 },
+		[Symbol.dispose]: disposeWithReceiverPaths
+	};
+}
+receiverPathsUsedBySeparateDisposer();
