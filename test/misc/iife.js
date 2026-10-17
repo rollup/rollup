@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+const { runInNewContext } = require('node:vm');
 const { rollup } = require('../../dist/rollup');
 const { loader } = require('../testHelpers.js');
 const { compareError } = require('../testHelpers.js');
@@ -154,4 +155,28 @@ describe('The IIFE wrapper with output name as reserved keyword', () => {
 			);
 		});
 	});
+});
+
+describe('Repeated extended namespaces', () => {
+	for (const format of ['iife', 'umd']) {
+		it(`keeps reassigned aliases live after loading ${format} twice`, async () => {
+			const code = await getIifeCode(
+				`export let value = 1;
+				export { value as alias };
+				export function set(next) { value = next; }`,
+				{ format, name: 'bundle', extend: true, esModule: false }
+			);
+			const context = {};
+			runInNewContext(code, context);
+			const namespace = context.bundle;
+			namespace.set(2);
+			assert.equal(namespace.alias, 2);
+			runInNewContext(code, context);
+			assert.strictEqual(context.bundle, namespace);
+			assert.equal(namespace.alias, 1);
+			namespace.set(3);
+			assert.equal(namespace.value, 3);
+			assert.equal(namespace.alias, 3);
+		});
+	}
 });

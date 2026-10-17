@@ -955,7 +955,8 @@ export default class Chunk {
 				expression,
 				hoisted,
 				local,
-				needsLiveBinding: variable.isReassigned
+				needsLiveBinding:
+					variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1
 			});
 		}
 		return exports;
