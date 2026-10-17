@@ -1,0 +1,186 @@
+import * as resources from './resources.js';
+
+function syncOnly() {
+	const resource = {
+		[Symbol.dispose]() { console.log('sync'); },
+		[Symbol.asyncDispose]() { console.log('unused async'); }
+	};
+	const alias = resource;
+	using captured = alias;
+}
+syncOnly();
+
+async function asyncOnly() {
+	const resource = {
+		[Symbol.dispose]() { console.log('unused sync'); },
+		[Symbol.asyncDispose]() { console.log('async'); }
+	};
+	const alias = resource;
+	await using captured = alias;
+}
+asyncOnly();
+
+async function asyncThenSync() {
+	const resource = {
+		[Symbol.dispose]() { console.log('sync second'); },
+		[Symbol.asyncDispose]() { console.log('async first'); }
+	};
+	const alias = resource;
+	{ await using captured = alias; }
+	{ using captured = resource; }
+}
+asyncThenSync();
+
+async function explicitSyncCall() {
+	const resource = {
+		[Symbol.dispose]() { console.log('explicit sync'); },
+		[Symbol.asyncDispose]() { console.log('implicit async'); }
+	};
+	const alias = resource;
+	await using captured = alias;
+	resource[Symbol.dispose]();
+}
+explicitSyncCall();
+
+function explicitAsyncCall() {
+	const resource = {
+		[Symbol.dispose]() { console.log('implicit sync'); },
+		[Symbol.asyncDispose]() { console.log('explicit async'); }
+	};
+	const alias = resource;
+	using captured = alias;
+	resource[Symbol.asyncDispose]();
+}
+explicitAsyncCall();
+
+async function nestedMember() {
+	const resources = {
+		nested: {
+			resource: {
+				[Symbol.dispose]() { console.log('unused nested sync'); },
+				[Symbol.asyncDispose]() { console.log('nested async'); }
+			}
+		}
+	};
+	await using captured = resources.nested.resource;
+}
+nestedMember();
+
+async function destructuredAlias() {
+	const resources = {
+		resource: {
+			[Symbol.dispose]() { console.log('unused destructured sync'); },
+			[Symbol.asyncDispose]() { console.log('destructured async'); }
+		}
+	};
+	const { resource: alias } = resources;
+	await using captured = alias;
+}
+destructuredAlias();
+
+async function assignedAsyncFunction() {
+	function disposeAsync() { console.log('assigned async'); }
+	const disposer = disposeAsync;
+	const resource = {
+		[Symbol.dispose]() { console.log('unused assigned sync'); },
+		[Symbol.asyncDispose]: disposer
+	};
+	await using captured = resource;
+}
+assignedAsyncFunction();
+
+async function assignedReceiverReader() {
+	function disposeAsync() { console.log(this.label); }
+	const disposer = disposeAsync;
+	const resource = {
+		label: 'receiver label',
+		unused: 'retained with receiver',
+		[Symbol.dispose]() { console.log('retained sync'); },
+		[Symbol.asyncDispose]: disposer
+	};
+	await using captured = resource;
+}
+assignedReceiverReader();
+
+async function lexicalArrowDisposer() {
+	const disposer = () => console.log(this.label);
+	const resource = {
+		label: 'unused resource label',
+		[Symbol.dispose]() { console.log('unused lexical sync'); },
+		[Symbol.asyncDispose]: disposer
+	};
+	await using captured = resource;
+}
+lexicalArrowDisposer.call({ label: 'outer label' });
+
+async function nullishAsyncDisposers() {
+	await using missing = {
+		__proto__: null,
+		unused: 'unused missing async property',
+		[Symbol.dispose]() { console.log('missing async fallback'); }
+	};
+	await using inheritedMissing = {
+		unused: 'unused inherited missing async property',
+		[Symbol.dispose]() { console.log('inherited missing async fallback'); }
+	};
+	await using nullDisposer = {
+		unused: 'unused null async property',
+		[Symbol.asyncDispose]: null,
+		[Symbol.dispose]() { console.log('null async fallback'); }
+	};
+	await using undefinedDisposer = {
+		unused: 'unused undefined async property',
+		[Symbol.asyncDispose]: undefined,
+		[Symbol.dispose]() { console.log('undefined async fallback'); }
+	};
+}
+nullishAsyncDisposers();
+
+async function namespaceMember() {
+	await using captured = resources.namespaceResource;
+	await using missing = resources.missing;
+}
+namespaceMember();
+
+async function computedMember() {
+	const key = 'resource';
+	const resources = {
+		resource: {
+			[Symbol.dispose]() { console.log('unused computed sync'); },
+			[Symbol.asyncDispose]() { console.log('computed async'); }
+		}
+	};
+	await using captured = resources[key];
+}
+computedMember();
+
+async function unknownMember() {
+	const resources = {
+		resource: {
+			[Symbol.dispose]() { console.log('unknown member sync'); },
+			[Symbol.asyncDispose]() { console.log('unknown member async'); }
+		}
+	};
+	await using captured = resources[globalThis.resourceKey];
+}
+unknownMember();
+
+async function functionResource() {
+	function resource() {}
+	resource[Symbol.dispose] = () => console.log('function sync');
+	await using captured = resource;
+}
+functionResource();
+
+async function reassignedResource() {
+	let resource = {
+		[Symbol.dispose]() { console.log('first sync'); },
+		[Symbol.asyncDispose]() { console.log('first async'); }
+	};
+	resource = {
+		[Symbol.dispose]() { console.log('second sync'); },
+		[Symbol.asyncDispose]() { console.log('second async'); }
+	};
+	await using captured = resource;
+}
+reassignedResource();

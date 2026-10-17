@@ -7,17 +7,31 @@ import {
 	findNonWhiteSpace,
 	type RenderOptions
 } from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	createInclusionContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	type NodeInteractionAccessed,
+	type NodeInteractionCalled
+} from '../NodeInteractions';
+import FunctionScope from '../scopes/FunctionScope';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
+	SHARED_RECURSION_TRACKER,
 	SymbolAsyncDispose,
-	SymbolDispose
+	SymbolDispose,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
+import type FunctionBase from './shared/FunctionBase';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -33,6 +47,9 @@ export default class VariableDeclarator extends NodeBase {
 	declare type: NodeType.tVariableDeclarator;
 	declare isUsingDeclaration: boolean;
 	declare isAsyncUsingDeclaration: boolean;
+	declare private disposalFunctions?: Set<FunctionBase>;
+	declare private hasDeoptimizedDisposal: boolean;
+	declare private hasIncludedDisposalReceiver: boolean;
 
 	declareDeclarator(kind: VariableKind): void {
 		this.isUsingDeclaration = kind === 'using';
@@ -42,6 +59,15 @@ export default class VariableDeclarator extends NodeBase {
 
 	deoptimizePath(path: ObjectPath): void {
 		this.id.deoptimizePath(path);
+	}
+
+	deoptimizeCache(): void {
+		if (!this.hasDeoptimizedDisposal && this.init) {
+			this.hasDeoptimizedDisposal = true;
+			this.init.deoptimizePath(UNKNOWN_PATH);
+			this.init.includePath(UNKNOWN_PATH, createInclusionContext());
+			this.scope.context.requestTreeshakingPass();
+		}
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -62,6 +88,18 @@ export default class VariableDeclarator extends NodeBase {
 		const { id, init } = this;
 		if (!this.included) this.includeNode(context);
 		init?.include(context, includeChildrenRecursively);
+		if (this.disposalFunctions && init && !this.hasIncludedDisposalReceiver) {
+			for (const disposalFunction of this.disposalFunctions) {
+				if (
+					disposalFunction.scope instanceof FunctionScope &&
+					disposalFunction.scope.thisVariable.included
+				) {
+					this.hasIncludedDisposalReceiver = true;
+					init.includePath(UNKNOWN_PATH, context);
+					break;
+				}
+			}
+		}
 		id.markDeclarationReached();
 		if (includeChildrenRecursively) {
 			id.include(context, includeChildrenRecursively);
@@ -111,10 +149,28 @@ export default class VariableDeclarator extends NodeBase {
 		this.included = true;
 		const { id, init } = this;
 		if (init) {
-			if (this.isUsingDeclaration) {
-				init.includePath(SYMBOL_DISPOSE_PATH, context);
-			} else if (this.isAsyncUsingDeclaration) {
-				init.includePath(SYMBOL_ASYNC_DISPOSE_PATH, context);
+			if (this.isUsingDeclaration || this.isAsyncUsingDeclaration) {
+				const disposalInteractions: DisposalInteractions = {
+					access: { args: [init], type: INTERACTION_ACCESSED },
+					call: { args: [init], type: INTERACTION_CALLED, withNew: false }
+				};
+				if (
+					this.isUsingDeclaration ||
+					!this.includeDisposalMethodAndCheckIfKnownFunction(
+						init,
+						SYMBOL_ASYNC_DISPOSE_PATH,
+						disposalInteractions,
+						context
+					)
+				) {
+					this.includeDisposalMethodAndCheckIfKnownFunction(
+						init,
+						SYMBOL_DISPOSE_PATH,
+						disposalInteractions,
+						context
+					);
+				}
+				this.scope.context.requestTreeshakingPass();
 			}
 			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
 				const { name, variable } = id;
@@ -126,9 +182,43 @@ export default class VariableDeclarator extends NodeBase {
 			}
 		}
 	}
+
+	private includeDisposalMethodAndCheckIfKnownFunction(
+		init: ExpressionNode,
+		path: ObjectPath,
+		{ access, call }: DisposalInteractions,
+		context: InclusionContext
+	): boolean {
+		init.deoptimizeArgumentsOnInteractionAtPath(access, path, SHARED_RECURSION_TRACKER);
+		const disposalFunction = init.getKnownFunctionAtPath(path, SHARED_RECURSION_TRACKER, this);
+		init.includePath(path, context);
+		if (!disposalFunction) {
+			const disposalValue = init.getLiteralValueAtPath(path, SHARED_RECURSION_TRACKER, this);
+			if (disposalValue !== null && disposalValue !== undefined) {
+				init.deoptimizeArgumentsOnInteractionAtPath(call, path, SHARED_RECURSION_TRACKER);
+				init.includeCallArgumentsWhenCalledAtPath(path, call, context);
+			}
+			return false;
+		}
+		const disposalFunctions = (this.disposalFunctions ||= new Set<FunctionBase>());
+		if (!disposalFunctions.has(disposalFunction)) {
+			disposalFunctions.add(disposalFunction);
+			disposalFunction.deoptimizeArgumentsOnInteractionAtPath(
+				call,
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER
+			);
+		}
+		return true;
+	}
 }
 
 VariableDeclarator.prototype.applyDeoptimizations = doNotDeoptimize;
+
+interface DisposalInteractions {
+	access: NodeInteractionAccessed;
+	call: NodeInteractionCalled;
+}
 
 const SYMBOL_DISPOSE_PATH: ObjectPath = [SymbolDispose];
 const SYMBOL_ASYNC_DISPOSE_PATH: ObjectPath = [SymbolAsyncDispose];

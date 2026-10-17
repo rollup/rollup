@@ -1,7 +1,7 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
+import { INTERACTION_CALLED, NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import {
 	type EntityPathTracker,
 	type ObjectPath,
@@ -20,7 +20,8 @@ export default class SpreadElement extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		if (path.length > 0) {
+		// Spread values are copied as data properties, so only calling them can still reach the argument
+		if (path.length > 0 || interaction.type === INTERACTION_CALLED) {
 			this.argument.deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
 				UNKNOWN_PATH,
