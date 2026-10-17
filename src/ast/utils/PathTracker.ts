@@ -153,6 +153,7 @@ export class DiscriminatedPathTracker {
 }
 
 export interface IncludedPathTracker {
+	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath): void;
 	includePathAndGetIfIncluded(path: ObjectPath): boolean;
 }
 
@@ -187,6 +188,32 @@ export class IncludedFullPathTracker implements IncludedPathTracker {
 			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
 		}
 		return included;
+	}
+
+	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath) {
+		if (this.includedPaths) {
+			includeAllSubPaths(entity, context, basePath, this.includedPaths);
+		}
+	}
+}
+
+function includeAllSubPaths(
+	entity: ExpressionEntity,
+	context: InclusionContext,
+	path: ObjectPath,
+	includedPaths: IncludedPaths
+): void {
+	if (includedPaths[UnknownKey]) {
+		entity.includePath([...path, UnknownKey], context);
+		return;
+	}
+	const keys = Reflect.ownKeys(includedPaths) as ConcreteKey[];
+	if (keys.length === 0) {
+		entity.includePath(path, context);
+		return;
+	}
+	for (const key of keys) {
+		includeAllSubPaths(entity, context, [...path, key], includedPaths[key]!);
 	}
 }
 
