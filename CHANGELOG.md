@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.64.10
+
+_2026-10-18_
+
+### Bug Fixes
+
+- Avoid breaking lazy loading when a dynamic import only contains reexports from a manual chunk (#6583)
+- Ensure HTML entities in JSX are properly decoded in the output (#6584)
+
+### Pull Requests
+
+- [#6583](https://github.com/rollup/rollup/pull/6583): Track manual chunk dependencies when merging small chunks (@ybai08, @lukastaegert)
+- [#6584](https://github.com/rollup/rollup/pull/6584): Use decoded values for JSX string attributes (@luantaraschi)
+
 ## 4.64.9
 
 _2026-10-17_
