@@ -264,13 +264,15 @@ export class IncludedTopLevelPathTracker implements IncludedPathTracker {
 			if (includedPaths[UnknownKey]) {
 				entity.includePath([...basePath, UnknownKey], context);
 			} else {
-				const inclusionEntries = Object.entries(includedPaths);
-				if (inclusionEntries.length === 0) {
+				const keys = Reflect.ownKeys(includedPaths) as ConcreteKey[];
+				if (keys.length === 0) {
 					entity.includePath(basePath, context);
 				} else {
-					for (const [key, value] of inclusionEntries) {
+					for (const key of keys) {
 						entity.includePath(
-							value === UnknownKey ? [...basePath, key, UnknownKey] : [...basePath, key],
+							includedPaths[key] === UnknownKey
+								? [...basePath, key, UnknownKey]
+								: [...basePath, key],
 							context
 						);
 					}
