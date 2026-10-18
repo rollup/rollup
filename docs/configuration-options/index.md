@@ -764,12 +764,12 @@ interface PreRenderedAsset {
 }
 ```
 
-The pattern to use for naming custom emitted assets to include in the build output, or a function that is called per asset to return such a pattern. Patterns support the following placeholders:
+The pattern to use for naming custom emitted assets to include in the build output, or a function that is called once per asset to return such a pattern. Assets with identical source are deduplicated, so the function is called only once per distinct source and output and receives the names emitted so far via `names`. Patterns support the following placeholders:
 
 - `[extname]`: The file extension of the asset including a leading dot, e.g. `.css`.
 - `[ext]`: The file extension without a leading dot, e.g. `css`.
 - `[hash]`: A hash based on the content of the asset. You can also set a specific hash length via e.g. `[hash:10]`. By default, it will create a base-64 hash. If you need a reduced character sets, see [`output.hashCharacters`](#output-hashcharacters)
-- `[name]`: The file name of the asset excluding any extension.
+- `[name]`: The file name of the asset excluding any extension. If several names were emitted for the same source, `[name]`, `[ext]` and `[extname]` are based on the shortest name emitted so far, ties broken alphabetically.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `PreRenderedAsset` is a reduced version of the `OutputAsset` type in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#output-chunkfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
