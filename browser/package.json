@@ -1,6 +1,6 @@
 {
   "name": "@rollup/browser",
-  "version": "4.64.9",
+  "version": "5.0.0-1",
   "description": "Next-generation ES module bundler browser build",
   "main": "dist/rollup.browser.js",
   "module": "dist/es/rollup.browser.js",
@@ -22,9 +22,6 @@
     "url": "https://github.com/rollup/rollup/issues"
   },
   "homepage": "https://rollupjs.org/",
-  "dependencies": {
-    "@types/estree": "1.0.9"
-  },
   "files": [
     "dist/**/*.wasm",
     "dist/**/*.js",

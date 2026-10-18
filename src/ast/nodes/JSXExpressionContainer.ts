@@ -4,13 +4,14 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type JSXEmptyExpression from './JSXEmptyExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
 export default class JSXExpressionContainer extends NodeBase {
+	declare parent: nodes.JSXExpressionContainerParent;
 	declare type: NodeType.tJSXExpressionContainer;
-	declare expression: ExpressionNode | JSXEmptyExpression;
+	declare expression: nodes.Expression | JSXEmptyExpression;
 
 	includeNode(context: InclusionContext) {
 		this.included = true;

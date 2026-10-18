@@ -3,15 +3,16 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type JSXClosingFragment from './JSXClosingFragment';
 import type JSXOpeningFragment from './JSXOpeningFragment';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
-import type { JSXChild } from './shared/jsxHelpers';
 import type { IncludeChildren } from './shared/Node';
 
 export default class JSXFragment extends JSXElementBase {
+	declare parent: nodes.JSXFragmentParent;
 	declare type: NodeType.tJSXElement;
 	declare openingFragment: JSXOpeningFragment;
-	declare children: JSXChild[];
+	declare children: nodes.JSXChild[];
 	declare closingFragment: JSXClosingFragment;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {

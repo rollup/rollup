@@ -8,10 +8,12 @@ import type JSXFragment from './JSXFragment';
 import JSXIdentifier from './JSXIdentifier';
 import type JSXNamespacedName from './JSXNamespacedName';
 import Literal from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class JSXAttribute extends NodeBase {
+	declare parent: nodes.JSXAttributeParent;
 	declare type: NodeType.tJSXAttribute;
 	declare name: JSXIdentifier | JSXNamespacedName;
 	declare value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;

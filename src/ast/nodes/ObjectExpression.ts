@@ -17,9 +17,10 @@ import {
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import Literal from './Literal';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import type Property from './Property';
-import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
@@ -27,6 +28,7 @@ import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
+	declare parent: nodes.ObjectExpressionParent;
 	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;

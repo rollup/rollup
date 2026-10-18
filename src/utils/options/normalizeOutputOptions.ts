@@ -17,6 +17,7 @@ import {
 	URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
 	URL_OUTPUT_FORMAT,
 	URL_OUTPUT_GENERATEDCODE,
+	URL_OUTPUT_IMPORTATTRIBUTESKEY,
 	URL_OUTPUT_INLINEDYNAMICIMPORTS,
 	URL_OUTPUT_INTEROP,
 	URL_OUTPUT_MANUALCHUNKS,
@@ -71,7 +72,7 @@ export async function normalizeOutputOptions(
 		globals: config.globals || {},
 		hashCharacters: config.hashCharacters ?? 'base64',
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
-		importAttributesKey: config.importAttributesKey ?? 'assert',
+		importAttributesKey: getImportAttributesKey(config, inputOptions),
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
 		interop: getInterop(config),
@@ -80,7 +81,8 @@ export async function normalizeOutputOptions(
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
 		noConflict: config.noConflict || false,
-		onlyExplicitManualChunks: config.onlyExplicitManualChunks || false,
+		onlyExplicitManualChunks:
+			config.onlyExplicitManualChunks ?? typeof config.manualChunks === 'function',
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
 		plugins: await normalizePluginOption(config.plugins),
@@ -368,6 +370,21 @@ const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['gener
 		reservedNamesAsProps: configWithPreset.reservedNamesAsProps !== false,
 		symbols: configWithPreset.symbols === true
 	};
+};
+
+const getImportAttributesKey = (
+	config: OutputOptions,
+	inputOptions: NormalizedInputOptions
+): NormalizedOutputOptions['importAttributesKey'] => {
+	if (config.importAttributesKey != undefined) {
+		warnDeprecation(
+			`The "output.importAttributesKey" option is deprecated and will be removed in a future version of Rollup. Only use it if you need to support environments that do not understand the "with" keyword.`,
+			URL_OUTPUT_IMPORTATTRIBUTESKEY,
+			false,
+			inputOptions
+		);
+	}
+	return config.importAttributesKey ?? 'with';
 };
 
 const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOptions['indent'] => {

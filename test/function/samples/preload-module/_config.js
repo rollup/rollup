@@ -52,6 +52,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: null,
 							meta: { testPlugin: 'first' },
+							rawId: ID_MAIN,
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						});
@@ -96,6 +97,7 @@ module.exports = defineTest({
 						isExternal: false,
 						isIncluded: true,
 						meta: {},
+						rawId: ID_DEP,
 						safeVariableNames: null,
 						syntheticNamedExports: false
 					});
