@@ -299,25 +299,24 @@ export class ModuleLoader {
 	): Promise<void> {
 		let source: LoadResult;
 		try {
-			source = await this.graph.fileOperationQueue.run(async () => {
-				const content = await this.pluginDriver.hookFirst('load', [
-					id,
-					{ attributes: module.info.attributes, rawId: module.info.rawId }
-				]);
-				if (content !== null) {
-					if (typeof content === 'object' && (content as any).attributes) {
-						warnDeprecation(
-							'Returning attributes from the "load" hook is deprecated.',
-							URL_LOAD,
-							true,
-							this.options
-						);
-					}
-					return content;
+			const content = await this.pluginDriver.hookFirst('load', [
+				id,
+				{ attributes: module.info.attributes, rawId: module.info.rawId }
+			]);
+			if (content !== null) {
+				if (typeof content === 'object' && (content as any).attributes) {
+					warnDeprecation(
+						'Returning attributes from the "load" hook is deprecated.',
+						URL_LOAD,
+						true,
+						this.options
+					);
 				}
+				source = content;
+			} else {
 				this.graph.watchFiles[module.info.rawId] = true;
-				return (await this.options.fs.readFile(module.info.rawId, { encoding: 'utf8' })) as string;
-			});
+				source = await this.options.fs.readFile(module.info.rawId, { encoding: 'utf8' });
+			}
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;
 			if (importer) message += ` (imported by ${relativeId(importer)})`;
