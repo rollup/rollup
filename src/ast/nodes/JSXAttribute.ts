@@ -29,19 +29,15 @@ export default class JSXAttribute extends NodeBase {
 				}
 				if (value) {
 					code.overwrite(name.end, value.start, ': ', { contentOnly: true });
-					// foo="aa \n aa"
-					if (
-						value instanceof Literal &&
-						typeof value.value === 'string' &&
-						value.value.includes('\n')
-					) {
-						code.overwrite(value.start, value.end, JSON.stringify(value.value), {
-							contentOnly: true
-						});
-					}
 				} else {
 					code.appendLeft(name.end, ': true');
 				}
+			}
+			// JSX strings contain HTML entities but no escape sequences
+			if (value instanceof Literal && typeof value.value === 'string') {
+				code.overwrite(value.start, value.end, JSON.stringify(value.value), {
+					contentOnly: true
+				});
 			}
 		}
 	}
