@@ -552,17 +552,12 @@ function* getModulesWithDependentEntriesAndHandleTLACycles(
 
 function getManualChunkAtoms(
 	manualChunkModules: readonly Module[][],
-	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>
+	dependentEntriesByModule: ReadonlyMap<Module, Set<number>>
 ): ModulesWithDependentEntries[] {
-	return manualChunkModules.map(modules => {
-		const dependentEntries = new Set<number>();
-		for (const module of modules) {
-			for (const entryIndex of dependentEntriesByModule.get(module)!) {
-				dependentEntries.add(entryIndex);
-			}
-		}
-		return { dependentEntries, modules };
-	});
+	return manualChunkModules.map(modules => ({
+		dependentEntries: dependentEntriesByModule.get(modules[0])!,
+		modules
+	}));
 }
 
 function getStaticDependencyAtomsByEntry(
