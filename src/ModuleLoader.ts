@@ -15,6 +15,7 @@ import type {
 	Plugin,
 	ResolvedId,
 	ResolveIdResult,
+	SourceDescription,
 	UniqueModuleId
 } from './rollup/types';
 import { BLANK, EMPTY_OBJECT } from './utils/blank';
@@ -297,40 +298,7 @@ export class ModuleLoader {
 		importer: string | undefined,
 		module: Module
 	): Promise<void> {
-		let source: LoadResult;
-		try {
-			const content = await this.pluginDriver.hookFirst('load', [
-				id,
-				{ attributes: module.info.attributes, rawId: module.info.rawId }
-			]);
-			if (content !== null) {
-				if (typeof content === 'object' && (content as any).attributes) {
-					warnDeprecation(
-						'Returning attributes from the "load" hook is deprecated.',
-						URL_LOAD,
-						true,
-						this.options
-					);
-				}
-				source = content;
-			} else {
-				this.graph.watchFiles[module.info.rawId] = true;
-				source = await this.options.fs.readFile(module.info.rawId, { encoding: 'utf8' });
-			}
-		} catch (error_: any) {
-			let message = `Could not load ${id}`;
-			if (importer) message += ` (imported by ${relativeId(importer)})`;
-			message += `: ${error_.message}`;
-			error_.message = message;
-			throw error_;
-		}
-		const sourceDescription =
-			typeof source === 'string'
-				? { code: source }
-				: source != null && typeof source === 'object' && typeof source.code === 'string'
-					? source
-					: error(logBadLoader(id));
-		sourceDescription.code = stripBom(sourceDescription.code);
+		const sourceDescription = await this.loadSourceDescription(id, importer, module);
 		const cachedModule = this.graph.cachedModules.get(id);
 		if (
 			cachedModule &&
@@ -799,6 +767,45 @@ export class ModuleLoader {
 			isEntry,
 			false
 		);
+	}
+
+	private async loadSourceDescription(
+		id: string,
+		importer: string | undefined,
+		module: Module
+	): Promise<SourceDescription> {
+		let source: LoadResult;
+		try {
+			source = await this.pluginDriver.hookFirst('load', [
+				id,
+				{ attributes: module.info.attributes, rawId: module.info.rawId }
+			]);
+			if (source === null) {
+				this.graph.watchFiles[module.info.rawId] = true;
+				source = await this.options.fs.readFile(module.info.rawId, { encoding: 'utf8' });
+			} else if (typeof source === 'object' && (source as any).attributes) {
+				warnDeprecation(
+					'Returning attributes from the "load" hook is deprecated.',
+					URL_LOAD,
+					true,
+					this.options
+				);
+			}
+		} catch (error_: any) {
+			let message = `Could not load ${id}`;
+			if (importer) message += ` (imported by ${relativeId(importer)})`;
+			message += `: ${error_.message}`;
+			error_.message = message;
+			throw error_;
+		}
+		const sourceDescription =
+			typeof source === 'string'
+				? { code: source }
+				: source != null && typeof source === 'object' && typeof source.code === 'string'
+					? source
+					: error(logBadLoader(id));
+		sourceDescription.code = stripBom(sourceDescription.code);
+		return sourceDescription;
 	}
 
 	private toModuleResolvedId(resolveIdResult: ResolvedId): ModuleResolvedId {
