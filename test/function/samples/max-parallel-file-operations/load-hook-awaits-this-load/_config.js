@@ -1,3 +1,4 @@
+const assert = require('node:assert');
 const path = require('node:path');
 
 module.exports = defineTest({
@@ -13,5 +14,8 @@ module.exports = defineTest({
 				}
 			}
 		]
+	},
+	exports(exports) {
+		assert.deepStrictEqual(exports, { foo: 1 });
 	}
 });

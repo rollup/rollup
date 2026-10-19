@@ -5,7 +5,7 @@ const { loader } = require('../../../../testHelpers.js');
 const fsReadFile = fs.readFile;
 
 module.exports = defineTest({
-	description: 'maxParallelFileOps: rejected fs promise error is forwarded',
+	description: 'forwards rejected fs promise errors',
 	options: {
 		input: 'main',
 		maxParallelFileOps: 1,
@@ -15,8 +15,8 @@ module.exports = defineTest({
 		fs
 	},
 	before() {
-		fs.readFile = (path, options) =>
-			path.endsWith('dep.js') ? Promise.reject(new Error('broken')) : fsReadFile(path, options);
+		fs.readFile = (file, options) =>
+			file.endsWith('dep.js') ? Promise.reject(new Error('broken')) : fsReadFile(file, options);
 	},
 	after() {
 		fs.readFile = fsReadFile;
