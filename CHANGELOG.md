@@ -58,6 +58,7 @@ _2026-10-02_
 - The `output.importAttributesKey` option now defaults to `"with"` instead of `"assert"`: the import attributes of external imports, re-exports and dynamic imports are rendered with the `with` keyword in the generated output regardless of the keyword used in the source; set `output.importAttributesKey: "assert"` to restore the old behavior (#6248)
 - When Rollup transpiles or bundles the config file itself, e.g. when using `--configPlugin` or `--bundleConfigAsCjs`, the generated config uses the `with` keyword as well; use `--configImportAttributesKey assert` to restore the old behavior (#6248)
 - `output.onlyExplicitManualChunks` now also applies to the object form of `output.manualChunks`, is no longer deprecated, and defaults to `false` for the object form and to `true` for the function form, so the function form no longer adds the dependencies of returned modules to the manual chunk by default (#6533)
+- When the same source is emitted several times without a `fileName`, a function-based `output.assetFileNames` is now only called once per output instead of once per emission, and the `names` and `originalFileNames` properties of the deduplicated asset no longer contain duplicate entries (#6585)
 
 ### Features
 
@@ -97,7 +98,10 @@ _2026-10-02_
 - [#6532](https://github.com/rollup/rollup/pull/6532): [v5.0] Require Node.js 22.12.0 (@lukastaegert)
 - [#6533](https://github.com/rollup/rollup/pull/6533): [v5.0] Rework manual chunks for Rollup 5 (@lukastaegert)
 - [#6548](https://github.com/rollup/rollup/pull/6548): [v5.0] Add Mocha GitHub Actions test reports (@lukastaegert)
+- [#6553](https://github.com/rollup/rollup/pull/6553): [v5.0] Update Rust nightly to 2026-09-11 (@lukastaegert)
 - [#6557](https://github.com/rollup/rollup/pull/6557): [v5.0] Remove all consumers of the vulnerable braces dependency (@lukastaegert)
+- [#6558](https://github.com/rollup/rollup/pull/6558): [v5.0] Improve release scripts: TypeScript, tests and tag-based release detection (@lukastaegert)
+- [#6585](https://github.com/rollup/rollup/pull/6585): [v5.0] Call assetFileNames only once per deduplicated asset (@lukastaegert)
 
 For previous changelogs, see
 
