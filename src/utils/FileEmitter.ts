@@ -515,10 +515,10 @@ export class FileEmitter {
 		const existingAsset = bundle[fileName];
 		if (existingAsset?.type === 'asset') {
 			existingAsset.needsCodeReference &&= needsCodeReference;
-			if (name) {
+			if (name && !existingAsset.names.includes(name)) {
 				existingAsset.names.push(name);
 			}
-			if (originalFileName) {
+			if (originalFileName && !existingAsset.originalFileNames.includes(originalFileName)) {
 				existingAsset.originalFileNames.push(originalFileName);
 			}
 		} else {
@@ -560,31 +560,25 @@ export class FileEmitter {
 		{ bundle, fileNamesBySourceHash, outputOptions }: FileEmitterOutput
 	): void {
 		const { names, originalFileNames } = getNamesFromAssets(consumedFiles);
-		let fileName = '';
-		let usedConsumedFile: ConsumedAsset;
+		let representative = consumedFiles[0];
 		let needsCodeReference = true;
 		for (const consumedFile of consumedFiles) {
 			needsCodeReference &&= consumedFile.needsCodeReference;
-			const assetFileName = generateAssetFileName(
-				consumedFile.name,
-				names,
-				consumedFile.source!,
-				consumedFile.originalFileName,
-				originalFileNames,
-				sourceHash,
-				outputOptions,
-				bundle,
-				this.options
-			);
-			if (
-				!fileName ||
-				assetFileName.length < fileName.length ||
-				(assetFileName.length === fileName.length && assetFileName < fileName)
-			) {
-				fileName = assetFileName;
-				usedConsumedFile = consumedFile;
+			if (compareConsumedAssets(consumedFile, representative) < 0) {
+				representative = consumedFile;
 			}
 		}
+		const fileName = generateAssetFileName(
+			representative.name,
+			names,
+			representative.source!,
+			representative.originalFileName,
+			originalFileNames,
+			sourceHash,
+			outputOptions,
+			bundle,
+			this.options
+		);
 		fileNamesBySourceHash.set(sourceHash, fileName);
 
 		for (const consumedFile of consumedFiles) {
@@ -604,7 +598,7 @@ export class FileEmitter {
 					false,
 					options
 				);
-				return usedConsumedFile!.name;
+				return representative.name;
 			},
 			names,
 			needsCodeReference,
@@ -616,32 +610,45 @@ export class FileEmitter {
 					false,
 					options
 				);
-				return usedConsumedFile!.originalFileName;
+				return representative.originalFileName;
 			},
 			originalFileNames,
-			source: usedConsumedFile!.source!,
+			source: representative.source!,
 			type: 'asset'
 		};
 	}
 }
 
+const compareNames = (a: string, b: string) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0);
+
+const compareOptionalNames = (a: string | null | undefined, b: string | null | undefined) =>
+	a === b ? 0 : a == null ? 1 : b == null ? -1 : a < b ? -1 : 1;
+
+const compareSourceTypes = (a: string | Uint8Array, b: string | Uint8Array) =>
+	typeof a === 'string' ? (typeof b === 'string' ? 0 : -1) : typeof b === 'string' ? 1 : 0;
+
+const compareConsumedAssets = (a: ConsumedAsset, b: ConsumedAsset) =>
+	compareNames(a.name || 'asset', b.name || 'asset') ||
+	compareOptionalNames(a.originalFileName, b.originalFileName) ||
+	compareOptionalNames(a.name, b.name) ||
+	compareSourceTypes(a.source!, b.source!);
+
 function getNamesFromAssets(consumedFiles: readonly ConsumedAsset[]): {
 	names: string[];
 	originalFileNames: string[];
 } {
-	const names: string[] = [];
-	const originalFileNames: string[] = [];
+	const names = new Set<string>();
+	const originalFileNames = new Set<string>();
 	for (const { name, originalFileName } of consumedFiles) {
 		if (typeof name === 'string') {
-			names.push(name);
+			names.add(name);
 		}
 		if (originalFileName) {
-			originalFileNames.push(originalFileName);
+			originalFileNames.add(originalFileName);
 		}
 	}
-	originalFileNames.sort();
-	// Sort by length first and then alphabetically so that the order is stable
-	// and the shortest names come first
-	names.sort((a, b) => a.length - b.length || (a > b ? 1 : a === b ? 0 : -1));
-	return { names, originalFileNames };
+	return {
+		names: [...names].sort(compareNames),
+		originalFileNames: [...originalFileNames].sort()
+	};
 }
