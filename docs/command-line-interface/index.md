@@ -53,6 +53,7 @@ export default {
 
 	// advanced input options
 	cache,
+	fs,
 	logLevel,
 	makeAbsoluteExternalsRelative,
 	maxParallelFileOps,

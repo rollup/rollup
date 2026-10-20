@@ -60,7 +60,7 @@ Options:
 --intro <text>              Code to insert at top of bundle (inside wrapper)
 --logLevel <level>          Which kind of logs to display
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
---maxParallelFileOps <value> How many files to read in parallel
+--maxParallelFileOps <value> How many file system operations to run in parallel
 --minifyInternalExports     Force or disable minification of internal exports
 --noConflict                Generate a noConflict method for UMD globals
 --outro <text>              Code to insert at end of bundle (inside wrapper)

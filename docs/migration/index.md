@@ -57,6 +57,12 @@ The function forms of [`external`](../configuration-options/index.md#external), 
 
 The object forms of `output.globals` and `output.paths` are keyed by the `rawId` of external modules, i.e. the id without encoded import attributes; all import attribute variants of a module share one entry. If several variants of the same external module would be assigned the same global name this way, Rollup emits an `AMBIGUOUS_GLOBAL_NAME` warning; use the function form to give each variant its own global name.
 
+### `maxParallelFileOps` limits file operations instead of `load` hooks
+
+[`maxParallelFileOps`](../configuration-options/index.md#maxparallelfileops) no longer limits how many `load` hooks run in parallel. Instead, it limits the number of parallel file operations performed via the [`fs`](../configuration-options/index.md#fs) option and [`this.fs`](../plugin-development/index.md#this-fs). Plugins that perform file operations should use `this.fs` so that these operations respect the limit.
+
+As a consequence, `this.fs` and `options.fs` now expose only the methods of the `RollupFsModule` interface — extra methods of the underlying implementation, e.g. the full `node:fs/promises` namespace, no longer leak through. Additionally, the `fs` option is no longer experimental and is documented under advanced functionality.
+
 ## Reworked manual chunks
 
 Manual chunks no longer absorb their full transitive dependency subtree. Instead, they either behave like entry points or contain exactly their assigned modules, controlled by [`onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks), which now applies to both the object and the function form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), with `false` as default for the object form and `true` for the function form:
