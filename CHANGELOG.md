@@ -59,6 +59,8 @@ _2026-10-02_
 - When Rollup transpiles or bundles the config file itself, e.g. when using `--configPlugin` or `--bundleConfigAsCjs`, the generated config uses the `with` keyword as well; use `--configImportAttributesKey assert` to restore the old behavior (#6248)
 - `output.onlyExplicitManualChunks` now also applies to the object form of `output.manualChunks`, is no longer deprecated, and defaults to `false` for the object form and to `true` for the function form, so the function form no longer adds the dependencies of returned modules to the manual chunk by default (#6533)
 - When the same source is emitted several times without a `fileName`, a function-based `output.assetFileNames` is now only called once per output instead of once per emission, and the `names` and `originalFileNames` properties of the deduplicated asset no longer contain duplicate entries (#6585)
+- `maxParallelFileOps` now limits how many file operations are performed in parallel via the `fs` option and `this.fs` instead of how many `load` hooks run in parallel; plugins are strongly encouraged to use `this.fs` for all file operations, as plugin file operations that bypass `this.fs`, e.g. by using `node:fs` directly, are no longer throttled and may exceed the operating system's limit for open files (#6586)
+- The `fs` option is no longer experimental, and `this.fs` and `options.fs` now expose exactly the methods of the `RollupFsModule` interface; custom file system implementations must not call the file system exposed by Rollup as nested calls can stall the build (#6586)
 
 ### Features
 
@@ -85,6 +87,7 @@ _2026-10-02_
 - When `experimentalMinChunkSize` is used together with `onlyExplicitManualChunks: true`, loading an entry no longer runs side effects of unrelated manual chunk modules (#6533)
 - When the same dynamic import is reached from several entries, the dynamically imported chunk no longer imports from an unrelated entry chunk and thereby runs that entry's side effects (#6533)
 - Chunks emitted with `implicitlyLoadedAfterOneOf` are no longer missing from the output when their module is fully tree-shaken, e.g. when using `preserveModules`, which made `this.getFileName` throw for their reference id (#6533)
+- Builds no longer stall without an error message when `load` hooks await `this.load` while all `maxParallelFileOps` slots are taken (#6586)
 
 ### Pull Requests
 
@@ -102,6 +105,7 @@ _2026-10-02_
 - [#6557](https://github.com/rollup/rollup/pull/6557): [v5.0] Remove all consumers of the vulnerable braces dependency (@lukastaegert)
 - [#6558](https://github.com/rollup/rollup/pull/6558): [v5.0] Improve release scripts: TypeScript, tests and tag-based release detection (@lukastaegert)
 - [#6585](https://github.com/rollup/rollup/pull/6585): [v5.0] Call assetFileNames only once per deduplicated asset (@lukastaegert)
+- [#6586](https://github.com/rollup/rollup/pull/6586): [v5.0] Let maxParallelFileOps only limit file operations via the fs API (@lukastaegert)
 
 For previous changelogs, see
 

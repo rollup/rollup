@@ -216,9 +216,7 @@ async function handleGenerateWrite(
 				return error(logMissingFileOrDirOption());
 			}
 			await Promise.all(
-				Object.values(generated).map(chunk =>
-					graph.fileOperationQueue.run(() => writeOutputFile(chunk, outputOptions, inputOptions))
-				)
+				Object.values(generated).map(chunk => writeOutputFile(chunk, outputOptions, inputOptions))
 			);
 			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
 			timeEnd('WRITE', 1);

@@ -7,13 +7,14 @@ let currentReads = 0;
 let maxReads = 0;
 
 module.exports = defineTest({
-	description: 'maxParallelFileOps with plugin',
+	description: 'limits parallel file operations when plugins use this.fs',
 	options: {
 		maxParallelFileOps: 3,
+		fs,
 		plugins: [
 			{
 				load(id) {
-					return fs.readFile(id, 'utf8');
+					return this.fs.readFile(id, { encoding: 'utf8' });
 				}
 			}
 		]
