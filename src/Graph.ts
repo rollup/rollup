@@ -28,7 +28,6 @@ import { normalizeModuleId } from './utils/moduleId';
 import { PluginDriver } from './utils/PluginDriver';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
-import Queue from './utils/Queue';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
@@ -64,7 +63,6 @@ export default class Graph {
 	readonly cachedModules = new Map<string, CachedModule>();
 	readonly deoptimizationTracker = new EntityPathTracker();
 	entryModules: Module[] = [];
-	readonly fileOperationQueue: Queue;
 	readonly moduleLoader: ModuleLoader;
 	readonly modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
@@ -107,7 +105,6 @@ export default class Graph {
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
-		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
 		this.pureFunctions = getPureFunctions(options);
 	}
 
