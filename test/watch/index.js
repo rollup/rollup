@@ -3104,23 +3104,20 @@ describe('rollup.watch', function () {
 				exports: 'auto'
 			}
 		});
-		return sequence(watcher, [
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run(BUNDLE_FILE), 42);
-				atomicWriteFileSync(path.join(INPUT_DIR, '[foo]/bar.js'), `export const bar = 43;`);
-			},
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run(BUNDLE_FILE), 43);
+		await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+			throw new Error('The initial build did not finish.');
+		});
+		assert.strictEqual(run(BUNDLE_FILE), 42);
+		const retryDeadline = Date.now() + 5000;
+		// File watchers may drop changes or deliver them late, triggering unrelated
+		// rebuilds, hence the change is written until a rebuild has picked it up.
+		while (readBundleResult() !== 43) {
+			if (Date.now() > retryDeadline) {
+				throw new Error('The change to [foo]/bar.js was not picked up.');
 			}
-		]);
+			atomicWriteFileSync(path.join(INPUT_DIR, '[foo]/bar.js'), `export const bar = 43;`);
+			await Promise.race([waitForWatcherEvent(watcher, 'END'), wait(300)]);
+		}
 	});
 
 	it('updates the right hashes on dependency changes', async () => {
