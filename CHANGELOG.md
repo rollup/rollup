@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.64.12
+
+_2026-10-20_
+
+### Bug Fixes
+
+- Allow generating logs from transform hooks at position 0 (#6587)
+- Properly handle global or sticky regular expressions for file names (#6588)
+
+### Pull Requests
+
+- [#6587](https://github.com/rollup/rollup/pull/6587): Fix transform diagnostics at position zero (@shuaiyafei)
+- [#6588](https://github.com/rollup/rollup/pull/6588): Match stateful external regular expressions consistently (@shuaiyafei)
+
 ## 4.64.10
 
 _2026-10-18_
