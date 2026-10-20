@@ -149,6 +149,7 @@ const inputOptions = {
 
 	// advanced input options
 	cache,
+	fs,
 	logLevel,
 	makeAbsoluteExternalsRelative,
 	maxParallelFileOps,
@@ -167,8 +168,7 @@ const inputOptions = {
 	// experimental
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
-	perf,
-	fs
+	perf
 };
 ```
 

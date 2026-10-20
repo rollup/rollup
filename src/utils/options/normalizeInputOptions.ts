@@ -7,6 +7,7 @@ import type {
 	RollupFsModule
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../blank';
+import { createLimitedFs } from '../createLimitedFs';
 import { ensureArray } from '../ensureArray';
 import * as fs from '../fs';
 import { getLogger } from '../logger';
@@ -52,7 +53,7 @@ export async function normalizeInputOptions(
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
-		fs: config.fs ?? (fs as RollupFsModule),
+		fs: createLimitedFs(config.fs ?? (fs as RollupFsModule), maxParallelFileOps),
 		input: getInput(config),
 		jsx: getJsx(config),
 		logLevel,
