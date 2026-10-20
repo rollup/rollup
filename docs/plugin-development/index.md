@@ -1652,7 +1652,7 @@ When used in the `transform` hook, the `id` of the current module will also be a
 | ----: | :--------------- |
 | Type: | `RollupFsModule` |
 
-Provides abstract access to the file system. For the `RollupFsModule` type, see the documentation of the [`fs` option](../configuration-options/index.md#fs). If plugins use this instead of directly importing `node:fs`, then they can be used in browser builds that provide an in-memory file system via the `fs` option.
+Provides abstract access to the file system. For the `RollupFsModule` type, see the documentation of the [`fs` option](../configuration-options/index.md#fs). Plugins are encouraged to use this for all their file operations instead of directly importing `node:fs`: then they can be used in browser builds that provide an in-memory file system via the `fs` option, and their file operations automatically respect the [`maxParallelFileOps`](../configuration-options/index.md#maxparallelfileops) option.
 
 ### this.getCombinedSourcemap
 

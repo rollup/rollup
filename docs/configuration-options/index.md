@@ -606,6 +606,109 @@ buildWithCache()
 	});
 ```
 
+### fs
+
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `RollupFsModule`                                     |
+| Default: | `node:fs.promises` in NodeJS, no default in browsers |
+
+If you want to use a custom file system module, you can set this option to an object that implements the same API as the `RollupFsModule` interface. This is useful if you want to use a different file system implementation such as [`memfs`](https://www.npmjs.com/package/memfs), if you want to mock the file system for testing purposes, or if you use the [browser build](../browser/index.md) of Rollup.
+
+All file system access during a build goes through this API, and the number of operations running in parallel is limited by the [`maxParallelFileOps`](#maxparallelfileops) option. Plugins are therefore encouraged to use [`this.fs`](../plugin-development/index.md#this-fs) for all their file operations. Custom file system implementations must not call back into `this.fs`, as this can stall builds at low `maxParallelFileOps` values.
+
+```typescript
+interface RollupFsModule {
+	appendFile(
+		path: string,
+		data: string | Uint8Array,
+		options?: {
+			encoding?: BufferEncoding | null;
+			mode?: string | number;
+			flag?: string | number;
+		}
+	): Promise<void>;
+
+	copyFile(
+		source: string,
+		destination: string,
+		mode?: string | number
+	): Promise<void>;
+
+	mkdir(
+		path: string,
+		options?: { recursive?: boolean; mode?: string | number }
+	): Promise<void>;
+
+	mkdtemp(prefix: string): Promise<string>;
+
+	readdir(
+		path: string,
+		options?: { withFileTypes?: boolean }
+	): Promise<(string | RollupDirectoryEntry)[]>;
+
+	readFile(
+		path: string,
+		options?: {
+			encoding?: BufferEncoding | null;
+			flag?: string | number;
+			signal?: AbortSignal;
+		}
+	): Promise<string | Uint8Array>;
+
+	realpath(path: string): Promise<string>;
+
+	rename(oldPath: string, newPath: string): Promise<void>;
+
+	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+
+	stat(path: string): Promise<RollupFileStats>;
+
+	lstat(path: string): Promise<RollupFileStats>;
+
+	unlink(path: string): Promise<void>;
+
+	writeFile(
+		path: string,
+		data: string | ArrayBuffer | ArrayBufferView,
+		options?: {
+			encoding?: BufferEncoding | null;
+			mode?: string | number;
+			flag?: string | number;
+		}
+	): Promise<void>;
+}
+
+type BufferEncoding =
+	| 'ascii'
+	| 'utf8'
+	| 'utf16le'
+	| 'ucs2'
+	| 'base64'
+	| 'base64url'
+	| 'latin1'
+	| 'binary'
+	| 'hex';
+
+export interface RollupDirectoryEntry {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	name: string;
+}
+
+interface RollupFileStats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+	isSymbolicLink(): boolean;
+	size: number;
+	mtime: Date;
+	ctime: Date;
+	atime: Date;
+	birthtime: Date;
+}
+```
+
 ### logLevel
 
 |          |                        |
@@ -646,7 +749,7 @@ Note that when a relative path is directly marked as "external" using the [`exte
 |     CLI: | `--maxParallelFileOps <number>` |
 | Default: | 1000                            |
 
-Limits the number of files rollup will open in parallel when reading modules or writing chunks. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows. If you set the limit too low and use plugins that rely on the [`this.load`](../plugin-development/index.md#this-load) context function, such as the `commonjs` plugin, then it can happen that builds stall without an error message as it limits the number of parallel `load` calls.
+Limits the number of file operations that run in parallel when Rollup resolves, reads or writes files via the [`fs`](#fs) option, or when plugins use [`this.fs`](../plugin-development/index.md#this-fs). Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows.
 
 ### onLog
 
@@ -2949,107 +3052,6 @@ Whether to collect performance timings. When used from the command line or a con
 ```
 
 For each key, the first number represents the elapsed time while the second represents the change in memory consumption, and the third represents the total memory consumption after this step. The order of these steps is the order used by `Object.keys`. Top level keys start with `#` and contain the timings of nested steps, i.e. in the example above, the 698ms of the `# BUILD` step include the 538ms of the `## parse modules` step.
-
-### fs
-
-|          |                                                      |
-| -------: | :--------------------------------------------------- |
-|    Type: | `RollupFsModule`                                     |
-| Default: | `node:fs.promises` in NodeJS, no default in browsers |
-
-If you want to use a custom file system module, you can set this option to an object that implements the same API as the `RollupFsModule` interface. This is useful if you want to use a different file system implementation such as [`memfs`](https://www.npmjs.com/package/memfs), if you want to mock the file system for testing purposes, or if you use the [browser build](../browser/index.md) of Rollup.
-
-```typescript
-interface RollupFsModule {
-	appendFile(
-		path: string,
-		data: string | Uint8Array,
-		options?: {
-			encoding?: BufferEncoding | null;
-			mode?: string | number;
-			flag?: string | number;
-		}
-	): Promise<void>;
-
-	copyFile(
-		source: string,
-		destination: string,
-		mode?: string | number
-	): Promise<void>;
-
-	mkdir(
-		path: string,
-		options?: { recursive?: boolean; mode?: string | number }
-	): Promise<void>;
-
-	mkdtemp(prefix: string): Promise<string>;
-
-	readdir(
-		path: string,
-		options?: { withFileTypes?: boolean }
-	): Promise<(string | RollupDirectoryEntry)[]>;
-
-	readFile(
-		path: string,
-		options?: {
-			encoding?: BufferEncoding | null;
-			flag?: string | number;
-			signal?: AbortSignal;
-		}
-	): Promise<string | Uint8Array>;
-
-	realpath(path: string): Promise<string>;
-
-	rename(oldPath: string, newPath: string): Promise<void>;
-
-	rmdir(path: string, options?: { recursive?: boolean }): Promise<void>;
-
-	stat(path: string): Promise<RollupFileStats>;
-
-	lstat(path: string): Promise<RollupFileStats>;
-
-	unlink(path: string): Promise<void>;
-
-	writeFile(
-		path: string,
-		data: string | ArrayBuffer | ArrayBufferView,
-		options?: {
-			encoding?: BufferEncoding | null;
-			mode?: string | number;
-			flag?: string | number;
-		}
-	): Promise<void>;
-}
-
-type BufferEncoding =
-	| 'ascii'
-	| 'utf8'
-	| 'utf16le'
-	| 'ucs2'
-	| 'base64'
-	| 'base64url'
-	| 'latin1'
-	| 'binary'
-	| 'hex';
-
-export interface RollupDirectoryEntry {
-	isFile(): boolean;
-	isDirectory(): boolean;
-	isSymbolicLink(): boolean;
-	name: string;
-}
-
-interface RollupFileStats {
-	isFile(): boolean;
-	isDirectory(): boolean;
-	isSymbolicLink(): boolean;
-	size: number;
-	mtime: Date;
-	ctime: Date;
-	atime: Date;
-	birthtime: Date;
-}
-```
 
 ## watch
 
