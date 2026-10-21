@@ -49,7 +49,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Node build**: Artifacts placed in `dist/` (JavaScript + `.node` native modules)
 - **Browser build**: Artifacts placed in `browser/dist/`; browser tests use `browser/dist/rollup.browser.js`
-- **WASM artifacts**: `wasm/bindings_wasm.js` and `wasm/bindings_wasm_bg.wasm` are gitignored outputs of `npm run build:wasm` (only `.d.ts` is tracked); `build:js`/`update:js` fail without them. Run `build:wasm` after a fresh clone and after Rust changes, then `update:js`, before browser tests
+- **WASM artifacts**: `wasm/bindings_wasm.js` and `wasm/bindings_wasm_bg.wasm` are outputs of `npm run build:wasm`; `build:js`/`update:js` fail without them. Run `build:wasm` after a fresh clone and after Rust changes, then `update:js`, before browser tests
 - All tests import from these dist folders - tests run against the full built artifact only
 
 ### Quick Rebuild Commands
@@ -76,9 +76,6 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 ## Testing
 
-- Only `npm test` (full build) and `npm run test:cjs` (CJS only, same caveat as `build:quick`) build first; all other `test:*` scripts never build — rebuild the changed parts first. Artifacts survive branch switches, so a stale `dist/` causes misleading failures
-- Every JS build (`build:js`, `build:cjs`, `watch`) wipes `dist/` including the copied `.node`; only the wrapper scripts (`update:*`, `build:quick`, `build`, `test:cjs`) copy it back. A missing `dist/rollup.<platform>.node` is not an error: `native.js` silently falls back to the npm-published binary, so Rust changes go untested — run `build:copy-native` after raw JS builds
-- On a fresh clone, `npm ci` builds `dist/` (CJS + ES + native) via `prepare`; this needs the Rust toolchain
 - Always test edge cases, especially in core logic or build/test infrastructure
 - Test names and descriptions use clear, descriptive language of the expected behavior, e.g. "description: 'does X when Y happens"
 - Category selection, runner contracts and pitfalls: see `test/AGENTS.md`
