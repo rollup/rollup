@@ -1,7 +1,5 @@
 const assert = require('node:assert');
-const { readFileSync } = require('node:fs');
-const { dirname } = require('node:path');
-const { runInNewContext } = require('node:vm');
+const Module = require('node:module');
 const rollup = require('../../dist/rollup');
 const { loader } = require('../testHelpers.js');
 
@@ -571,35 +569,40 @@ console.log(x);
 
 function loadNativeWithError(platform, error) {
 	const nativeEntry = require.resolve('../../dist/native.js');
-	return runInNewContext(
-		readFileSync(nativeEntry, 'utf8'),
-		{
-			Error,
-			__dirname: dirname(nativeEntry),
-			module: { exports: {} },
-			process: { execPath: process.execPath },
-			require(id) {
-				switch (id) {
-					case 'node:fs': {
-						return { existsSync: () => false };
-					}
-					case 'node:process': {
-						return {
-							arch: 'x64',
-							platform,
-							report: { getReport: () => ({ header: { glibcVersionRuntime: '2.36' } }) }
-						};
-					}
-					case 'node:child_process': {
-						return { spawnSync: () => ({ status: 0, stdout: '{}' }) };
-					}
-					default: {
-						if (id.startsWith('@rollup/rollup-')) throw error;
-						return require(id);
-					}
+	const cachedNativeModule = require.cache[nativeEntry];
+	const originalLoad = Module._load;
+	delete require.cache[nativeEntry];
+	Module._load = function (id, parent, ...arguments_) {
+		if (parent?.filename === nativeEntry) {
+			switch (id) {
+				case 'node:fs': {
+					return { existsSync: () => false };
+				}
+				case 'node:process': {
+					return {
+						arch: 'x64',
+						platform,
+						report: { getReport: () => ({ header: { glibcVersionRuntime: '2.36' } }) }
+					};
+				}
+				case 'node:child_process': {
+					return { spawnSync: () => ({ status: 0, stdout: '{}' }) };
+				}
+				default: {
+					if (id.startsWith('@rollup/rollup-')) throw error;
 				}
 			}
-		},
-		{ filename: nativeEntry }
-	);
+		}
+		return originalLoad.call(this, id, parent, ...arguments_);
+	};
+	try {
+		return require(nativeEntry);
+	} finally {
+		Module._load = originalLoad;
+		if (cachedNativeModule) {
+			require.cache[nativeEntry] = cachedNativeModule;
+		} else {
+			delete require.cache[nativeEntry];
+		}
+	}
 }
