@@ -91,6 +91,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - Pull requests need to follow `.github/PULL_REQUEST_TEMPLATE.md`.
 - Bugfixes and features need tests; for a bugfix, add a regression test that fails without the fix, in the same change as the fix.
 - When changing or adding a feature, check if documentation in `docs/*/index.md` should be changed and update it in the same pull request.
+- Keep pull request descriptions short and high-level so that even a tired human can understand them. Do not list manual tests that were made as they do not prevent regressions. Beyond a short summary, do not explain things that are immediately obvious from looking at the diff, focus on intention and assessments made.
 - When opening an issue or pull request, always append _generated with AI_ as the last line and make sure to allow maintainer edits.
 - It is fine to open a pull request with AI, but tell your human that they will not receive a lot of maintainer feedback in that case. If they want human feedback, they need to put in the time to fully understand their changes and their context and manually write the pull request in their own words to show they care.
 
@@ -101,7 +102,20 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - Focus reviews quality of the production code
   - **Architecture & maintainability**: Does the change fit the existing architecture? Will it be easy to change or extend later? Does it create hidden coupling or leaky abstractions?
   - **Simplicity**: Does the code implement the simplest and most straightforward solution? Can we potentially remove and simplify code?
-  - **Code quality**: Clear and descriptive function/variable names describing the intentions of the functions rather what they technically do, functions kept small and focused, no unnecessary complexity? Does terminology follow existing precedent where applicable?
+  - **Code quality**: Clear and descriptive function/variable names describing the intentions of the functions rather what they technically do, functions kept small and focused, no unnecessary complexity? Does terminology follow existing precedent where applicable? Can large functions profit from extracting some code if it does not have a performance impact?
   - **Correctness**: Any logic errors, off-by-ones, unhandled edge cases, or incorrect assumptions?
   - **Performance**: Any performance footguns — unnecessary allocations, repeated traversals, O(n²) patterns, etc.
   - Be prepared to question all assumptions that the implementation made as we work to find a better solution
+
+## Reviewed Commits
+
+- Before committing in this repo, let a suitable subagent review the uncommitted changes using the above code review guidance
+- Apply all changes that make sense from the review, then commit
+- If this results in larger changes, do several review rounds before committing
+
+## Pull Request Reviews
+
+When reviewing a pull request in addition to the above
+
+- **Test Coverage**: Do meaningful tests fully cover all code flows? Are the correct test types being used? Are tests minimal and use well-named identifiers?
+- **Regressions and Bugs**: If a bug is found that could be reproduced with a function test without plugins, try to include a REPL link with the minimal failing test in the review comment
