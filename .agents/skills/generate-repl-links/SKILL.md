@@ -37,7 +37,7 @@ const link = `https://rollupjs.org/repl/?shareable=${Buffer.from(
 
 - No plugins, no `input`/`external`/`onwarn`/`cache`; unknown option keys are silently ignored.
 - No explicit externals: every bare (non-relative) import is treated as external.
-- Keep code Latin-1 (prefer ASCII): the REPL cannot re-encode state containing characters above U+00FF, and non-Latin-1 code breaks decoding.
+- Keep all state strings (module code, module names and option values) ASCII when using the Node examples: their UTF-8 encoding is incompatible with the REPL's byte-string decoder for non-ASCII characters.
 - The full source is embedded in the URL (~33% larger than the code, no compression) — keep examples minimal.
 - Option values are not validated; invalid values surface as Rollup build errors in the REPL.
 - One module needs to be called `main.js`
