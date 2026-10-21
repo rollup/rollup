@@ -39,7 +39,7 @@ const link = `https://rollupjs.org/repl/?shareable=${Buffer.from(
 - No explicit externals: every bare (non-relative) import is treated as external.
 - Keep all state strings (module code, module names and option values) ASCII when using the Node examples: their UTF-8 encoding is incompatible with the REPL's byte-string decoder for non-ASCII characters.
 - The full source is embedded in the URL (~33% larger than the code, no compression) — keep examples minimal.
-- Option values are not validated; invalid values surface as Rollup build errors in the REPL.
+- Invalid select-option values are replaced with defaults before reaching Rollup; other invalid values may surface as Rollup build errors. Only options supported by `docs/repl/stores/options.ts` can be reproduced.
 - One module needs to be called `main.js`
 
 ## Example
