@@ -1,4 +1,7 @@
 const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
+const { dirname } = require('node:path');
+const { runInNewContext } = require('node:vm');
 const rollup = require('../../dist/rollup');
 const { loader } = require('../testHelpers.js');
 
@@ -471,6 +474,59 @@ console.log(x);
 		assert.strictEqual(bundle.closed, true);
 	});
 
+	it('preserves dynamic loader errors instead of reporting a missing dependency', () => {
+		const error = Object.assign(new Error('The native module has an incompatible architecture.'), {
+			code: 'ERR_DLOPEN_FAILED'
+		});
+
+		assert.throws(
+			() => loadNativeWithError('darwin', error),
+			receivedError => receivedError === error
+		);
+	});
+
+	it('preserves Windows application control policy errors', () => {
+		const error = Object.assign(new Error('An Application Control policy has blocked this file.'), {
+			code: 'ERR_DLOPEN_FAILED'
+		});
+
+		assert.throws(
+			() => loadNativeWithError('win32', error),
+			receivedError => receivedError === error
+		);
+	});
+
+	it('keeps the optional dependency guidance for missing native modules', () => {
+		const error = Object.assign(new Error('Cannot find module @rollup/rollup-linux-x64-gnu'), {
+			code: 'MODULE_NOT_FOUND'
+		});
+
+		assert.throws(
+			() => loadNativeWithError('linux', error),
+			receivedError => {
+				assert.strictEqual(receivedError.cause, error);
+				assert.match(receivedError.message, /npm has a bug related to optional dependencies/);
+				return true;
+			}
+		);
+	});
+
+	it('keeps the Visual C++ Redistributable guidance for missing Windows DLLs', () => {
+		const error = Object.assign(new Error('The specified module could not be found.'), {
+			code: 'ERR_DLOPEN_FAILED'
+		});
+
+		assert.throws(
+			() => loadNativeWithError('win32', error),
+			receivedError => {
+				assert.strictEqual(receivedError.cause, error);
+				assert.match(receivedError.message, /Microsoft Visual C\+\+ Redistributable/);
+				assert.match(receivedError.message, /vc_redist\.x64\.exe/);
+				return true;
+			}
+		);
+	});
+
 	it('sets process.report.excludeNetwork=true during getReport() and restores the original value (non-Windows)', () => {
 		// On Windows, getReport() runs inside a spawnSync child process and cannot
 		// be intercepted by mocking process.report.getReport in the current process.
@@ -512,3 +568,38 @@ console.log(x);
 		}
 	});
 });
+
+function loadNativeWithError(platform, error) {
+	const nativeEntry = require.resolve('../../dist/native.js');
+	return runInNewContext(
+		readFileSync(nativeEntry, 'utf8'),
+		{
+			Error,
+			__dirname: dirname(nativeEntry),
+			module: { exports: {} },
+			process: { execPath: process.execPath },
+			require(id) {
+				switch (id) {
+					case 'node:fs': {
+						return { existsSync: () => false };
+					}
+					case 'node:process': {
+						return {
+							arch: 'x64',
+							platform,
+							report: { getReport: () => ({ header: { glibcVersionRuntime: '2.36' } }) }
+						};
+					}
+					case 'node:child_process': {
+						return { spawnSync: () => ({ status: 0, stdout: '{}' }) };
+					}
+					default: {
+						if (id.startsWith('@rollup/rollup-')) throw error;
+						return require(id);
+					}
+				}
+			}
+		},
+		{ filename: nativeEntry }
+	);
+}
