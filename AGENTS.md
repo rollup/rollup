@@ -49,14 +49,15 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Node build**: Artifacts placed in `dist/` (JavaScript + `.node` native modules)
 - **Browser build**: Artifacts placed in `browser/dist/`; browser tests use `browser/dist/rollup.browser.js`
+- **WASM artifacts**: `wasm/bindings_wasm.js` and `wasm/bindings_wasm_bg.wasm` are gitignored outputs of `npm run build:wasm` (only `.d.ts` is tracked); `build:js`/`update:js` fail without them. Run `build:wasm` after a fresh clone and after Rust changes, then `update:js`, before browser tests
 - All tests import from these dist folders - tests run against the full built artifact only
 
 ### Quick Rebuild Commands
 
-- `npm run build:quick` - Rebuild both JavaScript and Rust for Node build, copy to dist/
-- `npm run update:js` - Rebuild only JavaScript for both Node (`dist/`) and browser (`browser/dist/`), then copy native to dist/; run this after any change to `src/` or `browser/src/`
-- `npm run update:napi` - Rebuild only Rust NAPI, copy to dist/
-- `npm run build:copy-native` - Copy Rust `.node` files to dist/ (called internally by update commands)
+- `npm run update:js` - Rebuild JavaScript for Node (`dist/`, including `dist/es`) and browser (`browser/dist/`), then copy native to dist/; run this after any change to `src/` or `browser/src/`
+- `npm run update:napi` - Rebuild Rust NAPI, copy to dist/; run this after any change to `rust/`
+- `npm run build:quick` - `update:napi` plus a CJS-only JS rebuild that deletes `dist/es` and skips the browser build; tests needing `dist/es` are then silently skipped — use only for `solo` loops
+- `npm run build:copy-native` - Copy root `rollup.<platform>.node` to dist/ (called internally by update commands; `build:napi` alone does not copy)
 
 ### Full Build Commands
 
@@ -69,11 +70,15 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Rust changes only**: `npm run update:napi` then `npm run test:only`
 - **JavaScript changes only**: `npm run update:js` then `npm run test:only`
-- **AST schema changes**: `npm run build:ast-converters` to regenerate TypeScript and Rust files
-- **Testing changes**: `npm run build:quick` then `npm run test:only`
+- **AST schema changes**: `npm run build:ast-converters`, then `update:napi` and `update:js`
+- **Single-test loop**: see `test/AGENTS.md`
+- **Full check**: `npm test` - builds everything (including WASM), then runs all test suites
 
 ## Testing
 
+- Only `npm test` (full build) and `npm run test:cjs` (CJS only, same caveat as `build:quick`) build first; all other `test:*` scripts never build — rebuild the changed parts first. Artifacts survive branch switches, so a stale `dist/` causes misleading failures
+- Every JS build (`build:js`, `build:cjs`, `watch`) wipes `dist/` including the copied `.node`; only the wrapper scripts (`update:*`, `build:quick`, `build`, `test:cjs`) copy it back. A missing `dist/rollup.<platform>.node` is not an error: `native.js` silently falls back to the npm-published binary, so Rust changes go untested — run `build:copy-native` after raw JS builds
+- On a fresh clone, `npm ci` builds `dist/` (CJS + ES + native) via `prepare`; this needs the Rust toolchain
 - Always test edge cases, especially in core logic or build/test infrastructure
 - Test names and descriptions use clear, descriptive language of the expected behavior, e.g. "description: 'does X when Y happens"
 - Category selection, runner contracts and pitfalls: see `test/AGENTS.md`
