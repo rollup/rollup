@@ -1,4 +1,5 @@
 import * as ns from './other.js';
 
 assert.strictEqual(ns.foo, 'bar');
-assert.deepStrictEqual(Object.keys(ns), ['foo']);
+assert.strictEqual(ns.value, 'reexported');
+assert.deepStrictEqual(Object.keys(ns).sort(), ['foo', 'value']);

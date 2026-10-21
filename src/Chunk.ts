@@ -1568,9 +1568,8 @@ export default class Chunk {
 
 	private setUpChunkImportsAndExportsForModule(module: Module): void {
 		const moduleImports = new Set(module.includedImports);
-		// when we are not preserving modules, we need to make all namespace variables available for
-		// rendering the namespace object
-		if (!this.outputOptions.preserveModules && this.includedNamespaces.has(module)) {
+		// we need to make all namespace variables available for rendering the namespace object
+		if (this.includedNamespaces.has(module)) {
 			for (const variable of module.getExportedVariablesByName().values()) {
 				if (variable.included) {
 					moduleImports.add(variable);
