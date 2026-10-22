@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.65.0
+
+_2026-10-22_
+
+### Features
+
+- Support synthetic named exports in namespaces when preserving modules (#6589)
+
+### Bug Fixes
+
+- Fix a situation where unaligned sourcemaps resulted in a wrong segment (#6591)
+- Forward startup errors on native module load when starting rollup (#6592)
+
+### Pull Requests
+
+- [#6589](https://github.com/rollup/rollup/pull/6589): Merge synthetic named exports into static namespaces when preserving modules (@b84330808, @lukastaegert)
+- [#6590](https://github.com/rollup/rollup/pull/6590): Stabilize flaky watch test "treats filenames literally, not as globs" (@lukastaegert)
+- [#6591](https://github.com/rollup/rollup/pull/6591): Use the last sourcemap segment for log locations after its start (@Dev-next-gen)
+- [#6592](https://github.com/rollup/rollup/pull/6592): Preserve native module load errors (@shuaiyafei, @lukastaegert)
+- [#6593](https://github.com/rollup/rollup/pull/6593): Close bundles in the Gulp examples (@shuaiyafei, @lukastaegert)
+- [#6594](https://github.com/rollup/rollup/pull/6594): Improve review instructions and resolve audit (@lukastaegert)
+
 ## 4.64.12
 
 _2026-10-20_
