@@ -49,14 +49,15 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Node build**: Artifacts placed in `dist/` (JavaScript + `.node` native modules)
 - **Browser build**: Artifacts placed in `browser/dist/`; browser tests use `browser/dist/rollup.browser.js`
+- **WASM artifacts**: `wasm/bindings_wasm.js` and `wasm/bindings_wasm_bg.wasm` are outputs of `npm run build:wasm`; `build:js`/`update:js` fail without them. Run `build:wasm` after a fresh clone and after Rust changes, then `update:js`, before browser tests
 - All tests import from these dist folders - tests run against the full built artifact only
 
 ### Quick Rebuild Commands
 
-- `npm run build:quick` - Rebuild both JavaScript and Rust for Node build, copy to dist/
-- `npm run update:js` - Rebuild only JavaScript for both Node (`dist/`) and browser (`browser/dist/`), then copy native to dist/; run this after any change to `src/` or `browser/src/`
-- `npm run update:napi` - Rebuild only Rust NAPI, copy to dist/
-- `npm run build:copy-native` - Copy Rust `.node` files to dist/ (called internally by update commands)
+- `npm run update:js` - Rebuild JavaScript for Node (`dist/`, including `dist/es`) and browser (`browser/dist/`), then copy native to dist/; run this after any change to `src/` or `browser/src/`
+- `npm run update:napi` - Rebuild Rust NAPI, copy to dist/; run this after any change to `rust/`
+- `npm run build:quick` - `update:napi` plus a CJS-only JS rebuild that deletes `dist/es` and skips the browser build; tests needing `dist/es` are then silently skipped — use only for `solo` loops
+- `npm run build:copy-native` - Copy root `rollup.<platform>.node` to dist/ (called internally by update commands; `build:napi` alone does not copy)
 
 ### Full Build Commands
 
@@ -69,8 +70,9 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 
 - **Rust changes only**: `npm run update:napi` then `npm run test:only`
 - **JavaScript changes only**: `npm run update:js` then `npm run test:only`
-- **AST schema changes**: `npm run build:ast-converters` to regenerate TypeScript and Rust files
-- **Testing changes**: `npm run build:quick` then `npm run test:only`
+- **AST schema changes**: `npm run build:ast-converters`, then `update:napi` and `update:js`
+- **Single-test loop**: see `test/AGENTS.md`
+- **Full check**: `npm test` - builds everything (including WASM), then runs all test suites
 
 ## Testing
 
@@ -91,6 +93,7 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - Pull requests need to follow `.github/PULL_REQUEST_TEMPLATE.md`.
 - Bugfixes and features need tests; for a bugfix, add a regression test that fails without the fix, in the same change as the fix.
 - When changing or adding a feature, check if documentation in `docs/*/index.md` should be changed and update it in the same pull request.
+- Keep pull request descriptions short and high-level so that even a tired human can understand them. Do not list manual tests that were made as they do not prevent regressions. Beyond a short summary, do not explain things that are immediately obvious from looking at the diff, focus on intention and assessments made.
 - When opening an issue or pull request, always append _generated with AI_ as the last line and make sure to allow maintainer edits.
 - It is fine to open a pull request with AI, but tell your human that they will not receive a lot of maintainer feedback in that case. If they want human feedback, they need to put in the time to fully understand their changes and their context and manually write the pull request in their own words to show they care.
 
@@ -101,7 +104,20 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - Focus reviews quality of the production code
   - **Architecture & maintainability**: Does the change fit the existing architecture? Will it be easy to change or extend later? Does it create hidden coupling or leaky abstractions?
   - **Simplicity**: Does the code implement the simplest and most straightforward solution? Can we potentially remove and simplify code?
-  - **Code quality**: Clear and descriptive function/variable names describing the intentions of the functions rather what they technically do, functions kept small and focused, no unnecessary complexity? Does terminology follow existing precedent where applicable?
+  - **Code quality**: Clear and descriptive function/variable names describing the intentions of the functions rather what they technically do, functions kept small and focused, no unnecessary complexity? Does terminology follow existing precedent where applicable? Can large functions profit from extracting some code if it does not have a performance impact?
   - **Correctness**: Any logic errors, off-by-ones, unhandled edge cases, or incorrect assumptions?
   - **Performance**: Any performance footguns — unnecessary allocations, repeated traversals, O(n²) patterns, etc.
   - Be prepared to question all assumptions that the implementation made as we work to find a better solution
+
+## Reviewed Commits
+
+- Before committing in this repo, let a suitable subagent review the uncommitted changes using the above code review guidance
+- Apply all changes that make sense from the review, then commit
+- If this results in larger changes, do several review rounds before committing
+
+## Pull Request Reviews
+
+When reviewing a pull request in addition to the above
+
+- **Test Coverage**: Do meaningful tests fully cover all code flows? Are the correct test types being used? Are tests minimal and use well-named identifiers?
+- **Regressions and Bugs**: If a bug is found that could be reproduced with a function test without plugins, try to include a REPL link with the minimal failing test in the review comment
