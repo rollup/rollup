@@ -109,7 +109,10 @@ function deconflictImportsEsmOrSystem(
 	for (const variable of imports) {
 		const module = variable.module!;
 		const name = variable.name;
-		if (variable.isNamespace && (preserveModules || module instanceof ExternalModule)) {
+		if (
+			variable.isNamespace &&
+			(module instanceof ExternalModule || (preserveModules && !module.info.syntheticNamedExports))
+		) {
 			variable.setRenderNames(
 				null,
 				(module instanceof ExternalModule
@@ -202,7 +205,7 @@ function deconflictImportsOther(
 			}
 		} else {
 			const chunk = chunkByModule.get(module!)!;
-			if (preserveModules && variable.isNamespace) {
+			if (preserveModules && variable.isNamespace && !module!.info.syntheticNamedExports) {
 				variable.setRenderNames(
 					null,
 					chunk.exportMode === 'default' ? chunk.namespaceVariableName : chunk.variableName
