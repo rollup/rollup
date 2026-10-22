@@ -18,7 +18,7 @@ export function getOriginalLocation(
 			let previousSegment = filteredLine[0];
 			for (let segment of filteredLine) {
 				if (segment[0] >= location.column || segment === lastSegment) {
-					const notMatched = segment[0] !== location.column;
+					const notMatched = segment[0] > location.column;
 					segment = notMatched ? previousSegment : segment;
 					location = {
 						column: segment[3],

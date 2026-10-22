@@ -2,7 +2,7 @@
   ⚡️ katchow! We ❤️ Pull Requests!
 
   If you remove or skip this template, you'll make the 🐼 sad and the mighty god
-  of Github will appear and pile-drive the close button from a great height
+  of GitHub will appear and pile-drive the close button from a great height
   while making animal noises.
 
   Pull Request Requirements:
@@ -11,6 +11,8 @@
   * Please update the documentation in `/docs` where necessary
 
   Please place an x (no spaces - [x]) in all [ ] that apply.
+  Remove the ones that do not apply as long as there remains one checkbox
+  in each section.
 -->
 
 This PR contains:
