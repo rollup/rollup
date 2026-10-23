@@ -11,6 +11,7 @@ import type {
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
+import type FunctionBase from './FunctionBase';
 import type { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
@@ -52,6 +53,14 @@ export class ExpressionEntity implements WritableEntity {
 	}
 
 	deoptimizePath(_path: ObjectPath): void {}
+
+	getKnownFunctionAtPath(
+		_path: ObjectPath,
+		_recursionTracker: EntityPathTracker,
+		_origin: DeoptimizableEntity
+	): FunctionBase | null {
+		return null;
+	}
 
 	/**
 	 * If possible it returns a stringifyable literal value for this node that

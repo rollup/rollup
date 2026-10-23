@@ -20,6 +20,7 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import type FunctionBase from './shared/FunctionBase';
 import type { IncludeChildren } from './shared/Node';
 import { doNotDeoptimize, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
@@ -50,6 +51,14 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
+	}
+
+	getKnownFunctionAtPath(
+		path: ObjectPath,
+		recursionTracker: EntityPathTracker,
+		origin: DeoptimizableEntity
+	): FunctionBase | null {
+		return this.getObjectEntity().getKnownFunctionAtPath(path, recursionTracker, origin);
 	}
 
 	getLiteralValueAtPath(
