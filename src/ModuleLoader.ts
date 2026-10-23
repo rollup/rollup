@@ -13,9 +13,11 @@ import type {
 	PartialNull,
 	Plugin,
 	ResolvedId,
-	ResolveIdResult
+	ResolveIdResult,
+	SourceDescription
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import { isSameSourcemap } from './utils/decodedSourcemap';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -303,7 +305,7 @@ export class ModuleLoader {
 			error_.message = message;
 			throw error_;
 		}
-		const sourceDescription =
+		const sourceDescription: SourceDescription =
 			typeof source === 'string'
 				? { code: source }
 				: source != null && typeof source === 'object' && typeof source.code === 'string'
@@ -314,7 +316,10 @@ export class ModuleLoader {
 		if (
 			cachedModule &&
 			!cachedModule.customTransformCache &&
-			cachedModule.originalCode === sourceDescription.code
+			cachedModule.originalCode === sourceDescription.code &&
+			// The cached sourcemap only describes the original source if the "load"
+			// hook returned the same one again.
+			isSameSourcemap(cachedModule.originalSourcemap, sourceDescription.map)
 		) {
 			const originalModuleOptions = {
 				meta: { ...module.info.meta },
