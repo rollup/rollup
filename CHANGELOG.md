@@ -8,7 +8,7 @@ _2026-10-02_
 
 #### General Changes
 
-- The minimal required Node version is now 22.18.0 (#6557)
+- The minimal required Node version is now 22.22.0, as the chokidar v6 bundled into Rollup for watch mode requires this version (#6557, #6599)
 
 #### Manual Chunk Changes
 
@@ -49,9 +49,10 @@ _2026-10-02_
 #### Watch Mode Changes
 
 - Watch mode no longer supports glob patterns as chokidar v4 removed glob support: glob patterns passed to `watch.chokidar` options such as `ignored` are now treated as literal paths (#5778)
-- The `useFsEvents` option has been removed as chokidar v4 does not support the native macOS `fsevents` API anymore; use `usePolling` instead if you run into issues with too many open files (#5778)
+- The `useFsEvents` option has been removed as chokidar v4 does not support the native macOS `fsevents` API anymore; use `backend: "polling"` instead if you run into issues with too many open files (#5778)
 - The `disableGlobbing` option has been removed together with the glob support it disabled (#5778)
-- The `ChokidarOptions` type now matches the options supported by chokidar v4, which means the `ignored` option is properly typed as a list of paths, regular expressions, match functions or `{ path, recursive }` objects instead of `any` (#5778)
+- The `ChokidarOptions` type now matches the options supported by chokidar v6, which means the `ignored` option is properly typed as a list of paths, regular expressions, match functions or `{ path, recursive }` objects instead of `any` (#5778)
+- Invalid values for `watch.chokidar` options such as an unknown `backend` or non-positive polling intervals now throw a `TypeError` when the watcher is created instead of being silently ignored (#6599)
 
 #### Config Changes
 
@@ -65,6 +66,7 @@ _2026-10-02_
 ### Features
 
 - Rollup no longer installs the native `fsevents` module as an optional dependency on macOS (#5778)
+- The `watch.chokidar` options now also support the `backend`, `pollingInterval` and `pollingBinaryInterval` options that chokidar v6 added for choosing and configuring the watch backend (#6599)
 - TypeScript types for all ASTs exposed by Rollup are now generated from Rollup's own AST definitions and exported via the `ast` namespace; being discriminated unions, they allow type narrowing via `node.type` and always match the syntax Rollup supports; they try to follow the [ESTree specification](https://github.com/estree/estree) if possible (#5730)
 - The ASTs exposed via `moduleInfo.ast` and the `shouldTransformCachedModule` hook are now generated lazily from binary buffers, which significantly reduces processing time and memory when only some AST nodes are needed (#6257)
 - The new helpers `parseLazyAst`, `parseLazyAstAsync`, `deserializeAst`, `deserializeLazyAst` and `serializeAst` are exported from `rollup/parseAst` for working with binary AST buffers (#6257)
@@ -106,6 +108,7 @@ _2026-10-02_
 - [#6558](https://github.com/rollup/rollup/pull/6558): [v5.0] Improve release scripts: TypeScript, tests and tag-based release detection (@lukastaegert)
 - [#6585](https://github.com/rollup/rollup/pull/6585): [v5.0] Call assetFileNames only once per deduplicated asset (@lukastaegert)
 - [#6586](https://github.com/rollup/rollup/pull/6586): [v5.0] Let maxParallelFileOps only limit file operations via the fs API (@lukastaegert)
+- [#6599](https://github.com/rollup/rollup/pull/6599): [v5.0] Update chokidar to v6 (@lukastaegert)
 
 For previous changelogs, see
 
