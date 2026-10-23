@@ -4,8 +4,7 @@ const declareId = path.join(__dirname, 'declare.js');
 const useId = path.join(__dirname, 'use.js');
 
 module.exports = defineTest({
-	description:
-		'initializes a class before a circular const binding that constructs it',
+	description: 'initializes a class before a circular const binding that constructs it',
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',

@@ -4,8 +4,7 @@ const classId = path.join(__dirname, 'class.js');
 const valueId = path.join(__dirname, 'value.js');
 
 module.exports = defineTest({
-	description:
-		'initializes a circular const before a class static field that reads it',
+	description: 'initializes a circular const before a class static field that reads it',
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
