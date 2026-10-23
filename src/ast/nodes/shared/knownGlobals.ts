@@ -72,6 +72,21 @@ const PURE_WITH_ARRAY: ValueDescription = {
 	}
 };
 
+const PURE_WITH_ARRAY_OR_LENGTH: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
+	getLiteralValue: getUnknownValue,
+	hasEffectsWhenCalled({ args }) {
+		const [_thisArgument, firstArgument] = args;
+		return (
+			firstArgument !== undefined &&
+			!(firstArgument instanceof ArrayExpression) &&
+			typeof firstArgument.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+				deoptimizeCache: doNothing
+			}) !== 'number'
+		);
+	}
+};
+
 const GETTER_ACCESS: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getUnknownValue,
@@ -150,7 +165,7 @@ const PC_WITH_ARRAY = {
 
 const ARRAY_TYPE: GlobalDescription = {
 	__proto__: null,
-	[ValueProperties]: PURE,
+	[ValueProperties]: PURE_WITH_ARRAY_OR_LENGTH,
 	from: O,
 	of: PF,
 	prototype: O

@@ -7,6 +7,7 @@ import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -114,6 +115,15 @@ export default class ArrayPattern extends NodeBase implements DeclarationPattern
 				code.remove(removedStart, this.end - 1);
 				break;
 			}
+		}
+	}
+
+	setAssignedValue(value: ExpressionEntity): void {
+		super.setAssignedValue(value);
+		// Destructuring assigns each target only some subpath of the assigned
+		// value, which is not tracked
+		for (const element of this.elements) {
+			element?.setAssignedValue(UNKNOWN_EXPRESSION);
 		}
 	}
 

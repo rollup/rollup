@@ -118,6 +118,10 @@ const requireWithFriendlyError = id => {
 			);
 		}
 
+		if (error instanceof Error && error.code === 'ERR_DLOPEN_FAILED') {
+			throw error;
+		}
+
 		throw new Error(
 			`Cannot find module ${id}. ` +
 				`npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). ` +

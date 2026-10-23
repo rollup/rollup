@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, defineProps } from 'vue';
 import type { RollupError } from '../../../src/rollup/types';
 import { getFileNameFromMessage } from '../helpers/messages';
 

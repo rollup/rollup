@@ -116,6 +116,7 @@ export type ChunkExports = {
 	expression: string | null;
 	hoisted: boolean;
 	local: string;
+	needsLiveBinding: boolean;
 }[];
 
 export interface ReexportSpecifier {
@@ -237,7 +238,10 @@ export default class Chunk {
 
 		for (const module of orderedModules) {
 			chunkByModule.set(module, this);
-			if (module.namespace.included && !outputOptions.preserveModules) {
+			if (
+				module.namespace.included &&
+				(!outputOptions.preserveModules || module.info.syntheticNamedExports)
+			) {
 				includedNamespaces.add(module);
 			}
 			if (this.isEmpty && module.isIncluded()) {
@@ -666,10 +670,18 @@ export default class Chunk {
 	}
 
 	getVariableExportName(variable: Variable): string {
-		if (this.outputOptions.preserveModules && variable instanceof NamespaceVariable) {
+		if (this.isNativeNamespace(variable)) {
 			return '*';
 		}
 		return this.exportNamesByVariable.get(variable)![0];
+	}
+
+	private isNativeNamespace(variable: Variable): boolean {
+		return (
+			this.outputOptions.preserveModules &&
+			variable instanceof NamespaceVariable &&
+			!variable.module.info.syntheticNamedExports
+		);
 	}
 
 	link(): void {
@@ -716,6 +728,8 @@ export default class Chunk {
 
 		const renderedDependencies = [...this.getRenderedDependencies().values()];
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
+		const renderedExportNames =
+			format === 'es' && new Set(renderedExports.map(({ exported }) => exported));
 		let hasExports = renderedExports.length > 0;
 		let hasDefaultExport = false;
 		for (const renderedDependency of renderedDependencies) {
@@ -725,9 +739,9 @@ export default class Chunk {
 				if (!hasDefaultExport && reexports.some(reexport => reexport.reexported === 'default')) {
 					hasDefaultExport = true;
 				}
-				if (format === 'es') {
+				if (renderedExportNames) {
 					renderedDependency.reexports = reexports.filter(
-						({ reexported }) => !renderedExports.find(({ exported }) => exported === reexported)
+						({ reexported }) => !renderedExportNames.has(reexported)
 					);
 				}
 			}
@@ -858,8 +872,9 @@ export default class Chunk {
 			const importedVariable = isSynthetic ? exportedVariable.getBaseVariable() : exportedVariable;
 			this.checkCircularDependencyImport(importedVariable, module);
 			// When preserving modules, we do not create namespace objects but directly
-			// use the actual namespaces, which would be broken by this logic.
-			if (!(importedVariable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+			// use the actual namespaces, which would be broken by this logic. Modules with
+			// synthetic named exports still need a namespace object.
+			if (!this.isNativeNamespace(importedVariable)) {
 				const exportingModule = importedVariable.module;
 				if (exportingModule instanceof Module) {
 					const chunk = this.chunkByModule.get(exportingModule);
@@ -870,6 +885,8 @@ export default class Chunk {
 							this.imports.add(importedVariable);
 						}
 					}
+				} else if (exportingModule instanceof ExternalModule && importedVariable.included) {
+					includedReexports.push(importedVariable);
 				}
 			}
 		}
@@ -949,7 +966,9 @@ export default class Chunk {
 				exported: exportName,
 				expression,
 				hoisted,
-				local
+				local,
+				needsLiveBinding:
+					variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1
 			});
 		}
 		return exports;
@@ -1372,7 +1391,10 @@ export default class Chunk {
 				renderedLength = source.length();
 				if (renderedLength) {
 					if (compact && source.lastLine().includes('//')) source.append('\n');
-					magicString.addSource(source);
+					magicString.addSource({
+						content: source,
+						indentExclusionRanges: rendered.indentExclusionRanges
+					});
 					usedModules.push(module);
 				}
 				const namespace = module.namespace;
@@ -1546,9 +1568,8 @@ export default class Chunk {
 
 	private setUpChunkImportsAndExportsForModule(module: Module): void {
 		const moduleImports = new Set(module.includedImports);
-		// when we are not preserving modules, we need to make all namespace variables available for
-		// rendering the namespace object
-		if (!this.outputOptions.preserveModules && this.includedNamespaces.has(module)) {
+		// we need to make all namespace variables available for rendering the namespace object
+		if (this.includedNamespaces.has(module)) {
 			for (const variable of module.getExportedVariablesByName().values()) {
 				if (variable.included) {
 					moduleImports.add(variable);
@@ -1568,8 +1589,9 @@ export default class Chunk {
 				if (variable.module instanceof Module) {
 					this.checkCircularDependencyImport(variable, module);
 					// When preserving modules, we do not create namespace objects but directly
-					// use the actual namespaces, which would be broken by this logic.
-					if (!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+					// use the actual namespaces, which would be broken by this logic. Modules with
+					// synthetic named exports still need a namespace object.
+					if (!this.isNativeNamespace(variable)) {
 						chunk!.exports.add(variable);
 					}
 				}

@@ -19,7 +19,7 @@ export function getExportBlock(
 	reexportProtoFromExternal: boolean,
 	mechanism = 'return '
 ): string {
-	const { _, getDirectReturnFunction, getFunctionIntro, getPropertyAccess, n, s } = snippets;
+	const { _, getFunctionIntro, getPropertyAccess, n, s } = snippets;
 	if (!namedExportsMode) {
 		return `${n}${n}${mechanism}${getSingleDefaultExport(
 			exports,
@@ -62,17 +62,9 @@ export function getExportBlock(
 					);
 					if (exportBlock) exportBlock += n;
 					if (specifier.imported !== '*' && specifier.needsLiveBinding) {
-						const [left, right] = getDirectReturnFunction([], {
-							functionReturn: true,
-							lineBreakIndent: null,
-							name: null
-						});
-						exportBlock +=
-							`Object.defineProperty(exports,${_}${JSON.stringify(
-								specifier.reexported
-							)},${_}{${n}` +
-							`${t}enumerable:${_}true,${n}` +
-							`${t}get:${_}${left}${importName}${right}${n}});`;
+						exportBlock += `Object.defineProperty(exports,${_}${JSON.stringify(
+							specifier.reexported
+						)},${_}${getGetter(importName, false, t, snippets)});`;
 					} else if (specifier.reexported === '__proto__') {
 						exportBlock +=
 							`Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
@@ -88,11 +80,17 @@ export function getExportBlock(
 		}
 	}
 
-	for (const { exported, local } of exports) {
+	for (const { exported, local, needsLiveBinding } of exports) {
 		const lhs = `exports${getPropertyAccess(exported)}`;
 		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
+			if (needsLiveBinding) {
+				exportBlock += `Object.defineProperty(exports,${_}${JSON.stringify(
+					exported
+				)},${_}${getGetter(rhs, true, t, snippets)});`;
+				continue;
+			}
 			exportBlock +=
 				exported === '__proto__'
 					? `Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
@@ -257,19 +255,37 @@ const getDefineProperty = (
 	name: string,
 	needsLiveBinding: boolean,
 	t: string,
-	{ _, getDirectReturnFunction, n }: GenerateCodeSnippets
+	snippets: GenerateCodeSnippets
 ) => {
+	const { _ } = snippets;
 	if (needsLiveBinding) {
-		const [left, right] = getDirectReturnFunction([], {
-			functionReturn: true,
-			lineBreakIndent: null,
-			name: null
-		});
-		return (
-			`Object.defineProperty(exports,${_}k,${_}{${n}` +
-			`${t}${t}enumerable:${_}true,${n}` +
-			`${t}${t}get:${_}${left}${name}[k]${right}${n}${t}})`
-		);
+		return `Object.defineProperty(exports,${_}k,${_}${getGetter(
+			`${name}[k]`,
+			false,
+			t,
+			snippets,
+			t
+		)})`;
 	}
 	return `exports[k]${_}=${_}${name}[k]`;
+};
+
+const getGetter = (
+	expression: string,
+	configurable: boolean,
+	t: string,
+	{ getDirectReturnFunction, getObject }: GenerateCodeSnippets,
+	base = ''
+): string => {
+	const [left, right] = getDirectReturnFunction([], {
+		functionReturn: true,
+		lineBreakIndent: null,
+		name: null
+	});
+	const fields: [string, string][] = [
+		['enumerable', 'true'],
+		['get', `${left}${expression}${right}`]
+	];
+	if (configurable) fields.unshift(['configurable', 'true']);
+	return getObject(fields, { lineBreakIndent: { base, t } });
 };

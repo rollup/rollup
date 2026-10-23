@@ -109,7 +109,11 @@ const getIdMatcher = <T extends any[]>(
 				ids.add(value);
 			}
 		}
-		return (id: string, ..._arguments) => ids.has(id) || matchers.some(matcher => matcher.test(id));
+		return (id: string, ..._arguments) =>
+			ids.has(id) ||
+			matchers.some(matcher =>
+				matcher.global || matcher.sticky ? id.search(matcher) !== -1 : matcher.test(id)
+			);
 	}
 	return () => false;
 };

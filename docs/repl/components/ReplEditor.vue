@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import type { EditorView } from '@codemirror/view';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { defineEmits, defineProps, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { LogLevel, RollupLog } from '../../../src/rollup/types';
 import { LOGLEVEL_ERROR } from '../../../src/utils/logging';
 import type { AddLogs } from '../helpers/editor';

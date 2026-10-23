@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
   CALL_EXPRESSION_ANNOTATIONS_OFFSET, CALL_EXPRESSION_ARGUMENTS_OFFSET,
   CALL_EXPRESSION_CALLEE_OFFSET, CALL_EXPRESSION_RESERVED_BYTES, TYPE_CALL_EXPRESSION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::convert_ast::converter::AstConverter;
 use crate::store_call_expression_flags;
 
 impl AstConverter<'_> {
@@ -33,7 +33,7 @@ impl AstConverter<'_> {
         &annotations,
         end_position + CALL_EXPRESSION_ANNOTATIONS_OFFSET,
         |ast_converter, annotation| {
-          convert_annotation(&mut ast_converter.buffer, annotation);
+          ast_converter.convert_annotation(annotation);
           true
         },
       );

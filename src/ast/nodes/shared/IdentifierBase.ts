@@ -154,8 +154,12 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	includeCallArguments(interaction: NodeInteractionCalled, context: InclusionContext): void {
-		this.variable!.includeCallArguments(interaction, context);
+	includeCallArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionCalled,
+		context: InclusionContext
+	): void {
+		this.variable!.includeCallArgumentsWhenCalledAtPath(path, interaction, context);
 	}
 
 	isPossibleTDZ(): boolean {
