@@ -520,7 +520,7 @@ jobs:
             target: aarch64-pc-windows-msvc
             package: win32-arm64-msvc
         node:
-          - '22.18.0'
+          - '22.22.0'
           - 24
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
