@@ -30,11 +30,6 @@
       "madeAt": 1794512381699,
       "expiresAt": 1797104367751
     },
-    "1244623|@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1794598497734,
-      "expiresAt": 1797190485739
-    },
     "1244623|c8>test-exclude>glob>minimatch": {
       "decision": "ignore",
       "madeAt": 1794590117956,
