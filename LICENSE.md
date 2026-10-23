@@ -90,16 +90,6 @@ License text: see MIT (1) below
 
 ---------------------------------------
 
-## parse-ms
-License: MIT
-By: Sindre Sorhus
-Repository: sindresorhus/parse-ms
-License text: see MIT (1) below
-
-> Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-
----------------------------------------
-
 ## picocolors
 License: ISC
 By: Alexey Raspopov

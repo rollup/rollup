@@ -86,17 +86,6 @@
 		},
 		{
 			"authors": [
-				"Sindre Sorhus"
-			],
-			"license": "MIT",
-			"name": "parse-ms",
-			"repository": "sindresorhus/parse-ms",
-			"texts": [
-				"5c932d88256b4ab9"
-			]
-		},
-		{
-			"authors": [
 				"Alexey Raspopov"
 			],
 			"license": "ISC",
