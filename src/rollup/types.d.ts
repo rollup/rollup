@@ -1113,6 +1113,8 @@ export interface ChokidarOptions {
 				stabilityThreshold?: number | undefined;
 		  }
 		| undefined;
+	backend?: 'auto' | 'native' | 'native-recursive' | 'polling' | undefined;
+	/** @deprecated Use "pollingBinaryInterval" instead. */
 	binaryInterval?: number | undefined;
 	cwd?: string | undefined;
 	depth?: number | undefined;
@@ -1120,8 +1122,12 @@ export interface ChokidarOptions {
 	ignoreInitial?: boolean | undefined;
 	ignorePermissionErrors?: boolean | undefined;
 	ignored?: Matcher | Matcher[] | undefined;
+	/** @deprecated Use "pollingInterval" instead. */
 	interval?: number | undefined;
 	persistent?: boolean | undefined;
+	pollingBinaryInterval?: number | undefined;
+	pollingInterval?: number | undefined;
+	/** @deprecated Use `backend: "polling"` instead. */
 	usePolling?: boolean | undefined;
 }
 
