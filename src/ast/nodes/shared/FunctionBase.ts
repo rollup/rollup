@@ -20,7 +20,7 @@ import RestElement from '../RestElement';
 import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION, UnknownTruthyValue } from './Expression';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
@@ -100,6 +100,7 @@ export default abstract class FunctionBase extends NodeBase {
 		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		if (!path.length) return UnknownTruthyValue;
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
