@@ -36,11 +36,11 @@ interface SourceMapSegmentObject {
 class Link {
 	readonly mappings: readonly SourceMapSegment[][];
 	readonly names: readonly string[];
-	readonly sources: (Source | Link)[];
+	readonly sources: (Source | Link | null)[];
 
 	constructor(
 		map: { mappings: readonly SourceMapSegment[][]; names: readonly string[] },
-		sources: (Source | Link)[]
+		sources: (Source | Link | null)[]
 	) {
 		this.sources = sources;
 		this.names = map.names;
@@ -189,8 +189,11 @@ function getCollapsedSourcemap(
 		const directory = dirname(id) || '.';
 		const sourceRoot = originalSourcemap.sourceRoot || '.';
 
-		const baseSources = sources.map(
-			(source, index) => new Source(resolve(directory, sourceRoot, source), sourcesContent[index])
+		// A source whose name is not known is null, and mappings to it are treated as unmapped
+		const baseSources = (sources as (string | null)[]).map((source, index) =>
+			source == null
+				? null
+				: new Source(resolve(directory, sourceRoot, source), sourcesContent[index])
 		);
 		source = new Link(originalSourcemap, baseSources);
 	} else {
