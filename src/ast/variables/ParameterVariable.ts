@@ -18,6 +18,7 @@ import { MAX_PATH_DEPTH } from '../utils/limitPathLength';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	EntityPathTracker,
+	type IncludedPathTracker,
 	IncludedTopLevelPathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
@@ -37,7 +38,7 @@ const EMPTY_PATH_TRACKER = new EntityPathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
 
 export default class ParameterVariable extends LocalVariable {
-	protected includedPathTracker = new IncludedTopLevelPathTracker();
+	protected includedPathTracker: IncludedPathTracker = new IncludedTopLevelPathTracker();
 	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
 	private deoptimizationInteractions: TrackedInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();

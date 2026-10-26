@@ -9,8 +9,8 @@ export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
 export const UnknownWellKnown = Symbol('Unknown Well-Known');
 export const SymbolToStringTag = Symbol('Symbol.toStringTag');
-export const SymbolDispose = Symbol('Symbol.asyncDispose');
-export const SymbolAsyncDispose = Symbol('Symbol.dispose');
+export const SymbolDispose = Symbol('Symbol.dispose');
+export const SymbolAsyncDispose = Symbol('Symbol.asyncDispose');
 export const SymbolHasInstance = Symbol('Symbol.hasInstance');
 
 interface SymbolSet<T extends symbol> extends Set<T> {
@@ -153,6 +153,7 @@ export class DiscriminatedPathTracker {
 }
 
 export interface IncludedPathTracker {
+	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath): void;
 	includePathAndGetIfIncluded(path: ObjectPath): boolean;
 }
 
@@ -187,6 +188,32 @@ export class IncludedFullPathTracker implements IncludedPathTracker {
 			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
 		}
 		return included;
+	}
+
+	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath) {
+		if (this.includedPaths) {
+			includeAllSubPaths(entity, context, basePath, this.includedPaths);
+		}
+	}
+}
+
+function includeAllSubPaths(
+	entity: ExpressionEntity,
+	context: InclusionContext,
+	path: ObjectPath,
+	includedPaths: IncludedPaths
+): void {
+	if (includedPaths[UnknownKey]) {
+		entity.includePath([...path, UnknownKey], context);
+		return;
+	}
+	const keys = Reflect.ownKeys(includedPaths) as ConcreteKey[];
+	if (keys.length === 0) {
+		entity.includePath(path, context);
+		return;
+	}
+	for (const key of keys) {
+		includeAllSubPaths(entity, context, [...path, key], includedPaths[key]!);
 	}
 }
 
@@ -237,13 +264,15 @@ export class IncludedTopLevelPathTracker implements IncludedPathTracker {
 			if (includedPaths[UnknownKey]) {
 				entity.includePath([...basePath, UnknownKey], context);
 			} else {
-				const inclusionEntries = Object.entries(includedPaths);
-				if (inclusionEntries.length === 0) {
+				const keys = Reflect.ownKeys(includedPaths) as ConcreteKey[];
+				if (keys.length === 0) {
 					entity.includePath(basePath, context);
 				} else {
-					for (const [key, value] of inclusionEntries) {
+					for (const key of keys) {
 						entity.includePath(
-							value === UnknownKey ? [...basePath, key, UnknownKey] : [...basePath, key],
+							includedPaths[key] === UnknownKey
+								? [...basePath, key, UnknownKey]
+								: [...basePath, key],
 							context
 						);
 					}
