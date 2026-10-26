@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.65.1
+
+_2026-10-26_
+
+### Bug Fixes
+
+- Ensure tree-shaking also respect `Symbol.dispose` for async disposal (#6556)
+
+### Pull Requests
+
+- [#6556](https://github.com/rollup/rollup/pull/6556): Fix tree-shaking of disposable resources (@TrickyPi, @lukastaegert)
+- [#6595](https://github.com/rollup/rollup/pull/6595): Update dtolnay/rust-toolchain digest to b725eda (@renovate[bot])
+- [#6596](https://github.com/rollup/rollup/pull/6596): Update minor/patch updates (@renovate[bot])
+- [#6598](https://github.com/rollup/rollup/pull/6598): Lock file maintenance (@renovate[bot], @lukastaegert)
+
 ## 4.65.0
 
 _2026-10-22_
