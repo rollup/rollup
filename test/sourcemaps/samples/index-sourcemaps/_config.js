@@ -18,7 +18,7 @@ module.exports = defineTest({
 							sections: [
 								{
 									offset: { line: 0, column: 0 },
-									map: { version: 3, names: [], sources: ['a.js'], mappings: 'AAAA' }
+									map: { version: 3, sources: ['a.js'], mappings: 'AAAA' }
 								},
 								{
 									offset: { line: 0, column: 15 },

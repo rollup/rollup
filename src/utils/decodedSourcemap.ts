@@ -160,7 +160,7 @@ function flattenIndexSourceMap({ file, sections }: IndexSourceMapInput): Existin
 			return sourceIndex;
 		});
 		const namesOffset = names.length;
-		for (const name of section.names) {
+		for (const name of section.names ?? []) {
 			names.push(name);
 		}
 		for (const [lineIndex, line] of section.mappings.entries()) {
