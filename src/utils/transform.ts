@@ -3,13 +3,13 @@ import type Module from '../Module';
 import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
-	ExistingRawSourceMap,
 	LoggingFunctionWithPosition,
 	NormalizedInputOptions,
 	Plugin,
 	PluginContext,
 	RollupError,
 	SourceDescription,
+	SourceMapInput,
 	TransformModuleJSON,
 	TransformPluginContext,
 	TransformResult
@@ -56,7 +56,7 @@ export default async function transform(
 		plugin: Plugin
 	): string {
 		let code: string;
-		let map: string | ExistingRawSourceMap | { mappings: '' } | null | undefined;
+		let map: SourceMapInput | undefined;
 		if (typeof result === 'string') {
 			code = result;
 		} else if (result && typeof result === 'object') {

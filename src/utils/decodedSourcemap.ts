@@ -3,6 +3,7 @@ import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
 	ExistingRawSourceMap,
+	IndexSourceMap,
 	SourceMapInput,
 	SourceMapSegment
 } from '../rollup/types';
@@ -15,18 +16,7 @@ interface UnexpectedInput {
 	mappings: null | undefined;
 }
 
-// An index source map consists of sections, each with a regular source map that applies from the
-// given offset in the generated code.
-interface IndexSourceMapInput {
-	file?: string;
-	sections: {
-		map: ExistingRawSourceMap | ExistingDecodedSourceMap;
-		offset: { column: number; line: number };
-	}[];
-}
-
-type Input =
-	SourceMapInput | UnexpectedInput | IndexSourceMapInput | ExistingDecodedSourceMap | undefined;
+type Input = SourceMapInput | UnexpectedInput | ExistingDecodedSourceMap | undefined;
 
 interface CachedSourcemapData {
 	encodedMappings: string | undefined;
@@ -121,7 +111,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	return decodedMap;
 }
 
-function flattenIndexSourceMap({ file, sections }: IndexSourceMapInput): ExistingDecodedSourceMap {
+function flattenIndexSourceMap({ file, sections }: IndexSourceMap): ExistingDecodedSourceMap {
 	const mappings: SourceMapSegment[][] = [];
 	const names: string[] = [];
 	const sources: (string | null)[] = [];

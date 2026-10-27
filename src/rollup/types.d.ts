@@ -105,7 +105,17 @@ export interface SourceMap {
 	toUrl(): string;
 }
 
-export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
+export type SourceMapInput =
+	ExistingRawSourceMap | IndexSourceMap | string | null | { mappings: '' };
+
+export interface IndexSourceMap {
+	file?: string | undefined;
+	sections: {
+		map: ExistingRawSourceMap | IndexSourceMap;
+		offset: { column: number; line: number };
+	}[];
+	version: number;
+}
 
 interface ModuleOptions {
 	attributes: Record<string, string>;
