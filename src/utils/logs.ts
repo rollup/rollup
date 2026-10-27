@@ -48,6 +48,18 @@ export function getRollupError(base: RollupLog): Error & RollupLog {
 	return errorInstance;
 }
 
+export function logErrorInHook(
+	originalError: RollupLog,
+	hookError: Error,
+	hookName: 'buildEnd' | 'renderError'
+): RollupLog {
+	const phase = hookName === 'buildEnd' ? 'the build' : 'rendering';
+	return {
+		...originalError,
+		message: `There was an error during ${phase}:\n  ${originalError.message}\nAdditionally, handling the error in the '${hookName}' hook caused the following error:\n  ${hookError.message}`
+	};
+}
+
 export function augmentCodeLocation(
 	properties: RollupLog,
 	pos: number | { column: number; line: number },
