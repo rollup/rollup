@@ -129,3 +129,13 @@ const _amdOutputOptions: rollup.OutputOptions['amd'][] = [
 		basePath: ''
 	}
 ];
+
+const _nullSourcesPlugin: rollup.Plugin = {
+	load() {
+		return {
+			code: '',
+			map: { mappings: 'AAAA', names: [], sources: [null], sourcesContent: [null], version: 3 }
+		};
+	},
+	name: 'test'
+};

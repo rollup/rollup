@@ -12,11 +12,11 @@ import { error, logConflictingSourcemapSources, logSourcemapBroken } from './log
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
-	readonly content: string;
+	readonly content: string | null;
 	readonly filename: string;
 	isOriginal = true;
 
-	constructor(filename: string, content: string) {
+	constructor(filename: string, content: string | null) {
 		this.filename = filename;
 		this.content = content;
 	}
@@ -50,7 +50,7 @@ class Link {
 	traceMappings() {
 		const sources: string[] = [];
 		const sourceIndexMap = new Map<string, number>();
-		const sourcesContent: string[] = [];
+		const sourcesContent: (string | null)[] = [];
 		const names: string[] = [];
 		const nameIndexMap = new Map<string, number>();
 
@@ -190,10 +190,10 @@ function getCollapsedSourcemap(
 		const sourceRoot = originalSourcemap.sourceRoot || '.';
 
 		// A source whose name is not known is null, and mappings to it are treated as unmapped
-		const baseSources = (sources as (string | null)[]).map((source, index) =>
+		const baseSources = sources.map((source, index) =>
 			source == null
 				? null
-				: new Source(resolve(directory, sourceRoot, source), sourcesContent[index])
+				: new Source(resolve(directory, sourceRoot, source), sourcesContent[index] ?? null)
 		);
 		source = new Link(originalSourcemap, baseSources);
 	} else {
@@ -252,8 +252,11 @@ export function collapseSourcemap(
 	originalSourcemap: ExistingDecodedSourceMap | null,
 	sourcemapChain: readonly DecodedSourceMapOrMissing[],
 	log: LogHandler
-): ExistingDecodedSourceMap | null {
-	if (sourcemapChain.length === 0) {
+): (ExistingDecodedSourceMap & { sources: string[] }) | null {
+	if (
+		sourcemapChain.length === 0 &&
+		(!originalSourcemap || hasOnlyNamedSources(originalSourcemap))
+	) {
 		return originalSourcemap;
 	}
 
@@ -266,4 +269,10 @@ export function collapseSourcemap(
 	) as Link;
 	const map = source.traceMappings();
 	return decodedSourcemap({ version: 3, ...map });
+}
+
+function hasOnlyNamedSources(
+	map: ExistingDecodedSourceMap
+): map is ExistingDecodedSourceMap & { sources: string[] } {
+	return map.sources.every(source => source != null);
 }

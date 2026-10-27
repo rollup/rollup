@@ -12,7 +12,6 @@ module.exports = defineTest({
 				load(id) {
 					return {
 						code: readFileSync(id, 'utf8'),
-						/** @type {any} */
 						map: {
 							version: 3,
 							names: [],
