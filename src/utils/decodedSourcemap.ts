@@ -104,3 +104,57 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 
 	return decodedMap;
 }
+
+function getEncodedMappings(map: ExistingDecodedSourceMap): string | undefined {
+	const cache = sourceMapCache.get(map);
+	// Reading the cache instead of the "mappings" property avoids decoding the
+	// mappings, which is both expensive and would undo the lazy decoding.
+	if (cache) {
+		return cache.decodedMappings ? undefined : cache.encodedMappings;
+	}
+	// The map was not created here, e.g. because it was restored from a
+	// serialized cache.
+	return typeof map.mappings === 'string' ? map.mappings : undefined;
+}
+
+function areEqual(first: unknown, second: unknown): boolean {
+	if (first === second) {
+		return true;
+	}
+	if (!Array.isArray(first) || !Array.isArray(second) || first.length !== second.length) {
+		return false;
+	}
+	return first.every((entry, index) => entry === second[index]);
+}
+
+/**
+ * Compares the sourcemap of a cached module with a sourcemap a plugin has just
+ * returned. This is deliberately conservative and only reports two sourcemaps as
+ * equal if the encoded mappings of both are known. In particular, a collapsed
+ * sourcemap is reported as different so that a module whose sourcemap was
+ * assembled by getCombinedSourcemap is transformed again.
+ */
+export function isSameSourcemap(
+	cachedMap: ExistingDecodedSourceMap | null | undefined,
+	map: Input
+): boolean {
+	const otherMap = decodedSourcemap(map);
+	if (!otherMap) {
+		// A module cache can be provided by users and does not have to contain a
+		// sourcemap.
+		return !cachedMap;
+	}
+	if (!cachedMap) {
+		return false;
+	}
+	const cachedMappings = getEncodedMappings(cachedMap);
+	const otherMappings = getEncodedMappings(otherMap);
+	return (
+		cachedMappings !== undefined &&
+		cachedMappings === otherMappings &&
+		otherMap.sourceRoot === cachedMap.sourceRoot &&
+		areEqual(otherMap.sources, cachedMap.sources) &&
+		areEqual(otherMap.sourcesContent, cachedMap.sourcesContent) &&
+		areEqual(otherMap.names, cachedMap.names)
+	);
+}
