@@ -22,6 +22,7 @@ import {
 	logCannotAssignModuleToChunk,
 	logChunkInvalid,
 	logCircularChunk,
+	logErrorInHook,
 	logFileNameOutsideOutputDirectory,
 	logInvalidOption
 } from './utils/logs';
@@ -86,7 +87,11 @@ export default class Bundle {
 				this.inputOptions.onLog
 			);
 		} catch (error_: any) {
-			await this.pluginDriver.hookParallel('renderError', [error_]);
+			try {
+				await this.pluginDriver.hookParallel('renderError', [error_]);
+			} catch (hookError: any) {
+				error(logErrorInHook(error_, hookError, 'renderError'));
+			}
 			throw error_;
 		}
 

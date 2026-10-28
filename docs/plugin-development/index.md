@@ -1247,6 +1247,8 @@ Note that when this hook rewrites dynamic imports in non-ES formats, no interop 
 
 Called when Rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
 
+If a `renderError` hook itself fails, Rollup reports both the original rendering error and the hook failure together. The combined error retains the original error's code and plugin metadata.
+
 ### renderStart
 
 |  |  |

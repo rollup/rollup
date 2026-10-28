@@ -11,6 +11,7 @@ import {
 	getRollupError,
 	logAlreadyClosed,
 	logCannotEmitFromOptionsHook,
+	logErrorInHook,
 	logMissingFileOrDirOption,
 	logPluginError
 } from '../utils/logs';
@@ -83,11 +84,7 @@ export async function rollupInternal(
 			try {
 				await graph.pluginDriver.hookParallel('buildEnd', [error_]);
 			} catch (buildEndError: any) {
-				// Create a compound error object to include both errors, based on the original error
-				const compoundError = getRollupError({
-					...error_,
-					message: `There was an error during the build:\n  ${error_.message}\nAdditionally, handling the error in the 'buildEnd' hook caused the following error:\n  ${buildEndError.message}`
-				});
+				const compoundError = getRollupError(logErrorInHook(error_, buildEndError, 'buildEnd'));
 				await graph.pluginDriver.hookParallel('closeBundle', [compoundError]).catch(() => {});
 				throw compoundError;
 			}
