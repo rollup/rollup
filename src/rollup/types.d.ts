@@ -69,8 +69,8 @@ export interface ExistingDecodedSourceMap {
 	readonly mappings: SourceMapSegment[][];
 	names: string[];
 	sourceRoot?: string | undefined;
-	sources: string[];
-	sourcesContent?: string[] | undefined;
+	sources: (string | null)[];
+	sourcesContent?: (string | null)[] | undefined;
 	version: number;
 	x_google_ignoreList?: number[] | undefined;
 }
@@ -80,8 +80,8 @@ export interface ExistingRawSourceMap {
 	mappings: string;
 	names: string[];
 	sourceRoot?: string | undefined;
-	sources: string[];
-	sourcesContent?: string[] | undefined;
+	sources: (string | null)[];
+	sourcesContent?: (string | null)[] | undefined;
 	version: number;
 	x_google_ignoreList?: number[] | undefined;
 }
