@@ -56,7 +56,8 @@ const isMusl = () => {
 const bindingsByPlatformAndArch = {
 	android: {
 		arm: { base: 'android-arm-eabi' },
-		arm64: { base: 'android-arm64' }
+		arm64: { base: 'android-arm64' },
+		x64: { base: 'android-x64' }
 	},
 	darwin: {
 		arm64: { base: 'darwin-arm64' },

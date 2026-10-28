@@ -148,6 +148,15 @@ jobs:
             # There are compile issues when using the cache with Android
             cache-cargo: false
           - host: ubuntu-latest
+            target: x86_64-linux-android
+            # napi-rs only configures the NDK compiler and linker for arm and aarch64 Android
+            setup: |
+              ndk_bin="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+              echo "CC_x86_64_linux_android=$ndk_bin/x86_64-linux-android24-clang" >> "$GITHUB_ENV"
+              echo "CXX_x86_64_linux_android=$ndk_bin/x86_64-linux-android24-clang++" >> "$GITHUB_ENV"
+              echo "CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=$ndk_bin/x86_64-linux-android24-clang" >> "$GITHUB_ENV"
+            cache-cargo: false
+          - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
               sudo apt-get update
