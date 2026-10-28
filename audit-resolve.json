@@ -39,8 +39,13 @@
       "decision": "ignore",
       "madeAt": 1792990824148,
       "expiresAt": 1797000000000
+    },
+    "1243505|@rollup/plugin-node-resolve>deepmerge": {
+      "decision": "ignore",
+      "madeAt": 1793174306903,
+      "expiresAt": 1795766295689
     }
-   },
+  },
   "rules": {},
   "version": 1
 }
