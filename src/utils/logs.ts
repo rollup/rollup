@@ -50,9 +50,11 @@ export function getRollupError(base: RollupLog): Error & RollupLog {
 
 export function logErrorInHook(
 	originalError: RollupLog,
-	hookError: Error,
+	hookError: RollupLog,
 	hookName: 'buildEnd' | 'renderError'
 ): RollupLog {
+	augmentLogMessage(originalError);
+	augmentLogMessage(hookError);
 	const phase = hookName === 'buildEnd' ? 'the build' : 'rendering';
 	return {
 		...originalError,
