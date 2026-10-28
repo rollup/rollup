@@ -128,7 +128,7 @@ function flattenIndexSourceMap({ file, sections }: IndexSourceMap): ExistingDeco
 				? sourceRoot
 				: `${sourceRoot}/`
 			: '';
-		const sourceIndices = (section.sources as (string | null)[]).map((source, index) => {
+		const sourceIndices = section.sources.map((source, index) => {
 			const name = source == null || isAbsolute(source) ? source : sourcePrefix + source;
 			const content = section.sourcesContent?.[index] ?? null;
 			let indices = sourceIndicesByName.get(name);
@@ -179,8 +179,8 @@ function flattenIndexSourceMap({ file, sections }: IndexSourceMap): ExistingDeco
 		file,
 		mappings,
 		names,
-		sources: sources as string[],
-		sourcesContent: sourcesContent as string[],
+		sources,
+		sourcesContent,
 		version: 3
 	};
 }
