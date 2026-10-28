@@ -193,7 +193,7 @@ function getCollapsedSourcemap(
 		const baseSources = sources.map((source, index) =>
 			source == null
 				? null
-				: new Source(resolve(directory, sourceRoot, source), sourcesContent[index] ?? null)
+				: new Source(resolve(directory, sourceRoot, source), sourcesContent[index])
 		);
 		source = new Link(originalSourcemap, baseSources);
 	} else {
