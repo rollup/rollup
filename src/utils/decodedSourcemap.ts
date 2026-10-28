@@ -3,8 +3,11 @@ import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
 	ExistingRawSourceMap,
-	SourceMapInput
+	IndexSourceMap,
+	SourceMapInput,
+	SourceMapSegment
 } from '../rollup/types';
+import { isAbsolute } from './path';
 
 // While the types for SourceMapInput are what we expect to receive from plugins, there are cases
 // in the wild where plugins return `{mappings: null}`, so we want this function to be a little more
@@ -66,6 +69,9 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	if (typeof map === 'string') {
 		map = JSON.parse(map) as ExistingRawSourceMap;
 	}
+	if ('sections' in map) {
+		map = flattenIndexSourceMap(map);
+	}
 	if (!map.mappings) {
 		return {
 			mappings: [],
@@ -104,4 +110,77 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	sourceMapCache.set(decodedMap, cache);
 
 	return decodedMap;
+}
+
+function flattenIndexSourceMap({ file, sections }: IndexSourceMap): ExistingDecodedSourceMap {
+	const mappings: SourceMapSegment[][] = [];
+	const names: string[] = [];
+	const sources: (string | null)[] = [];
+	const sourcesContent: (string | null)[] = [];
+	// As when collapsing sourcemaps, sources with the same name are shared unless their contents differ
+	const sourceIndicesByName = new Map<string | null, number[]>();
+
+	for (const { map, offset } of sections) {
+		const section = decodedSourcemap(map);
+		const { sourceRoot } = section;
+		const sourcePrefix = sourceRoot
+			? sourceRoot.endsWith('/')
+				? sourceRoot
+				: `${sourceRoot}/`
+			: '';
+		const sourceIndices = section.sources.map((source, index) => {
+			const name = source == null || isAbsolute(source) ? source : sourcePrefix + source;
+			const content = section.sourcesContent?.[index] ?? null;
+			let indices = sourceIndicesByName.get(name);
+			if (!indices) {
+				sourceIndicesByName.set(name, (indices = []));
+			}
+			let sourceIndex = indices.find(
+				candidate =>
+					content == null ||
+					sourcesContent[candidate] == null ||
+					sourcesContent[candidate] === content
+			);
+			if (sourceIndex === undefined) {
+				sourceIndex = sources.push(name) - 1;
+				sourcesContent.push(content);
+				indices.push(sourceIndex);
+			} else {
+				sourcesContent[sourceIndex] ??= content;
+			}
+			return sourceIndex;
+		});
+		const namesOffset = names.length;
+		for (const name of section.names ?? []) {
+			names.push(name);
+		}
+		for (const [lineIndex, line] of section.mappings.entries()) {
+			const generatedLine = offset.line + lineIndex;
+			while (mappings.length <= generatedLine) {
+				mappings.push([]);
+			}
+			// Only the first line of a section starts at the column offset
+			const columnOffset = lineIndex === 0 ? offset.column : 0;
+			for (const segment of line) {
+				const flatSegment = segment.slice() as SourceMapSegment;
+				flatSegment[0] += columnOffset;
+				if (flatSegment.length !== 1) {
+					flatSegment[1] = sourceIndices[flatSegment[1]];
+					if (flatSegment.length === 5) {
+						flatSegment[4] += namesOffset;
+					}
+				}
+				mappings[generatedLine].push(flatSegment);
+			}
+		}
+	}
+
+	return {
+		file,
+		mappings,
+		names,
+		sources,
+		sourcesContent,
+		version: 3
+	};
 }
