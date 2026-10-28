@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.66.0
+
+_2026-10-28_
+
+### Features
+
+- Support `null` sources in plugin-generated sourcemaps (#6600)
+- Support plugin-generated "index" sourcemaps (#6601)
+
+### Bug Fixes
+
+- Preserve rendering errors when the `rendereError` hook fails (#6602)
+
+### Pull Requests
+
+- [#6600](https://github.com/rollup/rollup/pull/6600): Treat null sources in plugin sourcemaps as unmapped (@wleeaf, @lukastaegert)
+- [#6601](https://github.com/rollup/rollup/pull/6601): Flatten index sourcemaps returned by plugins (@wleeaf, @lukastaegert)
+- [#6602](https://github.com/rollup/rollup/pull/6602): Preserve rendering errors when renderError fails (@shuaiyafei)
+
 ## 4.65.1
 
 _2026-10-26_
