@@ -60,6 +60,7 @@ export function resetSourcemapCache(
 }
 
 export function decodedSourcemap(map: null | undefined): null;
+export function decodedSourcemap<T extends ExistingDecodedSourceMap>(map: T): T;
 export function decodedSourcemap(map: Exclude<Input, null | undefined>): ExistingDecodedSourceMap;
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null;
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
