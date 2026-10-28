@@ -31,7 +31,7 @@ module.exports = defineTest({
 					assert.strictEqual(unknownLoc.source, null);
 
 					const originalLoc = smc.originalPositionFor(getLocation(code, code.indexOf('log(2)')));
-					assert.strictEqual(originalLoc.source, path.join(__dirname, 'original.js'));
+					assert.strictEqual(path.relative(__dirname, originalLoc.source), 'original.js');
 					assert.strictEqual(originalLoc.line, 1);
 					return null;
 				}
