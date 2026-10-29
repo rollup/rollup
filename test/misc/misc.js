@@ -509,6 +509,21 @@ console.log(x);
 		);
 	});
 
+	it('loads the android-x64 native package on x64 Android', () => {
+		const error = Object.assign(new Error('Cannot find module @rollup/rollup-android-x64'), {
+			code: 'MODULE_NOT_FOUND'
+		});
+
+		assert.throws(
+			() => loadNativeWithError('android', error),
+			receivedError => {
+				assert.strictEqual(receivedError.cause, error);
+				assert.match(receivedError.message, /^Cannot find module @rollup\/rollup-android-x64\./);
+				return true;
+			}
+		);
+	});
+
 	it('keeps the Visual C++ Redistributable guidance for missing Windows DLLs', () => {
 		const error = Object.assign(new Error('The specified module could not be found.'), {
 			code: 'ERR_DLOPEN_FAILED'
