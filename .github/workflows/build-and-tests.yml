@@ -475,7 +475,7 @@ jobs:
             case "${{ matrix.settings.distro }}" in
               ubuntu*)
                 apt-get update -y
-                apt-get install -y curl git
+                apt-get install -y curl git libatomic1
                 if [[ -z "${{ matrix.settings.use-nvm }}" ]]; then
                   curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
                   apt-get install -y nodejs
