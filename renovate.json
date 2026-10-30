@@ -68,6 +68,13 @@
     },
     {
       "matchPackageNames": [
+        "parking_lot"
+      ],
+      "allowedVersions": "<0.13.0",
+      "description": "parking_lot 0.13 requires rustc 1.95, which neither the pinned nightly (rustc 1.90) nor the OpenBSD 7.8 distro rust provide. swc_common still depends on 0.12, so updating would also bundle two copies. Pin until both toolchains support it and swc_common has moved to 0.13."
+    },
+    {
+      "matchPackageNames": [
         "lru-cache"
       ],
       "enabled": false,
