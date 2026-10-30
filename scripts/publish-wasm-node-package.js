@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readJson, runWithEcho } from './helpers.js';
+import { readJson, runPublish } from './helpers.js';
 import { MAIN_PACKAGE } from './release-constants.js';
 
 const WASM_NODE_PACKAGE_INFO = {
@@ -51,5 +51,5 @@ export default async function publishWasmNodePackage() {
 		})
 	]);
 
-	await runWithEcho('npm', ['publish'], { cwd: path.resolve(PACKAGE_DIR) });
+	await runPublish('npm', ['publish'], { cwd: PACKAGE_DIR, skipIfAlreadyPublished: true });
 }

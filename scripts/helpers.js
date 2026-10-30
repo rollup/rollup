@@ -36,6 +36,83 @@ export function runWithEcho(command, parameters, options) {
 	);
 }
 
+const ALREADY_PUBLISHED_ERROR_MESSAGE = 'You cannot publish over the previously published versions';
+const TRANSPARENCY_LOG_CONFLICT_ERROR_CODE = 'TLOG_CREATE_ENTRY_ERROR';
+const PUBLISH_ATTEMPTS = 2;
+
+/**
+ * @typedef {Parameters<typeof spawn>[2] & { skipIfAlreadyPublished?: boolean }} PublishOptions
+ */
+
+/**
+ * A transparency log conflict means the upload never happened, and a fresh process signs the
+ * provenance statement with a new key, so retrying does not conflict again. Skipping a version
+ * that an earlier run already published makes a failed release resumable.
+ * @param {string} command
+ * @param {string[]} parameters
+ * @param {PublishOptions=} options
+ * @return {Promise<void>}
+ */
+export async function runPublish(
+	command,
+	parameters,
+	{ skipIfAlreadyPublished = false, ...options } = {}
+) {
+	const commandString = formatCommand(command, parameters);
+	for (let attempt = 1; attempt <= PUBLISH_ATTEMPTS; attempt++) {
+		const { exitCode, output } = await runCapturingOutput(command, parameters, options);
+		if (exitCode === 0) {
+			return;
+		}
+		if (attempt < PUBLISH_ATTEMPTS && output.includes(TRANSPARENCY_LOG_CONFLICT_ERROR_CODE)) {
+			console.error(bold('The provenance transparency log already contains an entry, retrying.'));
+			continue;
+		}
+		if (skipIfAlreadyPublished && output.includes(ALREADY_PUBLISHED_ERROR_MESSAGE)) {
+			console.error(bold(`Skipped "${commandString}", the version is already published.`));
+			return;
+		}
+		throw new Error(`"${commandString}" exited with code ${exitCode}.`);
+	}
+}
+
+/**
+ * @param {string} command
+ * @param {string[]} parameters
+ * @param {Parameters<typeof spawn>[2]=} options
+ * @return {Promise<{ exitCode: number | null, output: string }>}
+ */
+function runCapturingOutput(command, parameters, options) {
+	const color = colors[nextColorIndex];
+	nextColorIndex = (nextColorIndex + 1) % colors.length;
+	const commandString = formatCommand(command, parameters);
+	console.error(bold(`\n${color('Run>')} ${commandString}`));
+
+	return new Promise(resolve => {
+		const childProcess = spawn(command, parameters, {
+			...options,
+			stdio: ['inherit', 'pipe', 'pipe']
+		});
+		let output = '';
+
+		childProcess.stdout?.setEncoding('utf8').on('data', data => {
+			output += data;
+			process.stdout.write(data);
+		});
+		childProcess.stderr?.setEncoding('utf8').on('data', data => {
+			output += data;
+			process.stderr.write(data);
+		});
+
+		childProcess.on('close', exitCode => {
+			if (exitCode === 0) {
+				console.error(bold(`${color('Finished>')} ${commandString}\n`));
+			}
+			resolve({ exitCode, output });
+		});
+	});
+}
+
 /**
  * @param {string} command
  * @param {string[]} parameters

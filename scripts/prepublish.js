@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { readJson, runWithEcho } from './helpers.js';
+import { readJson, runPublish } from './helpers.js';
 import publishWasmNodePackage from './publish-wasm-node-package.js';
 import { CHANGELOG, MAIN_PACKAGE } from './release-constants.js';
 import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpers.js';
@@ -23,11 +23,16 @@ if (!matched) {
 const isPreRelease = !!matched[1];
 await verifyChangelog(isPreRelease);
 
-await runWithEcho('npm', ['publish'], { cwd: path.resolve('browser') });
+await runPublish('npm', ['publish'], {
+	cwd: path.resolve('browser'),
+	skipIfAlreadyPublished: true
+});
 await publishWasmNodePackage();
 
 const { optionalDependencies } = await readJson(MAIN_PACKAGE);
-await runWithEcho('npm', ['run', 'prepublish:napi']);
+// napi echoes the "already published" error for every package it skips, so that text in the
+// output does not mean the command succeeded.
+await runPublish('npm', ['run', 'prepublish:napi']);
 const mainPackage = await readJson(MAIN_PACKAGE);
 await writeFile(
 	MAIN_PACKAGE,
