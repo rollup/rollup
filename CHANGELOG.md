@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.67.2
+
+_2026-10-30_
+
+### Features
+
+- Support X64 Android (#6603)
+
+### Pull Requests
+
+- [#6603](https://github.com/rollup/rollup/pull/6603): Add android-x64 native build (@x-labb, @lukastaegert)
+- [#6605](https://github.com/rollup/rollup/pull/6605): Install libatomic1 for Node 26 in smoke test containers (@lukastaegert)
+- [#6606](https://github.com/rollup/rollup/pull/6606): Update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6608](https://github.com/rollup/rollup/pull/6608): Update dependency eslint-plugin-unicorn to v79 (@renovate[bot])
+- [#6610](https://github.com/rollup/rollup/pull/6610): Lock file maintenance (@renovate[bot])
+- [#6611](https://github.com/rollup/rollup/pull/6611): Lock file maintenance (@renovate[bot])
+- [#6612](https://github.com/rollup/rollup/pull/6612): Lock file maintenance (@renovate[bot])
+- [#6615](https://github.com/rollup/rollup/pull/6615): Lock file maintenance (@renovate[bot])
+- [#6616](https://github.com/rollup/rollup/pull/6616): Update estree dependency (@lukastaegert)
+
 ## 4.66.0
 
 _2026-10-28_
