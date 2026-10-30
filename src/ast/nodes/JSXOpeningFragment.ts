@@ -3,11 +3,13 @@ import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type Variable from '../variables/Variable';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { getAndIncludeFactoryVariable } from './shared/jsxHelpers';
 import { NodeBase } from './shared/Node';
 
 export default class JSXOpeningFragment extends NodeBase {
+	declare parent: nodes.JSXOpeningFragmentParent;
 	declare type: NodeType.tJSXOpeningElement;
 	declare attributes: never[];
 	declare selfClosing: false;

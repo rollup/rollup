@@ -1,43 +1,8 @@
 {
   "decisions": {
-    "1112706|mocha>diff": {
-      "decision": "ignore",
-      "madeAt": 1789100346311,
-      "expiresAt": 1797000000000
-    },
-    "1113686|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336870,
-      "expiresAt": 1797000000000
-    },
-    "1113686|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100336869,
-      "expiresAt": 1797000000000
-    },
-    "1119440|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1797000000000
-    },
-    "1119440|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1789100343821,
-      "expiresAt": 1797000000000
-    },
     "1241206|@mermaid-js/mermaid-cli>katex": {
       "decision": "ignore",
       "madeAt": 1791260936836,
-      "expiresAt": 1797000000000
-    },
-    "1243082|mocha>diff>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1792990824148,
-      "expiresAt": 1797000000000
-    },
-    "1243082|@rollup/plugin-terser>serialize-javascript": {
-      "decision": "ignore",
-      "madeAt": 1792990824148,
       "expiresAt": 1797000000000
     },
     "1243505|@rollup/plugin-node-resolve>deepmerge": {

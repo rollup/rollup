@@ -8,11 +8,13 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase {
-	declare argument: ExpressionNode;
+	declare parent: nodes.SpreadElementParent;
+	declare argument: nodes.Expression;
 	declare type: NodeType.tSpreadElement;
 
 	deoptimizeArgumentsOnInteractionAtPath(

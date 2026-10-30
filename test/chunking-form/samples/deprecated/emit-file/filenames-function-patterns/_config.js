@@ -28,7 +28,9 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						exports: [],
+						facadeModuleAttributes: {},
 						facadeModuleId: ID_MAIN,
+						facadeModuleRawId: ID_MAIN,
 						isDynamicEntry: false,
 						isEntry: true,
 						isImplicitEntry: false,
@@ -41,16 +43,13 @@ module.exports = defineTest({
 				return `entry-[name]-[hash]-[format].js`;
 			},
 			assetFileNames: fileInfo => {
-				const originalFileName = fileInfo.originalFileName;
-				const originalFileNames = ['deb.js', 'main.js'];
-				assert.ok(originalFileNames.includes(originalFileName), 'original file name');
 				assert.deepStrictEqual(
 					fileInfo,
 					{
-						name: `${originalFileName}.txt`,
+						name: 'deb.js.txt',
 						names: ['deb.js.txt', 'main.js.txt'],
-						originalFileName,
-						originalFileNames,
+						originalFileName: 'deb.js',
+						originalFileNames: ['deb.js', 'main.js'],
 						source: 'hello world',
 						type: 'asset'
 					},
@@ -63,7 +62,9 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						exports: ['default'],
+						facadeModuleAttributes: {},
 						facadeModuleId: ID_DEB,
+						facadeModuleRawId: ID_DEB,
 						isDynamicEntry: true,
 						isEntry: false,
 						isImplicitEntry: false,
