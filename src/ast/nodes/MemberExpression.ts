@@ -552,6 +552,13 @@ export default class MemberExpression
 			propertyReadSideEffects &&
 			!(this.variable || this.isUndefined)
 		) {
+			if (this.propertyKey === '__proto__') {
+				// Assigning to `__proto__` replaces the object's prototype, which may
+				// introduce accessors that are not known to the current object entity.
+				// Deoptimize the object so that later property reads are not
+				// incorrectly treated as side-effect free.
+				this.object.deoptimizePath(UNKNOWN_PATH);
+			}
 			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.assignmentInteraction,
 				[this.propertyKey],
