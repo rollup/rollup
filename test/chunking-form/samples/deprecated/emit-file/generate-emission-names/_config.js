@@ -5,6 +5,7 @@ let referenceIdWithName;
 
 module.exports = defineTest({
 	description: 'updates asset names when emitting in generate phase',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		output: { assetFileNames: 'generated-[name][extname]' },

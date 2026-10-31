@@ -47,6 +47,10 @@ The `INCONSISTENT_IMPORT_ATTRIBUTES` warning is gone. Previously, importing the 
 
 Returning `attributes` from the [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook is now deprecated and will emit a `DEPRECATED_FEATURE` warning; previously, it was silently ignored unless `strictDeprecations` was enabled. Attributes are determined at resolution time and cannot be overridden by these hooks.
 
+### Asset `name` and `originalFileName` properties are now deprecated
+
+Accessing the `name` or `originalFileName` property of an emitted asset in the `assetFileNames` output option or in `generateBundle` now emits a `DEPRECATED_FEATURE` warning; previously, this only happened with `strictDeprecations`. These properties are also non-enumerable now. Use the `names` and `originalFileNames` arrays instead.
+
 ### New fields on output types
 
 `PreRenderedChunk`, `RenderedChunk`, and `OutputChunk` now expose `facadeModuleRawId` and `facadeModuleAttributes`. `RenderedModule` now exposes `rawId` and `attributes`.

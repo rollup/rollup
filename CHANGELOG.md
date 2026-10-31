@@ -64,6 +64,10 @@ _2026-10-02_
 - The `fs` option is no longer experimental, and `this.fs` and `options.fs` now expose exactly the methods of the `RollupFsModule` interface; custom file system implementations must not call the file system exposed by Rollup as nested calls can stall the build (#6586)
 - The deprecated `output.externalImportAssertions` option has been removed; use `output.externalImportAttributes` instead
 
+#### Deprecations
+
+- Accessing the `name` or `originalFileName` property of an emitted asset now emits a `DEPRECATED_FEATURE` warning, and the properties are no longer enumerable; use `names` and `originalFileNames` instead
+
 ### Features
 
 - Rollup no longer installs the native `fsevents` module as an optional dependency on macOS (#5778)
