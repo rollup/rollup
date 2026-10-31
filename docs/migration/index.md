@@ -63,6 +63,12 @@ The object forms of `output.globals` and `output.paths` are keyed by the `rawId`
 
 As a consequence, `this.fs` and `options.fs` now expose only the methods of the `RollupFsModule` interface — extra methods of the underlying implementation, e.g. the full `node:fs/promises` namespace, no longer leak through. Additionally, the `fs` option is no longer experimental and is documented under advanced functionality.
 
+## Option Changes
+
+### `output.externalImportAssertions` has been removed
+
+Use [`output.externalImportAttributes`](../configuration-options/index.md#output-externalimportattributes) instead. The deprecated alias had already been superseded by `output.externalImportAttributes` in Rollup 4.
+
 ## Reworked manual chunks
 
 Manual chunks no longer absorb their full transitive dependency subtree. Instead, they either behave like entry points or contain exactly their assigned modules, controlled by [`onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks), which now applies to both the object and the function form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), with `false` as default for the object form and `true` for the function form:

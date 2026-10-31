@@ -896,8 +896,6 @@ export interface OutputOptions {
 	experimentalMinChunkSize?: number | undefined;
 	exports?: 'default' | 'named' | 'none' | 'auto' | undefined;
 	extend?: boolean | undefined;
-	/** @deprecated Use "externalImportAttributes" instead. */
-	externalImportAssertions?: boolean | undefined;
 	externalImportAttributes?: boolean | undefined;
 	externalLiveBindings?: boolean | undefined;
 	// only required for bundle.write
@@ -953,8 +951,6 @@ export interface NormalizedOutputOptions {
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
-	/** @deprecated Use "externalImportAttributes" instead. */
-	externalImportAssertions: boolean;
 	externalImportAttributes: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
