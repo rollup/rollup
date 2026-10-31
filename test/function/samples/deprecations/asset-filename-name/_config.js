@@ -7,7 +7,7 @@ module.exports = defineTest({
 				return '[name][extname]';
 			}
 		},
-		strictDeprecations: true,
+		strictDeprecations: false,
 		plugins: {
 			name: 'test',
 			buildStart() {
@@ -20,10 +20,12 @@ module.exports = defineTest({
 			}
 		}
 	},
-	generateError: {
-		code: 'DEPRECATED_FEATURE',
-		message:
-			'Accessing the "name" property of emitted assets when generating the file name is deprecated. Use the "names" property instead.',
-		url: 'https://rollupjs.org/plugin-development/#generatebundle'
-	}
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'Accessing the "name" property of emitted assets when generating the file name is deprecated. Use the "names" property instead.',
+			url: 'https://rollupjs.org/plugin-development/#generatebundle'
+		}
+	]
 });

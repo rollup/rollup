@@ -25,5 +25,11 @@ module.exports = main;
 			}
 		],
 		output: { sourcemap: true }
+	},
+	warnings: warnings => {
+		assert.strictEqual(warnings.length, 2);
+		for (const warning of warnings) {
+			assert.strictEqual(warning.code, 'DEPRECATED_FEATURE');
+		}
 	}
 });
