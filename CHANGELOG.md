@@ -67,6 +67,7 @@ _2026-10-02_
 #### Deprecations
 
 - Accessing the `name` or `originalFileName` property of an emitted asset now emits a `DEPRECATED_FEATURE` warning, and the properties are no longer enumerable; use `names` and `originalFileNames` instead
+- The `output.importAttributesKey` option is deprecated; it will be removed in a future version of Rollup
 
 ### Features
 

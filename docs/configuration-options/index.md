@@ -1257,16 +1257,6 @@ This determines the character set that Rollup is allowed to use in file hashes.
 
 By default, when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](../faqs/index.md#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](#output-preservemodules) option as here, imports will never be hoisted.
 
-### output.importAttributesKey
-
-|          |                                |
-| -------: | :----------------------------- |
-|    Type: | `"with" \| "assert"`           |
-|     CLI: | `--importAttributesKey <name>` |
-| Default: | `"with"`                       |
-
-This determines the keyword set that Rollup will use for import attributes.
-
 ### output.inlineDynamicImports
 
 |          |                                                      |
@@ -3194,3 +3184,17 @@ Whether to skip the `bundle.write()` step when a rebuild is triggered.
 | Type: | `(id: string) => void` |
 
 An optional function that will be called immediately every time a module changes that is part of the build. It receives the id of the changed module as argument. This is different from the [`watchChange`](../plugin-development/index.md#watchchange) plugin hook, which is only called once the running build has finished. This may for instance be used to prevent additional steps from being performed if we know another build will be started anyway once the current build finished. This callback may be called multiple times per build as it tracks every change.
+
+## Deprecated options
+
+☢️ These options have been deprecated and may be removed in a future Rollup version.
+
+### output.importAttributesKey
+
+|          |                                |
+| -------: | :----------------------------- |
+|    Type: | `"with" \| "assert"`           |
+|     CLI: | `--importAttributesKey <name>` |
+| Default: | `"with"`                       |
+
+Determines the keyword Rollup uses for import attributes. Only set it to `"assert"` if you need to support environments that do not understand the `with` keyword.
