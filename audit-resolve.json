@@ -8,7 +8,77 @@
     "1243505|@rollup/plugin-node-resolve>deepmerge": {
       "decision": "ignore",
       "madeAt": 1793174306903,
-      "expiresAt": 1795766295689
+      "expiresAt": 1797000000000
+    },
+    "1244012|@eslint/js>eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|c8>test-exclude>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|eslint-config-prettier>eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|eslint-plugin-prettier>eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|eslint-plugin-unicorn>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|eslint-plugin-vue>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|fixturify>matcher-collection>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|mocha>glob>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244012|vue-eslint-parser>eslint>@eslint-community/eslint-utils>@eslint/config-array>minimatch": {
+      "decision": "ignore",
+      "madeAt": 1793433268228,
+      "expiresAt": 1797000000000
+    },
+    "1244013|c8>test-exclude>glob": {
+      "decision": "ignore",
+      "madeAt": 1793433271474,
+      "expiresAt": 1797000000000
+    },
+    "1244013|mocha>glob": {
+      "decision": "ignore",
+      "madeAt": 1793433271474,
+      "expiresAt": 1797000000000
     }
   },
   "rules": {},

@@ -47,6 +47,10 @@ The `INCONSISTENT_IMPORT_ATTRIBUTES` warning is gone. Previously, importing the 
 
 Returning `attributes` from the [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook is now deprecated and will emit a `DEPRECATED_FEATURE` warning; previously, it was silently ignored unless `strictDeprecations` was enabled. Attributes are determined at resolution time and cannot be overridden by these hooks.
 
+### Asset `name` and `originalFileName` properties are now deprecated
+
+Accessing the `name` or `originalFileName` property of an emitted asset in the `assetFileNames` output option or in `generateBundle` now emits a `DEPRECATED_FEATURE` warning; previously, this only happened with `strictDeprecations`. These properties are also non-enumerable now. Use the `names` and `originalFileNames` arrays instead.
+
 ### New fields on output types
 
 `PreRenderedChunk`, `RenderedChunk`, and `OutputChunk` now expose `facadeModuleRawId` and `facadeModuleAttributes`. `RenderedModule` now exposes `rawId` and `attributes`.
@@ -62,6 +66,16 @@ The object forms of `output.globals` and `output.paths` are keyed by the `rawId`
 [`maxParallelFileOps`](../configuration-options/index.md#maxparallelfileops) no longer limits how many `load` hooks run in parallel. Instead, it limits the number of parallel file operations performed via the [`fs`](../configuration-options/index.md#fs) option and [`this.fs`](../plugin-development/index.md#this-fs). Plugins that perform file operations should use `this.fs` so that these operations respect the limit.
 
 As a consequence, `this.fs` and `options.fs` now expose only the methods of the `RollupFsModule` interface — extra methods of the underlying implementation, e.g. the full `node:fs/promises` namespace, no longer leak through. Additionally, the `fs` option is no longer experimental and is documented under advanced functionality.
+
+## Option Changes
+
+### `output.externalImportAssertions` has been removed
+
+Use [`output.externalImportAttributes`](../configuration-options/index.md#output-externalimportattributes) instead. The deprecated alias had already been superseded by `output.externalImportAttributes` in Rollup 4.
+
+### `output.importAttributesKey` is deprecated
+
+The [`output.importAttributesKey`](../configuration-options/index.md#output-importattributeskey) option is deprecated and will be removed in a future version of Rollup. The default is now `"with"`; only use this option if you need to support environments that do not understand the `with` keyword.
 
 ## Reworked manual chunks
 

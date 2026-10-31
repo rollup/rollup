@@ -8,7 +8,9 @@ import type {
 	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputChunk
+	OutputAsset,
+	OutputChunk,
+	PreRenderedAsset
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import type { GetHash } from './crypto';
@@ -51,32 +53,32 @@ function generateAssetFileName(
 	return makeUnique(
 		renderNamePattern(
 			typeof outputOptions.assetFileNames === 'function'
-				? outputOptions.assetFileNames({
-						// Additionally, this should be non-enumerable in the next major
-						get name() {
-							warnDeprecation(
-								'Accessing the "name" property of emitted assets when generating the file name is deprecated. Use the "names" property instead.',
-								URL_GENERATEBUNDLE,
-								false,
-								inputOptions
-							);
-							return name;
-						},
-						names,
-						// Additionally, this should be non-enumerable in the next major
-						get originalFileName() {
-							warnDeprecation(
-								'Accessing the "originalFileName" property of emitted assets when generating the file name is deprecated. Use the "originalFileNames" property instead.',
-								URL_GENERATEBUNDLE,
-								false,
-								inputOptions
-							);
-							return originalFileName;
-						},
-						originalFileNames,
-						source,
-						type: 'asset'
-					})
+				? outputOptions.assetFileNames(
+						makeDeprecatedAssetPropertiesNonEnumerable({
+							get name() {
+								warnDeprecation(
+									'Accessing the "name" property of emitted assets when generating the file name is deprecated. Use the "names" property instead.',
+									URL_GENERATEBUNDLE,
+									true,
+									inputOptions
+								);
+								return name;
+							},
+							names,
+							get originalFileName() {
+								warnDeprecation(
+									'Accessing the "originalFileName" property of emitted assets when generating the file name is deprecated. Use the "originalFileNames" property instead.',
+									URL_GENERATEBUNDLE,
+									true,
+									inputOptions
+								);
+								return originalFileName;
+							},
+							originalFileNames,
+							source,
+							type: 'asset'
+						} satisfies PreRenderedAsset)
+					)
 				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
@@ -523,14 +525,13 @@ export class FileEmitter {
 			}
 		} else {
 			const { options } = this;
-			bundle[fileName] = {
+			bundle[fileName] = makeDeprecatedAssetPropertiesNonEnumerable({
 				fileName,
 				get name() {
-					// Additionally, this should be non-enumerable in the next major
 					warnDeprecation(
 						'Accessing the "name" property of emitted assets in the bundle is deprecated. Use the "names" property instead.',
 						URL_GENERATEBUNDLE,
-						false,
+						true,
 						options
 					);
 					return name;
@@ -538,11 +539,10 @@ export class FileEmitter {
 				names: name ? [name] : [],
 				needsCodeReference,
 				get originalFileName() {
-					// Additionally, this should be non-enumerable in the next major
 					warnDeprecation(
 						'Accessing the "originalFileName" property of emitted assets in the bundle is deprecated. Use the "originalFileNames" property instead.',
 						URL_GENERATEBUNDLE,
-						false,
+						true,
 						options
 					);
 					return originalFileName;
@@ -550,7 +550,7 @@ export class FileEmitter {
 				originalFileNames: originalFileName ? [originalFileName] : [],
 				source,
 				type: 'asset'
-			};
+			} satisfies OutputAsset);
 		}
 	}
 
@@ -588,14 +588,13 @@ export class FileEmitter {
 		}
 
 		const { options } = this;
-		bundle[fileName] = {
+		bundle[fileName] = makeDeprecatedAssetPropertiesNonEnumerable({
 			fileName,
 			get name() {
-				// Additionally, this should be non-enumerable in the next major
 				warnDeprecation(
 					'Accessing the "name" property of emitted assets in the bundle is deprecated. Use the "names" property instead.',
 					URL_GENERATEBUNDLE,
-					false,
+					true,
 					options
 				);
 				return representative.name;
@@ -603,11 +602,10 @@ export class FileEmitter {
 			names,
 			needsCodeReference,
 			get originalFileName() {
-				// Additionally, this should be non-enumerable in the next major
 				warnDeprecation(
 					'Accessing the "originalFileName" property of emitted assets in the bundle is deprecated. Use the "originalFileNames" property instead.',
 					URL_GENERATEBUNDLE,
-					false,
+					true,
 					options
 				);
 				return representative.originalFileName;
@@ -615,8 +613,18 @@ export class FileEmitter {
 			originalFileNames,
 			source: representative.source!,
 			type: 'asset'
-		};
+		} satisfies OutputAsset);
 	}
+}
+
+function makeDeprecatedAssetPropertiesNonEnumerable<T extends PreRenderedAsset | OutputAsset>(
+	asset: T
+): T {
+	for (const property of ['name', 'originalFileName'] as const) {
+		const descriptor = Object.getOwnPropertyDescriptor(asset, property)!;
+		Object.defineProperty(asset, property, { ...descriptor, enumerable: false });
+	}
+	return asset;
 }
 
 const compareNames = (a: string, b: string) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0);
