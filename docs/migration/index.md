@@ -73,6 +73,10 @@ As a consequence, `this.fs` and `options.fs` now expose only the methods of the 
 
 Use [`output.externalImportAttributes`](../configuration-options/index.md#output-externalimportattributes) instead. The deprecated alias had already been superseded by `output.externalImportAttributes` in Rollup 4.
 
+### `output.importAttributesKey` is deprecated
+
+The [`output.importAttributesKey`](../configuration-options/index.md#output-importattributeskey) option is deprecated and will be removed in a future version of Rollup. The default is now `"with"`; only use this option if you need to support environments that do not understand the `with` keyword.
+
 ## Reworked manual chunks
 
 Manual chunks no longer absorb their full transitive dependency subtree. Instead, they either behave like entry points or contain exactly their assigned modules, controlled by [`onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks), which now applies to both the object and the function form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), with `false` as default for the object form and `true` for the function form:

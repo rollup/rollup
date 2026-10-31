@@ -907,6 +907,7 @@ export interface OutputOptions {
 	globals?: GlobalsOption | undefined;
 	hashCharacters?: HashCharacters | undefined;
 	hoistTransitiveImports?: boolean | undefined;
+	/** @deprecated Only needed for environments that do not support the "with" keyword. */
 	importAttributesKey?: ImportAttributesKey | undefined;
 	indent?: string | boolean | undefined;
 	inlineDynamicImports?: boolean | undefined;
@@ -961,6 +962,7 @@ export interface NormalizedOutputOptions {
 	globals: GlobalsOption;
 	hashCharacters: HashCharacters;
 	hoistTransitiveImports: boolean;
+	/** @deprecated Only needed for environments that do not support the "with" keyword. */
 	importAttributesKey: ImportAttributesKey;
 	indent: true | string;
 	inlineDynamicImports: boolean;
