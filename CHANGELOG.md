@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.67.3
+
+_2026-10-31_
+
+### Bug Fixes
+
+- Ensure line breaks in module ids are handled correctly in imports (#6620)
+
+### Pull Requests
+
+- [#6620](https://github.com/rollup/rollup/pull/6620): Preserve line terminators in module ids (@clean99, @lukastaegert)
+
 ## 4.67.2
 
 _2026-10-30_
