@@ -1,6 +1,4 @@
-System.register('Q', ['quoted\'\\
-\ \ external1', 'quoted\'\\
-\ \ external2', 'C:\\File\\Path.js'], (function () {
+System.register('Q', ['quoted\'\r\n\u2028\u2029external1', 'quoted\'\r\n\u2028\u2029external2', 'C:\\File\\Path.js'], (function () {
 	'use strict';
 	var foo, bar, baz;
 	return {
