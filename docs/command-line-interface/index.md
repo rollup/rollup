@@ -100,7 +100,6 @@ export default {
 		generatedCode,
 		hashCharacters,
 		hoistTransitiveImports,
-		importAttributesKey,
 		inlineDynamicImports,
 		interop,
 		intro,

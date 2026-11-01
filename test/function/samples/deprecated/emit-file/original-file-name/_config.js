@@ -49,5 +49,11 @@ module.exports = defineTest({
 				}
 			}
 		]
+	},
+	warnings: warnings => {
+		assert.strictEqual(warnings.length, 15);
+		for (const warning of warnings) {
+			assert.strictEqual(warning.code, 'DEPRECATED_FEATURE');
+		}
 	}
 });
