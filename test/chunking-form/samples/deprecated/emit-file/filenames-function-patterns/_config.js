@@ -6,6 +6,7 @@ const ID_DEB = path.join(__dirname, 'deb.js');
 
 module.exports = defineTest({
 	description: 'supports using a function that returns a pattern for FileNames',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: ['main.js'],
@@ -43,12 +44,12 @@ module.exports = defineTest({
 				return `entry-[name]-[hash]-[format].js`;
 			},
 			assetFileNames: fileInfo => {
+				assert.strictEqual(fileInfo.name, 'deb.js.txt');
+				assert.strictEqual(fileInfo.originalFileName, 'deb.js');
 				assert.deepStrictEqual(
 					fileInfo,
 					{
-						name: 'deb.js.txt',
 						names: ['deb.js.txt', 'main.js.txt'],
-						originalFileName: 'deb.js',
 						originalFileNames: ['deb.js', 'main.js'],
 						source: 'hello world',
 						type: 'asset'

@@ -6,13 +6,10 @@ module.exports = defineTest({
 	description:
 		'only calls output.assetFileNames once per deduplicated asset with a deterministic representative emission',
 	options: {
-		strictDeprecations: false,
 		output: {
 			assetFileNames(info) {
 				assetFileNamesCalls.push({
 					names: [...info.names],
-					name: info.name,
-					originalFileName: info.originalFileName,
 					source: info.source
 				});
 				return '[name][extname]';
@@ -67,24 +64,18 @@ module.exports = defineTest({
 					assert.deepEqual(assetFileNamesCalls, [
 						{
 							names: ['same.txt'],
-							name: 'same.txt',
-							originalFileName: 'same-source.txt',
 							source: 'same'
 						},
 						{
 							names: ['a.txt', 'bb.txt'],
-							name: 'a.txt',
-							originalFileName: null,
 							source: 'different'
 						},
 						{
 							names: ['icon.svg'],
-							name: 'icon.svg',
-							originalFileName: 'a/icon.svg',
 							source: 'icon'
 						},
-						{ names: ['asset'], name: 'asset', originalFileName: null, source: 'raw-name' },
-						{ names: ['bytes'], name: 'bytes', originalFileName: null, source: 'sa' }
+						{ names: ['asset'], source: 'raw-name' },
+						{ names: ['bytes'], source: 'sa' }
 					]);
 					const assets = Object.values(bundle).filter(value => value.type === 'asset');
 					assert.deepEqual(

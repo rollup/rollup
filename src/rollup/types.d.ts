@@ -896,8 +896,6 @@ export interface OutputOptions {
 	experimentalMinChunkSize?: number | undefined;
 	exports?: 'default' | 'named' | 'none' | 'auto' | undefined;
 	extend?: boolean | undefined;
-	/** @deprecated Use "externalImportAttributes" instead. */
-	externalImportAssertions?: boolean | undefined;
 	externalImportAttributes?: boolean | undefined;
 	externalLiveBindings?: boolean | undefined;
 	// only required for bundle.write
@@ -909,6 +907,7 @@ export interface OutputOptions {
 	globals?: GlobalsOption | undefined;
 	hashCharacters?: HashCharacters | undefined;
 	hoistTransitiveImports?: boolean | undefined;
+	/** @deprecated Only needed for environments that do not support the "with" keyword. */
 	importAttributesKey?: ImportAttributesKey | undefined;
 	indent?: string | boolean | undefined;
 	inlineDynamicImports?: boolean | undefined;
@@ -953,8 +952,6 @@ export interface NormalizedOutputOptions {
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
-	/** @deprecated Use "externalImportAttributes" instead. */
-	externalImportAssertions: boolean;
 	externalImportAttributes: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
@@ -965,6 +962,7 @@ export interface NormalizedOutputOptions {
 	globals: GlobalsOption;
 	hashCharacters: HashCharacters;
 	hoistTransitiveImports: boolean;
+	/** @deprecated Only needed for environments that do not support the "with" keyword. */
 	importAttributesKey: ImportAttributesKey;
 	indent: true | string;
 	inlineDynamicImports: boolean;

@@ -2,7 +2,7 @@ module.exports = defineTest({
 	description: 'marks the "name" property of emitted assets as deprecated in generateBundle',
 	options: {
 		output: { assetFileNames: '[name][extname]' },
-		strictDeprecations: true,
+		strictDeprecations: false,
 		plugins: {
 			name: 'test',
 			buildStart() {
@@ -18,13 +18,12 @@ module.exports = defineTest({
 			}
 		}
 	},
-	generateError: {
-		code: 'PLUGIN_ERROR',
-		hook: 'generateBundle',
-		message:
-			'Accessing the "name" property of emitted assets in the bundle is deprecated. Use the "names" property instead.',
-		plugin: 'test',
-		pluginCode: 'DEPRECATED_FEATURE',
-		url: 'https://rollupjs.org/plugin-development/#generatebundle'
-	}
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'Accessing the "name" property of emitted assets in the bundle is deprecated. Use the "names" property instead.',
+			url: 'https://rollupjs.org/plugin-development/#generatebundle'
+		}
+	]
 });

@@ -14,7 +14,6 @@ import {
 	URL_OUTPUT_AMD_BASEPATH,
 	URL_OUTPUT_AMD_ID,
 	URL_OUTPUT_DIR,
-	URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
 	URL_OUTPUT_FORMAT,
 	URL_OUTPUT_GENERATEDCODE,
 	URL_OUTPUT_IMPORTATTRIBUTESKEY,
@@ -46,7 +45,6 @@ export async function normalizeOutputOptions(
 	const preserveModules = getPreserveModules(config, inlineDynamicImports, inputOptions);
 	const file = getFile(config, preserveModules, inputOptions);
 	const generatedCode = getGeneratedCode(config);
-	const externalImportAttributes = getExternalImportAttributes(config, inputOptions);
 
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
 		amd: getAmd(config),
@@ -61,8 +59,7 @@ export async function normalizeOutputOptions(
 		experimentalMinChunkSize: config.experimentalMinChunkSize ?? 1,
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
-		externalImportAssertions: externalImportAttributes,
-		externalImportAttributes,
+		externalImportAttributes: config.externalImportAttributes ?? true,
 		externalLiveBindings: config.externalLiveBindings ?? true,
 		file,
 		footer: getAddon(config, 'footer'),
@@ -339,21 +336,6 @@ function getExports(
 	}
 	return configExports || 'auto';
 }
-
-const getExternalImportAttributes = (
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions
-): NormalizedOutputOptions['externalImportAttributes'] => {
-	if (config.externalImportAssertions != undefined) {
-		warnDeprecation(
-			`The "output.externalImportAssertions" option is deprecated. Use the "output.externalImportAttributes" option instead.`,
-			URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
-			true,
-			inputOptions
-		);
-	}
-	return config.externalImportAttributes ?? config.externalImportAssertions ?? true;
-};
 
 const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => {
 	const configWithPreset = getOptionWithPreset(
