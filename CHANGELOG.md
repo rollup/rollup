@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.67.4
+
+_2026-11-01_
+
+### Bug Fixes
+
+- Make rollup work again on older Xeon processors (#6622)
+
+### Pull Requests
+
+- [#6622](https://github.com/rollup/rollup/pull/6622): Build linux-x64-gnu C code for baseline x86-64 CPUs (@TrickyPi)
+
 ## 4.67.3
 
 _2026-10-31_
