@@ -31,7 +31,6 @@ module.exports = defineTest({
 						experimentalMinChunkSize: 1,
 						exports: 'auto',
 						extend: false,
-						externalImportAssertions: true,
 						externalImportAttributes: true,
 						externalLiveBindings: true,
 						format: 'cjs',
