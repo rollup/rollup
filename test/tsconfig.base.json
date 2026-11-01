@@ -6,7 +6,7 @@
 		"composite": true,
 		"target": "esnext",
 		"module": "NodeNext",
-		"noEmit": true,
+        "emitDeclarationOnly": true,
 		"lib": ["esnext"],
 		"esModuleInterop": true,
 		"moduleResolution": "NodeNext",

@@ -1,15 +1,12 @@
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
-import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { fileURLToPath } from 'node:url';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
-import { chokidarReaddirThrottleReplacement } from './build-plugins/chokidar-readdir-throttle-replacement';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
@@ -17,9 +14,9 @@ import { emitNativeEntry } from './build-plugins/emit-native-entry';
 import emitWasmFile from './build-plugins/emit-wasm-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
-import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
+import json from './build-plugins/json';
 import loadCliHelp from './build-plugins/load-cli-help';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import './typings/declarations';
@@ -40,8 +37,6 @@ const treeshake = {
 };
 
 const nodePlugins: readonly Plugin[] = [
-	replace(fsEventsReplacement),
-	replace(chokidarReaddirThrottleReplacement),
 	alias(moduleAliases),
 	nodeResolve({ preferBuiltins: true }),
 	json(),
@@ -63,8 +58,6 @@ export default async function getConfig(
 	);
 
 	const commonJSBuild: RollupOptions = {
-		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
-		external: ['fsevents'],
 		input: {
 			'getLogFilter.js': 'src/utils/getLogFilter.ts',
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',

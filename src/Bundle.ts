@@ -194,7 +194,6 @@ export default class Bundle {
 						manualChunkAliasByEntry,
 						experimentalMinChunkSize,
 						this.inputOptions.onLog,
-						typeof manualChunks === 'function',
 						onlyExplicitManualChunks
 					);
 		const chunks: Chunk[] = new Array(executableModule.length);
@@ -226,7 +225,7 @@ export default class Bundle {
 		}
 
 		if (!inlineDynamicImports && !preserveModules) {
-			this.checkCircularChunks(chunks);
+			this.checkCircularChunks(chunks, onlyExplicitManualChunks);
 		}
 
 		const facades: Chunk[] = [];
@@ -236,7 +235,7 @@ export default class Bundle {
 		return [...chunks, ...facades];
 	}
 
-	private checkCircularChunks(chunks: Chunk[]): void {
+	private checkCircularChunks(chunks: Chunk[], onlyExplicitManualChunks: boolean): void {
 		const visited = new Set<Chunk>();
 		const parents = new Map<Chunk, Chunk>();
 
@@ -244,16 +243,25 @@ export default class Bundle {
 			if (parents.has(chunk)) {
 				if (!visited.has(chunk)) {
 					const path = [chunk.getChunkName()];
-					let isManualChunkConflict = chunk.isManualChunk;
+					const cycleChunks = [chunk];
 					let nextChunk: Chunk | undefined = parent;
 					while (nextChunk !== chunk && nextChunk) {
 						path.push(nextChunk.getChunkName());
-						isManualChunkConflict &&= nextChunk.isManualChunk;
+						cycleChunks.push(nextChunk);
 						nextChunk = parents.get(nextChunk);
 					}
+					const manualChunkNames = cycleChunks
+						.filter(cycleChunk => cycleChunk.isManualChunk)
+						.map(cycleChunk => cycleChunk.getChunkName());
+					const nonManualChunkName = cycleChunks
+						.find(cycleChunk => !cycleChunk.isManualChunk)
+						?.getChunkName();
 					path.push(path[0]);
 					path.reverse();
-					this.inputOptions.onLog(LOGLEVEL_WARN, logCircularChunk(path, isManualChunkConflict));
+					this.inputOptions.onLog(
+						LOGLEVEL_WARN,
+						logCircularChunk(path, manualChunkNames, nonManualChunkName, onlyExplicitManualChunks)
+					);
 				}
 				return;
 			}
@@ -321,10 +329,7 @@ function validateOptionsForMultiChunkOutput(
 function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalModule>): Module[] {
 	const includedModules: Module[] = [];
 	for (const module of modulesById.values()) {
-		if (
-			module instanceof Module &&
-			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
-		) {
+		if (module instanceof Module && module.isEmitted()) {
 			includedModules.push(module);
 		}
 	}

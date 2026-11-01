@@ -9,7 +9,7 @@
   - update the `native.js` file
   - add the corresponding triple to the [`package.json`](package.json) file as napi-rs depends on this
   - extend the [GitHub Actions workflow](.github/workflows/build-and-tests.yml) to build the new package
-- There is also a separate `@rollup/wasm-node` package that is identical to the `rollup` package in that it contains the Node.js JavaScript interface and the CLI but does not contain any native code. Instead, it includes a WebAssembly artifact that runs in Node.js. This package and the corresponding artifact only built on GitHub Actions and published via the [`publish-wasm-node-package.js`](scripts/publish-wasm-node-package.js) script.
+- There is also a separate `@rollup/wasm-node` package that is identical to the `rollup` package in that it contains the Node.js JavaScript interface and the CLI but does not contain any native code. Instead, it includes a WebAssembly artifact that runs in Node.js. This package and the corresponding artifact only built on GitHub Actions and published via the [`publish-wasm-node-package.ts`](scripts/publish-wasm-node-package.ts) script.
 
 ## Building Rollup
 
@@ -30,11 +30,11 @@
 
 ### Native code and Web Assembly
 
-The `rollup` package relies on optional dependencies to provide platform-specific native code. These are not listed in the committed `package.json` file but are added dynamically during publishing. This logic is handled by [`napi-rs`](https://napi.rs) via `npm run prepublish:napi` from [`scripts/prepublish.js`](scripts/prepublish.js).
+The `rollup` package relies on optional dependencies to provide platform-specific native code. These are not listed in the committed `package.json` file but are added dynamically during publishing. This logic is handled by [`napi-rs`](https://napi.rs) via `npm run prepublish:napi` from [`scripts/prepublish.ts`](scripts/prepublish.ts).
 
 As native modules do not work for the browser build, we use [`wasmpack`](https://rustwasm.github.io/docs/wasm-pack/) to build a WebAssembly artefact. This is triggered from `npm run build` via `npm run build:wasm`. There is also a separate Node wasm build that is again triggered from GitHub actions via `npm run build:wasm:node`.
 
-From JavaScript, native code is imported by importing [`native.js`](native.js). This module, or its WebAssembly version [`native.wasm.js`](native.wasm.js), is [copied](build-plugins/emit-native-entry.ts) as `native.js` into the output folder during build (via [`publish-wasm-node-package.js`](scripts/publish-wasm-node-package.js) for WebAssembly). Imports of this module are [declared external](build-plugins/external-native-import.ts).
+From JavaScript, native code is imported by importing [`native.js`](native.js). This module, or its WebAssembly version [`native.wasm.js`](native.wasm.js), is [copied](build-plugins/emit-native-entry.ts) as `native.js` into the output folder during build (via [`publish-wasm-node-package.ts`](scripts/publish-wasm-node-package.ts) for WebAssembly). Imports of this module are [declared external](build-plugins/external-native-import.ts).
 
 The Rust entrypoints are [`bindings_napi/src/lib.rs`](rust/bindings_napi/src/lib.rs) for the native modules and [`bindings_wasm/src/lib.rs`](rust/bindings_wasm/src/lib.rs) for WebAssembly.
 
@@ -112,19 +112,19 @@ To understand this phase from a plugin perspective, have a look at [Output Gener
 Rollup parses code within the native/WebAssembly code. As most of Rollup is still TypeScript-based, this then needs to be transformed to a JavaScript representation. To do that efficiently, a binary buffer is constructed in Rust that can be passed without copying to TypeScript where it is further transformed.
 
 - The conversion to a buffer happens mostly within [`converter.rs`](rust/parse_ast/src/convert_ast/converter.rs). Here we also make sure that the buffer follows the format of the [ESTree specification](https://github.com/estree/estree).
-- While the converter is still mostly hand-written, it relies on auto-generated constants to ensure that the encoder and decoder match. These are generated together with the decoders from [`generate-ast-converters.js`](scripts/generate-ast-converters.js) via `npm run build:ast-converters`. The definitions for the auto-generated converters can be found in [`ast-types.js`](scripts/ast-types.js), which is also the first file that needs to be extended to support additional AST nodes.
+- While the converter is still mostly hand-written, it relies on auto-generated constants to ensure that the encoder and decoder match. These are generated together with the decoders from [`generate-ast-converters.ts`](scripts/generate-ast-converters.ts) via `npm run build:ast-converters`. The definitions for the auto-generated converters can be found in [`ast-types.ts`](scripts/ast-types.ts), which is also the first file that needs to be extended to support additional AST nodes.
 
 There are two ways Rollup parses code into an abstract syntax tree
 
 - When a plugin calls [`this.parse`](https://rollupjs.org/plugin-development/#this-parse). This is a synchronous operation that returns a JSON-AST of the provided code.
   - This will likely be deprecated eventually in favor of an asynchronous method that also does not directly return the JSON representation but rather a Proxy-based representation with efficient methods for traversal and manipulation.
-  - For this, the buffer is decoded within the auto-generated file [`bufferToAst.ts`](src/utils/bufferToAst.ts).
+  - For this, the buffer is decoded within the auto-generated file [`bufferToLazyAst.ts`](src/utils/bufferToLazyAst.ts).
 - When a module has been loaded. In this case, it is triggered in the `setSource` method of the [`Module`](src/Module.ts) class.
   - Here, the buffer is directly used to generate the class-based Rollup-internal AST.
   - The actual conversion happens in the auto-generated file [`bufferParsers.ts`](src/ast/bufferParsers.ts).
 
 In general, when extending the AST parsing capabilities, the following places need to be touched:
 
-- declare any new AST nodes or additional AST attributes in [`ast-types.js`](scripts/ast-types.js).
+- declare any new AST nodes or additional AST attributes in [`ast-types.ts`](scripts/ast-types.ts).
 - write the encoder in Rust in [`converter.rs`](rust/parse_ast/src/convert_ast/converter.rs).
 - create the corresponding TypeScript classes in [`ast/nodes`](src/ast/nodes).

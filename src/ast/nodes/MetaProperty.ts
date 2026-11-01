@@ -12,6 +12,7 @@ import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
@@ -20,6 +21,7 @@ const FILE_OBJ_PREFIX = 'ROLLUP_FILE_URL_OBJ_';
 const IMPORT = 'import';
 
 export default class MetaProperty extends NodeBase {
+	declare parent: nodes.MetaPropertyParent;
 	declare meta: Identifier;
 	declare property: Identifier;
 	declare type: NodeType.tMetaProperty;
@@ -88,7 +90,8 @@ export default class MetaProperty extends NodeBase {
 		} = this;
 		const {
 			id: moduleId,
-			info: { attributes }
+			rawId: moduleRawId,
+			info: { attributes: moduleAttributes }
 		} = module;
 
 		if (name !== IMPORT) return;
@@ -100,21 +103,25 @@ export default class MetaProperty extends NodeBase {
 			const isUrlObject = !!metaProperty?.startsWith(FILE_OBJ_PREFIX);
 			const replacement =
 				pluginDriver.hookFirstSync('resolveFileUrl', [
-					{ attributes, chunkId, fileName, format, moduleId, referenceId, relativePath }
+					{
+						chunkId,
+						fileName,
+						format,
+						moduleAttributes,
+						moduleId,
+						moduleRawId,
+						referenceId,
+						relativePath
+					}
 				]) || relativeUrlMechanisms[format](relativePath, isUrlObject);
 
-			code.overwrite(
-				(parent as MemberExpression).start,
-				(parent as MemberExpression).end,
-				replacement,
-				{ contentOnly: true }
-			);
+			code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
 			return;
 		}
 
 		let replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
 			metaProperty,
-			{ attributes, chunkId, format, moduleId }
+			{ chunkId, format, moduleAttributes, moduleId, moduleRawId }
 		]);
 		if (!replacement) {
 			replacement = importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });

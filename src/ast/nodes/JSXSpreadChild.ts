@@ -1,13 +1,14 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
 export default class JSXSpreadChild extends NodeBase {
+	declare parent: nodes.JSXSpreadChildParent;
 	declare type: NodeType.tJSXSpreadChild;
-	declare expression: ExpressionNode;
+	declare expression: nodes.Expression;
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);

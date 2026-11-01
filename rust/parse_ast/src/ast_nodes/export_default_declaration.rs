@@ -3,7 +3,8 @@ use swc_ecma_ast::{ClassExpr, DefaultDecl, ExportDefaultDecl, ExportDefaultExpr,
 
 use crate::convert_ast::converter::ast_constants::{
   EXPORT_DEFAULT_DECLARATION_DECLARATION_OFFSET, EXPORT_DEFAULT_DECLARATION_RESERVED_BYTES,
-  TYPE_CLASS_DECLARATION, TYPE_EXPORT_DEFAULT_DECLARATION, TYPE_FUNCTION_DECLARATION,
+  NODE_TYPE_ID_EXPORT_DEFAULT_DECLARATION, TYPE_CLASS_DECLARATION, TYPE_EXPORT_DEFAULT_DECLARATION,
+  TYPE_FUNCTION_DECLARATION,
 };
 
 use crate::convert_ast::converter::{get_outside_class_span_decorators_info, AstConverter};
@@ -36,6 +37,7 @@ impl AstConverter<'_> {
       *module_item_insert_position = (self.buffer.len() as u32) >> 2;
     }
 
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_EXPORT_DEFAULT_DECLARATION>();
     let end_position = self.add_type_and_start(
       &TYPE_EXPORT_DEFAULT_DECLARATION,
       span,
@@ -74,6 +76,7 @@ impl AstConverter<'_> {
     }
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_export_default_declaration(

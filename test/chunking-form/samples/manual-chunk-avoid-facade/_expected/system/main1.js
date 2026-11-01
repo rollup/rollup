@@ -1,9 +1,9 @@
-System.register(['./main2.js'], (function () {
+System.register(['./generated-dep.js'], (function () {
 	'use strict';
 	var value;
 	return {
 		setters: [function (module) {
-			value = module.reexported;
+			value = module.v;
 		}],
 		execute: (function () {
 

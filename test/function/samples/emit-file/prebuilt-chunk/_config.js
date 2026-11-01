@@ -42,7 +42,9 @@ module.exports = defineTest({
 				generateBundle(_, bundle) {
 					const defaultProps = {
 						dynamicImports: [],
+						facadeModuleAttributes: {},
 						facadeModuleId: null,
+						facadeModuleRawId: null,
 						implicitlyLoadedBefore: [],
 						importedBindings: {},
 						imports: [],

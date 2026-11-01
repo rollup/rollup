@@ -1,9 +1,9 @@
 'use strict';
 
 require('./generated-chunk-c.js');
+require('./generated-dep1.js');
 require('./generated-chunk-b.js');
-
-console.log('dep1');
+require('./generated-dep2.js');
 
 console.log('dep-a');
 
