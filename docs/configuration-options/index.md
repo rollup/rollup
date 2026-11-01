@@ -1257,16 +1257,6 @@ This determines the character set that Rollup is allowed to use in file hashes.
 
 By default, when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](../faqs/index.md#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](#output-preservemodules) option as here, imports will never be hoisted.
 
-### output.importAttributesKey
-
-|          |                                |
-| -------: | :----------------------------- |
-|    Type: | `"with" \| "assert"`           |
-|     CLI: | `--importAttributesKey <name>` |
-| Default: | `"with"`                       |
-
-This determines the keyword set that Rollup will use for import attributes.
-
 ### output.inlineDynamicImports
 
 |          |                                                      |
@@ -3199,14 +3189,12 @@ An optional function that will be called immediately every time a module changes
 
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
-### output.externalImportAssertions
+### output.importAttributesKey
 
-_Use the [`output.externalImportAttributes`](#output-externalimportattributes) option instead._
+|          |                                |
+| -------: | :----------------------------- |
+|    Type: | `"with" \| "assert"`           |
+|     CLI: | `--importAttributesKey <name>` |
+| Default: | `"with"`                       |
 
-|          |                                                              |
-| -------: | :----------------------------------------------------------- |
-|    Type: | `boolean`                                                    |
-|     CLI: | `--externalImportAssertions`/`--no-externalImportAssertions` |
-| Default: | `true`                                                       |
-
-Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" with { type: "json" }` will cause the same import to appear in the output unless the option is set to `false`. For bundled modules, import attributes are part of the module identity, so importing the same resolved raw id with different attributes creates separate modules.
+Determines the keyword Rollup uses for import attributes. Only set it to `"assert"` if you need to support environments that do not understand the `with` keyword.
