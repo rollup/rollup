@@ -62,6 +62,12 @@ _2026-10-02_
 - When the same source is emitted several times without a `fileName`, a function-based `output.assetFileNames` is now only called once per output instead of once per emission, and the `names` and `originalFileNames` properties of the deduplicated asset no longer contain duplicate entries (#6585)
 - `maxParallelFileOps` now limits how many file operations are performed in parallel via the `fs` option and `this.fs` instead of how many `load` hooks run in parallel; plugins are strongly encouraged to use `this.fs` for all file operations, as plugin file operations that bypass `this.fs`, e.g. by using `node:fs` directly, are no longer throttled and may exceed the operating system's limit for open files (#6586)
 - The `fs` option is no longer experimental, and `this.fs` and `options.fs` now expose exactly the methods of the `RollupFsModule` interface; custom file system implementations must not call the file system exposed by Rollup as nested calls can stall the build (#6586)
+- The deprecated `output.externalImportAssertions` option has been removed; use `output.externalImportAttributes` instead (#6619)
+
+#### Deprecations
+
+- Accessing the `name` or `originalFileName` property of an emitted asset now emits a `DEPRECATED_FEATURE` warning, and the properties are no longer enumerable; use `names` and `originalFileNames` instead (#6619)
+- The `output.importAttributesKey` option is deprecated; it will be removed in a future version of Rollup (#6619)
 
 ### Features
 

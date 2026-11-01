@@ -242,7 +242,6 @@ async function mergeOutputOptions(
 		experimentalMinChunkSize: getOption('experimentalMinChunkSize'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
-		externalImportAssertions: getOption('externalImportAssertions'),
 		externalImportAttributes: getOption('externalImportAttributes'),
 		externalLiveBindings: getOption('externalLiveBindings'),
 		file: getOption('file'),

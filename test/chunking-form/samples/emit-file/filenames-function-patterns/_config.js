@@ -7,8 +7,6 @@ const ID_DEB = path.join(__dirname, 'deb.js');
 module.exports = defineTest({
 	description: 'supports using a function that returns a pattern for FileNames',
 	options: {
-		// TODO should be removed with next major as deprecated properties become non-enumerable
-		strictDeprecations: false,
 		input: ['main.js'],
 		plugins: {
 			name: 'test-plugin',
@@ -47,9 +45,7 @@ module.exports = defineTest({
 				assert.deepStrictEqual(
 					fileInfo,
 					{
-						name: 'deb.js.txt',
 						names: ['deb.js.txt', 'main.js.txt'],
-						originalFileName: 'deb.js',
 						originalFileNames: ['deb.js', 'main.js'],
 						source: 'hello world',
 						type: 'asset'
