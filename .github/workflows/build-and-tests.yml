@@ -112,6 +112,10 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             cross: napi
+            env:
+              # As host and target match, cc ignores the napi cross compiler and uses the runner's
+              # gcc, which defaults to x86-64-v3 on Ubuntu 26.04
+              CFLAGS_x86_64_unknown_linux_gnu: -march=x86-64
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             cross: zig
@@ -326,6 +330,28 @@ jobs:
             exit 1
           fi
           [ "$failed" = "0" ]
+        shell: bash
+      - name: Check for AVX and BMI instructions
+        if: ${{ startsWith(matrix.settings.target, 'x86_64-unknown-linux') }}
+        run: |
+          set -e
+          checked=0
+          for file in ${APP_NAME:-rollup}.*.node; do
+            [ -f "$file" ] || continue
+            checked=$((checked + 1))
+            echo "Checking $file for AVX, BMI, LZCNT and MOVBE instructions..."
+            disassembly=$(objdump -d --no-show-raw-insn "$file")
+            unsupported_instructions=$(grep -E '[[:space:]](v[a-z0-9]+[[:space:]].*%[xyz]mm|(andn|bextr|blsi|blsmsk|blsr|bzhi|lzcnt|movbe|mulx|pdep|pext|rorx|sarx|shlx|shrx)[bwlq]?[[:space:]])' <<< "$disassembly" || true)
+            if [ -n "$unsupported_instructions" ]; then
+              head -20 <<< "$unsupported_instructions"
+              echo "::error::$file contains $(wc -l <<< "$unsupported_instructions") AVX/BMI instructions, which crash CPUs older than Haswell"
+              exit 1
+            fi
+          done
+          if [ "$checked" = "0" ]; then
+            echo "::error::No native .node artifacts found to check (pattern: ${APP_NAME:-rollup}.*.node)"
+            exit 1
+          fi
         shell: bash
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master' && matrix.settings.cache-cargo != false
