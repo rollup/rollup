@@ -157,7 +157,8 @@ async function transformChunk(
 		timeStart('sourcemaps', 3);
 
 		let resultingFile: string;
-		if (file) resultingFile = resolve(sourcemapFile || file);
+		if (sourcemapFile) resultingFile = resolve(sourcemapFile);
+		else if (file) resultingFile = resolve(file);
 		else if (dir) resultingFile = resolve(dir, fileName);
 		else resultingFile = resolve(fileName);
 
