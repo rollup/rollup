@@ -6,85 +6,150 @@ title: Migrating to Rollup 5
 
 [[toc]]
 
-This is a list of the most important topics you may encounter when migrating from Rollup 4 to Rollup 5. For a full list of breaking changes, we advise you to consult the
+This guide lists all breaking changes and deprecations in Rollup 5 and explains what to do instead.
+
+For a full list of all changes including features and bug fixes, see the
 
 - [Rollup 5 changelog](https://github.com/rollup/rollup/blob/master/CHANGELOG.md#500)
 
 For how to migrate from earlier versions, [see below](#migrating-to-rollup-4).
 
-## Prerequisites
+## Before you upgrade
 
-Make sure you run at least Node 22.22.0 and update all your Rollup plugins to their latest versions.
+Rollup 5 requires Node 22.22.0 or later. Update all your Rollup plugins to their latest versions before upgrading, as most plugin-related changes are handled there.
 
-## Changes to the Plugin API
+If you use TypeScript, install `@types/node`: the types of the Node build now reference Node's `Buffer` type. If you cannot add it, enable `skipLibCheck` in your `tsconfig.json` instead.
 
-The most significant change in Rollup 5 is that **import attributes are now part of a module's identity**. This means that importing the same resolved module with different import attributes no longer emits a warning but instead creates separate, distinct modules. See [Module identity](../plugin-development/index.md#module-identity) for details on the `rawId`, `attributes`, and composite `id` properties this introduces.
+## Changes Affecting Your Build Setup
 
-Since the `id` of a module now encodes import attributes, plugins that match on the `id` of a module need to account for the encoded attributes, e.g. by matching on the `rawId` in the handler or by allowing a query suffix in the `id` filter of `load`/`transform` hooks, e.g. `/\.json($|\?)/`.
+### Rework manual chunk configuration
 
-### Renamed and added hook options
+Manual chunks no longer contain the full transitive dependency subtree. Whether a manual chunk contains only its assigned modules or also the modules that are always loaded with them depends on [`output.onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks):
 
-Several output-phase hooks had their `attributes` option renamed to `moduleAttributes` for consistency, and a `moduleRawId` option was added alongside it:
+- With the object form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), `output.onlyExplicitManualChunks` defaults to `false`: the chunk behaves like an entry point and contains the listed modules together with the modules that are always loaded with them. Modules shared with other entries or manual chunks are extracted into separate chunks.
+- With the function form, `output.onlyExplicitManualChunks` defaults to `true`: the chunk contains exactly the modules you return, and their dependencies are chunked normally. If you relied on dependencies being merged into the chunk, either set `output.onlyExplicitManualChunks: false` or return the same chunk name for those dependencies as well.
+- `output.onlyExplicitManualChunks` now also applies to the object form and is no longer deprecated.
 
-- In [`resolveFileUrl`](../plugin-development/index.md#resolvefileurl) and [`resolveImportMeta`](../plugin-development/index.md#resolveimportmeta), the `attributes` option was renamed to `moduleAttributes`, and `moduleRawId` was added.
-- In [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport), `moduleRawId` and `moduleAttributes` were added for the importing module, and `targetModuleRawId` was added alongside the existing `targetModuleAttributes`.
+Manual chunks where none of the assigned modules are included in the bundle are no longer emitted. This can happen when you list a pure re-export barrel file whose exports are all imported directly. Rollup now emits an `EMPTY_MANUAL_CHUNK` warning in that case. If you relied on such a chunk, point it at the modules that are actually included, or remove it.
 
-The build-phase hooks [`load`](../plugin-development/index.md#load), [`transform`](../plugin-development/index.md#transform), and [`shouldTransformCachedModule`](../plugin-development/index.md#shouldtransformcachedmodule) now receive a `rawId` option alongside `attributes`, and [`resolveId`](../plugin-development/index.md#resolveid) and [`resolveDynamicImport`](../plugin-development/index.md#resolvedynamicimport) now receive `importerRawId` alongside `importerAttributes`.
+### Update code that imports the same file with different attributes
 
-### `this.resolve` and `this.load` accept `UniqueModuleId`
+Import attributes are now part of module identity: importing the same resolved file with different attributes creates separate module instances instead of emitting the `INCONSISTENT_IMPORT_ATTRIBUTES` warning, which has been removed. Remove any logic that filters or handles that warning.
 
-The `importer` parameter of [`this.resolve`](../plugin-development/index.md#this-resolve) and the `id` parameter of [`this.load`](../plugin-development/index.md#this-load) now accept a [`UniqueModuleId`](../plugin-development/index.md#this-getmoduleinfo) — either a string (interpreted as the full module id, which may contain encoded import attributes) or an object `{ rawId, attributes }`. The deprecated `importerAttributes` option of `this.resolve` can still be used together with a string `importer` for backwards compatibility, but will be removed in a future version.
+If you relied on a single module instance for a file that is imported with different attributes, for example to share state or to deduplicate code, make sure all imports use the same attributes. If you import the same external module with different attributes and use the object form of `output.globals`, switch to the function form to give each variant its own global name; otherwise Rollup emits an `AMBIGUOUS_GLOBAL_NAME` warning. For the plugin-facing consequences, see [Match module ids by `rawId`](#match-module-ids-by-rawid).
 
-### `this.emitFile` and `this.getModuleInfo`
+### Adopt the `with` import attributes keyword
 
-[`this.emitFile`](../plugin-development/index.md#this-emitfile) now accepts `attributes` on emitted chunks, and the `importer` and `implicitlyLoadedAfterOneOf` options accept `UniqueModuleId` values. [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) accepts a `UniqueModuleId` and the returned `ModuleInfo` now includes `rawId` and `attributes` (moved from `ModuleOptions`).
+Rollup now renders import attributes with `with` by default instead of `assert`, regardless of the keyword used in the source. This also applies when Rollup bundles your config file via `--configPlugin` or `--bundleConfigAsCjs`.
 
-### Removed `INCONSISTENT_IMPORT_ATTRIBUTES` warning
+If you target an environment that does not understand `with`, set [`output.importAttributesKey: "assert"`](../configuration-options/index.md#output-importattributeskey), or pass `--configImportAttributesKey assert` for config files. Note that `output.importAttributesKey` is deprecated and will be removed in a future version, so prefer updating the target environment over setting the option.
 
-The `INCONSISTENT_IMPORT_ATTRIBUTES` warning is gone. Previously, importing the same module with different attributes triggered this warning; now each combination of `rawId` and `attributes` is a distinct module. If you were filtering or handling this warning, remove that logic.
+The deprecated `output.externalImportAssertions` option has been removed. Use [`output.externalImportAttributes`](../configuration-options/index.md#output-externalimportattributes) instead.
 
-### `load` and `transform` returning `attributes` is now deprecated
+### Adapt to deduplicated emitted assets
 
-Returning `attributes` from the [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook is now deprecated and will emit a `DEPRECATED_FEATURE` warning; previously, it was silently ignored unless `strictDeprecations` was enabled. Attributes are determined at resolution time and cannot be overridden by these hooks.
+When the same source is emitted several times without a `fileName`, a function-based [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) is now called once per unique source and output instead of once per emission. The `names` and `originalFileNames` arrays of the resulting asset no longer contain duplicate entries.
 
-### Asset `name` and `originalFileName` properties are now deprecated
+If your `assetFileNames` function relied on being called once per emission, e.g. to generate unique names, make sure it produces a valid name when called only once for the deduplicated source.
 
-Accessing the `name` or `originalFileName` property of an emitted asset in the `assetFileNames` output option or in `generateBundle` now emits a `DEPRECATED_FEATURE` warning; previously, this only happened with `strictDeprecations`. These properties are also non-enumerable now. Use the `names` and `originalFileNames` arrays instead.
+The deprecated `name` and `originalFileName` properties of emitted assets now emit a `DEPRECATED_FEATURE` warning when accessed and are non-enumerable. This affects asset objects in [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames), [`generateBundle`](../plugin-development/index.md#generatebundle) and [`writeBundle`](../plugin-development/index.md#writebundle). Use `names` and `originalFileNames` instead. Because the properties are non-enumerable, `Object.keys`, spreading and `JSON.stringify` no longer include them. The `name` option of assets passed to `this.emitFile` is unaffected.
 
-### New fields on output types
+### Account for `maxParallelFileOps` limiting file operations
 
-`PreRenderedChunk`, `RenderedChunk`, and `OutputChunk` now expose `facadeModuleRawId` and `facadeModuleAttributes`. `RenderedModule` now exposes `rawId` and `attributes`.
+[`maxParallelFileOps`](../configuration-options/index.md#maxparallelfileops) now limits the number of parallel file operations performed via the [`fs`](../configuration-options/index.md#fs) option and [`this.fs`](../plugin-development/index.md#this-fs) instead of the number of parallel `load` hooks. If you tuned it to control `load` concurrency, that no longer works; limit concurrency inside your `load` hook instead.
 
-### `external`, `output.globals`, and `output.paths`
+Plugin authors should perform all file operations through `this.fs` so they are counted; see [Route file operations through `this.fs`](#route-file-operations-through-this-fs).
 
-The function forms of [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) now receive an additional `options` parameter containing `attributes` (and, for `external`, `importerRawId` and `importerAttributes`).
+### Replace removed watch options
 
-The object forms of `output.globals` and `output.paths` are keyed by the `rawId` of external modules, i.e. the id without encoded import attributes; all import attribute variants of a module share one entry. If several variants of the same external module would be assigned the same global name this way, Rollup emits an `AMBIGUOUS_GLOBAL_NAME` warning; use the function form to give each variant its own global name.
+Rollup now bundles chokidar 6. Since chokidar 4, glob patterns and the native macOS `fsevents` backend are no longer supported:
 
-### `maxParallelFileOps` limits file operations instead of `load` hooks
+- Glob patterns in [`watch.chokidar`](../configuration-options/index.md#watch-chokidar) options such as `ignored` are now treated as literal paths. Use regular expressions, matcher functions or explicit paths instead. [`watch.include`](../configuration-options/index.md#watch-include) and [`watch.exclude`](../configuration-options/index.md#watch-exclude) still support glob patterns:
 
-[`maxParallelFileOps`](../configuration-options/index.md#maxparallelfileops) no longer limits how many `load` hooks run in parallel. Instead, it limits the number of parallel file operations performed via the [`fs`](../configuration-options/index.md#fs) option and [`this.fs`](../plugin-development/index.md#this-fs). Plugins that perform file operations should use `this.fs` so that these operations respect the limit.
+```js
+export default {
+	watch: {
+		chokidar: {
+			ignored: [/node_modules/, /\.git/]
+		}
+	}
+};
+```
 
-As a consequence, `this.fs` and `options.fs` now expose only the methods of the `RollupFsModule` interface — extra methods of the underlying implementation, e.g. the full `node:fs/promises` namespace, no longer leak through. Additionally, the `fs` option is no longer experimental and is documented under advanced functionality.
+- The `useFsEvents` option has been removed. Without `fsevents`, watching large projects on macOS can exceed the open-file limit; if that happens, set `backend: "polling"` instead.
+- The `disableGlobbing` option has been removed; remove it from your configuration.
+- The `ChokidarOptions` type now matches chokidar 6, so `ignored` is typed as a list of paths, regular expressions, matcher functions or `{ path, recursive }` objects instead of `any`. TypeScript may now flag glob strings or other invalid values; replace them as shown above.
+- Invalid `watch.chokidar` values such as an unknown `backend` or non-positive polling intervals now throw a `TypeError` when the watcher is created. Fix any invalid values.
 
-## Option Changes
+### Adapt cache serialization
 
-### `output.externalImportAssertions` has been removed
+The cache now stores the AST of each module as a binary buffer in `astBuffer` instead of a JSON representation in `ast`. Caches created by Rollup 4 can no longer be read, so discard them when upgrading.
 
-Use [`output.externalImportAttributes`](../configuration-options/index.md#output-externalimportattributes) instead. The deprecated alias had already been superseded by `output.externalImportAttributes` in Rollup 4.
+`bundle.cache` is no longer purely JSON serializable as it contains typed arrays. If you store it outside the build process, use a serializer that supports typed arrays such as `v8.serialize` instead of `JSON.stringify`.
 
-### `output.importAttributesKey` is deprecated
+If you type caches, the `ModuleJSON` type has been replaced by `CachedModule`, and `TransformModuleJSON` has been replaced by `ModuleSource`.
 
-The [`output.importAttributesKey`](../configuration-options/index.md#output-importattributeskey) option is deprecated and will be removed in a future version of Rollup. The default is now `"with"`; only use this option if you need to support environments that do not understand the `with` keyword.
+## Changes to the Plugin Interface
 
-## Reworked manual chunks
+### Match module ids by `rawId`
 
-Manual chunks no longer absorb their full transitive dependency subtree. Instead, they either behave like entry points or contain exactly their assigned modules, controlled by [`onlyExplicitManualChunks`](../configuration-options/index.md#output-onlyexplicitmanualchunks), which now applies to both the object and the function form of [`output.manualChunks`](../configuration-options/index.md#output-manualchunks), with `false` as default for the object form and `true` for the function form:
+Because import attributes are part of module identity, the `id` of a module with import attributes now encodes them as a URL search parameter, e.g. `/src/data.json?attributes=%7B%22type%22%3A%22json%22%7D`. The id without encoded attributes is available as `rawId`.
 
-- When `onlyExplicitManualChunks` is `false` (object form by default), a manual chunk behaves like an entry point: it contains the listed modules and all modules that are always loaded together with them, while modules that are shared with other entries or manual chunks are extracted into separate chunks.
-- When `onlyExplicitManualChunks` is `true` (function form by default), the chunk contains exactly the modules that are explicitly assigned to it, and their dependencies are chunked normally into separate chunks. If you relied on the function form merging dependencies into your manual chunks, either set `onlyExplicitManualChunks: false` or list the dependencies yourself.
+If your plugin matches module ids in [`load`](../plugin-development/index.md#load), [`transform`](../plugin-development/index.md#transform) or [`shouldTransformCachedModule`](../plugin-development/index.md#shouldtransformcachedmodule), match on the `rawId` option these hooks now receive. In [`resolveId`](../plugin-development/index.md#resolveid) and [`resolveDynamicImport`](../plugin-development/index.md#resolvedynamicimport), use `importerRawId`. If your `load` hook reads the file at `id` from disk, read the file at `options.rawId` instead. Alternatively, allow a query suffix in your id filter, e.g. use `/\.json($|\?)/` instead of `/\.json$/`.
 
-If none of the modules of a manual chunk are included in the bundle—for instance because you only listed a pure re-export barrel file that your imports bypass—the chunk is no longer emitted. Previously, such a chunk still received the dependencies of the listed module; now Rollup skips it and emits an `EMPTY_MANUAL_CHUNK` warning. Also, the text of the `CIRCULAR_CHUNK` warning has changed.
+If you typed against `ModuleOptions['attributes']`, use `ModuleInfo['attributes']` instead; attributes are determined in `resolveId` and can no longer be passed from `load` or `transform`. In output hooks, when matching file paths, use `facadeModuleRawId` instead of `facadeModuleId`, and the `rawId` of `RenderedModule` instead of ids that may contain encoded attributes.
+
+The function forms of [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals) and [`output.paths`](../configuration-options/index.md#output-paths) receive the import `attributes` in an additional argument, which lets you distinguish variants that the object forms cannot.
+
+### Update hook options and attribute handling
+
+- The `load` and `transform` hooks no longer receive the Vite-specific `ssr` option, which Rollup never filled. Remove any `options.ssr` usage.
+- In [`resolveFileUrl`](../plugin-development/index.md#resolvefileurl) and [`resolveImportMeta`](../plugin-development/index.md#resolveimportmeta), the `attributes` option has been renamed to `moduleAttributes`, and `moduleRawId` was added.
+- [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport) now receives `moduleRawId` and `moduleAttributes` for the importing module, and `targetModuleRawId` alongside `targetModuleAttributes`.
+- The `importerAttributes` option of [`this.resolve`](../plugin-development/index.md#this-resolve) is deprecated. Pass the importer as `{ rawId, attributes }` instead. [`this.resolve`](../plugin-development/index.md#this-resolve), [`this.load`](../plugin-development/index.md#this-load), [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) and the `importer` and `implicitlyLoadedAfterOneOf` options of [`this.emitFile`](../plugin-development/index.md#this-emitfile) also accept these objects.
+- Returning `attributes` from [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) is ignored and emits a `DEPRECATED_FEATURE` warning. Attributes are determined at resolution time, so return only the code or AST.
+
+### Switch to Rollup's AST types
+
+Rollup now exposes its own generated AST types through the `ast` namespace instead of the `estree` types. Update your type imports:
+
+```ts
+import type { ast } from 'rollup';
+
+function isIdentifier(node: ast.AstNode): node is ast.Identifier {
+	return node.type === 'Identifier';
+}
+```
+
+- The top-level `AstNode` type has been removed. See [Known AST nodes and TypeScript support](../plugin-development/index.md#known-ast-nodes-and-typescript-support) for the `ast` namespace.
+- JSX nodes are now strongly typed instead of `any`. Remove `any` casts and fix any type errors this surfaces.
+- The `ResolveIdResultWithoutNullValue` type has been removed; use `Exclude<ResolveIdResult, NullValue>` instead.
+- The annotation properties of AST nodes have been renamed from `_rollupAnnotations` to `annotations` and from `_rollupRemoved` to `invalidAnnotations`.
+- `TemplateElement.value.cooked` is now `undefined` instead of `null` when there is no cooked value.
+- `phase` is now always present at runtime on import declarations and dynamic imports, with the value `undefined` when there is no import phase. Check for `undefined` instead of using `'phase' in node`.
+
+### Avoid relying on AST object identity or mutation
+
+`moduleInfo.ast` now returns a new lazy AST on each access, and its nested properties are materialized only when accessed. Mutating the AST is no longer supported: changes are not persisted and may throw. The `ast` passed to [`shouldTransformCachedModule`](../plugin-development/index.md#shouldtransformcachedmodule) is lazy as well. Store a reference if you access the AST several times, and copy nodes before modifying them.
+
+If you need to inspect many nodes, use the [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) plugin context method or the `parseAndWalk` helper from `rollup/parseAst` instead; they only create objects for visited nodes. With `collectScopes: true`, visitor handlers receive a scope that can replace `attachScopes` from `@rollup/pluginutils`; see [Scope collection](../plugin-development/index.md#scope-collection).
+
+### Stop returning ASTs from `load` and `transform`
+
+ASTs returned from [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) are now serialized into a binary buffer before Rollup uses them. This has a performance cost and should be avoided where possible.
+
+Serialization also discards extra properties of AST nodes and throws a `CANNOT_SERIALIZE_AST` error for node types Rollup does not know, so custom AST nodes are no longer supported. Return code instead, or use `this.parseAndWalk` to inspect nodes without building an AST.
+
+### Update AST helper usage
+
+- The `signal` option of `parseAstAsync` has been removed. Parsing cannot be aborted once it has started, so remove the option and handle cancellation outside the call.
+- If you work with binary AST buffers, use the new `parseLazyAst`, `parseLazyAstAsync`, `deserializeAst`, `deserializeLazyAst` and `serializeAst` helpers from `rollup/parseAst`. See [AST serialization](../javascript-api/index.md#ast-serialization).
+
+### Route file operations through `this.fs`
+
+Because `maxParallelFileOps` now only counts operations that go through the [`fs`](../configuration-options/index.md#fs) option or [`this.fs`](../plugin-development/index.md#this-fs) (see above), operations that bypass them, e.g. by importing `node:fs` directly, are no longer throttled and may exceed the operating system's limit for open files. Use `this.fs` for all file operations in your plugin.
+
+`this.fs` and `options.fs` now expose exactly the methods of the `RollupFsModule` interface; extra methods of the underlying implementation no longer leak through. Custom file system implementations must not call back into the `fs` exposed by Rollup, as nested calls can stall the build. The `fs` option is no longer experimental.
 
 ## Migrating to Rollup 4
 
