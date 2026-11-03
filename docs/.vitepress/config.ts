@@ -141,7 +141,7 @@ export default defineConfig({
 					},
 					{
 						link: '/migration/',
-						text: 'Migrating to Rollup 4'
+						text: 'Migrating to Rollup 5'
 					},
 					{
 						link: '/tools/',

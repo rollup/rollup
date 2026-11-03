@@ -606,6 +606,8 @@ buildWithCache()
 	});
 ```
 
+The cache is not JSON serializable as it stores ASTs as binary buffers and therefore contains typed arrays. If you store it outside the build process, use a serializer that supports typed arrays such as `v8.serialize`.
+
 ### fs
 
 |          |                                                      |
