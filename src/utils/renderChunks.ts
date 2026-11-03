@@ -328,7 +328,7 @@ function getChunkHash(
 		replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
 	let contentToHash = transformedCode;
 	if (map && outputOptions.sourcemapDebugIds) {
-		contentToHash += calculateDebugIdAndGetComment(transformedCode, map);
+		contentToHash += '//# debugId=\n';
 	}
 	if (map && outputOptions.sourcemap !== 'hidden') {
 		// Normalize raw map data and file names before base64 or URL encoding
