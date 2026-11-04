@@ -11,7 +11,7 @@ import {
 	SCOPE_PARENT_OFFSET
 } from './scopeConstants';
 
-const IDENTIFIER_NAME_OFFSET = 3;
+const IDENTIFIER_NAME_OFFSET = 4;
 
 export async function parseAndWalk(
 	input: string,

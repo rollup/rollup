@@ -417,7 +417,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
             const nodePosition = buffer[bodyPosition + 1 + index];
             body[index] = convertNode(
                 node,
-                buffer[nodePosition] !== $typeStaticBlock && (buffer[nodePosition + 3] & /* the static flag is always first */ 1) === 0 ? scope.instanceScope : scope,
+                buffer[nodePosition] !== $typeStaticBlock && (buffer[nodePosition + 4] & /* the static flag is always first */ 1) === 0 ? scope.instanceScope : scope,
                 nodePosition,
                 buffer
             );

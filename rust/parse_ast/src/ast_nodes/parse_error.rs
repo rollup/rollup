@@ -6,6 +6,8 @@ use crate::convert_ast::converter::{convert_string, update_reference_position};
 pub(crate) fn write_parse_error(buffer: &mut Vec<u8>, utf_16_pos: u32, message: &str) {
   // type
   buffer.extend_from_slice(&TYPE_PARSE_ERROR);
+  // parent
+  buffer.extend_from_slice(&0u32.to_ne_bytes());
   // start
   buffer.extend_from_slice(&utf_16_pos.to_ne_bytes());
   // end

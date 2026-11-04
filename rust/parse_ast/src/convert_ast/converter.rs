@@ -67,6 +67,7 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) walking_entries: Vec<WalkEntry>,
   pub(crate) scope_stack: Vec<ScopeRecord>,
   pub(crate) declaration_kind: Option<DeclarationKind>,
+  node_position_stack: Vec<u32>,
 }
 
 impl<'a> AstConverter<'a> {
@@ -86,11 +87,16 @@ impl<'a> AstConverter<'a> {
       walking_entries: Vec::new(),
       scope_stack: Vec::new(),
       declaration_kind: None,
+      node_position_stack: Vec::new(),
     }
   }
 
   pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
+    debug_assert!(
+      self.node_position_stack.is_empty(),
+      "Nodes were started but not ended"
+    );
 
     if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
       let walking_info_offset = (self.buffer.len() as u32) >> 2;
@@ -288,6 +294,22 @@ impl<'a> AstConverter<'a> {
   }
 
   // === helpers
+  fn add_type_and_parent(&mut self, node_type: &[u8; 4]) {
+    let node_position = (self.buffer.len() as u32) >> 2;
+    let parent_position = self
+      .node_position_stack
+      .last()
+      .copied()
+      .map_or(0, |parent_position| parent_position + 1);
+    self.node_position_stack.push(node_position);
+    // type
+    self.buffer.extend_from_slice(node_type);
+    // parent
+    self
+      .buffer
+      .extend_from_slice(&parent_position.to_ne_bytes());
+  }
+
   pub(crate) fn add_type_and_start(
     &mut self,
     node_type: &[u8; 4],
@@ -295,8 +317,7 @@ impl<'a> AstConverter<'a> {
     reserved_bytes: usize,
     keep_annotations: bool,
   ) -> usize {
-    // type
-    self.buffer.extend_from_slice(node_type);
+    self.add_type_and_parent(node_type);
     // start
     let start = self
       .index_converter
@@ -315,8 +336,7 @@ impl<'a> AstConverter<'a> {
     start: u32,
     reserved_bytes: usize,
   ) -> usize {
-    // type
-    self.buffer.extend_from_slice(node_type);
+    self.add_type_and_parent(node_type);
     // start
     self
       .buffer
@@ -329,6 +349,10 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
+    self
+      .node_position_stack
+      .pop()
+      .expect("Cannot end a node that was not started");
     self.buffer[end_position..end_position + 4].copy_from_slice(
       &self
         .index_converter
@@ -338,6 +362,10 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn add_explicit_end(&mut self, end_position: usize, end: u32) {
+    self
+      .node_position_stack
+      .pop()
+      .expect("Cannot end a node that was not started");
     self.buffer[end_position..end_position + 4]
       .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
@@ -475,6 +503,33 @@ impl<'a> AstConverter<'a> {
           (true, None)
         },
       );
+    }
+  }
+
+  /// Reparents the decorators of the current class, which were converted before the class header existed.
+  pub(crate) fn reparent_decorators(&mut self, decorator_list_position: u32) {
+    let class_parent_position = self
+      .node_position_stack
+      .last()
+      .copied()
+      .expect("Cannot reparent decorators without a class node")
+      + 1;
+    let list_start = decorator_list_position as usize * 4;
+    let decorator_count = u32::from_ne_bytes(
+      self.buffer[list_start..list_start + 4]
+        .try_into()
+        .expect("Decorator list is truncated"),
+    );
+    for index in 0..decorator_count as usize {
+      let reference_position = list_start + 4 + index * 4;
+      let decorator_position = u32::from_ne_bytes(
+        self.buffer[reference_position..reference_position + 4]
+          .try_into()
+          .expect("Decorator reference is truncated"),
+      ) as usize;
+      let parent_word_position = decorator_position * 4 + 4;
+      self.buffer[parent_word_position..parent_word_position + 4]
+        .copy_from_slice(&class_parent_position.to_ne_bytes());
     }
   }
 

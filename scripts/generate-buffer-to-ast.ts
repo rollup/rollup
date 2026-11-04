@@ -9,10 +9,10 @@ const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];
-	let offset = 2;
+	let offset = 3;
 	if (node.flags) {
 		offset++;
-		definitions.push('const flags = buffer[position + 2];\n');
+		definitions.push('const flags = buffer[position + 3];\n');
 		for (const [index, flag] of node.flags.entries()) {
 			if (isHoistedField(flag, node)) {
 				definitions.push(`const ${flag} = (flags & ${1 << index}) === ${1 << index};`);
@@ -40,8 +40,8 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 	return `function ${node.converterFunction || firstLettersLowercase(name)} (position, buffer): ast.${name} {
     ${definitions.join('')}return {
       type: '${node.astType || name}',
-      start: buffer[position],
-      end: buffer[position + 1],
+      start: buffer[position + 1],
+      end: buffer[position + 2],
       ${properties.join(',\n')}
     };
   }`;
