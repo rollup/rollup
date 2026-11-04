@@ -17,6 +17,7 @@ import type {
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
 import { analyseModuleExecution } from './utils/executionOrder';
+import { unescapeExportName } from './utils/exportNames';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -242,7 +243,7 @@ export default class Graph {
 						module.log(
 							LOGLEVEL_WARN,
 							logMissingExport(
-								importDescription.name,
+								unescapeExportName(importDescription.name),
 								module.id,
 								importDescription.module.id,
 								!!options?.missingButExportExists

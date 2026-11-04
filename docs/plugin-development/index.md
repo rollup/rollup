@@ -1706,6 +1706,8 @@ During the build, this object represents currently available information about t
 - `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](#this-load) with the `resolveDependencies` flag. At that point, they will no longer change.
 - `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](#load) and [`transform`](#transform) hooks. Moreover, while most properties are read-only, these properties are writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` itself should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
+In `exports` and `exportedBindings`, `"*"` stands for an `export * from` declaration. To tell them apart, export names starting with `*` are listed with an additional `*`, e.g. `export { foo as "*" }` is listed as `"**"`.
+
 Returns `null` if the module id cannot be found.
 
 ### this.getWatchFiles

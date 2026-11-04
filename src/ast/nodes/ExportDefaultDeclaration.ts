@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import { unescapeExportName } from '../../utils/exportNames';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -173,7 +174,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				this.start,
 				declarationStart,
 				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports(${JSON.stringify(
-					systemExportNames[0]
+					unescapeExportName(systemExportNames[0])
 				)}, `
 			);
 			code.appendRight(

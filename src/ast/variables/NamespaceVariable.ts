@@ -1,4 +1,9 @@
 import type { AstContext, default as Module } from '../../Module';
+import {
+	escapeExportName,
+	isNamespaceExportName,
+	unescapeExportName
+} from '../../utils/exportNames';
 import { stringifyObjectKeyIfNeeded } from '../../utils/identifierHelpers';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
@@ -44,10 +49,11 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 1 || (path.length === 1 && interaction.type === INTERACTION_CALLED)) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.module
-					.getExportedVariablesByName()
-					.get(key)
-					?.deoptimizeArgumentsOnInteractionAtPath(interaction, path.slice(1), recursionTracker);
+				this.getMemberVariable(key)?.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					path.slice(1),
+					recursionTracker
+				);
 			} else {
 				deoptimizeInteraction(interaction);
 			}
@@ -58,7 +64,7 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 1) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.module.getExportedVariablesByName().get(key)?.deoptimizePath(path.slice(1));
+				this.getMemberVariable(key)?.deoptimizePath(path.slice(1));
 			} else if (!this.areAllMembersDeoptimized) {
 				this.areAllMembersDeoptimized = true;
 				for (const variable of this.module.getExportedVariablesByName().values()) {
@@ -92,7 +98,7 @@ export default class NamespaceVariable extends Variable {
 		if (typeof key !== 'string') {
 			return true;
 		}
-		const memberVariable = this.module.getExportedVariablesByName().get(key);
+		const memberVariable = this.getMemberVariable(key);
 		return (
 			!memberVariable ||
 			memberVariable.hasEffectsOnInteractionAtPath(path.slice(1), interaction, context)
@@ -108,7 +114,7 @@ export default class NamespaceVariable extends Variable {
 		if (path.length > 0) {
 			const [name, ...remainingPath] = path;
 			if (typeof name === 'string') {
-				const variable = this.module.getExportedVariablesByName().get(name);
+				const variable = this.getMemberVariable(name);
 				if (variable) {
 					this.context.includeVariableInModule(variable, remainingPath, context);
 				} else {
@@ -138,18 +144,19 @@ export default class NamespaceVariable extends Variable {
 		} = options;
 		const memberVariables = this.module.getExportedVariablesByName();
 		const members: [key: string | null, value: string][] = [...memberVariables.entries()]
-			.filter(([name, variable]) => !name.startsWith('*') && variable.included)
+			.filter(([name, variable]) => !isNamespaceExportName(name) && variable.included)
 			.map(([name, variable]) => {
+				const key = unescapeExportName(name);
 				if (this.referencedEarly || variable.isReassigned || variable === this) {
 					return [
 						null,
-						`get ${stringifyObjectKeyIfNeeded(name)}${_}()${_}{${_}return ${variable.getName(
+						`get ${stringifyObjectKeyIfNeeded(key)}${_}()${_}{${_}return ${variable.getName(
 							getPropertyAccess
 						)}${s}${_}}`
 					];
 				}
 
-				return [name, variable.getName(getPropertyAccess)];
+				return [key, variable.getName(getPropertyAccess)];
 			});
 		members.unshift([null, `__proto__:${_}null`]);
 
@@ -197,6 +204,10 @@ export default class NamespaceVariable extends Variable {
 				break;
 			}
 		}
+	}
+
+	private getMemberVariable(name: string): Variable | undefined {
+		return this.module.getExportedVariablesByName().get(escapeExportName(name));
 	}
 
 	private includeNonExplicitNamespaces(): void {
