@@ -328,6 +328,9 @@ function getChunkHash(
 	const { containedPlaceholders, transformedCode } =
 		replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
 	let contentToHash = transformedCode;
+	if (map && outputOptions.sourcemapDebugIds) {
+		contentToHash += '//# debugId=\n';
+	}
 	if (map && outputOptions.sourcemap !== 'hidden') {
 		// Normalize raw map data and file names before base64 or URL encoding
 		// can hide placeholders and make hashes depend on chunk order.

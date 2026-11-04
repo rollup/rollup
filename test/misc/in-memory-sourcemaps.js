@@ -358,7 +358,8 @@ describe('sourcemap chunk hashes', () => {
 	for (const options of [
 		{ sourcemap: 'inline' },
 		{ sourcemap: true, sourcemapBaseUrl: 'https://example.com/maps/' },
-		{ sourcemap: true, sourcemapFileNames: '[name]-[chunkhash]-[hash].map' }
+		{ sourcemap: true, sourcemapFileNames: '[name]-[chunkhash]-[hash].map' },
+		{ sourcemap: 'hidden', sourcemapDebugIds: true }
 	]) {
 		it(`keeps hashes stable when adding an unrelated entry with ${JSON.stringify(options)}`, async () => {
 			const originalChunks = await generateChunks(options);
