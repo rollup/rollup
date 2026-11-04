@@ -308,7 +308,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 				body[index] = convertNode(
 					node,
 					buffer[nodePosition] !== 79 &&
-						(buffer[nodePosition + 3] & /* the static flag is always first */ 1) === 0
+						(buffer[nodePosition + 4] & /* the static flag is always first */ 1) === 0
 						? scope.instanceScope
 						: scope,
 					nodePosition,
@@ -823,9 +823,9 @@ function convertNode(
 	}
 	const node = new NodeConstructor(parent, parentScope);
 	node.type = nodeTypeStrings[nodeType] as any;
-	node.start = buffer[position + 1];
-	node.end = buffer[position + 2];
-	bufferParsers[nodeType](node, position + 3, buffer);
+	node.start = buffer[position + 2];
+	node.end = buffer[position + 3];
+	bufferParsers[nodeType](node, position + 4, buffer);
 	node.initialise();
 	return node;
 }

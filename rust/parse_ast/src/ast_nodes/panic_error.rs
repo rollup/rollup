@@ -6,6 +6,8 @@ use crate::convert_ast::converter::{convert_string, update_reference_position};
 pub(crate) fn write_panic_error(buffer: &mut Vec<u8>, message: &str) {
   // type
   buffer.extend_from_slice(&TYPE_PANIC_ERROR);
+  // parent
+  buffer.extend_from_slice(&0u32.to_ne_bytes());
   // reserve for start and end even though they are unused
   let end_position = buffer.len() + 4;
   buffer.resize(end_position + PANIC_ERROR_RESERVED_BYTES, 0);
