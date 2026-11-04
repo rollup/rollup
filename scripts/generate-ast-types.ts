@@ -70,7 +70,7 @@ function getNodeType(name: string, node: NodeDescription, nodeFields: FieldDescr
 		([name, { type }]) => `${name}: ${type};`
 	);
 	const fixedFields = Object.entries(node.fixed || {}).map(([name, type]) => `${name}: ${type};`);
-	return `export interface ${name} extends BaseNode {
+	return `export interface ${name} extends AstNodeBase {
   type: '${node.astType || name}';${[...(fields || []), ...additionalFields, ...fixedFields, ...(flags || [])].map(field => `\n  ${field}`).join('')}
 }`;
 }
@@ -80,6 +80,15 @@ const astTypes = `${notEditFilesComment}
 export interface BaseNode {
   end: number;
   start: number;
+}
+
+/**
+ * Base of every AST node. \`parent\` is only present on nodes from lazy ASTs,
+ * where it is resolved on first access: \`null\` for the root and absent on
+ * eager ASTs, so \`'parent' in node\` distinguishes the two.
+ */
+export interface AstNodeBase extends BaseNode {
+  parent?: AstNode | null;
 }
 
 export type AnnotationType = 'pure' | 'noSideEffects';

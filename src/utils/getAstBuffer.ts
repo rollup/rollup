@@ -1,6 +1,9 @@
+import type { ast } from '../rollup/types';
+
 export type AstBuffer = Uint32Array & {
 	convertFloat64: (this: AstBuffer, position: number) => number;
 	convertString: (position: number) => string;
+	lazyNodes?: Map<number, ast.AstNode>;
 };
 
 export type AstBufferForWriting<T = Uint8Array | Buffer> = Uint32Array & AstBufferForWritingApi<T>;

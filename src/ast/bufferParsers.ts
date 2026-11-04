@@ -509,7 +509,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function importExpression(node: ImportExpression, position, buffer) {
 		const { scope } = node;
 		node.source = convertNode(node, scope, buffer[position], buffer);
-		node.sourceAstNode = convertJsonNode(buffer[position], buffer);
+		buffer.lazyNodes ??= new Map();
+		node.sourceAstNode = convertJsonNode(buffer[position], buffer, null);
 		const optionsPosition = buffer[position + 1];
 		node.options = optionsPosition === 0 ? null : convertNode(node, scope, optionsPosition, buffer);
 		const phasePosition = buffer[position + 2];
@@ -692,7 +693,11 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const keyPosition = buffer[position + 1];
 		node.value = convertNode(node, scope, buffer[position + 2], buffer);
 		node.kind = FIXED_STRINGS[buffer[position + 3]] as ast.Property['kind'];
-		node.key = keyPosition === 0 ? node.value : convertNode(node, scope, keyPosition, buffer);
+		node.key = node.shorthand
+			? (node.value as ast.AssignmentPattern).type === 'AssignmentPattern'
+				? (node.value as ast.AssignmentPattern).left
+				: node.value
+			: convertNode(node, scope, keyPosition, buffer);
 	},
 	function propertyDefinition(node: PropertyDefinition, position, buffer) {
 		const { scope } = node;

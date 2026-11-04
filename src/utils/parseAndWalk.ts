@@ -30,6 +30,7 @@ export async function parseAndWalk(
 		)
 	);
 
+	astBuffer.lazyNodes = new Map();
 	walkAstBuffer(astBuffer, visitors, collectScopes);
 }
 

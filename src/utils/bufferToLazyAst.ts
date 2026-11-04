@@ -10,7 +10,7 @@ import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
 export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): ast.AstNode => {
-	const node = convertNode(position, buffer);
+	const node = convertNode(position, buffer, null);
 	switch (node.type) {
 		case PanicError: {
 			return error(getRollupError(logParseError(node.message)));
@@ -25,8 +25,12 @@ export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): a
 };
 
 /* eslint-disable sort-keys */
-const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] = [
-	function panicError(position, buffer): ast.PanicError {
+const nodeConverters: ((
+	position: number,
+	buffer: AstBuffer,
+	parent: ast.AstNode | null
+) => ast.AstNode)[] = [
+	function panicError(position, buffer, parent): ast.PanicError {
 		const node: ast.PanicError = {
 			type: 'PanicError',
 			start: buffer[position + 1],
@@ -37,9 +41,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function parseError(position, buffer): ast.ParseError {
+	function parseError(position, buffer, parent): ast.ParseError {
 		const node: ast.ParseError = {
 			type: 'ParseError',
 			start: buffer[position + 1],
@@ -50,35 +55,38 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function arrayExpression(position, buffer): ast.ArrayExpression {
+	function arrayExpression(position, buffer, parent): ast.ArrayExpression {
 		const node: ast.ArrayExpression = {
 			type: 'ArrayExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get elements() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'elements', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function arrayPattern(position, buffer): ast.ArrayPattern {
+	function arrayPattern(position, buffer, parent): ast.ArrayPattern {
 		const node: ast.ArrayPattern = {
 			type: 'ArrayPattern',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get elements() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'elements', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function arrowFunctionExpression(position, buffer): ast.ArrowFunctionExpression {
+	function arrowFunctionExpression(position, buffer, parent): ast.ArrowFunctionExpression {
 		const flags = buffer[position + 3];
 		const annotations = convertAnnotations(buffer[position + 4], buffer);
 		const node: ast.ArrowFunctionExpression = {
@@ -90,20 +98,21 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			generator: (flags & 4) === 4,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get params() {
-				const result = convertNodeList(buffer[position + 5], buffer);
+				const result = convertNodeList(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'params', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
+				const result = convertNode(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			},
 			id: null
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function assignmentExpression(position, buffer): ast.AssignmentExpression {
+	function assignmentExpression(position, buffer, parent): ast.AssignmentExpression {
 		const node: ast.AssignmentExpression = {
 			type: 'AssignmentExpression',
 			start: buffer[position + 1],
@@ -114,50 +123,53 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'left', { value: result });
 				return result;
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'right', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function assignmentPattern(position, buffer): ast.AssignmentPattern {
+	function assignmentPattern(position, buffer, parent): ast.AssignmentPattern {
 		const node: ast.AssignmentPattern = {
 			type: 'AssignmentPattern',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'left', { value: result });
 				return result;
 			},
 			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'right', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function awaitExpression(position, buffer): ast.AwaitExpression {
+	function awaitExpression(position, buffer, parent): ast.AwaitExpression {
 		const node: ast.AwaitExpression = {
 			type: 'AwaitExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function binaryExpression(position, buffer): ast.BinaryExpression {
+	function binaryExpression(position, buffer, parent): ast.BinaryExpression {
 		const node: ast.BinaryExpression = {
 			type: 'BinaryExpression',
 			start: buffer[position + 1],
@@ -168,46 +180,49 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'left', { value: result });
 				return result;
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'right', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function blockStatement(position, buffer): ast.BlockStatement {
+	function blockStatement(position, buffer, parent): ast.BlockStatement {
 		const node: ast.BlockStatement = {
 			type: 'BlockStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function breakStatement(position, buffer): ast.BreakStatement {
+	function breakStatement(position, buffer, parent): ast.BreakStatement {
 		const labelPosition = buffer[position + 3];
 		const node: ast.BreakStatement = {
 			type: 'BreakStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer);
+				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer, node);
 				Object.defineProperty(node, 'label', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function callExpression(position, buffer): ast.CallExpression {
+	function callExpression(position, buffer, parent): ast.CallExpression {
 		const flags = buffer[position + 3];
 		const annotations = convertAnnotations(buffer[position + 4], buffer);
 		const node: ast.CallExpression = {
@@ -217,64 +232,69 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			optional: (flags & 1) === 1,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get callee() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'callee', { value: result });
 				return result;
 			},
 			get arguments() {
-				const result = convertNodeList(buffer[position + 6], buffer);
+				const result = convertNodeList(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'arguments', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function catchClause(position, buffer): ast.CatchClause {
+	function catchClause(position, buffer, parent): ast.CatchClause {
 		const parameterPosition = buffer[position + 3];
 		const node: ast.CatchClause = {
 			type: 'CatchClause',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get param() {
-				const result = parameterPosition === 0 ? null : convertNode(parameterPosition, buffer);
+				const result =
+					parameterPosition === 0 ? null : convertNode(parameterPosition, buffer, node);
 				Object.defineProperty(node, 'param', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function chainExpression(position, buffer): ast.ChainExpression {
+	function chainExpression(position, buffer, parent): ast.ChainExpression {
 		const node: ast.ChainExpression = {
 			type: 'ChainExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'expression', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function classBody(position, buffer): ast.ClassBody {
+	function classBody(position, buffer, parent): ast.ClassBody {
 		const node: ast.ClassBody = {
 			type: 'ClassBody',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function classDeclaration(position, buffer): ast.ClassDeclaration {
+	function classDeclaration(position, buffer, parent): ast.ClassDeclaration {
 		const idPosition = buffer[position + 4];
 		const superClassPosition = buffer[position + 5];
 		const node: ast.ClassDeclaration = {
@@ -282,29 +302,31 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'decorators', { value: result });
 				return result;
 			},
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
+				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
 				Object.defineProperty(node, 'id', { value: result });
 				return result;
 			},
 			get superClass() {
-				const result = superClassPosition === 0 ? null : convertNode(superClassPosition, buffer);
+				const result =
+					superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, node);
 				Object.defineProperty(node, 'superClass', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
+				const result = convertNode(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function classExpression(position, buffer): ast.ClassExpression {
+	function classExpression(position, buffer, parent): ast.ClassExpression {
 		const idPosition = buffer[position + 4];
 		const superClassPosition = buffer[position + 5];
 		const node: ast.ClassExpression = {
@@ -312,87 +334,93 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'decorators', { value: result });
 				return result;
 			},
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
+				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
 				Object.defineProperty(node, 'id', { value: result });
 				return result;
 			},
 			get superClass() {
-				const result = superClassPosition === 0 ? null : convertNode(superClassPosition, buffer);
+				const result =
+					superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, node);
 				Object.defineProperty(node, 'superClass', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
+				const result = convertNode(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function conditionalExpression(position, buffer): ast.ConditionalExpression {
+	function conditionalExpression(position, buffer, parent): ast.ConditionalExpression {
 		const node: ast.ConditionalExpression = {
 			type: 'ConditionalExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'test', { value: result });
 				return result;
 			},
 			get consequent() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'consequent', { value: result });
 				return result;
 			},
 			get alternate() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'alternate', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function continueStatement(position, buffer): ast.ContinueStatement {
+	function continueStatement(position, buffer, parent): ast.ContinueStatement {
 		const labelPosition = buffer[position + 3];
 		const node: ast.ContinueStatement = {
 			type: 'ContinueStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer);
+				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer, node);
 				Object.defineProperty(node, 'label', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function debuggerStatement(position, buffer): ast.DebuggerStatement {
+	function debuggerStatement(position, buffer, parent): ast.DebuggerStatement {
 		const node: ast.DebuggerStatement = {
 			type: 'DebuggerStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2]
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function decorator(position, buffer): ast.Decorator {
+	function decorator(position, buffer, parent): ast.Decorator {
 		const node: ast.Decorator = {
 			type: 'Decorator',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'expression', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function directive(position, buffer): ast.Directive {
+	function directive(position, buffer, parent): ast.Directive {
 		const node: ast.Directive = {
 			type: 'ExpressionStatement',
 			start: buffer[position + 1],
@@ -403,77 +431,82 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get expression() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'expression', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function doWhileStatement(position, buffer): ast.DoWhileStatement {
+	function doWhileStatement(position, buffer, parent): ast.DoWhileStatement {
 		const node: ast.DoWhileStatement = {
 			type: 'DoWhileStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			},
 			get test() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'test', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function emptyStatement(position, buffer): ast.EmptyStatement {
+	function emptyStatement(position, buffer, parent): ast.EmptyStatement {
 		const node: ast.EmptyStatement = {
 			type: 'EmptyStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2]
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function exportAllDeclaration(position, buffer): ast.ExportAllDeclaration {
+	function exportAllDeclaration(position, buffer, parent): ast.ExportAllDeclaration {
 		const exportedPosition = buffer[position + 3];
 		const node: ast.ExportAllDeclaration = {
 			type: 'ExportAllDeclaration',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get exported() {
-				const result = exportedPosition === 0 ? null : convertNode(exportedPosition, buffer);
+				const result = exportedPosition === 0 ? null : convertNode(exportedPosition, buffer, node);
 				Object.defineProperty(node, 'exported', { value: result });
 				return result;
 			},
 			get source() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'source', { value: result });
 				return result;
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer);
+				const result = convertNodeList(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'attributes', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function exportDefaultDeclaration(position, buffer): ast.ExportDefaultDeclaration {
+	function exportDefaultDeclaration(position, buffer, parent): ast.ExportDefaultDeclaration {
 		const node: ast.ExportDefaultDeclaration = {
 			type: 'ExportDefaultDeclaration',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get declaration() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'declaration', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function exportNamedDeclaration(position, buffer): ast.ExportNamedDeclaration {
+	function exportNamedDeclaration(position, buffer, parent): ast.ExportNamedDeclaration {
 		const sourcePosition = buffer[position + 4];
 		const declarationPosition = buffer[position + 6];
 		const node: ast.ExportNamedDeclaration = {
@@ -481,82 +514,87 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get specifiers() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'specifiers', { value: result });
 				return result;
 			},
 			get source() {
-				const result = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer);
+				const result = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer, node);
 				Object.defineProperty(node, 'source', { value: result });
 				return result;
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer);
+				const result = convertNodeList(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'attributes', { value: result });
 				return result;
 			},
 			get declaration() {
-				const result = declarationPosition === 0 ? null : convertNode(declarationPosition, buffer);
+				const result =
+					declarationPosition === 0 ? null : convertNode(declarationPosition, buffer, node);
 				Object.defineProperty(node, 'declaration', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function exportSpecifier(position, buffer): ast.ExportSpecifier {
-		const local = convertNode(buffer[position + 3], buffer);
+	function exportSpecifier(position, buffer, parent): ast.ExportSpecifier {
 		const exportedPosition = buffer[position + 4];
 		const node: ast.ExportSpecifier = {
 			type: 'ExportSpecifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			local,
+			local: null as never,
 			get exported() {
 				const result =
-					exportedPosition === 0 ? { ...local } : convertNode(exportedPosition, buffer);
+					exportedPosition === 0 ? node.local : convertNode(exportedPosition, buffer, node);
 				Object.defineProperty(node, 'exported', { value: result });
 				return result;
 			}
 		};
+		node.local = convertNode(buffer[position + 3], buffer, node);
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function expressionStatement(position, buffer): ast.ExpressionStatement {
+	function expressionStatement(position, buffer, parent): ast.ExpressionStatement {
 		const node: ast.ExpressionStatement = {
 			type: 'ExpressionStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'expression', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function forInStatement(position, buffer): ast.ForInStatement {
+	function forInStatement(position, buffer, parent): ast.ForInStatement {
 		const node: ast.ForInStatement = {
 			type: 'ForInStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'left', { value: result });
 				return result;
 			},
 			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'right', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function forOfStatement(position, buffer): ast.ForOfStatement {
+	function forOfStatement(position, buffer, parent): ast.ForOfStatement {
 		const flags = buffer[position + 3];
 		const node: ast.ForOfStatement = {
 			type: 'ForOfStatement',
@@ -564,24 +602,25 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			end: buffer[position + 2],
 			await: (flags & 1) === 1,
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'left', { value: result });
 				return result;
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'right', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
+				const result = convertNode(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function forStatement(position, buffer): ast.ForStatement {
+	function forStatement(position, buffer, parent): ast.ForStatement {
 		const initPosition = buffer[position + 3];
 		const testPosition = buffer[position + 4];
 		const updatePosition = buffer[position + 5];
@@ -590,29 +629,30 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer);
+				const result = initPosition === 0 ? null : convertNode(initPosition, buffer, node);
 				Object.defineProperty(node, 'init', { value: result });
 				return result;
 			},
 			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer);
+				const result = testPosition === 0 ? null : convertNode(testPosition, buffer, node);
 				Object.defineProperty(node, 'test', { value: result });
 				return result;
 			},
 			get update() {
-				const result = updatePosition === 0 ? null : convertNode(updatePosition, buffer);
+				const result = updatePosition === 0 ? null : convertNode(updatePosition, buffer, node);
 				Object.defineProperty(node, 'update', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
+				const result = convertNode(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function functionDeclaration(position, buffer): ast.FunctionDeclaration {
+	function functionDeclaration(position, buffer, parent): ast.FunctionDeclaration {
 		const flags = buffer[position + 3];
 		const annotations = convertAnnotations(buffer[position + 4], buffer);
 		const idPosition = buffer[position + 5];
@@ -624,25 +664,26 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			generator: (flags & 2) === 2,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
+				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
 				Object.defineProperty(node, 'id', { value: result });
 				return result;
 			},
 			get params() {
-				const result = convertNodeList(buffer[position + 6], buffer);
+				const result = convertNodeList(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'params', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 7], buffer);
+				const result = convertNode(buffer[position + 7], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			},
 			expression: false
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function functionExpression(position, buffer): ast.FunctionExpression {
+	function functionExpression(position, buffer, parent): ast.FunctionExpression {
 		const flags = buffer[position + 3];
 		const annotations = convertAnnotations(buffer[position + 4], buffer);
 		const idPosition = buffer[position + 5];
@@ -654,25 +695,26 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			generator: (flags & 2) === 2,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
+				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
 				Object.defineProperty(node, 'id', { value: result });
 				return result;
 			},
 			get params() {
-				const result = convertNodeList(buffer[position + 6], buffer);
+				const result = convertNodeList(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'params', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 7], buffer);
+				const result = convertNode(buffer[position + 7], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			},
 			expression: false
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function identifier(position, buffer): ast.Identifier {
+	function identifier(position, buffer, parent): ast.Identifier {
 		const node: ast.Identifier = {
 			type: 'Identifier',
 			start: buffer[position + 1],
@@ -683,68 +725,72 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function ifStatement(position, buffer): ast.IfStatement {
+	function ifStatement(position, buffer, parent): ast.IfStatement {
 		const alternatePosition = buffer[position + 5];
 		const node: ast.IfStatement = {
 			type: 'IfStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'test', { value: result });
 				return result;
 			},
 			get consequent() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'consequent', { value: result });
 				return result;
 			},
 			get alternate() {
-				const result = alternatePosition === 0 ? null : convertNode(alternatePosition, buffer);
+				const result =
+					alternatePosition === 0 ? null : convertNode(alternatePosition, buffer, node);
 				Object.defineProperty(node, 'alternate', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function importAttribute(position, buffer): ast.ImportAttribute {
+	function importAttribute(position, buffer, parent): ast.ImportAttribute {
 		const node: ast.ImportAttribute = {
 			type: 'ImportAttribute',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get key() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'key', { value: result });
 				return result;
 			},
 			get value() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'value', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function importDeclaration(position, buffer): ast.ImportDeclaration {
+	function importDeclaration(position, buffer, parent): ast.ImportDeclaration {
 		const phasePosition = buffer[position + 6];
 		const node: ast.ImportDeclaration = {
 			type: 'ImportDeclaration',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get specifiers() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'specifiers', { value: result });
 				return result;
 			},
 			get source() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'source', { value: result });
 				return result;
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer);
+				const result = convertNodeList(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'attributes', { value: result });
 				return result;
 			},
@@ -757,22 +803,24 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function importDefaultSpecifier(position, buffer): ast.ImportDefaultSpecifier {
+	function importDefaultSpecifier(position, buffer, parent): ast.ImportDefaultSpecifier {
 		const node: ast.ImportDefaultSpecifier = {
 			type: 'ImportDefaultSpecifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get local() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'local', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function importExpression(position, buffer): ast.ImportExpression {
+	function importExpression(position, buffer, parent): ast.ImportExpression {
 		const optionsPosition = buffer[position + 4];
 		const phasePosition = buffer[position + 5];
 		const node: ast.ImportExpression = {
@@ -780,12 +828,12 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get source() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'source', { value: result });
 				return result;
 			},
 			get options() {
-				const result = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer);
+				const result = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer, node);
 				Object.defineProperty(node, 'options', { value: result });
 				return result;
 			},
@@ -798,148 +846,158 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function importNamespaceSpecifier(position, buffer): ast.ImportNamespaceSpecifier {
+	function importNamespaceSpecifier(position, buffer, parent): ast.ImportNamespaceSpecifier {
 		const node: ast.ImportNamespaceSpecifier = {
 			type: 'ImportNamespaceSpecifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get local() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'local', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function importSpecifier(position, buffer): ast.ImportSpecifier {
+	function importSpecifier(position, buffer, parent): ast.ImportSpecifier {
 		const importedPosition = buffer[position + 3];
-		const local = convertNode(buffer[position + 4], buffer);
 		const node: ast.ImportSpecifier = {
 			type: 'ImportSpecifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get imported() {
 				const result =
-					importedPosition === 0 ? { ...local } : convertNode(importedPosition, buffer);
+					importedPosition === 0 ? node.local : convertNode(importedPosition, buffer, node);
 				Object.defineProperty(node, 'imported', { value: result });
 				return result;
 			},
-			local
+			local: null as never
 		};
+		node.local = convertNode(buffer[position + 4], buffer, node);
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxAttribute(position, buffer): ast.JSXAttribute {
+	function jsxAttribute(position, buffer, parent): ast.JSXAttribute {
 		const valuePosition = buffer[position + 4];
 		const node: ast.JSXAttribute = {
 			type: 'JSXAttribute',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'name', { value: result });
 				return result;
 			},
 			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer);
+				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer, node);
 				Object.defineProperty(node, 'value', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxClosingElement(position, buffer): ast.JSXClosingElement {
+	function jsxClosingElement(position, buffer, parent): ast.JSXClosingElement {
 		const node: ast.JSXClosingElement = {
 			type: 'JSXClosingElement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'name', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxClosingFragment(position, buffer): ast.JSXClosingFragment {
+	function jsxClosingFragment(position, buffer, parent): ast.JSXClosingFragment {
 		const node: ast.JSXClosingFragment = {
 			type: 'JSXClosingFragment',
 			start: buffer[position + 1],
 			end: buffer[position + 2]
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxElement(position, buffer): ast.JSXElement {
+	function jsxElement(position, buffer, parent): ast.JSXElement {
 		const closingElementPosition = buffer[position + 5];
 		const node: ast.JSXElement = {
 			type: 'JSXElement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get openingElement() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'openingElement', { value: result });
 				return result;
 			},
 			get children() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'children', { value: result });
 				return result;
 			},
 			get closingElement() {
 				const result =
-					closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer);
+					closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer, node);
 				Object.defineProperty(node, 'closingElement', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxEmptyExpression(position, buffer): ast.JSXEmptyExpression {
+	function jsxEmptyExpression(position, buffer, parent): ast.JSXEmptyExpression {
 		const node: ast.JSXEmptyExpression = {
 			type: 'JSXEmptyExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2]
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxExpressionContainer(position, buffer): ast.JSXExpressionContainer {
+	function jsxExpressionContainer(position, buffer, parent): ast.JSXExpressionContainer {
 		const node: ast.JSXExpressionContainer = {
 			type: 'JSXExpressionContainer',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'expression', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxFragment(position, buffer): ast.JSXFragment {
+	function jsxFragment(position, buffer, parent): ast.JSXFragment {
 		const node: ast.JSXFragment = {
 			type: 'JSXFragment',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get openingFragment() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'openingFragment', { value: result });
 				return result;
 			},
 			get children() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'children', { value: result });
 				return result;
 			},
 			get closingFragment() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'closingFragment', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxIdentifier(position, buffer): ast.JSXIdentifier {
+	function jsxIdentifier(position, buffer, parent): ast.JSXIdentifier {
 		const node: ast.JSXIdentifier = {
 			type: 'JSXIdentifier',
 			start: buffer[position + 1],
@@ -950,45 +1008,48 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxMemberExpression(position, buffer): ast.JSXMemberExpression {
+	function jsxMemberExpression(position, buffer, parent): ast.JSXMemberExpression {
 		const node: ast.JSXMemberExpression = {
 			type: 'JSXMemberExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get object() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'object', { value: result });
 				return result;
 			},
 			get property() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'property', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxNamespacedName(position, buffer): ast.JSXNamespacedName {
+	function jsxNamespacedName(position, buffer, parent): ast.JSXNamespacedName {
 		const node: ast.JSXNamespacedName = {
 			type: 'JSXNamespacedName',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get namespace() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'namespace', { value: result });
 				return result;
 			},
 			get name() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'name', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxOpeningElement(position, buffer): ast.JSXOpeningElement {
+	function jsxOpeningElement(position, buffer, parent): ast.JSXOpeningElement {
 		const flags = buffer[position + 3];
 		const node: ast.JSXOpeningElement = {
 			type: 'JSXOpeningElement',
@@ -996,19 +1057,20 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			end: buffer[position + 2],
 			selfClosing: (flags & 1) === 1,
 			get name() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'name', { value: result });
 				return result;
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer);
+				const result = convertNodeList(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'attributes', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxOpeningFragment(position, buffer): ast.JSXOpeningFragment {
+	function jsxOpeningFragment(position, buffer, parent): ast.JSXOpeningFragment {
 		const node: ast.JSXOpeningFragment = {
 			type: 'JSXOpeningFragment',
 			start: buffer[position + 1],
@@ -1016,35 +1078,38 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			attributes: [],
 			selfClosing: false
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxSpreadAttribute(position, buffer): ast.JSXSpreadAttribute {
+	function jsxSpreadAttribute(position, buffer, parent): ast.JSXSpreadAttribute {
 		const node: ast.JSXSpreadAttribute = {
 			type: 'JSXSpreadAttribute',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxSpreadChild(position, buffer): ast.JSXSpreadChild {
+	function jsxSpreadChild(position, buffer, parent): ast.JSXSpreadChild {
 		const node: ast.JSXSpreadChild = {
 			type: 'JSXSpreadChild',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'expression', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function jsxText(position, buffer): ast.JSXText {
+	function jsxText(position, buffer, parent): ast.JSXText {
 		const node: ast.JSXText = {
 			type: 'JSXText',
 			start: buffer[position + 1],
@@ -1060,27 +1125,29 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function labeledStatement(position, buffer): ast.LabeledStatement {
+	function labeledStatement(position, buffer, parent): ast.LabeledStatement {
 		const node: ast.LabeledStatement = {
 			type: 'LabeledStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get label() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'label', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function literalBigInt(position, buffer): ast.LiteralBigInt {
+	function literalBigInt(position, buffer, parent): ast.LiteralBigInt {
 		const bigint = buffer.convertString(buffer[position + 3]);
 		const node: ast.LiteralBigInt = {
 			type: 'Literal',
@@ -1094,9 +1161,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			},
 			value: BigInt(bigint)
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function literalBoolean(position, buffer): ast.LiteralBoolean {
+	function literalBoolean(position, buffer, parent): ast.LiteralBoolean {
 		const flags = buffer[position + 3];
 		const value = (flags & 1) === 1;
 		const node: ast.LiteralBoolean = {
@@ -1106,9 +1174,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			value,
 			raw: value ? 'true' : 'false'
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function literalNull(position, buffer): ast.LiteralNull {
+	function literalNull(position, buffer, parent): ast.LiteralNull {
 		const node: ast.LiteralNull = {
 			type: 'Literal',
 			start: buffer[position + 1],
@@ -1116,9 +1185,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			raw: 'null',
 			value: null
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function literalNumber(position, buffer): ast.LiteralNumber {
+	function literalNumber(position, buffer, parent): ast.LiteralNumber {
 		const rawPosition = buffer[position + 3];
 		const node: ast.LiteralNumber = {
 			type: 'Literal',
@@ -1135,9 +1205,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function literalRegExp(position, buffer): ast.LiteralRegExp {
+	function literalRegExp(position, buffer, parent): ast.LiteralRegExp {
 		const flags = buffer.convertString(buffer[position + 3]);
 		const pattern = buffer.convertString(buffer[position + 4]);
 		const node: ast.LiteralRegExp = {
@@ -1148,9 +1219,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			regex: { flags, pattern },
 			value: new RegExp(pattern, flags)
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function literalString(position, buffer): ast.LiteralString {
+	function literalString(position, buffer, parent): ast.LiteralString {
 		const rawPosition = buffer[position + 4];
 		const node: ast.LiteralString = {
 			type: 'Literal',
@@ -1167,9 +1239,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function logicalExpression(position, buffer): ast.LogicalExpression {
+	function logicalExpression(position, buffer, parent): ast.LogicalExpression {
 		const node: ast.LogicalExpression = {
 			type: 'LogicalExpression',
 			start: buffer[position + 1],
@@ -1180,19 +1253,20 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'left', { value: result });
 				return result;
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'right', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function memberExpression(position, buffer): ast.MemberExpression {
+	function memberExpression(position, buffer, parent): ast.MemberExpression {
 		const flags = buffer[position + 3];
 		const node: ast.MemberExpression = {
 			type: 'MemberExpression',
@@ -1201,37 +1275,39 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			computed: (flags & 1) === 1,
 			optional: (flags & 2) === 2,
 			get object() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'object', { value: result });
 				return result;
 			},
 			get property() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'property', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function metaProperty(position, buffer): ast.MetaProperty {
+	function metaProperty(position, buffer, parent): ast.MetaProperty {
 		const node: ast.MetaProperty = {
 			type: 'MetaProperty',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get meta() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'meta', { value: result });
 				return result;
 			},
 			get property() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'property', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function methodDefinition(position, buffer): ast.MethodDefinition {
+	function methodDefinition(position, buffer, parent): ast.MethodDefinition {
 		const flags = buffer[position + 3];
 		const node: ast.MethodDefinition = {
 			type: 'MethodDefinition',
@@ -1240,17 +1316,17 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			static: (flags & 1) === 1,
 			computed: (flags & 2) === 2,
 			get decorators() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'decorators', { value: result });
 				return result;
 			},
 			get key() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'key', { value: result });
 				return result;
 			},
 			get value() {
-				const result = convertNode(buffer[position + 6], buffer);
+				const result = convertNode(buffer[position + 6], buffer, node);
 				Object.defineProperty(node, 'value', { value: result });
 				return result;
 			},
@@ -1260,9 +1336,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function newExpression(position, buffer): ast.NewExpression {
+	function newExpression(position, buffer, parent): ast.NewExpression {
 		const annotations = convertAnnotations(buffer[position + 3], buffer);
 		const node: ast.NewExpression = {
 			type: 'NewExpression',
@@ -1270,45 +1347,48 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			end: buffer[position + 2],
 			...(annotations.length > 0 ? { annotations } : {}),
 			get callee() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'callee', { value: result });
 				return result;
 			},
 			get arguments() {
-				const result = convertNodeList(buffer[position + 5], buffer);
+				const result = convertNodeList(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'arguments', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function objectExpression(position, buffer): ast.ObjectExpression {
+	function objectExpression(position, buffer, parent): ast.ObjectExpression {
 		const node: ast.ObjectExpression = {
 			type: 'ObjectExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get properties() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'properties', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function objectPattern(position, buffer): ast.ObjectPattern {
+	function objectPattern(position, buffer, parent): ast.ObjectPattern {
 		const node: ast.ObjectPattern = {
 			type: 'ObjectPattern',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get properties() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'properties', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function privateIdentifier(position, buffer): ast.PrivateIdentifier {
+	function privateIdentifier(position, buffer, parent): ast.PrivateIdentifier {
 		const node: ast.PrivateIdentifier = {
 			type: 'PrivateIdentifier',
 			start: buffer[position + 1],
@@ -1319,28 +1399,29 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function program(position, buffer): ast.Program {
+	function program(position, buffer, parent): ast.Program {
 		const invalidAnnotations = convertAnnotations(buffer[position + 4], buffer);
 		const node: ast.Program = {
 			type: 'Program',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			},
 			...(invalidAnnotations.length > 0 ? { invalidAnnotations } : {}),
 			sourceType: 'module'
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function property(position, buffer): ast.Property {
+	function property(position, buffer, parent): ast.Property {
 		const flags = buffer[position + 3];
 		const keyPosition = buffer[position + 4];
-		const value = convertNode(buffer[position + 5], buffer);
 		const node: ast.Property = {
 			type: 'Property',
 			start: buffer[position + 1],
@@ -1349,20 +1430,26 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			shorthand: (flags & 2) === 2,
 			computed: (flags & 4) === 4,
 			get key() {
-				const result = keyPosition === 0 ? { ...value } : convertNode(keyPosition, buffer);
+				const result = node.shorthand
+					? node.value.type === 'AssignmentPattern'
+						? node.value.left
+						: node.value
+					: convertNode(keyPosition, buffer, node);
 				Object.defineProperty(node, 'key', { value: result });
 				return result;
 			},
-			value,
+			value: null as never,
 			get kind() {
 				const result = FIXED_STRINGS[buffer[position + 6]] as ast.Property['kind'];
 				Object.defineProperty(node, 'kind', { value: result });
 				return result;
 			}
 		};
+		node.value = convertNode(buffer[position + 5], buffer, node);
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function propertyDefinition(position, buffer): ast.PropertyDefinition {
+	function propertyDefinition(position, buffer, parent): ast.PropertyDefinition {
 		const flags = buffer[position + 3];
 		const valuePosition = buffer[position + 6];
 		const node: ast.PropertyDefinition = {
@@ -1372,153 +1459,163 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			static: (flags & 1) === 1,
 			computed: (flags & 2) === 2,
 			get decorators() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'decorators', { value: result });
 				return result;
 			},
 			get key() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'key', { value: result });
 				return result;
 			},
 			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer);
+				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer, node);
 				Object.defineProperty(node, 'value', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function restElement(position, buffer): ast.RestElement {
+	function restElement(position, buffer, parent): ast.RestElement {
 		const node: ast.RestElement = {
 			type: 'RestElement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function returnStatement(position, buffer): ast.ReturnStatement {
+	function returnStatement(position, buffer, parent): ast.ReturnStatement {
 		const argumentPosition = buffer[position + 3];
 		const node: ast.ReturnStatement = {
 			type: 'ReturnStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer);
+				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function sequenceExpression(position, buffer): ast.SequenceExpression {
+	function sequenceExpression(position, buffer, parent): ast.SequenceExpression {
 		const node: ast.SequenceExpression = {
 			type: 'SequenceExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expressions() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'expressions', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function spreadElement(position, buffer): ast.SpreadElement {
+	function spreadElement(position, buffer, parent): ast.SpreadElement {
 		const node: ast.SpreadElement = {
 			type: 'SpreadElement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function staticBlock(position, buffer): ast.StaticBlock {
+	function staticBlock(position, buffer, parent): ast.StaticBlock {
 		const node: ast.StaticBlock = {
 			type: 'StaticBlock',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function superElement(position, buffer): ast.Super {
+	function superElement(position, buffer, parent): ast.Super {
 		const node: ast.Super = {
 			type: 'Super',
 			start: buffer[position + 1],
 			end: buffer[position + 2]
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function switchCase(position, buffer): ast.SwitchCase {
+	function switchCase(position, buffer, parent): ast.SwitchCase {
 		const testPosition = buffer[position + 3];
 		const node: ast.SwitchCase = {
 			type: 'SwitchCase',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer);
+				const result = testPosition === 0 ? null : convertNode(testPosition, buffer, node);
 				Object.defineProperty(node, 'test', { value: result });
 				return result;
 			},
 			get consequent() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'consequent', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function switchStatement(position, buffer): ast.SwitchStatement {
+	function switchStatement(position, buffer, parent): ast.SwitchStatement {
 		const node: ast.SwitchStatement = {
 			type: 'SwitchStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get discriminant() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'discriminant', { value: result });
 				return result;
 			},
 			get cases() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'cases', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function taggedTemplateExpression(position, buffer): ast.TaggedTemplateExpression {
+	function taggedTemplateExpression(position, buffer, parent): ast.TaggedTemplateExpression {
 		const node: ast.TaggedTemplateExpression = {
 			type: 'TaggedTemplateExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get tag() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'tag', { value: result });
 				return result;
 			},
 			get quasi() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'quasi', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function templateElement(position, buffer): ast.TemplateElement {
+	function templateElement(position, buffer, parent): ast.TemplateElement {
 		const flags = buffer[position + 3];
 		const cookedPosition = buffer[position + 4];
 		const cooked = cookedPosition === 0 ? undefined : buffer.convertString(cookedPosition);
@@ -1530,48 +1627,52 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			tail: (flags & 1) === 1,
 			value: { cooked, raw }
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function templateLiteral(position, buffer): ast.TemplateLiteral {
+	function templateLiteral(position, buffer, parent): ast.TemplateLiteral {
 		const node: ast.TemplateLiteral = {
 			type: 'TemplateLiteral',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get quasis() {
-				const result = convertNodeList(buffer[position + 3], buffer);
+				const result = convertNodeList(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'quasis', { value: result });
 				return result;
 			},
 			get expressions() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'expressions', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function thisExpression(position, buffer): ast.ThisExpression {
+	function thisExpression(position, buffer, parent): ast.ThisExpression {
 		const node: ast.ThisExpression = {
 			type: 'ThisExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2]
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function throwStatement(position, buffer): ast.ThrowStatement {
+	function throwStatement(position, buffer, parent): ast.ThrowStatement {
 		const node: ast.ThrowStatement = {
 			type: 'ThrowStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function tryStatement(position, buffer): ast.TryStatement {
+	function tryStatement(position, buffer, parent): ast.TryStatement {
 		const handlerPosition = buffer[position + 4];
 		const finalizerPosition = buffer[position + 5];
 		const node: ast.TryStatement = {
@@ -1579,24 +1680,26 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get block() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'block', { value: result });
 				return result;
 			},
 			get handler() {
-				const result = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer);
+				const result = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer, node);
 				Object.defineProperty(node, 'handler', { value: result });
 				return result;
 			},
 			get finalizer() {
-				const result = finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer);
+				const result =
+					finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer, node);
 				Object.defineProperty(node, 'finalizer', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function unaryExpression(position, buffer): ast.UnaryExpression {
+	function unaryExpression(position, buffer, parent): ast.UnaryExpression {
 		const node: ast.UnaryExpression = {
 			type: 'UnaryExpression',
 			start: buffer[position + 1],
@@ -1607,15 +1710,16 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get argument() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			},
 			prefix: true
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function updateExpression(position, buffer): ast.UpdateExpression {
+	function updateExpression(position, buffer, parent): ast.UpdateExpression {
 		const flags = buffer[position + 3];
 		const node: ast.UpdateExpression = {
 			type: 'UpdateExpression',
@@ -1628,14 +1732,15 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get argument() {
-				const result = convertNode(buffer[position + 5], buffer);
+				const result = convertNode(buffer[position + 5], buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function variableDeclaration(position, buffer): ast.VariableDeclaration {
+	function variableDeclaration(position, buffer, parent): ast.VariableDeclaration {
 		const node: ast.VariableDeclaration = {
 			type: 'VariableDeclaration',
 			start: buffer[position + 1],
@@ -1646,51 +1751,54 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 				return result;
 			},
 			get declarations() {
-				const result = convertNodeList(buffer[position + 4], buffer);
+				const result = convertNodeList(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'declarations', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function variableDeclarator(position, buffer): ast.VariableDeclarator {
+	function variableDeclarator(position, buffer, parent): ast.VariableDeclarator {
 		const initPosition = buffer[position + 4];
 		const node: ast.VariableDeclarator = {
 			type: 'VariableDeclarator',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get id() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'id', { value: result });
 				return result;
 			},
 			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer);
+				const result = initPosition === 0 ? null : convertNode(initPosition, buffer, node);
 				Object.defineProperty(node, 'init', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function whileStatement(position, buffer): ast.WhileStatement {
+	function whileStatement(position, buffer, parent): ast.WhileStatement {
 		const node: ast.WhileStatement = {
 			type: 'WhileStatement',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = convertNode(buffer[position + 3], buffer);
+				const result = convertNode(buffer[position + 3], buffer, node);
 				Object.defineProperty(node, 'test', { value: result });
 				return result;
 			},
 			get body() {
-				const result = convertNode(buffer[position + 4], buffer);
+				const result = convertNode(buffer[position + 4], buffer, node);
 				Object.defineProperty(node, 'body', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	},
-	function yieldExpression(position, buffer): ast.YieldExpression {
+	function yieldExpression(position, buffer, parent): ast.YieldExpression {
 		const flags = buffer[position + 3];
 		const argumentPosition = buffer[position + 4];
 		const node: ast.YieldExpression = {
@@ -1699,16 +1807,21 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			end: buffer[position + 2],
 			delegate: (flags & 1) === 1,
 			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer);
+				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, node);
 				Object.defineProperty(node, 'argument', { value: result });
 				return result;
 			}
 		};
+		defineParent(node, position, buffer, parent);
 		return node;
 	}
 ];
 
-export function convertNode(position: number, buffer: AstBuffer): any {
+export function convertNode(position: number, buffer: AstBuffer, parent: ast.AstNode | null): any {
+	const cachedNode = buffer.lazyNodes?.get(position);
+	if (cachedNode !== undefined) {
+		return cachedNode;
+	}
 	const nodeType = buffer[position];
 	const converter = nodeConverters[nodeType];
 	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
@@ -1716,16 +1829,64 @@ export function convertNode(position: number, buffer: AstBuffer): any {
 		console.trace();
 		throw new Error(`Unknown node type: ${nodeType}`);
 	}
-	return converter(position + 1, buffer);
+	const node = converter(position + 1, buffer, parent);
+	if (buffer.lazyNodes) {
+		buffer.lazyNodes.set(position, node);
+	}
+	return node;
 }
 
-function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
+const parentPropertyDescriptor: PropertyDescriptor = {
+	configurable: true,
+	enumerable: false,
+	value: undefined,
+	writable: true
+};
+
+function setParent(node: ast.AstNode, parent: ast.AstNode | null): void {
+	parentPropertyDescriptor.value = parent;
+	Object.defineProperty(node, 'parent', parentPropertyDescriptor);
+}
+
+function defineParent(
+	node: ast.AstNode,
+	position: number,
+	buffer: AstBuffer,
+	parent: ast.AstNode | null
+): void {
+	if (parent !== null || buffer[position] === 0) {
+		setParent(node, parent);
+		return;
+	}
+	Object.defineProperty(node, 'parent', {
+		configurable: true,
+		enumerable: false,
+		get() {
+			const cache = (buffer.lazyNodes ??= new Map());
+			const typePosition = position - 1;
+			if (!cache.has(typePosition)) {
+				cache.set(typePosition, node);
+			}
+			const resolvedParent = convertNode(buffer[position] - 1, buffer, null);
+			if (Object.isExtensible(node)) {
+				setParent(node, resolvedParent);
+			}
+			return resolvedParent;
+		}
+	});
+}
+
+function convertNodeList(
+	position: number,
+	buffer: AstBuffer,
+	parent: ast.AstNode | null
+): readonly any[] {
 	if (position === 0) return EMPTY_ARRAY;
 	const length = buffer[position++];
 	const list: any[] = new Array(length);
 	for (let index = 0; index < length; index++) {
 		const nodePosition = buffer[position++];
-		list[index] = nodePosition ? convertNode(nodePosition, buffer) : null;
+		list[index] = nodePosition ? convertNode(nodePosition, buffer, parent) : null;
 	}
 	return list;
 }

@@ -292,7 +292,7 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			local,
-			exported: exportedPosition === 0 ? { ...local } : convertNode(exportedPosition, buffer)
+			exported: exportedPosition === 0 ? local : convertNode(exportedPosition, buffer)
 		};
 	},
 	function expressionStatement(position, buffer): ast.ExpressionStatement {
@@ -454,7 +454,7 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			type: 'ImportSpecifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			imported: importedPosition === 0 ? { ...local } : convertNode(importedPosition, buffer),
+			imported: importedPosition === 0 ? local : convertNode(importedPosition, buffer),
 			local
 		};
 	},
@@ -765,7 +765,12 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			method: (flags & 1) === 1,
 			shorthand: (flags & 2) === 2,
 			computed: (flags & 4) === 4,
-			key: keyPosition === 0 ? { ...value } : convertNode(keyPosition, buffer),
+			key:
+				(flags & 2) === 2
+					? (value as ast.AssignmentPattern).type === 'AssignmentPattern'
+						? (value as ast.AssignmentPattern).left
+						: value
+					: convertNode(keyPosition, buffer),
 			value,
 			kind: FIXED_STRINGS[buffer[position + 6]] as ast.Property['kind']
 		};
