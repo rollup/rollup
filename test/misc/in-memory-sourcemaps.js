@@ -26,6 +26,25 @@ describe('in-memory sourcemaps', () => {
 		assert.equal(loc.line, 1);
 		assert.equal(loc.column, 13);
 	});
+
+	it('makes sources and file relative to sourcemapFile when output.file is not set', async () => {
+		const bundle = await rollup.rollup({
+			input: 'main',
+			plugins: [loader({ main: `console.log( 42 );` })]
+		});
+		const sourcemapFile = path.resolve('nested', 'out', 'bundle.js');
+		const {
+			output: [generated]
+		} = await bundle.generate({
+			format: 'cjs',
+			sourcemap: true,
+			sourcemapFile
+		});
+		assert.equal(generated.map.file, path.basename(sourcemapFile));
+		assert.deepEqual(generated.map.sources, [
+			path.relative(path.dirname(sourcemapFile), path.resolve('main')).split(path.sep).join('/')
+		]);
+	});
 });
 
 describe('sourcemap chunk hashes', () => {
