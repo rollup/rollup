@@ -34,6 +34,7 @@ import { escapeId } from './utils/escapeId';
 import {
 	assignExportsToMangledNames,
 	assignExportsToNames,
+	getExternalNamespaceId,
 	isNamespaceExportName,
 	unescapeExportName
 } from './utils/exportNames';
@@ -1212,7 +1213,7 @@ export default class Chunk {
 			let imported: string;
 			let needsLiveBinding: boolean;
 			if (isNamespaceExportName(exportName)) {
-				const id = exportName.slice(1);
+				const id = getExternalNamespaceId(exportName);
 				if (interop(id) === 'defaultOnly') {
 					this.inputOptions.onLog(LOGLEVEL_WARN, logUnexpectedNamespaceReexport(id));
 				}

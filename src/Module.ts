@@ -55,7 +55,13 @@ import { EMPTY_OBJECT } from './utils/blank';
 import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
-import { escapeExportName, isNamespaceExportName, unescapeExportName } from './utils/exportNames';
+import {
+	escapeExportName,
+	getExternalNamespaceExportName,
+	getExternalNamespaceId,
+	isNamespaceExportName,
+	unescapeExportName
+} from './utils/exportNames';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -523,7 +529,7 @@ export default class Module {
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
 				exportedVariablesByName.set(
-					`*${module.id}`,
+					getExternalNamespaceExportName(module.id),
 					module.getVariableForExportName('*', {
 						importChain: [this.id]
 					})[0]
@@ -624,7 +630,7 @@ export default class Module {
 				return [this.namespace];
 			}
 			// export * from 'external'
-			const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
+			const module = this.graph.modulesById.get(getExternalNamespaceId(name)) as ExternalModule;
 			return module.getVariableForExportName('*', {
 				importChain: [...importChain, this.id]
 			});
