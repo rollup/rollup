@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.67.5
+
+_2026-11-04_
+
+### Bug Fixes
+
+- Do not ignore `output.sourcemapFile` when the `output.file` option is not used (#6623)
+- Change chunk hash when debug IDs are enabled/disabled (#6625)
+- Avoid an unnecessary optional dependency on Linux system (#6627)
+
+### Pull Requests
+
+- [#6623](https://github.com/rollup/rollup/pull/6623): Honor `output.sourcemapFile` when `output.file` is not set (@simpleqt)
+- [#6625](https://github.com/rollup/rollup/pull/6625): Include debug ID comments in chunk hashes (@clean99, @lukastaegert)
+- [#6627](https://github.com/rollup/rollup/pull/6627): Do not publish the build-only @napi-rs/lzma-linux-x64-gnu optional dependency (@christophehurpeau, @lukastaegert)
+
 ## 4.67.4
 
 _2026-11-01_
