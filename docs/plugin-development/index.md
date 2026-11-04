@@ -2374,6 +2374,15 @@ This lazy generation significantly improves performance when working with large 
 
 [`this.parse`](#this-parse) and the standalone [`parseAst`](../javascript-api/index.md#accessing-the-parser) / [`parseAstAsync`](../javascript-api/index.md#accessing-the-parser) helpers return fully materialized plain JavaScript objects (eager ASTs). If you need a lazy AST from code, use [`parseLazyAst` or `parseLazyAstAsync`](../javascript-api/index.md#accessing-the-parser) instead.
 
+### Parent links
+
+Every node of a lazy AST has a `parent` property that points to the node containing it. Nodes of eager ASTs do not have this property, so if you need parent links from [`this.parse`](#this-parse), use [`parseLazyAst`](../javascript-api/index.md#accessing-the-parser), [`parseAndWalk`](#this-parseandwalk) or the lazy AST from [module info](#accessing-asts-from-module-info) instead.
+
+- The root `Program` has `parent === null`, while eager ASTs do not have the property at all, so `'parent' in node` tells the two apart.
+- Like other lazy properties, `parent` is resolved on first access. When a node is visited directly, for instance by [`parseAndWalk`](#this-parseandwalk), Rollup materializes its ancestors on demand and always returns the same node objects for the same source node within that AST. Because of that identity, keeping a visited node alive also keeps the nodes materialized during the same walk alive.
+- `parent` is non-enumerable. It is therefore not part of `Object.keys`, stringification or shallow copies: spread copies, clones and `JSON.parse(JSON.stringify(ast))` lose the parent links, while their existing references to child nodes still point to the parents of the original AST. Storing a reference to the AST itself preserves the links.
+- Each node has exactly one parent. For default destructuring like `const { x = 1 } = obj`, `key` and `value.left` are the same `Identifier` whose `parent` is the `AssignmentPattern` rather than the `Property`.
+
 ### Accessing ASTs from Module Info
 
 When you access the `ast` property of a module via [`this.getModuleInfo`](#this-getmoduleinfo) or in the [`moduleParsed`](#moduleparsed) hook, you always receive a fresh "lazy" AST. This means:

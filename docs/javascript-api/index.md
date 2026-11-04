@@ -452,7 +452,7 @@ assert.deepEqual(
 );
 ```
 
-Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you want a lazy AST instead—where non-primitive properties are getters that replace themselves on first access—use `parseLazyAst` and `parseLazyAstAsync`, which have the same signatures. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation.
+Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you want a lazy AST instead—where non-primitive properties are getters that replace themselves on first access—use `parseLazyAst` and `parseLazyAstAsync`, which have the same signatures. In addition to the lazy properties, lazy ASTs expose non-enumerable `parent` links on every node, which eager ASTs do not have. See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy AST generation and parent links.
 
 ## Walking the AST efficiently
 
