@@ -4,14 +4,16 @@ var external = require('external');
 
 const star = 'star';
 const doubleStar = 'double star';
+var dep = 42;
 
-var dep = /*#__PURE__*/Object.freeze({
+var dep$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	"*": star,
-	"**": doubleStar
+	"**": doubleStar,
+	default: dep
 });
 
-console.log(external["*"], star, doubleStar, true, false, dep);
+console.log(external["*"], star, doubleStar, true, false, dep$1);
 
 const legal = 10;
 
@@ -24,3 +26,10 @@ Object.defineProperty(exports, "reexportedStar", {
 	get: function () { return external["*"]; }
 });
 exports["*"] = legal;
+exports["*default"] = dep;
+Object.keys(external).forEach(function (k) {
+	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
+		enumerable: true,
+		get: function () { return external[k]; }
+	});
+});

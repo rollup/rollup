@@ -997,6 +997,8 @@ interface OutputChunk {
 
 Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details.
 
+As in [`this.getModuleInfo`](#this-getmoduleinfo), import and export names starting with `*` are listed with an additional `*` in `exports`, `importedBindings` and the `renderedExports` and `removedExports` of `modules`. This keeps them apart from `"*"` in `importedBindings`, which stands for the whole namespace, and from `"*"` followed by a module id in `exports`, which stands for an `export * from` that module.
+
 You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](#this-emitfile) plugin context function.
 
 ::: danger
