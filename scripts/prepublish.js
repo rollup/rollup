@@ -12,6 +12,8 @@ import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpe
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
 
+const BUILD_ONLY_OPTIONAL_DEPENDENCY = '@napi-rs/lzma-linux-x64-gnu';
+
 const version = await getCurrentCommitMessage();
 const matched = /^\d+\.\d+\.\d+(-\d+)?$/.exec(version);
 
@@ -34,16 +36,16 @@ const { optionalDependencies } = await readJson(MAIN_PACKAGE);
 // output does not mean the command succeeded.
 await runPublish('npm', ['run', 'prepublish:napi']);
 const mainPackage = await readJson(MAIN_PACKAGE);
+const publishedOptionalDependencies = {
+	...optionalDependencies,
+	...mainPackage.optionalDependencies
+};
+// Only needed to build the native artifacts in CI (see "comments" in package.json), consumers
+// must not install it.
+delete publishedOptionalDependencies[BUILD_ONLY_OPTIONAL_DEPENDENCY];
 await writeFile(
 	MAIN_PACKAGE,
-	JSON.stringify(
-		{
-			...mainPackage,
-			optionalDependencies: { ...optionalDependencies, ...mainPackage.optionalDependencies }
-		},
-		null,
-		2
-	)
+	JSON.stringify({ ...mainPackage, optionalDependencies: publishedOptionalDependencies }, null, 2)
 );
 
 /**
