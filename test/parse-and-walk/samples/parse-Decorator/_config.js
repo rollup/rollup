@@ -10,6 +10,11 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
+		const [decorator] = decorators;
+		assert.strictEqual(decorator.parent.type, 'ClassDeclaration');
+		assert.strictEqual(decorator.parent.decorators[0], decorator);
+		assert.strictEqual(decorator.parent.parent.type, 'Program');
+		assert.strictEqual(decorator.expression.parent, decorator);
 		assert.deepEqual(decorators, [
 			{
 				type: 'Decorator',

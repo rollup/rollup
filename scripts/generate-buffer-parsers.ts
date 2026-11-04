@@ -43,6 +43,12 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	}
 	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
 		needsScope = true;
+		if (node.shorthandKey) {
+			definitions.push(
+				`node.${fieldName} = node.shorthand ? ((node.value as ast.AssignmentPattern).type === 'AssignmentPattern' ? (node.value as ast.AssignmentPattern).left : node.value) : convertNode(node, scope, ${fieldName}Position, buffer);\n`
+			);
+			continue;
+		}
 		definitions.push(
 			`node.${fieldName} = ${fieldName}Position === 0 ? node.${fallbackName} : convertNode(node, scope, ${fieldName}Position, buffer);\n`
 		);

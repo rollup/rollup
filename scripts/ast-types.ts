@@ -642,7 +642,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		],
 		scriptedFields: {
 			source: `node.source = convertNode(node, scope, $position, buffer);
-			  node.sourceAstNode = convertJsonNode($position, buffer);`
+			  buffer.lazyNodes ??= new Map();
+			  node.sourceAstNode = convertJsonNode($position, buffer, null);`
 		},
 		useMacro: false
 	},
@@ -892,6 +893,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		optionalFallback: {
 			key: 'value'
 		},
+		shorthandKey: true,
 		useMacro: false
 	},
 	PropertyDefinition: {
@@ -1098,6 +1100,7 @@ export interface NodeDescription {
 	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
 	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
 	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position. $typeFoo is replaced with the numeric code for Foo
+	shorthandKey?: boolean; // If the key field of a shorthand node is derived from the value instead of the buffer
 	useMacro?: boolean; // Generate a Rust macro instead of separate constants
 }
 

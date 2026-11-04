@@ -2,10 +2,13 @@ const assert = require('node:assert');
 const {
 	parseAst,
 	parseAstAsync,
+	parseLazyAst,
+	parseAndWalk,
 	serializeAst,
 	deserializeAst,
 	deserializeLazyAst
 } = require('../../dist/parseAst');
+const { rollup } = require('../../dist/rollup');
 const { hasEsBuild } = require('../testHelpers');
 
 describe('parseAst', () => {
@@ -111,10 +114,50 @@ describe('parseAst', () => {
 		});
 	});
 
-	it('uses different references for key and value of a shorthand property', async () => {
+	it('uses the same reference for key and value of a shorthand property', async () => {
 		const { key, value } = parseAst('({ foo });').body[0].expression.properties[0];
-		assert.deepStrictEqual(key, value);
-		assert.ok(key !== value);
+		assert.ok(key === value);
+	});
+
+	it('resolves shorthand keys of assignments to the left side of the value', async () => {
+		const property = parseAst('const { x = 1 } = obj;').body[0].declarations[0].id.properties[0];
+		assert.strictEqual(property.key, property.value.left);
+		assert.strictEqual(property.key.type, 'Identifier');
+	});
+
+	it('uses different references for aliased specifiers and properties', async () => {
+		const [shorthandProperty] = parseAst('({ foo: foo });').body[0].expression.properties;
+		assert.ok(shorthandProperty.key !== shorthandProperty.value);
+		const [importedSpecifier, aliasedSpecifier] = parseAst('import { x, y as z } from "m";').body[0]
+			.specifiers;
+		assert.ok(importedSpecifier.imported === importedSpecifier.local);
+		assert.ok(aliasedSpecifier.imported !== aliasedSpecifier.local);
+		const [exportedSpecifier, aliasedExportSpecifier] = parseAst(
+			'const x = 1, y = 2; export { x, y as z };'
+		).body[1].specifiers;
+		assert.ok(exportedSpecifier.exported === exportedSpecifier.local);
+		assert.ok(aliasedExportSpecifier.exported !== aliasedExportSpecifier.local);
+		const [sameNameSpecifier] = parseAst('import { x as x } from "m";').body[0].specifiers;
+		assert.ok(sameNameSpecifier.imported !== sameNameSpecifier.local);
+		const [sameNameExport] = parseAst('const x = 1; export { x as x };').body[1].specifiers;
+		assert.ok(sameNameExport.exported !== sameNameExport.local);
+	});
+
+	it('does not add parents to nodes of eager ASTs', async () => {
+		const ast = parseAst('const x = foo;');
+		assert.ok(!('parent' in ast));
+		assert.ok(!('parent' in ast.body[0]));
+		assert.ok(!('parent' in ast.body[0].declarations[0].init));
+		assert.strictEqual(ast.body[0].declarations[0].init.parent, undefined);
+	});
+
+	it('preserves parents when serializing and deserializing', async () => {
+		const ast = parseLazyAst('const x = foo;');
+		const deserialized = deserializeLazyAst(serializeAst(ast));
+		assert.strictEqual(deserialized.parent, null);
+		assert.strictEqual(deserialized.body[0].parent, deserialized);
+		assert.strictEqual(deserialized.body[0].declarations[0].parent, deserialized.body[0]);
+		assert.ok(deserializeAst(serializeAst(parseAst('const x = foo;'))));
 	});
 
 	it('can deserialize AST buffers that are views at a non-zero byte offset', async () => {
@@ -171,5 +214,223 @@ describe('parseAstAsync', () => {
 			],
 			sourceType: 'module'
 		});
+	});
+});
+
+describe('lazy AST parents', () => {
+	it('links nodes to their parents without exposing the link as a key', () => {
+		const ast = parseLazyAst('const x = foo;');
+		const variableDeclaration = ast.body[0];
+		const declarator = variableDeclaration.declarations[0];
+		assert.strictEqual(ast.parent, null);
+		assert.strictEqual(variableDeclaration.parent, ast);
+		assert.strictEqual(declarator.parent, variableDeclaration);
+		assert.strictEqual(declarator.id.parent, declarator);
+		assert.strictEqual(declarator.init.parent, declarator);
+		assert.strictEqual(declarator.init.name, 'foo');
+		assert.deepStrictEqual(Object.keys(declarator), ['type', 'start', 'end', 'id', 'init']);
+		assert.strictEqual(Object.getOwnPropertyDescriptor(declarator, 'parent').enumerable, false);
+		assert.deepStrictEqual(JSON.parse(JSON.stringify(ast)), {
+			body: [
+				{
+					declarations: [
+						{
+							end: 13,
+							id: { end: 7, name: 'x', start: 6, type: 'Identifier' },
+							init: { end: 13, name: 'foo', start: 10, type: 'Identifier' },
+							start: 6,
+							type: 'VariableDeclarator'
+						}
+					],
+					end: 14,
+					kind: 'const',
+					start: 0,
+					type: 'VariableDeclaration'
+				}
+			],
+			end: 14,
+			sourceType: 'module',
+			start: 0,
+			type: 'Program'
+		});
+	});
+
+	it('returns the parent from the child field of the parent', () => {
+		const ast = parseLazyAst('const { x } = obj;');
+		const pattern = ast.body[0].declarations[0].id;
+		const property = pattern.properties[0];
+		assert.strictEqual(property.parent, pattern);
+		assert.strictEqual(property.parent.properties[0], property);
+		assert.strictEqual(property.parent.parent, ast.body[0].declarations[0]);
+	});
+
+	it('links shorthand keys of assignments to the assignment pattern', () => {
+		const property =
+			parseLazyAst('const { x = 1 } = obj;').body[0].declarations[0].id.properties[0];
+		assert.strictEqual(property.key, property.value.left);
+		assert.strictEqual(property.key.parent, property.value);
+		assert.strictEqual(property.key.parent.type, 'AssignmentPattern');
+	});
+
+	it('links decorators of exported classes to the class and the class to the export', () => {
+		for (const code of [
+			'@dec export class X {}',
+			'export @dec class X {}',
+			'@dec export default class {}',
+			'export default @dec class {}'
+		]) {
+			const ast = parseLazyAst(code);
+			const exportNode = ast.body[0];
+			const classNode = exportNode.declaration;
+			const [decorator] = classNode.decorators;
+			assert.strictEqual(exportNode.parent, ast, code);
+			assert.strictEqual(classNode.parent, exportNode, code);
+			assert.strictEqual(decorator.parent, classNode, code);
+			assert.strictEqual(classNode.decorators[0], decorator, code);
+			assert.strictEqual(decorator.expression.parent, decorator, code);
+		}
+	});
+
+	it('links the source of a dynamic import to the import expression', () => {
+		const importExpression = parseLazyAst('import("mod");').body[0].expression;
+		assert.strictEqual(importExpression.source.parent.type, 'ImportExpression');
+		assert.strictEqual(importExpression.source.parent.source, importExpression.source);
+	});
+
+	it('allows reading the parent of a frozen node', () => {
+		const ast = parseLazyAst('const x = foo;');
+		const declarator = ast.body[0].declarations[0];
+		Object.freeze(declarator);
+		assert.strictEqual(declarator.parent, ast.body[0]);
+	});
+
+	it('allows reading the parent of a frozen node whose parent has not been resolved yet', async () => {
+		let parentType;
+		await parseAndWalk('const x = foo;', {
+			Identifier(node) {
+				if (node.name !== 'foo') return;
+				Object.freeze(node);
+				parentType = node.parent.type;
+			}
+		});
+		assert.strictEqual(parentType, 'VariableDeclarator');
+	});
+
+	it('returns the same parent on repeated access', () => {
+		const ast = parseLazyAst('const x = foo;');
+		const declarator = ast.body[0].declarations[0];
+		assert.strictEqual(declarator.parent, declarator.parent);
+	});
+
+	it('links decorators of exported classes through walk entries', async () => {
+		for (const [code, exportType] of [
+			['@dec export class X {}', 'ExportNamedDeclaration'],
+			['export @dec class X {}', 'ExportNamedDeclaration'],
+			['@dec export default class {}', 'ExportDefaultDeclaration'],
+			['export default @dec class {}', 'ExportDefaultDeclaration']
+		]) {
+			let classNode;
+			let decorator;
+			await parseAndWalk(code, {
+				ClassDeclaration(node) {
+					assert.strictEqual(node.parent.type, exportType, code);
+					classNode = node;
+				},
+				Decorator(node) {
+					assert.strictEqual(node.parent.type, 'ClassDeclaration', code);
+					decorator = node;
+				}
+			});
+			assert.strictEqual(decorator.parent, classNode, code);
+			assert.strictEqual(classNode.decorators[0], decorator, code);
+		}
+	});
+
+	it('gives the program a null parent when walking', async () => {
+		let programParent = 'unset';
+		await parseAndWalk('const x = foo;', {
+			Program(node) {
+				programParent = node.parent;
+			}
+		});
+		assert.strictEqual(programParent, null);
+	});
+
+	it('resolves the parent of a walked node only once', async () => {
+		let parents;
+		await parseAndWalk('const x = foo;', {
+			Identifier(node) {
+				if (node.name !== 'foo') return;
+				parents = [node.parent, node.parent];
+			}
+		});
+		assert.strictEqual(parents[0], parents[1]);
+		assert.strictEqual(parents[0].type, 'VariableDeclarator');
+	});
+
+	it('resolves parents when deserializing a fragment at a non-zero position', () => {
+		const buffer = serializeAst(parseAst('const x = foo;'));
+		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+		const declarationPosition = words[words[4] + 1];
+		const declaration = deserializeLazyAst(buffer, declarationPosition);
+		assert.strictEqual(declaration.type, 'VariableDeclaration');
+		assert.strictEqual(declaration.parent.type, 'Program');
+		assert.strictEqual(declaration.parent.body[0], declaration);
+	});
+
+	it('keeps parent links of dynamic import sources consistent in a build', async () => {
+		let checks;
+		await rollup({
+			input: 'main',
+			onwarn() {},
+			plugins: [
+				{
+					load: id => (id === 'main' ? 'import(`./${a}.js`);\nimport(`./${b}.js`);\n' : null),
+					moduleParsed(moduleInfo) {
+						const [firstExpression, secondExpression] = moduleInfo.ast.body.map(
+							node => node.expression
+						);
+						const secondSource = secondExpression.source;
+						const program = firstExpression.parent.parent;
+						checks = [
+							program.body[1].expression,
+							program.body[1].expression.source,
+							secondSource,
+							secondExpression,
+							secondSource.parent
+						];
+					},
+					name: 'parent-links',
+					resolveId: id => (id === 'main' ? id : null)
+				}
+			]
+		});
+		const [secondExpressionNode, materializedSource, secondSource, secondExpression, parent] =
+			checks;
+		assert.strictEqual(secondExpressionNode, secondExpression);
+		assert.strictEqual(materializedSource, secondSource);
+		assert.strictEqual(parent, secondExpression);
+		assert.strictEqual(parent.source, secondSource);
+	});
+
+	it('keeps the same node identity across visitors and parent links in parseAndWalk', async () => {
+		const identifiers = new Map();
+		const declarators = [];
+		await parseAndWalk('const value = other + 1;', {
+			Identifier(node) {
+				if (identifiers.has(node.name)) {
+					assert.strictEqual(identifiers.get(node.name), node);
+				}
+				identifiers.set(node.name, node);
+			},
+			VariableDeclarator(node) {
+				declarators.push(node);
+			}
+		});
+		const [declarator] = declarators;
+		assert.strictEqual(declarator.id, identifiers.get('value'));
+		assert.strictEqual(declarator.id.parent, declarator);
+		assert.strictEqual(declarator.init.parent, declarator);
+		assert.strictEqual(identifiers.get('other').parent, declarator.init);
 	});
 });

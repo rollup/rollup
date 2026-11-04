@@ -948,7 +948,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 3] = node.end;
 		buffer[nodePosition + 4] =
 			((node.method as any) << 0) | ((node.shorthand as any) << 1) | ((node.computed as any) << 2);
-		if (node.key.end != node.value.end)
+		if (!node.shorthand)
 			buffer = serializeNode(
 				'key',
 				node as AstNode & { key: AstNode },

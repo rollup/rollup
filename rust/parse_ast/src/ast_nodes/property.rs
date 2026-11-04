@@ -198,14 +198,7 @@ impl AstConverter<'_> {
       Some(value) => {
         // value
         self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
-        let left_position = self.store_assignment_pattern_and_get_left_position(
-          span,
-          PatternOrIdentifier::Identifier(key),
-          value,
-        );
-        // key, reuse identifier to avoid converting positions out of order
-        let key_position = end_position + PROPERTY_KEY_OFFSET;
-        self.buffer[key_position..key_position + 4].copy_from_slice(&left_position.to_ne_bytes());
+        self.store_assignment_pattern(span, PatternOrIdentifier::Identifier(key), value);
       }
       None => {
         // value

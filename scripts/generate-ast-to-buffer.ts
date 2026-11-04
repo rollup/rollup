@@ -57,7 +57,7 @@ function getNodeSerializerBody({
 	index,
 	fields,
 	flags,
-	node: { optionalFallback, serializeHiddenFields }
+	node: { optionalFallback, serializeHiddenFields, shorthandKey }
 }: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
 	let nextPosition = 4; // 1 for type, 1 for parent, 2 for start and end
@@ -76,7 +76,10 @@ function getNodeSerializerBody({
 				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition}, nodePosition + 1);`;
 				if (field.allowNull) {
 					if (optionalFallback?.[fieldName]) {
-						fieldSerializer = `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
+						fieldSerializer =
+							shorthandKey && field.name === 'key'
+								? `if (!node.shorthand) ${fieldSerializer}`
+								: `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
 					} else {
 						fieldSerializer = `if (node.${fieldName} != null) ${fieldSerializer}`;
 					}
