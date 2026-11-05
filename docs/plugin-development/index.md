@@ -2371,7 +2371,7 @@ Rollup uses Abstract Syntax Trees (ASTs) to parse and analyze JavaScript code.
 
 For performance reasons, some ASTs returned by Rollup are generated lazily. This means that all non-primitive properties of AST nodes are getters that replace themselves with the actual node values on first access. When you access a node property for the first time, the getter computes the value and replaces itself with a regular property containing the actual node.
 
-This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. The lazy getter implementation is transparent to most use cases—you can access AST properties normally without worrying about the underlying mechanism.
+This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. The lazy getter implementation is transparent to most use cases—you can access AST properties normally without worrying about the underlying mechanism. Lazy nodes must not be frozen or sealed before they are materialized: lazy properties are replaced by regular properties on first access, which is impossible for non-configurable properties.
 
 [`this.parse`](#this-parse) and the standalone [`parseAst`](../javascript-api/index.md#accessing-the-parser) / [`parseAstAsync`](../javascript-api/index.md#accessing-the-parser) helpers return fully materialized plain JavaScript objects (eager ASTs). If you need a lazy AST from code, use [`parseLazyAst` or `parseLazyAstAsync`](../javascript-api/index.md#accessing-the-parser) instead.
 
