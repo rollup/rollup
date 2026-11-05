@@ -41,11 +41,12 @@ function replaceField<T>(node: ast.AstNode, key: string, value: T): T {
 	return value;
 }
 
-const nodeConverters: ((
-	position: number,
-	buffer: AstBuffer,
-	parent: ast.AstNode | null
-) => ast.AstNode)[] = [
+/* Nodes visited by parseAndWalk are created without parent information; their
+   parent is resolved via the walk API instead of an own property. */
+export const NO_PARENT: unique symbol = Symbol('NO_PARENT');
+type Parent = ast.AstNode | null | typeof NO_PARENT;
+
+const nodeConverters: ((position: number, buffer: AstBuffer, parent: Parent) => ast.AstNode)[] = [
 	function panicError(position, buffer, parent): ast.PanicError {
 		const node: ast.PanicError = {
 			type: 'PanicError',
@@ -679,9 +680,7 @@ const nodeConverters: ((
 			type: 'Identifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get name() {
-				return replaceField(node, 'name', buffer.convertString(buffer[position + 3]));
-			}
+			name: buffer.convertString(buffer[position + 3])
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -944,9 +943,7 @@ const nodeConverters: ((
 			type: 'JSXIdentifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get name() {
-				return replaceField(node, 'name', buffer.convertString(buffer[position + 3]));
-			}
+			name: buffer.convertString(buffer[position + 3])
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -1287,9 +1284,7 @@ const nodeConverters: ((
 			type: 'PrivateIdentifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get name() {
-				return replaceField(node, 'name', buffer.convertString(buffer[position + 3]));
-			}
+			name: buffer.convertString(buffer[position + 3])
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -1685,9 +1680,12 @@ const nodeConverters: ((
 	}
 ];
 
-export function convertNode(position: number, buffer: AstBuffer, parent: ast.AstNode | null): any {
+export function convertNode(position: number, buffer: AstBuffer, parent: Parent): any {
 	const cachedNode = buffer.lazyNodes?.get(position);
 	if (cachedNode !== undefined) {
+		if (parent !== NO_PARENT && parent !== null && !Object.hasOwn(cachedNode, 'parent')) {
+			setParent(cachedNode, parent);
+		}
 		return cachedNode;
 	}
 	const nodeType = buffer[position];
@@ -1712,6 +1710,9 @@ const parentPropertyDescriptor: PropertyDescriptor = {
 };
 
 function setParent(node: ast.AstNode, parent: ast.AstNode | null): void {
+	if (!Object.isExtensible(node)) {
+		return;
+	}
 	parentPropertyDescriptor.value = parent;
 	Object.defineProperty(node, 'parent', parentPropertyDescriptor);
 	parentPropertyDescriptor.value = null;
@@ -1721,8 +1722,11 @@ function defineParent(
 	node: ast.AstNode,
 	position: number,
 	buffer: AstBuffer,
-	parent: ast.AstNode | null
+	parent: Parent
 ): void {
+	if (parent === NO_PARENT) {
+		return;
+	}
 	if (parent !== null || buffer[position] === 0) {
 		setParent(node, parent);
 		return;
@@ -1745,11 +1749,7 @@ function defineParent(
 	});
 }
 
-function convertNodeList(
-	position: number,
-	buffer: AstBuffer,
-	parent: ast.AstNode | null
-): readonly any[] {
+function convertNodeList(position: number, buffer: AstBuffer, parent: Parent): readonly any[] {
 	if (position === 0) return EMPTY_ARRAY;
 	const length = buffer[position++];
 	const list: any[] = new Array(length);

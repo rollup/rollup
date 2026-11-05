@@ -1,19 +1,21 @@
 const assert = require('node:assert/strict');
 
 const decorators = [];
+let decoratorParent;
 
 module.exports = defineTest({
 	description: 'parses a Decorator',
 	walk: {
-		Decorator(node) {
+		Decorator(node, api) {
 			decorators.push(node);
+			decoratorParent ||= api.getParent();
 		}
 	},
 	assertions() {
 		const [decorator] = decorators;
-		assert.strictEqual(decorator.parent.type, 'ClassDeclaration');
-		assert.strictEqual(decorator.parent.decorators[0], decorator);
-		assert.strictEqual(decorator.parent.parent.type, 'Program');
+		assert.strictEqual(decoratorParent.type, 'ClassDeclaration');
+		assert.strictEqual(decoratorParent.decorators[0], decorator);
+		assert.strictEqual(decoratorParent.parent.type, 'Program');
 		assert.strictEqual(decorator.expression.parent, decorator);
 		assert.deepEqual(decorators, [
 			{

@@ -1970,6 +1970,7 @@ type Visitors = {
 	[NodeType: string]: (
 		node: AstNode,
 		api: {
+			getParent: () => AstNode | null;
 			parseChildren: () => void;
 			skipChildren: () => void;
 			scope?: ParseAndWalkScope;
@@ -2376,10 +2377,11 @@ This lazy generation significantly improves performance when working with large 
 
 ### Parent links
 
-Every node of a lazy AST has a `parent` property that points to the node containing it. Nodes of eager ASTs do not have this property, so if you need parent links from [`this.parse`](#this-parse), use [`parseLazyAst`](../javascript-api/index.md#accessing-the-parser), [`parseAndWalk`](#this-parseandwalk) or the lazy AST from [module info](#accessing-asts-from-module-info) instead.
+Nodes of a lazy AST have a `parent` property that points to the node containing them. Nodes of eager ASTs do not have this property, so if you need parent links from [`this.parse`](#this-parse), use [`parseLazyAst`](../javascript-api/index.md#accessing-the-parser), [`parseAndWalk`](#this-parseandwalk) or the lazy AST from [module info](#accessing-asts-from-module-info) instead.
 
 - The root `Program` has `parent === null`, while eager ASTs do not have the property at all, so `'parent' in node` tells the two apart.
-- Like other lazy properties, `parent` is resolved on first access. When a node is visited directly, for instance by [`parseAndWalk`](#this-parseandwalk), Rollup materializes its ancestors on demand and always returns the same node objects for the same source node within that AST. Because of that identity, keeping a visited node alive also keeps the nodes materialized during the same walk alive.
+- Nodes that [`parseAndWalk`](#this-parseandwalk) passes to a visitor are created without their own `parent`, because resolving it while creating every visited node would dominate the cost of dense walks. Use the walk API instead: `api.getParent()` returns the parent node, and that node's own `parent` is resolved on access, so `api.getParent().parent` walks all the way to the root.
+- Like other lazy properties, `parent` is resolved on first access. Rollup always returns the same node objects for the same source node within one AST, so keeping a visited node alive also keeps the nodes materialized during the same walk alive.
 - `parent` is non-enumerable. It is therefore not part of `Object.keys`, stringification or shallow copies: spread copies, clones and `JSON.parse(JSON.stringify(ast))` lose the parent links, while their existing references to child nodes still point to the parents of the original AST. Storing a reference to the AST itself preserves the links.
 - Each node has exactly one parent. For default destructuring like `const { x = 1 } = obj`, `key` and `value.left` are the same `Identifier` whose `parent` is the `AssignmentPattern` rather than the `Property`.
 

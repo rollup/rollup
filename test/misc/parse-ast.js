@@ -311,13 +311,13 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.init.name, 'foo');
 	});
 
-	it('allows reading the parent of a frozen node whose parent has not been resolved yet', async () => {
+	it('allows resolving the parent of a frozen walked node', async () => {
 		let parentType;
 		await parseAndWalk('const x = foo;', {
-			Identifier(node) {
+			Identifier(node, api) {
 				if (node.name !== 'foo') return;
 				Object.freeze(node);
-				parentType = node.parent.type;
+				parentType = api.getParent().type;
 			}
 		});
 		assert.strictEqual(parentType, 'VariableDeclarator');
@@ -337,38 +337,44 @@ describe('lazy AST parents', () => {
 			['export default @dec class {}', 'ExportDefaultDeclaration']
 		]) {
 			let classNode;
+			let classParentType;
 			let decorator;
+			let decoratorParent;
 			await parseAndWalk(code, {
-				ClassDeclaration(node) {
-					assert.strictEqual(node.parent.type, exportType, code);
+				ClassDeclaration(node, api) {
+					classParentType = api.getParent().type;
 					classNode = node;
 				},
-				Decorator(node) {
-					assert.strictEqual(node.parent.type, 'ClassDeclaration', code);
+				Decorator(node, api) {
+					decoratorParent = api.getParent();
 					decorator = node;
 				}
 			});
-			assert.strictEqual(decorator.parent, classNode, code);
+			assert.strictEqual(classParentType, exportType, code);
+			assert.strictEqual(decoratorParent, classNode, code);
 			assert.strictEqual(classNode.decorators[0], decorator, code);
 		}
 	});
 
 	it('gives the program a null parent when walking', async () => {
 		let programParent = 'unset';
+		let hasParentProperty = true;
 		await parseAndWalk('const x = foo;', {
-			Program(node) {
-				programParent = node.parent;
+			Program(node, api) {
+				hasParentProperty = 'parent' in node;
+				programParent = api.getParent();
 			}
 		});
 		assert.strictEqual(programParent, null);
+		assert.strictEqual(hasParentProperty, false);
 	});
 
-	it('resolves the parent of a walked node only once', async () => {
+	it('returns the same parent on repeated calls', async () => {
 		let parents;
 		await parseAndWalk('const x = foo;', {
-			Identifier(node) {
+			Identifier(node, api) {
 				if (node.name !== 'foo') return;
-				parents = [node.parent, node.parent];
+				parents = [api.getParent(), api.getParent()];
 			}
 		});
 		assert.strictEqual(parents[0], parents[1]);
@@ -423,10 +429,14 @@ describe('lazy AST parents', () => {
 	it('keeps the same node identity across visitors and parent links in parseAndWalk', async () => {
 		const identifiers = new Map();
 		const declarators = [];
+		let otherParent;
 		await parseAndWalk('const value = other + 1;', {
-			Identifier(node) {
+			Identifier(node, api) {
 				if (identifiers.has(node.name)) {
 					assert.strictEqual(identifiers.get(node.name), node);
+				}
+				if (node.name === 'other') {
+					otherParent = api.getParent();
 				}
 				identifiers.set(node.name, node);
 			},
@@ -438,6 +448,6 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.id, identifiers.get('value'));
 		assert.strictEqual(declarator.id.parent, declarator);
 		assert.strictEqual(declarator.init.parent, declarator);
-		assert.strictEqual(identifiers.get('other').parent, declarator.init);
+		assert.strictEqual(otherParent, declarator.init);
 	});
 });
