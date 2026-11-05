@@ -168,5 +168,6 @@ const _walkHandler: rollup.ParseAndWalkHandler<rollup.ast.VariableDeclarator> = 
 	const _parent: rollup.ast.AstNode | null | undefined = node.parent;
 	const _idParent: rollup.ast.AstNode | null | undefined = node.id.parent;
 	const _idType: string = node.id.type;
+	const _gotParent: rollup.ast.AstNode | null = api.getParent();
 	api.parseChildren();
 };

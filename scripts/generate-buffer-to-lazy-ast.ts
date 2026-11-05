@@ -7,6 +7,8 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const bufferToJsAstFile = new URL('../src/utils/bufferToLazyAst.ts', import.meta.url);
 
+const IDENTIFIER_NODE_NAMES = new Set(['Identifier', 'JSXIdentifier', 'PrivateIdentifier']);
+
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];
 	let offset = 3;
@@ -100,6 +102,11 @@ function getFieldProperty(
 		case 'FixedString':
 		case 'Float': {
 			return `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`;
+		}
+		case 'String': {
+			return IDENTIFIER_NODE_NAMES.has(nodeName) && field.name === 'name'
+				? `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`
+				: getLazyFieldProperty(field, nodeName, node, offset);
 		}
 		default: {
 			return getLazyFieldProperty(field, nodeName, node, offset);
@@ -211,13 +218,21 @@ function replaceField<T>(node: ast.AstNode, key: string, value: T): T {
   return value;
 }
 
-const nodeConverters: ((position: number, buffer: AstBuffer, parent: ast.AstNode | null) => ast.AstNode)[] = [
+/* Nodes visited by parseAndWalk are created without parent information; their
+   parent is resolved via the walk API instead of an own property. */
+export const NO_PARENT: unique symbol = Symbol('NO_PARENT');
+type Parent = ast.AstNode | null | typeof NO_PARENT;
+
+const nodeConverters: ((position: number, buffer: AstBuffer, parent: Parent) => ast.AstNode)[] = [
   ${jsConverters.join(',\n')}
 ];
 
-export function convertNode(position: number, buffer: AstBuffer, parent: ast.AstNode | null): any {
+export function convertNode(position: number, buffer: AstBuffer, parent: Parent): any {
   const cachedNode = buffer.lazyNodes?.get(position);
   if (cachedNode !== undefined) {
+    if (parent !== NO_PARENT && parent !== null && !Object.hasOwn(cachedNode, 'parent')) {
+      setParent(cachedNode, parent);
+    }
     return cachedNode;
   }
   const nodeType = buffer[position];
@@ -242,6 +257,9 @@ const parentPropertyDescriptor: PropertyDescriptor = {
 };
 
 function setParent(node: ast.AstNode, parent: ast.AstNode | null): void {
+  if (!Object.isExtensible(node)) {
+    return;
+  }
   parentPropertyDescriptor.value = parent;
   Object.defineProperty(node, 'parent', parentPropertyDescriptor);
   parentPropertyDescriptor.value = null;
@@ -251,8 +269,11 @@ function defineParent(
   node: ast.AstNode,
   position: number,
   buffer: AstBuffer,
-  parent: ast.AstNode | null
+  parent: Parent
 ): void {
+  if (parent === NO_PARENT) {
+    return;
+  }
   if (parent !== null || buffer[position] === 0) {
     setParent(node, parent);
     return;
@@ -275,7 +296,7 @@ function defineParent(
   });
 }
 
-function convertNodeList(position: number, buffer: AstBuffer, parent: ast.AstNode | null): readonly any[] {
+function convertNodeList(position: number, buffer: AstBuffer, parent: Parent): readonly any[] {
   if (position === 0) return EMPTY_ARRAY;
   const length = buffer[position++];
   const list: any[] = new Array(length);
