@@ -33,11 +33,9 @@ const replacedFieldDescriptor: PropertyDescriptor = {
 };
 
 function replaceField<T>(node: ast.AstNode, key: string, value: T): T {
-	if (Object.isExtensible(node)) {
-		replacedFieldDescriptor.value = value;
-		Object.defineProperty(node, key, replacedFieldDescriptor);
-		replacedFieldDescriptor.value = null;
-	}
+	replacedFieldDescriptor.value = value;
+	Object.defineProperty(node, key, replacedFieldDescriptor);
+	replacedFieldDescriptor.value = null;
 	return value;
 }
 
@@ -1710,9 +1708,6 @@ const parentPropertyDescriptor: PropertyDescriptor = {
 };
 
 function setParent(node: ast.AstNode, parent: ast.AstNode | null): void {
-	if (!Object.isExtensible(node)) {
-		return;
-	}
 	parentPropertyDescriptor.value = parent;
 	Object.defineProperty(node, 'parent', parentPropertyDescriptor);
 	parentPropertyDescriptor.value = null;
@@ -1741,9 +1736,7 @@ function defineParent(
 				cache.set(typePosition, node);
 			}
 			const resolvedParent = convertNode(buffer[position] - 1, buffer, null);
-			if (Object.isExtensible(node)) {
-				setParent(node, resolvedParent);
-			}
+			setParent(node, resolvedParent);
 			return resolvedParent;
 		}
 	});

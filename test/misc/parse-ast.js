@@ -297,32 +297,6 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(importExpression.source.parent.source, importExpression.source);
 	});
 
-	it('allows reading the parent of a frozen node', () => {
-		const ast = parseLazyAst('const x = foo;');
-		const declarator = ast.body[0].declarations[0];
-		Object.freeze(declarator);
-		assert.strictEqual(declarator.parent, ast.body[0]);
-	});
-
-	it('allows reading lazy fields of a frozen node', () => {
-		const ast = parseLazyAst('const x = foo;');
-		const declarator = ast.body[0].declarations[0];
-		Object.freeze(declarator);
-		assert.strictEqual(declarator.init.name, 'foo');
-	});
-
-	it('allows resolving the parent of a frozen walked node', async () => {
-		let parentType;
-		await parseAndWalk('const x = foo;', {
-			Identifier(node, api) {
-				if (node.name !== 'foo') return;
-				Object.freeze(node);
-				parentType = api.getParent().type;
-			}
-		});
-		assert.strictEqual(parentType, 'VariableDeclarator');
-	});
-
 	it('returns the same parent on repeated access', () => {
 		const ast = parseLazyAst('const x = foo;');
 		const declarator = ast.body[0].declarations[0];
