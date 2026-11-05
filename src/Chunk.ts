@@ -516,7 +516,8 @@ export default class Chunk {
 				this.facadeModule = module;
 				this.facadeChunkByModule.set(module, this);
 				this.strictFacade = true;
-				this.dynamicName = getDynamicChunkNameFromModule(module);
+				this.dynamicName =
+					getPredefinedChunkNameFromModule(module) ?? getDynamicAliasName(module.id);
 			} else if (
 				this.facadeModule === module &&
 				!this.strictFacade &&
@@ -1622,10 +1623,6 @@ export default class Chunk {
 
 function getChunkNameFromModule(module: Module): string {
 	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
-}
-
-function getDynamicChunkNameFromModule(module: Module): string {
-	return getPredefinedChunkNameFromModule(module) ?? getDynamicAliasName(module.id);
 }
 
 function getPredefinedChunkNameFromModule(module: Module): string {
