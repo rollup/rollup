@@ -509,8 +509,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function importExpression(node: ImportExpression, position, buffer) {
 		const { scope } = node;
 		node.source = convertNode(node, scope, buffer[position], buffer);
-		buffer.lazyNodes ??= new Map();
-		node.sourceAstNode = convertJsonNode(buffer[position], buffer, null);
+		node.sourceAstNode = convertJsonNode(buffer[position], buffer);
 		const optionsPosition = buffer[position + 1];
 		node.options = optionsPosition === 0 ? null : convertNode(node, scope, optionsPosition, buffer);
 		const phasePosition = buffer[position + 2];

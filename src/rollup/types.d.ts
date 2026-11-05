@@ -248,12 +248,6 @@ export type SerializeAst = (node: ast.AstNode) => /*browser: Uint8Array; */ Buff
 
 export interface ParseAndWalkApi {
 	/**
-	 * Returns the parent of the current node, or `null` for the root node. The
-	 * parent is created on demand, so repeated calls are cheap but the first
-	 * call materialises the parent node.
-	 */
-	getParent: () => ast.AstNode | null;
-	/**
 	 * Call this function to parse all child nodes of the current node.
 	 * This function returns once all children are parsed and their callbacks
 	 * have been executed.

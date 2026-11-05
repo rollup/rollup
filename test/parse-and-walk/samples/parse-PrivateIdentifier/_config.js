@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const privateIdentifiers = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(privateIdentifiers, [
+		assertAstEqual(privateIdentifiers, [
 			{
 				type: 'PrivateIdentifier',
 				start: 24,

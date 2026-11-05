@@ -1,3 +1,4 @@
+const { serializeModuleInfo } = require('../../../testHelpers');
 const assert = require('node:assert');
 const path = require('node:path');
 
@@ -31,7 +32,7 @@ module.exports = defineTest({
 						],
 						sourceType: 'module'
 					};
-					assert.deepStrictEqual(JSON.parse(JSON.stringify(info)), {
+					assert.deepStrictEqual(serializeModuleInfo(info), {
 						attributes: {},
 						ast,
 						code: 'export default 42;\n',
@@ -59,7 +60,7 @@ module.exports = defineTest({
 						syntheticNamedExports: false
 					});
 					// Call AST again to ensure line coverage for cached getter
-					assert.deepStrictEqual(JSON.parse(JSON.stringify(info.ast)), ast);
+					assert.deepStrictEqual(serializeModuleInfo(info.ast), ast);
 				}
 			}
 		]

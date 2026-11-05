@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const blockStatements = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(blockStatements, [
+		assertAstEqual(blockStatements, [
 			{
 				type: 'BlockStatement',
 				start: 30,

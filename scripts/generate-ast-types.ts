@@ -71,7 +71,8 @@ function getNodeType(name: string, node: NodeDescription, nodeFields: FieldDescr
 	);
 	const fixedFields = Object.entries(node.fixed || {}).map(([name, type]) => `${name}: ${type};`);
 	return `export interface ${name} extends AstNodeBase {
-  type: '${node.astType || name}';${[...(fields || []), ...additionalFields, ...fixedFields, ...(flags || [])].map(field => `\n  ${field}`).join('')}
+  type: '${node.astType || name}';
+  parent?: AstNode | null;${[...(fields || []), ...additionalFields, ...fixedFields, ...(flags || [])].map(field => `\n  ${field}`).join('')}
 }`;
 }
 
@@ -104,6 +105,19 @@ ${Object.entries(NODE_UNION_TYPES)
 	.join('\n\n')}
 
 export type AstNode = ${astNodeNamesWithFieldOrder.map(({ name }) => `${name}`).join(' | ')};
+
+/**
+ * A lazy AST node whose \`parent\` is present at runtime. The root node of a
+ * parse can still have \`parent === null\`, so the parent chain stays optional.
+ */
+export type LazyNode<T extends AstNode = AstNode> = T extends unknown
+	? T & { parent: Exclude<T['parent'], undefined> }
+	: never;
+
+/**
+ * The shape of an eager AST node, which never has a \`parent\` property.
+ */
+export type EagerNode<T extends AstNode = AstNode> = T extends unknown ? Omit<T, 'parent'> : never;
 
 export interface AstNodeTypeMap {${(() => {
 	const typeMap = new Map<string, string[]>();

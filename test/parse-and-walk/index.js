@@ -12,9 +12,8 @@ const {
 	serializeAst,
 	deserializeAst
 } = require('../../dist/parseAst');
-const { expectError, runTestSuiteWithSamples } = require('../testHelpers.js');
+const { assertAstEqual, expectError, runTestSuiteWithSamples } = require('../testHelpers.js');
 const { readFileSync } = require('node:fs');
-const assert = require('node:assert/strict');
 
 runTestSuiteWithSamples(
 	'parse-and-walk',
@@ -47,14 +46,14 @@ runTestSuiteWithSamples(
 						await config.assertions();
 					}
 					if (config.expectedAst) {
-						assert.deepEqual(parseAst(code, config.parseOptions), config.expectedAst);
-						assert.deepEqual(parseLazyAst(code, config.parseOptions), config.expectedAst);
-						assert.deepEqual(await parseAstAsync(code, config.parseOptions), config.expectedAst);
-						assert.deepEqual(
-							await parseLazyAstAsync(code, config.parseOptions),
+						assertAstEqual(parseAst(code, config.parseOptions), config.expectedAst);
+						assertAstEqual(parseLazyAst(code, config.parseOptions), config.expectedAst);
+						assertAstEqual(await parseAstAsync(code, config.parseOptions), config.expectedAst);
+						assertAstEqual(await parseLazyAstAsync(code, config.parseOptions), config.expectedAst);
+						assertAstEqual(
+							deserializeAst(serializeAst(/** @type {any} */ (config.expectedAst))),
 							config.expectedAst
 						);
-						assert.deepEqual(deserializeAst(serializeAst(config.expectedAst)), config.expectedAst);
 					}
 				}
 			}

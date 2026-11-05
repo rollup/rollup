@@ -23,26 +23,31 @@ interface Annotation extends BaseNode {
 
 export interface PanicError extends AstNodeBase {
 	type: 'PanicError';
+	parent?: AstNode | null;
 	message: string;
 }
 
 export interface ParseError extends AstNodeBase {
 	type: 'ParseError';
+	parent?: AstNode | null;
 	message: string;
 }
 
 export interface ArrayExpression extends AstNodeBase {
 	type: 'ArrayExpression';
+	parent?: AstNode | null;
 	elements: readonly (Expression | SpreadElement | null)[];
 }
 
 export interface ArrayPattern extends AstNodeBase {
 	type: 'ArrayPattern';
+	parent?: AstNode | null;
 	elements: readonly (DestructuringPattern | null)[];
 }
 
 export interface ArrowFunctionExpression extends AstNodeBase {
 	type: 'ArrowFunctionExpression';
+	parent?: AstNode | null;
 	annotations?: readonly Annotation[];
 	params: readonly Parameter[];
 	body: BlockStatement | Expression;
@@ -54,6 +59,7 @@ export interface ArrowFunctionExpression extends AstNodeBase {
 
 export interface AssignmentExpression extends AstNodeBase {
 	type: 'AssignmentExpression';
+	parent?: AstNode | null;
 	operator:
 		| '='
 		| '+='
@@ -77,17 +83,20 @@ export interface AssignmentExpression extends AstNodeBase {
 
 export interface AssignmentPattern extends AstNodeBase {
 	type: 'AssignmentPattern';
+	parent?: AstNode | null;
 	left: BindingPattern;
 	right: Expression;
 }
 
 export interface AwaitExpression extends AstNodeBase {
 	type: 'AwaitExpression';
+	parent?: AstNode | null;
 	argument: Expression;
 }
 
 export interface BinaryExpression extends AstNodeBase {
 	type: 'BinaryExpression';
+	parent?: AstNode | null;
 	operator:
 		| '=='
 		| '!='
@@ -117,16 +126,19 @@ export interface BinaryExpression extends AstNodeBase {
 
 export interface BlockStatement extends AstNodeBase {
 	type: 'BlockStatement';
-	body: readonly Statement[];
+	parent?: AstNode | null;
+	body: readonly (Directive | Statement)[];
 }
 
 export interface BreakStatement extends AstNodeBase {
 	type: 'BreakStatement';
+	parent?: AstNode | null;
 	label: Identifier | null;
 }
 
 export interface CallExpression extends AstNodeBase {
 	type: 'CallExpression';
+	parent?: AstNode | null;
 	annotations?: readonly Annotation[];
 	callee: Expression | Super;
 	arguments: readonly (Expression | SpreadElement)[];
@@ -135,22 +147,26 @@ export interface CallExpression extends AstNodeBase {
 
 export interface CatchClause extends AstNodeBase {
 	type: 'CatchClause';
+	parent?: AstNode | null;
 	param: BindingPattern | null;
 	body: BlockStatement;
 }
 
 export interface ChainExpression extends AstNodeBase {
 	type: 'ChainExpression';
+	parent?: AstNode | null;
 	expression: CallExpression | MemberExpression;
 }
 
 export interface ClassBody extends AstNodeBase {
 	type: 'ClassBody';
+	parent?: AstNode | null;
 	body: readonly (MethodDefinition | PropertyDefinition | StaticBlock)[];
 }
 
 export interface ClassDeclaration extends AstNodeBase {
 	type: 'ClassDeclaration';
+	parent?: AstNode | null;
 	decorators: readonly Decorator[];
 	id: Identifier | null;
 	superClass: Expression | null;
@@ -159,6 +175,7 @@ export interface ClassDeclaration extends AstNodeBase {
 
 export interface ClassExpression extends AstNodeBase {
 	type: 'ClassExpression';
+	parent?: AstNode | null;
 	decorators: readonly Decorator[];
 	id: Identifier | null;
 	superClass: Expression | null;
@@ -167,6 +184,7 @@ export interface ClassExpression extends AstNodeBase {
 
 export interface ConditionalExpression extends AstNodeBase {
 	type: 'ConditionalExpression';
+	parent?: AstNode | null;
 	test: Expression;
 	consequent: Expression;
 	alternate: Expression;
@@ -174,36 +192,43 @@ export interface ConditionalExpression extends AstNodeBase {
 
 export interface ContinueStatement extends AstNodeBase {
 	type: 'ContinueStatement';
+	parent?: AstNode | null;
 	label: Identifier | null;
 }
 
 export interface DebuggerStatement extends AstNodeBase {
 	type: 'DebuggerStatement';
+	parent?: AstNode | null;
 }
 
 export interface Decorator extends AstNodeBase {
 	type: 'Decorator';
+	parent?: AstNode | null;
 	expression: Expression;
 }
 
 export interface Directive extends AstNodeBase {
 	type: 'ExpressionStatement';
+	parent?: AstNode | null;
 	directive: string;
 	expression: LiteralString;
 }
 
 export interface DoWhileStatement extends AstNodeBase {
 	type: 'DoWhileStatement';
+	parent?: AstNode | null;
 	body: Statement;
 	test: Expression;
 }
 
 export interface EmptyStatement extends AstNodeBase {
 	type: 'EmptyStatement';
+	parent?: AstNode | null;
 }
 
 export interface ExportAllDeclaration extends AstNodeBase {
 	type: 'ExportAllDeclaration';
+	parent?: AstNode | null;
 	exported: Identifier | null;
 	source: LiteralString;
 	attributes: readonly ImportAttribute[];
@@ -211,11 +236,13 @@ export interface ExportAllDeclaration extends AstNodeBase {
 
 export interface ExportDefaultDeclaration extends AstNodeBase {
 	type: 'ExportDefaultDeclaration';
+	parent?: AstNode | null;
 	declaration: FunctionDeclaration | ClassDeclaration | Expression;
 }
 
 export interface ExportNamedDeclaration extends AstNodeBase {
 	type: 'ExportNamedDeclaration';
+	parent?: AstNode | null;
 	specifiers: readonly ExportSpecifier[];
 	source: Literal | null;
 	attributes: readonly ImportAttribute[];
@@ -224,17 +251,20 @@ export interface ExportNamedDeclaration extends AstNodeBase {
 
 export interface ExportSpecifier extends AstNodeBase {
 	type: 'ExportSpecifier';
+	parent?: AstNode | null;
 	local: Identifier | LiteralString;
 	exported: Identifier | LiteralString;
 }
 
 export interface ExpressionStatement extends AstNodeBase {
 	type: 'ExpressionStatement';
+	parent?: AstNode | null;
 	expression: Expression;
 }
 
 export interface ForInStatement extends AstNodeBase {
 	type: 'ForInStatement';
+	parent?: AstNode | null;
 	left: VariableDeclaration | DestructuringPattern;
 	right: Expression;
 	body: Statement;
@@ -242,6 +272,7 @@ export interface ForInStatement extends AstNodeBase {
 
 export interface ForOfStatement extends AstNodeBase {
 	type: 'ForOfStatement';
+	parent?: AstNode | null;
 	left: VariableDeclaration | DestructuringPattern;
 	right: Expression;
 	body: Statement;
@@ -250,6 +281,7 @@ export interface ForOfStatement extends AstNodeBase {
 
 export interface ForStatement extends AstNodeBase {
 	type: 'ForStatement';
+	parent?: AstNode | null;
 	init: Expression | VariableDeclaration | null;
 	test: Expression | null;
 	update: Expression | null;
@@ -258,6 +290,7 @@ export interface ForStatement extends AstNodeBase {
 
 export interface FunctionDeclaration extends AstNodeBase {
 	type: 'FunctionDeclaration';
+	parent?: AstNode | null;
 	annotations?: readonly Annotation[];
 	id: Identifier | null;
 	params: readonly Parameter[];
@@ -269,6 +302,7 @@ export interface FunctionDeclaration extends AstNodeBase {
 
 export interface FunctionExpression extends AstNodeBase {
 	type: 'FunctionExpression';
+	parent?: AstNode | null;
 	annotations?: readonly Annotation[];
 	id: Identifier | null;
 	params: readonly Parameter[];
@@ -280,11 +314,13 @@ export interface FunctionExpression extends AstNodeBase {
 
 export interface Identifier extends AstNodeBase {
 	type: 'Identifier';
+	parent?: AstNode | null;
 	name: string;
 }
 
 export interface IfStatement extends AstNodeBase {
 	type: 'IfStatement';
+	parent?: AstNode | null;
 	test: Expression;
 	consequent: Statement;
 	alternate: Statement | null;
@@ -292,12 +328,14 @@ export interface IfStatement extends AstNodeBase {
 
 export interface ImportAttribute extends AstNodeBase {
 	type: 'ImportAttribute';
+	parent?: AstNode | null;
 	key: Identifier | Literal;
 	value: Literal;
 }
 
 export interface ImportDeclaration extends AstNodeBase {
 	type: 'ImportDeclaration';
+	parent?: AstNode | null;
 	specifiers: readonly (ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier)[];
 	source: LiteralString;
 	attributes: readonly ImportAttribute[];
@@ -306,11 +344,13 @@ export interface ImportDeclaration extends AstNodeBase {
 
 export interface ImportDefaultSpecifier extends AstNodeBase {
 	type: 'ImportDefaultSpecifier';
+	parent?: AstNode | null;
 	local: Identifier;
 }
 
 export interface ImportExpression extends AstNodeBase {
 	type: 'ImportExpression';
+	parent?: AstNode | null;
 	source: Expression;
 	options: Expression | null;
 	phase?: 'source' | 'defer';
@@ -318,32 +358,38 @@ export interface ImportExpression extends AstNodeBase {
 
 export interface ImportNamespaceSpecifier extends AstNodeBase {
 	type: 'ImportNamespaceSpecifier';
+	parent?: AstNode | null;
 	local: Identifier;
 }
 
 export interface ImportSpecifier extends AstNodeBase {
 	type: 'ImportSpecifier';
+	parent?: AstNode | null;
 	imported: Identifier | Literal;
 	local: Identifier;
 }
 
 export interface JSXAttribute extends AstNodeBase {
 	type: 'JSXAttribute';
+	parent?: AstNode | null;
 	name: JSXIdentifier | JSXNamespacedName;
 	value: JSXElement | JSXExpressionContainer | JSXSpreadChild | Literal | null;
 }
 
 export interface JSXClosingElement extends AstNodeBase {
 	type: 'JSXClosingElement';
+	parent?: AstNode | null;
 	name: JSXTagNameExpression;
 }
 
 export interface JSXClosingFragment extends AstNodeBase {
 	type: 'JSXClosingFragment';
+	parent?: AstNode | null;
 }
 
 export interface JSXElement extends AstNodeBase {
 	type: 'JSXElement';
+	parent?: AstNode | null;
 	openingElement: JSXOpeningElement;
 	children: readonly JSXChild[];
 	closingElement: JSXClosingElement | null;
@@ -351,15 +397,18 @@ export interface JSXElement extends AstNodeBase {
 
 export interface JSXEmptyExpression extends AstNodeBase {
 	type: 'JSXEmptyExpression';
+	parent?: AstNode | null;
 }
 
 export interface JSXExpressionContainer extends AstNodeBase {
 	type: 'JSXExpressionContainer';
+	parent?: AstNode | null;
 	expression: Expression | JSXEmptyExpression;
 }
 
 export interface JSXFragment extends AstNodeBase {
 	type: 'JSXFragment';
+	parent?: AstNode | null;
 	openingFragment: JSXOpeningFragment;
 	children: readonly JSXChild[];
 	closingFragment: JSXClosingFragment;
@@ -367,23 +416,27 @@ export interface JSXFragment extends AstNodeBase {
 
 export interface JSXIdentifier extends AstNodeBase {
 	type: 'JSXIdentifier';
+	parent?: AstNode | null;
 	name: string;
 }
 
 export interface JSXMemberExpression extends AstNodeBase {
 	type: 'JSXMemberExpression';
+	parent?: AstNode | null;
 	object: JSXTagNameExpression;
 	property: JSXIdentifier;
 }
 
 export interface JSXNamespacedName extends AstNodeBase {
 	type: 'JSXNamespacedName';
+	parent?: AstNode | null;
 	namespace: JSXIdentifier;
 	name: JSXIdentifier;
 }
 
 export interface JSXOpeningElement extends AstNodeBase {
 	type: 'JSXOpeningElement';
+	parent?: AstNode | null;
 	name: JSXTagNameExpression;
 	attributes: readonly (JSXAttribute | JSXSpreadAttribute)[];
 	selfClosing: boolean;
@@ -391,34 +444,40 @@ export interface JSXOpeningElement extends AstNodeBase {
 
 export interface JSXOpeningFragment extends AstNodeBase {
 	type: 'JSXOpeningFragment';
+	parent?: AstNode | null;
 	attributes: never[];
 	selfClosing: false;
 }
 
 export interface JSXSpreadAttribute extends AstNodeBase {
 	type: 'JSXSpreadAttribute';
+	parent?: AstNode | null;
 	argument: Expression;
 }
 
 export interface JSXSpreadChild extends AstNodeBase {
 	type: 'JSXSpreadChild';
+	parent?: AstNode | null;
 	expression: Expression | JSXEmptyExpression;
 }
 
 export interface JSXText extends AstNodeBase {
 	type: 'JSXText';
+	parent?: AstNode | null;
 	value: string;
 	raw: string;
 }
 
 export interface LabeledStatement extends AstNodeBase {
 	type: 'LabeledStatement';
+	parent?: AstNode | null;
 	label: Identifier;
 	body: Statement;
 }
 
 export interface LiteralBigInt extends AstNodeBase {
 	type: 'Literal';
+	parent?: AstNode | null;
 	bigint: string;
 	raw: string;
 	value: bigint;
@@ -426,24 +485,28 @@ export interface LiteralBigInt extends AstNodeBase {
 
 export interface LiteralBoolean extends AstNodeBase {
 	type: 'Literal';
+	parent?: AstNode | null;
 	raw: string;
 	value: boolean;
 }
 
 export interface LiteralNull extends AstNodeBase {
 	type: 'Literal';
+	parent?: AstNode | null;
 	value: null;
 	raw: 'null';
 }
 
 export interface LiteralNumber extends AstNodeBase {
 	type: 'Literal';
+	parent?: AstNode | null;
 	raw?: string;
 	value: number;
 }
 
 export interface LiteralRegExp extends AstNodeBase {
 	type: 'Literal';
+	parent?: AstNode | null;
 	raw: string;
 	regex: { flags: string; pattern: string };
 	value: RegExp;
@@ -451,12 +514,14 @@ export interface LiteralRegExp extends AstNodeBase {
 
 export interface LiteralString extends AstNodeBase {
 	type: 'Literal';
+	parent?: AstNode | null;
 	value: string;
 	raw?: string;
 }
 
 export interface LogicalExpression extends AstNodeBase {
 	type: 'LogicalExpression';
+	parent?: AstNode | null;
 	operator: '||' | '&&' | '??';
 	left: Expression | PrivateIdentifier;
 	right: Expression;
@@ -464,6 +529,7 @@ export interface LogicalExpression extends AstNodeBase {
 
 export interface MemberExpression extends AstNodeBase {
 	type: 'MemberExpression';
+	parent?: AstNode | null;
 	object: Expression | Super;
 	property: Expression | PrivateIdentifier;
 	computed: boolean;
@@ -472,12 +538,14 @@ export interface MemberExpression extends AstNodeBase {
 
 export interface MetaProperty extends AstNodeBase {
 	type: 'MetaProperty';
+	parent?: AstNode | null;
 	meta: Identifier;
 	property: Identifier;
 }
 
 export interface MethodDefinition extends AstNodeBase {
 	type: 'MethodDefinition';
+	parent?: AstNode | null;
 	decorators: readonly Decorator[];
 	key: Expression | PrivateIdentifier;
 	value: FunctionExpression;
@@ -488,6 +556,7 @@ export interface MethodDefinition extends AstNodeBase {
 
 export interface NewExpression extends AstNodeBase {
 	type: 'NewExpression';
+	parent?: AstNode | null;
 	annotations?: readonly Annotation[];
 	callee: Expression;
 	arguments: readonly (Expression | SpreadElement)[];
@@ -495,21 +564,25 @@ export interface NewExpression extends AstNodeBase {
 
 export interface ObjectExpression extends AstNodeBase {
 	type: 'ObjectExpression';
+	parent?: AstNode | null;
 	properties: readonly (Property | SpreadElement)[];
 }
 
 export interface ObjectPattern extends AstNodeBase {
 	type: 'ObjectPattern';
+	parent?: AstNode | null;
 	properties: readonly (Property | RestElement)[];
 }
 
 export interface PrivateIdentifier extends AstNodeBase {
 	type: 'PrivateIdentifier';
+	parent?: AstNode | null;
 	name: string;
 }
 
 export interface Program extends AstNodeBase {
 	type: 'Program';
+	parent?: AstNode | null;
 	body: readonly (Statement | Directive | ModuleDeclaration)[];
 	invalidAnnotations?: readonly Annotation[];
 	sourceType: 'module';
@@ -517,6 +590,7 @@ export interface Program extends AstNodeBase {
 
 export interface Property extends AstNodeBase {
 	type: 'Property';
+	parent?: AstNode | null;
 	key: Expression;
 	value: Expression | DestructuringPattern;
 	kind: 'init' | 'get' | 'set';
@@ -527,6 +601,7 @@ export interface Property extends AstNodeBase {
 
 export interface PropertyDefinition extends AstNodeBase {
 	type: 'PropertyDefinition';
+	parent?: AstNode | null;
 	decorators: readonly Decorator[];
 	key: Expression | PrivateIdentifier;
 	value: Expression | null;
@@ -536,74 +611,88 @@ export interface PropertyDefinition extends AstNodeBase {
 
 export interface RestElement extends AstNodeBase {
 	type: 'RestElement';
+	parent?: AstNode | null;
 	argument: DestructuringPattern;
 }
 
 export interface ReturnStatement extends AstNodeBase {
 	type: 'ReturnStatement';
+	parent?: AstNode | null;
 	argument: Expression | null;
 }
 
 export interface SequenceExpression extends AstNodeBase {
 	type: 'SequenceExpression';
+	parent?: AstNode | null;
 	expressions: readonly Expression[];
 }
 
 export interface SpreadElement extends AstNodeBase {
 	type: 'SpreadElement';
+	parent?: AstNode | null;
 	argument: Expression;
 }
 
 export interface StaticBlock extends AstNodeBase {
 	type: 'StaticBlock';
+	parent?: AstNode | null;
 	body: readonly Statement[];
 }
 
 export interface Super extends AstNodeBase {
 	type: 'Super';
+	parent?: AstNode | null;
 }
 
 export interface SwitchCase extends AstNodeBase {
 	type: 'SwitchCase';
+	parent?: AstNode | null;
 	test: Expression | null;
 	consequent: readonly Statement[];
 }
 
 export interface SwitchStatement extends AstNodeBase {
 	type: 'SwitchStatement';
+	parent?: AstNode | null;
 	discriminant: Expression;
 	cases: readonly SwitchCase[];
 }
 
 export interface TaggedTemplateExpression extends AstNodeBase {
 	type: 'TaggedTemplateExpression';
+	parent?: AstNode | null;
 	tag: Expression;
 	quasi: TemplateLiteral;
 }
 
 export interface TemplateElement extends AstNodeBase {
 	type: 'TemplateElement';
+	parent?: AstNode | null;
 	value: { cooked?: string; raw: string };
 	tail: boolean;
 }
 
 export interface TemplateLiteral extends AstNodeBase {
 	type: 'TemplateLiteral';
+	parent?: AstNode | null;
 	quasis: readonly TemplateElement[];
 	expressions: readonly Expression[];
 }
 
 export interface ThisExpression extends AstNodeBase {
 	type: 'ThisExpression';
+	parent?: AstNode | null;
 }
 
 export interface ThrowStatement extends AstNodeBase {
 	type: 'ThrowStatement';
+	parent?: AstNode | null;
 	argument: Expression;
 }
 
 export interface TryStatement extends AstNodeBase {
 	type: 'TryStatement';
+	parent?: AstNode | null;
 	block: BlockStatement;
 	handler: CatchClause | null;
 	finalizer: BlockStatement | null;
@@ -611,6 +700,7 @@ export interface TryStatement extends AstNodeBase {
 
 export interface UnaryExpression extends AstNodeBase {
 	type: 'UnaryExpression';
+	parent?: AstNode | null;
 	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
 	argument: Expression;
 	prefix: true;
@@ -618,6 +708,7 @@ export interface UnaryExpression extends AstNodeBase {
 
 export interface UpdateExpression extends AstNodeBase {
 	type: 'UpdateExpression';
+	parent?: AstNode | null;
 	operator: '++' | '--';
 	argument: Expression;
 	prefix: boolean;
@@ -625,24 +716,28 @@ export interface UpdateExpression extends AstNodeBase {
 
 export interface VariableDeclaration extends AstNodeBase {
 	type: 'VariableDeclaration';
+	parent?: AstNode | null;
 	kind: 'var' | 'let' | 'const' | 'using' | 'await using';
 	declarations: readonly VariableDeclarator[];
 }
 
 export interface VariableDeclarator extends AstNodeBase {
 	type: 'VariableDeclarator';
+	parent?: AstNode | null;
 	id: BindingPattern;
 	init: Expression | null;
 }
 
 export interface WhileStatement extends AstNodeBase {
 	type: 'WhileStatement';
+	parent?: AstNode | null;
 	test: Expression;
 	body: Statement;
 }
 
 export interface YieldExpression extends AstNodeBase {
 	type: 'YieldExpression';
+	parent?: AstNode | null;
 	argument: Expression | null;
 	delegate: boolean;
 }
@@ -810,6 +905,19 @@ export type AstNode =
 	| VariableDeclarator
 	| WhileStatement
 	| YieldExpression;
+
+/**
+ * A lazy AST node whose `parent` is present at runtime. The root node of a
+ * parse can still have `parent === null`, so the parent chain stays optional.
+ */
+export type LazyNode<T extends AstNode = AstNode> = T extends unknown
+	? T & { parent: Exclude<T['parent'], undefined> }
+	: never;
+
+/**
+ * The shape of an eager AST node, which never has a `parent` property.
+ */
+export type EagerNode<T extends AstNode = AstNode> = T extends unknown ? Omit<T, 'parent'> : never;
 
 export interface AstNodeTypeMap {
 	PanicError: PanicError;

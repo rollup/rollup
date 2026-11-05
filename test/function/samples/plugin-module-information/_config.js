@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getObject } = require('../../../testHelpers');
+const { serializeModuleInfo, getObject } = require('../../../testHelpers');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
@@ -16,7 +16,7 @@ module.exports = defineTest({
 		plugins: [
 			{
 				load(id) {
-					assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(id))), {
+					assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(id)), {
 						attributes: {},
 						ast: null,
 						code: null,
@@ -48,10 +48,7 @@ module.exports = defineTest({
 					rendered = true;
 					assert.deepStrictEqual(
 						getObject(
-							[...this.getModuleIds()].map(id => [
-								id,
-								JSON.parse(JSON.stringify(this.getModuleInfo(id)))
-							])
+							[...this.getModuleIds()].map(id => [id, serializeModuleInfo(this.getModuleInfo(id))])
 						),
 						{
 							[ID_FOO]: {

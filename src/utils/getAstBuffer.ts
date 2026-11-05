@@ -3,6 +3,7 @@ import type { ast } from '../rollup/types';
 export type AstBuffer = Uint32Array & {
 	convertFloat64: (this: AstBuffer, position: number) => number;
 	convertString: (position: number) => string;
+	lazyLists?: Map<number, readonly any[]>;
 	lazyNodes?: Map<number, ast.AstNode>;
 };
 

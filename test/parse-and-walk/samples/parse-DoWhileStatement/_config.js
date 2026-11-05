@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const doWhileStatements = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(doWhileStatements, [
+		assertAstEqual(doWhileStatements, [
 			{
 				type: 'DoWhileStatement',
 				start: 11,

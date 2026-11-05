@@ -34,6 +34,8 @@ export namespace verifyAstPlugin {
         code: any;
     }): void;
 }
+export function assertAstEqual(actual: any, expected: any): void;
+export function serializeModuleInfo(moduleInfo: any): any;
 export function getRandomElement(array: any): any;
 export function shuffle(array: any): any;
 export type RollupError = import("../src/rollup/types").RollupError;

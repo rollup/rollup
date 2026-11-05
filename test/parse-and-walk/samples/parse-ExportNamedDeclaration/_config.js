@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const exportNamedDeclarations = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(exportNamedDeclarations, [
+		assertAstEqual(exportNamedDeclarations, [
 			{
 				type: 'ExportNamedDeclaration',
 				start: 0,

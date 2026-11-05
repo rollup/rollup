@@ -1,3 +1,4 @@
+const { serializeModuleInfo } = require('../../../../testHelpers');
 const assert = require('node:assert');
 const path = require('node:path');
 
@@ -19,7 +20,7 @@ module.exports = defineTest({
 				});
 			},
 			buildEnd() {
-				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN))), {
+				assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(ID_MAIN)), {
 					id: ID_MAIN,
 					attributes: {},
 					rawId: ID_MAIN,
@@ -101,7 +102,7 @@ module.exports = defineTest({
 					safeVariableNames: null,
 					syntheticNamedExports: false
 				});
-				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
+				assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(ID_DEP)), {
 					id: ID_DEP,
 					attributes: {},
 					rawId: ID_DEP,
