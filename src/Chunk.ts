@@ -61,7 +61,7 @@ import { FILE_PLACEHOLDER } from './utils/outputBundle';
 import { getAttributesFromImportExpression } from './utils/parseImportAttributes';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
 import type { PluginDriver } from './utils/PluginDriver';
-import { getAliasName, getImportPath } from './utils/relativeId';
+import { getAliasName, getDynamicAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -516,7 +516,7 @@ export default class Chunk {
 				this.facadeModule = module;
 				this.facadeChunkByModule.set(module, this);
 				this.strictFacade = true;
-				this.dynamicName = getChunkNameFromModule(module);
+				this.dynamicName = getDynamicChunkNameFromModule(module);
 			} else if (
 				this.facadeModule === module &&
 				!this.strictFacade &&
@@ -1622,6 +1622,10 @@ export default class Chunk {
 
 function getChunkNameFromModule(module: Module): string {
 	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
+}
+
+function getDynamicChunkNameFromModule(module: Module): string {
+	return getPredefinedChunkNameFromModule(module) ?? getDynamicAliasName(module.id);
 }
 
 function getPredefinedChunkNameFromModule(module: Module): string {
