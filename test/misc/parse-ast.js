@@ -228,13 +228,12 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.id.parent, declarator);
 		assert.strictEqual(declarator.init.parent, declarator);
 		assert.strictEqual(declarator.init.name, 'foo');
-		assert.deepStrictEqual(Object.keys(declarator), ['type', 'start', 'end']);
+		assert.deepStrictEqual(Object.keys(declarator), ['start', 'end']);
 		assert.strictEqual(Object.hasOwn(declarator, 'parent'), false);
 		assert.strictEqual('parent' in declarator, true);
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(ast)), {
 			end: 14,
-			start: 0,
-			type: 'Program'
+			start: 0
 		});
 	});
 

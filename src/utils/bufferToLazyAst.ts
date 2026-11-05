@@ -79,6 +79,7 @@ export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): a
 };
 
 const PanicErrorPrototype: object = {
+	type: 'PanicError',
 	get message() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer.convertString(buffer[getPosition(this) + 3]);
@@ -95,6 +96,7 @@ Object.defineProperty(PanicErrorPrototype, 'parent', {
 });
 
 const ParseErrorPrototype: object = {
+	type: 'ParseError',
 	get message() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer.convertString(buffer[getPosition(this) + 3]);
@@ -111,6 +113,7 @@ Object.defineProperty(ParseErrorPrototype, 'parent', {
 });
 
 const ArrayExpressionPrototype: object = {
+	type: 'ArrayExpression',
 	get elements() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -127,6 +130,7 @@ Object.defineProperty(ArrayExpressionPrototype, 'parent', {
 });
 
 const ArrayPatternPrototype: object = {
+	type: 'ArrayPattern',
 	get elements() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -143,6 +147,7 @@ Object.defineProperty(ArrayPatternPrototype, 'parent', {
 });
 
 const ArrowFunctionExpressionPrototype: object = {
+	type: 'ArrowFunctionExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
@@ -169,6 +174,7 @@ Object.defineProperty(ArrowFunctionExpressionPrototype, 'parent', {
 });
 
 const AssignmentExpressionPrototype: object = {
+	type: 'AssignmentExpression',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -189,6 +195,7 @@ Object.defineProperty(AssignmentExpressionPrototype, 'parent', {
 });
 
 const AssignmentPatternPrototype: object = {
+	type: 'AssignmentPattern',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -209,6 +216,7 @@ Object.defineProperty(AssignmentPatternPrototype, 'parent', {
 });
 
 const AwaitExpressionPrototype: object = {
+	type: 'AwaitExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -225,6 +233,7 @@ Object.defineProperty(AwaitExpressionPrototype, 'parent', {
 });
 
 const BinaryExpressionPrototype: object = {
+	type: 'BinaryExpression',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -245,6 +254,7 @@ Object.defineProperty(BinaryExpressionPrototype, 'parent', {
 });
 
 const BlockStatementPrototype: object = {
+	type: 'BlockStatement',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -261,6 +271,7 @@ Object.defineProperty(BlockStatementPrototype, 'parent', {
 });
 
 const BreakStatementPrototype: object = {
+	type: 'BreakStatement',
 	get label() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -279,6 +290,7 @@ Object.defineProperty(BreakStatementPrototype, 'parent', {
 });
 
 const CallExpressionPrototype: object = {
+	type: 'CallExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
@@ -304,6 +316,7 @@ Object.defineProperty(CallExpressionPrototype, 'parent', {
 });
 
 const CatchClausePrototype: object = {
+	type: 'CatchClause',
 	get param() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -326,6 +339,7 @@ Object.defineProperty(CatchClausePrototype, 'parent', {
 });
 
 const ChainExpressionPrototype: object = {
+	type: 'ChainExpression',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -342,6 +356,7 @@ Object.defineProperty(ChainExpressionPrototype, 'parent', {
 });
 
 const ClassBodyPrototype: object = {
+	type: 'ClassBody',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -358,6 +373,7 @@ Object.defineProperty(ClassBodyPrototype, 'parent', {
 });
 
 const ClassDeclarationPrototype: object = {
+	type: 'ClassDeclaration',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -390,6 +406,7 @@ Object.defineProperty(ClassDeclarationPrototype, 'parent', {
 });
 
 const ClassExpressionPrototype: object = {
+	type: 'ClassExpression',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -422,6 +439,7 @@ Object.defineProperty(ClassExpressionPrototype, 'parent', {
 });
 
 const ConditionalExpressionPrototype: object = {
+	type: 'ConditionalExpression',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -446,6 +464,7 @@ Object.defineProperty(ConditionalExpressionPrototype, 'parent', {
 });
 
 const ContinueStatementPrototype: object = {
+	type: 'ContinueStatement',
 	get label() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -463,7 +482,9 @@ Object.defineProperty(ContinueStatementPrototype, 'parent', {
 	}
 });
 
-const DebuggerStatementPrototype: object = {};
+const DebuggerStatementPrototype: object = {
+	type: 'DebuggerStatement'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(DebuggerStatementPrototype, 'parent', {
@@ -475,6 +496,7 @@ Object.defineProperty(DebuggerStatementPrototype, 'parent', {
 });
 
 const DecoratorPrototype: object = {
+	type: 'Decorator',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -491,6 +513,7 @@ Object.defineProperty(DecoratorPrototype, 'parent', {
 });
 
 const DirectivePrototype: object = {
+	type: 'ExpressionStatement',
 	get directive() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer.convertString(buffer[getPosition(this) + 3]);
@@ -511,6 +534,7 @@ Object.defineProperty(DirectivePrototype, 'parent', {
 });
 
 const DoWhileStatementPrototype: object = {
+	type: 'DoWhileStatement',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -530,7 +554,9 @@ Object.defineProperty(DoWhileStatementPrototype, 'parent', {
 	}
 });
 
-const EmptyStatementPrototype: object = {};
+const EmptyStatementPrototype: object = {
+	type: 'EmptyStatement'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(EmptyStatementPrototype, 'parent', {
@@ -542,6 +568,7 @@ Object.defineProperty(EmptyStatementPrototype, 'parent', {
 });
 
 const ExportAllDeclarationPrototype: object = {
+	type: 'ExportAllDeclaration',
 	get exported() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -568,6 +595,7 @@ Object.defineProperty(ExportAllDeclarationPrototype, 'parent', {
 });
 
 const ExportDefaultDeclarationPrototype: object = {
+	type: 'ExportDefaultDeclaration',
 	get declaration() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -584,6 +612,7 @@ Object.defineProperty(ExportDefaultDeclarationPrototype, 'parent', {
 });
 
 const ExportNamedDeclarationPrototype: object = {
+	type: 'ExportNamedDeclaration',
 	get specifiers() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -616,6 +645,7 @@ Object.defineProperty(ExportNamedDeclarationPrototype, 'parent', {
 });
 
 const ExportSpecifierPrototype: object = {
+	type: 'ExportSpecifier',
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -639,6 +669,7 @@ Object.defineProperty(ExportSpecifierPrototype, 'parent', {
 });
 
 const ExpressionStatementPrototype: object = {
+	type: 'ExpressionStatement',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -655,6 +686,7 @@ Object.defineProperty(ExpressionStatementPrototype, 'parent', {
 });
 
 const ForInStatementPrototype: object = {
+	type: 'ForInStatement',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -679,6 +711,7 @@ Object.defineProperty(ForInStatementPrototype, 'parent', {
 });
 
 const ForOfStatementPrototype: object = {
+	type: 'ForOfStatement',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -703,6 +736,7 @@ Object.defineProperty(ForOfStatementPrototype, 'parent', {
 });
 
 const ForStatementPrototype: object = {
+	type: 'ForStatement',
 	get init() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -737,6 +771,7 @@ Object.defineProperty(ForStatementPrototype, 'parent', {
 });
 
 const FunctionDeclarationPrototype: object = {
+	type: 'FunctionDeclaration',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
@@ -769,6 +804,7 @@ Object.defineProperty(FunctionDeclarationPrototype, 'parent', {
 });
 
 const FunctionExpressionPrototype: object = {
+	type: 'FunctionExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
@@ -800,7 +836,9 @@ Object.defineProperty(FunctionExpressionPrototype, 'parent', {
 	}
 });
 
-const IdentifierPrototype: object = {};
+const IdentifierPrototype: object = {
+	type: 'Identifier'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(IdentifierPrototype, 'parent', {
@@ -812,6 +850,7 @@ Object.defineProperty(IdentifierPrototype, 'parent', {
 });
 
 const IfStatementPrototype: object = {
+	type: 'IfStatement',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -838,6 +877,7 @@ Object.defineProperty(IfStatementPrototype, 'parent', {
 });
 
 const ImportAttributePrototype: object = {
+	type: 'ImportAttribute',
 	get key() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -858,6 +898,7 @@ Object.defineProperty(ImportAttributePrototype, 'parent', {
 });
 
 const ImportDeclarationPrototype: object = {
+	type: 'ImportDeclaration',
 	get specifiers() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -882,6 +923,7 @@ Object.defineProperty(ImportDeclarationPrototype, 'parent', {
 });
 
 const ImportDefaultSpecifierPrototype: object = {
+	type: 'ImportDefaultSpecifier',
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -898,6 +940,7 @@ Object.defineProperty(ImportDefaultSpecifierPrototype, 'parent', {
 });
 
 const ImportExpressionPrototype: object = {
+	type: 'ImportExpression',
 	get source() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -920,6 +963,7 @@ Object.defineProperty(ImportExpressionPrototype, 'parent', {
 });
 
 const ImportNamespaceSpecifierPrototype: object = {
+	type: 'ImportNamespaceSpecifier',
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -936,6 +980,7 @@ Object.defineProperty(ImportNamespaceSpecifierPrototype, 'parent', {
 });
 
 const ImportSpecifierPrototype: object = {
+	type: 'ImportSpecifier',
 	get imported() {
 		const node = this as any;
 		const buffer = (this as any)[BUFFER] as AstBuffer;
@@ -959,6 +1004,7 @@ Object.defineProperty(ImportSpecifierPrototype, 'parent', {
 });
 
 const JSXAttributePrototype: object = {
+	type: 'JSXAttribute',
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -981,6 +1027,7 @@ Object.defineProperty(JSXAttributePrototype, 'parent', {
 });
 
 const JSXClosingElementPrototype: object = {
+	type: 'JSXClosingElement',
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -996,7 +1043,9 @@ Object.defineProperty(JSXClosingElementPrototype, 'parent', {
 	}
 });
 
-const JSXClosingFragmentPrototype: object = {};
+const JSXClosingFragmentPrototype: object = {
+	type: 'JSXClosingFragment'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(JSXClosingFragmentPrototype, 'parent', {
@@ -1008,6 +1057,7 @@ Object.defineProperty(JSXClosingFragmentPrototype, 'parent', {
 });
 
 const JSXElementPrototype: object = {
+	type: 'JSXElement',
 	get openingElement() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1033,7 +1083,9 @@ Object.defineProperty(JSXElementPrototype, 'parent', {
 	}
 });
 
-const JSXEmptyExpressionPrototype: object = {};
+const JSXEmptyExpressionPrototype: object = {
+	type: 'JSXEmptyExpression'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(JSXEmptyExpressionPrototype, 'parent', {
@@ -1045,6 +1097,7 @@ Object.defineProperty(JSXEmptyExpressionPrototype, 'parent', {
 });
 
 const JSXExpressionContainerPrototype: object = {
+	type: 'JSXExpressionContainer',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1061,6 +1114,7 @@ Object.defineProperty(JSXExpressionContainerPrototype, 'parent', {
 });
 
 const JSXFragmentPrototype: object = {
+	type: 'JSXFragment',
 	get openingFragment() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1084,7 +1138,9 @@ Object.defineProperty(JSXFragmentPrototype, 'parent', {
 	}
 });
 
-const JSXIdentifierPrototype: object = {};
+const JSXIdentifierPrototype: object = {
+	type: 'JSXIdentifier'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(JSXIdentifierPrototype, 'parent', {
@@ -1096,6 +1152,7 @@ Object.defineProperty(JSXIdentifierPrototype, 'parent', {
 });
 
 const JSXMemberExpressionPrototype: object = {
+	type: 'JSXMemberExpression',
 	get object() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1116,6 +1173,7 @@ Object.defineProperty(JSXMemberExpressionPrototype, 'parent', {
 });
 
 const JSXNamespacedNamePrototype: object = {
+	type: 'JSXNamespacedName',
 	get namespace() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1136,6 +1194,7 @@ Object.defineProperty(JSXNamespacedNamePrototype, 'parent', {
 });
 
 const JSXOpeningElementPrototype: object = {
+	type: 'JSXOpeningElement',
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -1156,6 +1215,7 @@ Object.defineProperty(JSXOpeningElementPrototype, 'parent', {
 });
 
 const JSXOpeningFragmentPrototype: object = {
+	type: 'JSXOpeningFragment',
 	get attributes() {
 		return [];
 	},
@@ -1174,6 +1234,7 @@ Object.defineProperty(JSXOpeningFragmentPrototype, 'parent', {
 });
 
 const JSXSpreadAttributePrototype: object = {
+	type: 'JSXSpreadAttribute',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1190,6 +1251,7 @@ Object.defineProperty(JSXSpreadAttributePrototype, 'parent', {
 });
 
 const JSXSpreadChildPrototype: object = {
+	type: 'JSXSpreadChild',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1206,6 +1268,7 @@ Object.defineProperty(JSXSpreadChildPrototype, 'parent', {
 });
 
 const JSXTextPrototype: object = {
+	type: 'JSXText',
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer.convertString(buffer[getPosition(this) + 3]);
@@ -1226,6 +1289,7 @@ Object.defineProperty(JSXTextPrototype, 'parent', {
 });
 
 const LabeledStatementPrototype: object = {
+	type: 'LabeledStatement',
 	get label() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1246,6 +1310,7 @@ Object.defineProperty(LabeledStatementPrototype, 'parent', {
 });
 
 const LiteralBigIntPrototype: object = {
+	type: 'Literal',
 	get bigint() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer.convertString(buffer[getPosition(this) + 3]);
@@ -1272,6 +1337,7 @@ Object.defineProperty(LiteralBigIntPrototype, 'parent', {
 });
 
 const LiteralBooleanPrototype: object = {
+	type: 'Literal',
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
@@ -1290,6 +1356,7 @@ Object.defineProperty(LiteralBooleanPrototype, 'parent', {
 });
 
 const LiteralNullPrototype: object = {
+	type: 'Literal',
 	get value() {
 		return null;
 	},
@@ -1306,6 +1373,7 @@ Object.defineProperty(LiteralNullPrototype, 'parent', {
 });
 
 const LiteralNumberPrototype: object = {
+	type: 'Literal',
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this) + 3;
@@ -1327,6 +1395,7 @@ Object.defineProperty(LiteralNumberPrototype, 'parent', {
 });
 
 const LiteralRegExpPrototype: object = {
+	type: 'Literal',
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
@@ -1360,6 +1429,7 @@ Object.defineProperty(LiteralRegExpPrototype, 'parent', {
 });
 
 const LiteralStringPrototype: object = {
+	type: 'Literal',
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer.convertString(buffer[getPosition(this) + 3]);
@@ -1381,6 +1451,7 @@ Object.defineProperty(LiteralStringPrototype, 'parent', {
 });
 
 const LogicalExpressionPrototype: object = {
+	type: 'LogicalExpression',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -1401,6 +1472,7 @@ Object.defineProperty(LogicalExpressionPrototype, 'parent', {
 });
 
 const MemberExpressionPrototype: object = {
+	type: 'MemberExpression',
 	get object() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -1421,6 +1493,7 @@ Object.defineProperty(MemberExpressionPrototype, 'parent', {
 });
 
 const MetaPropertyPrototype: object = {
+	type: 'MetaProperty',
 	get meta() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1441,6 +1514,7 @@ Object.defineProperty(MetaPropertyPrototype, 'parent', {
 });
 
 const MethodDefinitionPrototype: object = {
+	type: 'MethodDefinition',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 4], buffer);
@@ -1465,6 +1539,7 @@ Object.defineProperty(MethodDefinitionPrototype, 'parent', {
 });
 
 const NewExpressionPrototype: object = {
+	type: 'NewExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const annotations = convertAnnotations(buffer[getPosition(this) + 3], buffer);
@@ -1490,6 +1565,7 @@ Object.defineProperty(NewExpressionPrototype, 'parent', {
 });
 
 const ObjectExpressionPrototype: object = {
+	type: 'ObjectExpression',
 	get properties() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -1506,6 +1582,7 @@ Object.defineProperty(ObjectExpressionPrototype, 'parent', {
 });
 
 const ObjectPatternPrototype: object = {
+	type: 'ObjectPattern',
 	get properties() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -1521,7 +1598,9 @@ Object.defineProperty(ObjectPatternPrototype, 'parent', {
 	}
 });
 
-const PrivateIdentifierPrototype: object = {};
+const PrivateIdentifierPrototype: object = {
+	type: 'PrivateIdentifier'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(PrivateIdentifierPrototype, 'parent', {
@@ -1533,6 +1612,7 @@ Object.defineProperty(PrivateIdentifierPrototype, 'parent', {
 });
 
 const ProgramPrototype: object = {
+	type: 'Program',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -1555,6 +1635,7 @@ Object.defineProperty(ProgramPrototype, 'parent', {
 });
 
 const PropertyPrototype: object = {
+	type: 'Property',
 	get key() {
 		const node = this as any;
 		const buffer = (this as any)[BUFFER] as AstBuffer;
@@ -1580,6 +1661,7 @@ Object.defineProperty(PropertyPrototype, 'parent', {
 });
 
 const PropertyDefinitionPrototype: object = {
+	type: 'PropertyDefinition',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 4], buffer);
@@ -1606,6 +1688,7 @@ Object.defineProperty(PropertyDefinitionPrototype, 'parent', {
 });
 
 const RestElementPrototype: object = {
+	type: 'RestElement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1622,6 +1705,7 @@ Object.defineProperty(RestElementPrototype, 'parent', {
 });
 
 const ReturnStatementPrototype: object = {
+	type: 'ReturnStatement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -1640,6 +1724,7 @@ Object.defineProperty(ReturnStatementPrototype, 'parent', {
 });
 
 const SequenceExpressionPrototype: object = {
+	type: 'SequenceExpression',
 	get expressions() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -1656,6 +1741,7 @@ Object.defineProperty(SequenceExpressionPrototype, 'parent', {
 });
 
 const SpreadElementPrototype: object = {
+	type: 'SpreadElement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1672,6 +1758,7 @@ Object.defineProperty(SpreadElementPrototype, 'parent', {
 });
 
 const StaticBlockPrototype: object = {
+	type: 'StaticBlock',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -1687,7 +1774,9 @@ Object.defineProperty(StaticBlockPrototype, 'parent', {
 	}
 });
 
-const SuperPrototype: object = {};
+const SuperPrototype: object = {
+	type: 'Super'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(SuperPrototype, 'parent', {
@@ -1699,6 +1788,7 @@ Object.defineProperty(SuperPrototype, 'parent', {
 });
 
 const SwitchCasePrototype: object = {
+	type: 'SwitchCase',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 3] === 0
@@ -1721,6 +1811,7 @@ Object.defineProperty(SwitchCasePrototype, 'parent', {
 });
 
 const SwitchStatementPrototype: object = {
+	type: 'SwitchStatement',
 	get discriminant() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1741,6 +1832,7 @@ Object.defineProperty(SwitchStatementPrototype, 'parent', {
 });
 
 const TaggedTemplateExpressionPrototype: object = {
+	type: 'TaggedTemplateExpression',
 	get tag() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1761,6 +1853,7 @@ Object.defineProperty(TaggedTemplateExpressionPrototype, 'parent', {
 });
 
 const TemplateElementPrototype: object = {
+	type: 'TemplateElement',
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
@@ -1781,6 +1874,7 @@ Object.defineProperty(TemplateElementPrototype, 'parent', {
 });
 
 const TemplateLiteralPrototype: object = {
+	type: 'TemplateLiteral',
 	get quasis() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 3], buffer);
@@ -1800,7 +1894,9 @@ Object.defineProperty(TemplateLiteralPrototype, 'parent', {
 	}
 });
 
-const ThisExpressionPrototype: object = {};
+const ThisExpressionPrototype: object = {
+	type: 'ThisExpression'
+};
 /* The parent must not be enumerable as that would make for..in based
    walkers like estree-walker traverse it into cycles. */
 Object.defineProperty(ThisExpressionPrototype, 'parent', {
@@ -1812,6 +1908,7 @@ Object.defineProperty(ThisExpressionPrototype, 'parent', {
 });
 
 const ThrowStatementPrototype: object = {
+	type: 'ThrowStatement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1828,6 +1925,7 @@ Object.defineProperty(ThrowStatementPrototype, 'parent', {
 });
 
 const TryStatementPrototype: object = {
+	type: 'TryStatement',
 	get block() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1856,6 +1954,7 @@ Object.defineProperty(TryStatementPrototype, 'parent', {
 });
 
 const UnaryExpressionPrototype: object = {
+	type: 'UnaryExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 4], buffer);
@@ -1873,6 +1972,7 @@ Object.defineProperty(UnaryExpressionPrototype, 'parent', {
 });
 
 const UpdateExpressionPrototype: object = {
+	type: 'UpdateExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 5], buffer);
@@ -1889,6 +1989,7 @@ Object.defineProperty(UpdateExpressionPrototype, 'parent', {
 });
 
 const VariableDeclarationPrototype: object = {
+	type: 'VariableDeclaration',
 	get declarations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNodeList(buffer[getPosition(this) + 4], buffer);
@@ -1905,6 +2006,7 @@ Object.defineProperty(VariableDeclarationPrototype, 'parent', {
 });
 
 const VariableDeclaratorPrototype: object = {
+	type: 'VariableDeclarator',
 	get id() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1927,6 +2029,7 @@ Object.defineProperty(VariableDeclaratorPrototype, 'parent', {
 });
 
 const WhileStatementPrototype: object = {
+	type: 'WhileStatement',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return convertNode(buffer[getPosition(this) + 3], buffer);
@@ -1947,6 +2050,7 @@ Object.defineProperty(WhileStatementPrototype, 'parent', {
 });
 
 const YieldExpressionPrototype: object = {
+	type: 'YieldExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 4] === 0
@@ -2071,7 +2175,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'PanicError';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2084,7 +2187,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ParseError';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2097,7 +2199,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ArrayExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2110,7 +2211,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ArrayPattern';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2123,7 +2223,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ArrowFunctionExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2140,7 +2239,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'AssignmentExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.operator = FIXED_STRINGS[buffer[position + 3]];
@@ -2154,7 +2252,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'AssignmentPattern';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2167,7 +2264,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'AwaitExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2180,7 +2276,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'BinaryExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.operator = FIXED_STRINGS[buffer[position + 3]];
@@ -2194,7 +2289,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'BlockStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2207,7 +2301,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'BreakStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2220,7 +2313,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'CallExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2235,7 +2327,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'CatchClause';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2248,7 +2339,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ChainExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2257,7 +2347,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ClassBody';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2270,7 +2359,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ClassDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2283,7 +2371,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ClassExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2296,7 +2383,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ConditionalExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2309,7 +2395,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ContinueStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2322,7 +2407,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'DebuggerStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2331,7 +2415,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Decorator';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2340,7 +2423,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ExpressionStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2353,7 +2435,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'DoWhileStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2366,7 +2447,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'EmptyStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2379,7 +2459,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ExportAllDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2392,7 +2471,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ExportDefaultDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2405,7 +2483,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ExportNamedDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2418,7 +2495,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ExportSpecifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2431,7 +2507,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ExpressionStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2444,7 +2519,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ForInStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2457,7 +2531,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ForOfStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2472,7 +2545,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ForStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2485,7 +2557,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'FunctionDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2501,7 +2572,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'FunctionExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2517,7 +2587,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Identifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.name = buffer.convertString(buffer[position + 3]);
@@ -2531,7 +2600,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'IfStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2544,7 +2612,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ImportAttribute';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2557,7 +2624,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ImportDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.phase = buffer[position + 6] === 0 ? undefined : FIXED_STRINGS[buffer[position + 6]];
@@ -2571,7 +2637,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ImportDefaultSpecifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2584,7 +2649,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ImportExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.phase = buffer[position + 5] === 0 ? undefined : FIXED_STRINGS[buffer[position + 5]];
@@ -2598,7 +2662,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ImportNamespaceSpecifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2611,7 +2674,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ImportSpecifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2624,7 +2686,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXAttribute';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2637,7 +2698,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXClosingElement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2650,7 +2710,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXClosingFragment';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2663,7 +2722,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXElement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2676,7 +2734,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXEmptyExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2689,7 +2746,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXExpressionContainer';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2702,7 +2758,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXFragment';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2715,7 +2770,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXIdentifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.name = buffer.convertString(buffer[position + 3]);
@@ -2729,7 +2783,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXMemberExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2742,7 +2795,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXNamespacedName';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2755,7 +2807,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXOpeningElement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2770,7 +2821,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXOpeningFragment';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2783,7 +2833,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXSpreadAttribute';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2796,7 +2845,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXSpreadChild';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2805,7 +2853,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'JSXText';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2818,7 +2865,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'LabeledStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2831,7 +2877,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Literal';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2844,7 +2889,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Literal';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2859,7 +2903,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Literal';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2872,7 +2915,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Literal';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2885,7 +2927,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Literal';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2898,7 +2939,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Literal';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2911,7 +2951,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'LogicalExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.operator = FIXED_STRINGS[buffer[position + 3]];
@@ -2925,7 +2964,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'MemberExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2941,7 +2979,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'MetaProperty';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2954,7 +2991,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'MethodDefinition';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -2971,7 +3007,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'NewExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2984,7 +3019,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ObjectExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -2997,7 +3031,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ObjectPattern';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3010,7 +3043,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'PrivateIdentifier';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.name = buffer.convertString(buffer[position + 3]);
@@ -3020,7 +3052,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Program';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3029,7 +3060,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Property';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -3047,7 +3077,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'PropertyDefinition';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -3063,7 +3092,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'RestElement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3076,7 +3104,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ReturnStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3089,7 +3116,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'SequenceExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3102,7 +3128,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'SpreadElement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3115,7 +3140,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'StaticBlock';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3124,7 +3148,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'Super';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3137,7 +3160,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'SwitchCase';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3150,7 +3172,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'SwitchStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3163,7 +3184,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'TaggedTemplateExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3176,7 +3196,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'TemplateElement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -3191,7 +3210,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'TemplateLiteral';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3204,7 +3222,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ThisExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3217,7 +3234,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'ThrowStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3230,7 +3246,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'TryStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3243,7 +3258,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'UnaryExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.operator = FIXED_STRINGS[buffer[position + 3]];
@@ -3257,7 +3271,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'UpdateExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];
@@ -3273,7 +3286,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'VariableDeclaration';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		node.kind = FIXED_STRINGS[buffer[position + 3]];
@@ -3287,7 +3299,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'VariableDeclarator';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3300,7 +3311,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'WhileStatement';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		return node;
@@ -3313,7 +3323,6 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.type = 'YieldExpression';
 		node.start = buffer[position + 1];
 		node.end = buffer[position + 2];
 		const flags = buffer[position + 3];

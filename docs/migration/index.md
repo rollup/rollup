@@ -132,11 +132,9 @@ function isIdentifier(node: ast.AstNode): node is ast.Identifier {
 
 `moduleInfo.ast` now returns a new lazy AST on each access, and its nested properties are materialized only when accessed. Mutating the AST is no longer supported: changes are not persisted and may throw. The `ast` passed to [`shouldTransformCachedModule`](../plugin-development/index.md#shouldtransformcachedmodule) is lazy as well. Store a reference if you access the AST several times, and copy nodes before modifying them.
 
-If you need to inspect many nodes, use the [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) plugin context method or the `parseAndWalk` helper from `rollup/parseAst` instead; they only create objects for visited nodes. With `collectScopes: true`, visitor handlers receive a scope that can replace `attachScopes` from `@rollup/pluginutils`; see [Scope collection](../plugin-development/index.md#scope-collection).
+If you need to inspect all nodes of given types, use the [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) plugin context method or the `parseAndWalk` helper from `rollup/parseAst` instead; they only create objects for visited nodes. With `collectScopes: true`, visitor handlers receive a scope that can replace `attachScopes` from `@rollup/pluginutils`; see [Scope collection](../plugin-development/index.md#scope-collection). This nodes will also contain `parent` links for exploring the AST upwards.
 
-Lazy ASTs now expose `parent` links, including nodes visited by `parseAndWalk`, while eager ASTs do not. Lazy AST nodes only own `type`, `start`, `end` and a few eagerly decoded scalars; child properties are prototype getters, so they do not appear in `Object.keys`, spreads or `JSON.stringify`. Parent links survive AST buffer round trips but are lost when copying or serializing the AST to JSON; see [Parent links](../plugin-development/index.md#parent-links).
-
-Eager ASTs from `this.parse` and `parseAst` also reuse the same node object for shorthand properties and for import or export specifiers whose imported and exported names are identical. Code that relied on these being separate objects should compare `start`/`end` instead.
+Eager ASTs from `this.parse` and `parseAst` will now reuse the same node object for shorthand properties and for import or export specifiers whose imported and exported names are identical. Code that relied on these being separate objects should compare `start`/`end` instead.
 
 ### Stop returning ASTs from `load` and `transform`
 

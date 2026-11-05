@@ -33,6 +33,7 @@ function isEagerScalar(nodeName: AstNodeName, field: FieldDescription): boolean 
 const prototypeDeclarations = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const offset = getOffset(node);
 	const getters: string[] = [
+		`type: '${node.astType || name}'`,
 		...fields
 			.map((field, index) => getFieldGetter(name, field, node, index + offset))
 			.filter((getter): getter is string => !!getter),
@@ -73,7 +74,6 @@ const nodeFactories = astNodeNamesWithFieldOrder.map(({ name, fields, node }) =>
 	const node: any = Object.create(prototype);
 	node[POSITION] = position;
 	node[BUFFER] = buffer;
-	node.type = '${node.astType || name}';
 	node.start = buffer[position + 1];
 	node.end = buffer[position + 2];
 	${assignments.length > 0 ? `${assignments.join('\n\t')}\n\t` : ''}return node;
