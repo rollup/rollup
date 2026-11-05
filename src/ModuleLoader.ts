@@ -331,7 +331,7 @@ export class ModuleLoader {
 			if (
 				await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
 					{
-						ast: deserializeLazyAst(cachedModule.astBuffer) as ast.Program,
+						ast: deserializeLazyAst(cachedModule.astBuffer) as ast.LazyNode<ast.Program>,
 						attributes: cachedModule.attributes,
 						code: cachedModule.code,
 						id: cachedModule.id,
