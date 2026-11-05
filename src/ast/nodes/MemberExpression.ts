@@ -32,6 +32,7 @@ import {
 	WELL_KNOWN_SYMBOLS
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type { PromiseHandler } from '../variables/PromiseHandler';
@@ -152,7 +153,10 @@ export default class MemberExpression
 	bind(): void {
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
-		const baseVariable = path && this.scope.findVariable(path[0].key);
+		let baseVariable = path && this.scope.findVariable(path[0].key);
+		if (baseVariable instanceof ExportDefaultVariable) {
+			baseVariable = baseVariable.getOriginalNamespaceVariable() || baseVariable;
+		}
 		if (baseVariable?.isNamespace) {
 			const resolvedVariable = resolveNamespaceVariables(
 				baseVariable,
