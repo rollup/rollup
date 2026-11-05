@@ -71,10 +71,63 @@ function getNodeType(name: string, node: NodeDescription, nodeFields: FieldDescr
 	);
 	const fixedFields = Object.entries(node.fixed || {}).map(([name, type]) => `${name}: ${type};`);
 	return `export interface ${name} extends AstNodeBase {
-  type: '${node.astType || name}';
-  parent?: AstNode | null;${[...(fields || []), ...additionalFields, ...fixedFields, ...(flags || [])].map(field => `\n  ${field}`).join('')}
+  type: '${node.astType || name}';${[...(fields || []), ...additionalFields, ...fixedFields, ...(flags || [])].map(field => `\n  ${field}`).join('')}
 }`;
 }
+
+const ROOT_NODE_NAMES = new Set(['PanicError', 'ParseError', 'Program']);
+
+function expandNodeTypes(nodeTypes: readonly string[]): string[] {
+	const expanded: string[] = [];
+	const pending = [...nodeTypes];
+	while (pending.length > 0) {
+		const nodeType = pending.pop()!;
+		const unionMembers = (NODE_UNION_TYPES as Record<string, string[] | undefined>)[nodeType];
+		if (unionMembers) {
+			pending.push(...unionMembers);
+		} else {
+			expanded.push(nodeType);
+		}
+	}
+	return expanded;
+}
+
+const nodeParentNames = new Map<string, Set<string>>();
+for (const { name, fields } of astNodeNamesWithFieldOrder) {
+	for (const field of fields) {
+		if (field.type !== 'Node' && field.type !== 'NodeList') {
+			continue;
+		}
+		for (const childName of expandNodeTypes(field.nodeTypes)) {
+			if (childName === name) {
+				continue;
+			}
+			const parents = nodeParentNames.get(childName);
+			if (parents) {
+				parents.add(name);
+			} else {
+				nodeParentNames.set(childName, new Set([name]));
+			}
+		}
+	}
+}
+
+for (const { name } of astNodeNamesWithFieldOrder) {
+	if (!ROOT_NODE_NAMES.has(name) && !nodeParentNames.has(name)) {
+		throw new Error(`Node ${name} has no parent but is not a root node`);
+	}
+}
+
+const parentTypes = astNodeNamesWithFieldOrder
+	.map(({ name }) => {
+		const parents = nodeParentNames.get(name);
+		return `export type ${name}Parent = ${parents ? [...parents].sort().join(' | ') : 'never'};`;
+	})
+	.join('\n');
+
+const parentMap = `export interface ParentMap {\n${astNodeNamesWithFieldOrder
+	.map(({ name }) => `  ${name}: ${name}Parent;`)
+	.join('\n')}\n}`;
 
 const astTypes = `${notEditFilesComment}
 
@@ -84,13 +137,10 @@ export interface BaseNode {
 }
 
 /**
- * Base of every AST node. \`parent\` is only present on nodes from lazy ASTs,
- * where it is resolved on first access: \`null\` for the root and absent on
- * eager ASTs, so \`'parent' in node\` distinguishes the two.
+ * Base of every AST node. Lazy AST nodes add a \`parent\` link on top of this
+ * shape via {@link WithParent}; eager AST nodes never have one.
  */
-export interface AstNodeBase extends BaseNode {
-  parent?: AstNode | null;
-}
+export type AstNodeBase = BaseNode;
 
 export type AnnotationType = 'pure' | 'noSideEffects';
 
@@ -106,18 +156,34 @@ ${Object.entries(NODE_UNION_TYPES)
 
 export type AstNode = ${astNodeNamesWithFieldOrder.map(({ name }) => `${name}`).join(' | ')};
 
-/**
- * A lazy AST node whose \`parent\` is present at runtime. The root node of a
- * parse can still have \`parent === null\`, so the parent chain stays optional.
- */
-export type LazyNode<T extends AstNode = AstNode> = T extends unknown
-	? T & { parent: Exclude<T['parent'], undefined> }
-	: never;
+${parentTypes}
+
+${parentMap}
 
 /**
- * The shape of an eager AST node, which never has a \`parent\` property.
+ * The possible parents of a node, derived from the field definitions of all
+ * node types.
  */
-export type EagerNode<T extends AstNode = AstNode> = T extends unknown ? Omit<T, 'parent'> : never;
+export type ParentOf<T extends AstNode> = ParentMap[Extract<T['type'], keyof ParentMap>] & AstNode;
+
+/**
+ * A lazy AST node with a precise parent link. The root node of a parse has
+ * \`parent === null\`, so the link is optional and the chain can be followed
+ * with optional chaining.
+ */
+export type WithParent<T extends AstNode = AstNode> = T extends AstNode
+	? T & { parent?: WithParent<ParentOf<T>> | null } & {
+			[K in keyof T]: T[K] extends AstNode
+				? WithParent<T[K]>
+				: T[K] extends readonly (infer Element)[]
+					? Element extends AstNode
+						? readonly WithParent<Element>[]
+						: T[K]
+					: T[K];
+		}
+	: never;
+
+export type LazyNode<T extends AstNode = AstNode> = WithParent<T>;
 
 export interface AstNodeTypeMap {${(() => {
 	const typeMap = new Map<string, string[]>();

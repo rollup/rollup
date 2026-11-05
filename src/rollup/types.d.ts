@@ -190,7 +190,7 @@ export type EmitFile = (emittedFile: EmittedFile) => string;
 
 export interface ModuleInfo extends ModuleOptions {
 	attributes: Record<string, string>;
-	ast: ast.Program | null;
+	ast: ast.LazyNode<ast.Program> | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
@@ -244,6 +244,21 @@ export type DeserializeAst = (
 	position?: number
 ) => ast.AstNode;
 
+export type ParseLazyAst = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+) => ast.LazyNode<ast.Program>;
+
+export type ParseLazyAstAsync = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
+) => Promise<ast.LazyNode<ast.Program>>;
+
+export type DeserializeLazyAst = (
+	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/,
+	position?: number
+) => ast.LazyNode<ast.AstNode>;
+
 export type SerializeAst = (node: ast.AstNode) => /*browser: Uint8Array; */ Buffer; /*browser*/
 
 export interface ParseAndWalkApi {
@@ -272,7 +287,7 @@ export interface ParseAndWalkScope {
 }
 
 export type ParseAndWalkHandler<T extends ast.AstNode = ast.AstNode> = (
-	node: T,
+	node: ast.LazyNode<T>,
 	api: ParseAndWalkApi
 ) => void;
 
@@ -375,7 +390,7 @@ export type ResolveIdHook = (
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
-		ast: ast.Program;
+		ast: ast.LazyNode<ast.Program>;
 		attributes: Record<string, string>;
 		code: string;
 		id: string;
