@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const catchClauses = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(catchClauses, [
+		assertAstEqual(catchClauses, [
 			{
 				type: 'CatchClause',
 				start: 42,

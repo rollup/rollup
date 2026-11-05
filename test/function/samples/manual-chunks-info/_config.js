@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getObject } = require('../../../testHelpers');
+const { serializeModuleInfo, getObject } = require('../../../testHelpers');
 
 function getId(name) {
 	return path.join(__dirname, `${name}.js`);
@@ -14,9 +14,7 @@ module.exports = defineTest({
 			manualChunks(id, { getModuleIds, getModuleInfo }) {
 				assert.deepStrictEqual(
 					getObject(
-						[...getModuleIds()]
-							.sort()
-							.map(id => [id, JSON.parse(JSON.stringify(getModuleInfo(id)))])
+						[...getModuleIds()].sort().map(id => [id, serializeModuleInfo(getModuleInfo(id))])
 					),
 					{
 						[getId('dynamic')]: {

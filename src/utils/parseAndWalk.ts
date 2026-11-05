@@ -1,7 +1,7 @@
 import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
 import type { ParseAndWalkApi, ParseAndWalkHandler, ParseAndWalkVisitors } from '../rollup/types';
-import { convertNode, deserializeLazyAstBuffer, NO_PARENT } from './bufferToLazyAst';
+import { convertNode, deserializeLazyAstBuffer } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 import {
@@ -29,7 +29,6 @@ export async function parseAndWalk(
 		)
 	);
 
-	astBuffer.lazyNodes = new Map();
 	walkAstBuffer(astBuffer, visitors, collectScopes);
 }
 
@@ -78,12 +77,7 @@ function walkAstBuffer(
 			nodeVisitors[id] = visitor as ParseAndWalkHandler;
 		}
 	}
-	let currentNodePosition = 0;
 	const api: ParseAndWalkApi = {
-		getParent() {
-			const parentPosition = astBuffer[currentNodePosition + 1];
-			return parentPosition === 0 ? null : convertNode(parentPosition - 1, astBuffer, null);
-		},
 		parseChildren() {
 			const endPosition = walkingInfoOffset + astBuffer[walkingPosition + 1] * entrySize;
 			walkingPosition += entrySize;
@@ -105,8 +99,7 @@ function walkAstBuffer(
 			if (collectScopes) {
 				api.scope = getScope(astBuffer[walkingPosition + 2]);
 			}
-			currentNodePosition = nodePosition;
-			nodeVisitors[astBuffer[nodePosition]]!(convertNode(nodePosition, astBuffer, NO_PARENT), api);
+			nodeVisitors[astBuffer[nodePosition]]!(convertNode(nodePosition, astBuffer), api);
 		}
 	}
 

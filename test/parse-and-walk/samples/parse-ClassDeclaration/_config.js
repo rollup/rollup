@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const classDeclarations = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(classDeclarations, [
+		assertAstEqual(classDeclarations, [
 			{
 				type: 'ClassDeclaration',
 				start: 15,

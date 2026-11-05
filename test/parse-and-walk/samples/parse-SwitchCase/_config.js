@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const switchCases = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(switchCases, [
+		assertAstEqual(switchCases, [
 			{
 				type: 'SwitchCase',
 				start: 50,

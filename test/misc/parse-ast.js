@@ -9,7 +9,7 @@ const {
 	deserializeLazyAst
 } = require('../../dist/parseAst');
 const { rollup } = require('../../dist/rollup');
-const { hasEsBuild } = require('../testHelpers');
+const { assertAstEqual, hasEsBuild } = require('../testHelpers');
 
 describe('parseAst', () => {
 	it('parses an AST', async () => {
@@ -168,7 +168,7 @@ describe('parseAst', () => {
 		const view = paddedBuffer.subarray(4);
 		assert.strictEqual(view.byteOffset, 4);
 		assert.deepStrictEqual(deserializeAst(view), ast);
-		assert.deepStrictEqual(deserializeLazyAst(view), ast);
+		assertAstEqual(deserializeLazyAst(view), ast);
 	});
 
 	it('can deserialize AST buffers that are views at a byte offset that is not a multiple of 4', async () => {
@@ -179,7 +179,7 @@ describe('parseAst', () => {
 		const view = paddedBuffer.subarray(1);
 		assert.strictEqual(view.byteOffset, 1);
 		assert.deepStrictEqual(deserializeAst(view), ast);
-		assert.deepStrictEqual(deserializeLazyAst(view), ast);
+		assertAstEqual(deserializeLazyAst(view), ast);
 	});
 });
 
@@ -218,7 +218,7 @@ describe('parseAstAsync', () => {
 });
 
 describe('lazy AST parents', () => {
-	it('links nodes to their parents without exposing the link as a key', () => {
+	it('links nodes to their parents without exposing them as own properties', () => {
 		const ast = parseLazyAst('const x = foo;');
 		const variableDeclaration = ast.body[0];
 		const declarator = variableDeclaration.declarations[0];
@@ -228,31 +228,30 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.id.parent, declarator);
 		assert.strictEqual(declarator.init.parent, declarator);
 		assert.strictEqual(declarator.init.name, 'foo');
-		assert.deepStrictEqual(Object.keys(declarator), ['type', 'start', 'end', 'id', 'init']);
-		assert.strictEqual(Object.getOwnPropertyDescriptor(declarator, 'parent').enumerable, false);
+		assert.deepStrictEqual(Object.keys(declarator), ['type', 'start', 'end']);
+		assert.strictEqual(Object.hasOwn(declarator, 'parent'), false);
+		assert.strictEqual('parent' in declarator, true);
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(ast)), {
-			body: [
-				{
-					declarations: [
-						{
-							end: 13,
-							id: { end: 7, name: 'x', start: 6, type: 'Identifier' },
-							init: { end: 13, name: 'foo', start: 10, type: 'Identifier' },
-							start: 6,
-							type: 'VariableDeclarator'
-						}
-					],
-					end: 14,
-					kind: 'const',
-					start: 0,
-					type: 'VariableDeclaration'
-				}
-			],
 			end: 14,
-			sourceType: 'module',
 			start: 0,
 			type: 'Program'
 		});
+	});
+
+	it('enumerates child fields in for…in loops but not the parent', () => {
+		const declarator = parseLazyAst('const x = foo;').body[0].declarations[0];
+		const enumeratedKeys = [];
+		let hasVisitedChildObject = false;
+		for (const key in declarator) {
+			enumeratedKeys.push(key);
+			const value = declarator[key];
+			if (value !== null && typeof value === 'object') hasVisitedChildObject = true;
+		}
+		assert.ok(hasVisitedChildObject);
+		assert.strictEqual(enumeratedKeys.includes('parent'), false);
+		for (const key of ['type', 'start', 'end', 'id', 'init']) {
+			assert.ok(enumeratedKeys.includes(key), key);
+		}
 	});
 
 	it('returns the parent from the child field of the parent', () => {
@@ -315,12 +314,12 @@ describe('lazy AST parents', () => {
 			let decorator;
 			let decoratorParent;
 			await parseAndWalk(code, {
-				ClassDeclaration(node, api) {
-					classParentType = api.getParent().type;
+				ClassDeclaration(node) {
+					classParentType = node.parent.type;
 					classNode = node;
 				},
-				Decorator(node, api) {
-					decoratorParent = api.getParent();
+				Decorator(node) {
+					decoratorParent = node.parent;
 					decorator = node;
 				}
 			});
@@ -332,23 +331,23 @@ describe('lazy AST parents', () => {
 
 	it('gives the program a null parent when walking', async () => {
 		let programParent = 'unset';
-		let hasParentProperty = true;
+		let hasOwnParent = true;
 		await parseAndWalk('const x = foo;', {
-			Program(node, api) {
-				hasParentProperty = 'parent' in node;
-				programParent = api.getParent();
+			Program(node) {
+				hasOwnParent = Object.hasOwn(node, 'parent');
+				programParent = node.parent;
 			}
 		});
 		assert.strictEqual(programParent, null);
-		assert.strictEqual(hasParentProperty, false);
+		assert.strictEqual(hasOwnParent, false);
 	});
 
 	it('returns the same parent on repeated calls', async () => {
 		let parents;
 		await parseAndWalk('const x = foo;', {
-			Identifier(node, api) {
+			Identifier(node) {
 				if (node.name !== 'foo') return;
-				parents = [api.getParent(), api.getParent()];
+				parents = [node.parent, node.parent];
 			}
 		});
 		assert.strictEqual(parents[0], parents[1]);
@@ -405,12 +404,12 @@ describe('lazy AST parents', () => {
 		const declarators = [];
 		let otherParent;
 		await parseAndWalk('const value = other + 1;', {
-			Identifier(node, api) {
+			Identifier(node) {
 				if (identifiers.has(node.name)) {
 					assert.strictEqual(identifiers.get(node.name), node);
 				}
 				if (node.name === 'other') {
-					otherParent = api.getParent();
+					otherParent = node.parent;
 				}
 				identifiers.set(node.name, node);
 			},

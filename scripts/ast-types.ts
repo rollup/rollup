@@ -366,7 +366,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		useMacro: false
 	},
 	BlockStatement: {
-		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }],
+		fields: [{ name: 'body', nodeTypes: ['Directive', 'Statement'], type: 'NodeList' }],
 		useMacro: false
 	},
 	BreakStatement: {
@@ -642,8 +642,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		],
 		scriptedFields: {
 			source: `node.source = convertNode(node, scope, $position, buffer);
-			  buffer.lazyNodes ??= new Map();
-			  node.sourceAstNode = convertJsonNode($position, buffer, null);`
+			  node.sourceAstNode = convertJsonNode($position, buffer);`
 		},
 		useMacro: false
 	},

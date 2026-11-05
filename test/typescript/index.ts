@@ -163,11 +163,14 @@ const _lazyAst: rollup.ast.Program = null as unknown as rollup.ast.Program;
 const _lazyParent: rollup.ast.AstNode | null | undefined = _lazyAst.body[0].parent;
 const _lazyParentType: string | undefined = _lazyAst.body[0].parent?.type;
 const _lazyParentIsPresent: boolean = 'parent' in _lazyAst.body[0];
+const _lazyDeclarator: rollup.ast.VariableDeclarator =
+	null as unknown as rollup.ast.VariableDeclarator;
+const _declaratorParent: rollup.ast.AstNode | null | undefined = _lazyDeclarator.parent;
+const _programParent: rollup.ast.AstNode | null | undefined = _lazyAst.parent;
 
 const _walkHandler: rollup.ParseAndWalkHandler<rollup.ast.VariableDeclarator> = (node, api) => {
 	const _parent: rollup.ast.AstNode | null | undefined = node.parent;
 	const _idParent: rollup.ast.AstNode | null | undefined = node.id.parent;
 	const _idType: string = node.id.type;
-	const _gotParent: rollup.ast.AstNode | null = api.getParent();
 	api.parseChildren();
 };
