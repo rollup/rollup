@@ -304,6 +304,13 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.parent, ast.body[0]);
 	});
 
+	it('allows reading lazy fields of a frozen node', () => {
+		const ast = parseLazyAst('const x = foo;');
+		const declarator = ast.body[0].declarations[0];
+		Object.freeze(declarator);
+		assert.strictEqual(declarator.init.name, 'foo');
+	});
+
 	it('allows reading the parent of a frozen node whose parent has not been resolved yet', async () => {
 		let parentType;
 		await parseAndWalk('const x = foo;', {

@@ -1,8 +1,7 @@
 import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
-import { nodeTypeStrings } from '../ast/nodeTypeStrings';
-import type { ParseAndWalkApi, ParseAndWalkVisitors } from '../rollup/types';
-import { deserializeLazyAstBuffer } from './bufferToLazyAst';
+import type { ParseAndWalkApi, ParseAndWalkHandler, ParseAndWalkVisitors } from '../rollup/types';
+import { convertNode, deserializeLazyAstBuffer } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 import {
@@ -73,6 +72,12 @@ function walkAstBuffer(
 
 	let walkingPosition = walkingInfoOffset;
 	const scopeCache = new Map<number, NonNullable<ParseAndWalkApi['scope']>>();
+	const nodeVisitors: ParseAndWalkHandler[] = [];
+	for (const [nodeType, visitor] of Object.entries(visitors)) {
+		for (const id of nodeIds[nodeType]) {
+			nodeVisitors[id] = visitor as ParseAndWalkHandler;
+		}
+	}
 	const api: ParseAndWalkApi = {
 		parseChildren() {
 			const endPosition = walkingInfoOffset + astBuffer[walkingPosition + 1] * entrySize;
@@ -91,12 +96,11 @@ function walkAstBuffer(
 
 	function walkUntilPosition(endPosition: number) {
 		for (; walkingPosition < endPosition; walkingPosition += entrySize) {
-			const elementIndex = astBuffer[walkingPosition];
+			const nodePosition = astBuffer[walkingPosition];
 			if (collectScopes) {
 				api.scope = getScope(astBuffer[walkingPosition + 2]);
 			}
-			const nodeTypeString = nodeTypeStrings[astBuffer[elementIndex]];
-			visitors[nodeTypeString]!(deserializeLazyAstBuffer(astBuffer, elementIndex) as any, api);
+			nodeVisitors[astBuffer[nodePosition]]!(convertNode(nodePosition, astBuffer, null), api);
 		}
 	}
 
