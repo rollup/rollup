@@ -25,6 +25,22 @@ export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): a
 };
 
 /* eslint-disable sort-keys */
+const replacedFieldDescriptor: PropertyDescriptor = {
+	configurable: true,
+	enumerable: true,
+	value: undefined,
+	writable: false
+};
+
+function replaceField<T>(node: ast.AstNode, key: string, value: T): T {
+	if (Object.isExtensible(node)) {
+		replacedFieldDescriptor.value = value;
+		Object.defineProperty(node, key, replacedFieldDescriptor);
+		replacedFieldDescriptor.value = null;
+	}
+	return value;
+}
+
 const nodeConverters: ((
 	position: number,
 	buffer: AstBuffer,
@@ -36,9 +52,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get message() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'message', { value: result });
-				return result;
+				return replaceField(node, 'message', buffer.convertString(buffer[position + 3]));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -50,9 +64,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get message() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'message', { value: result });
-				return result;
+				return replaceField(node, 'message', buffer.convertString(buffer[position + 3]));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -64,9 +76,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get elements() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'elements', { value: result });
-				return result;
+				return replaceField(node, 'elements', convertNodeList(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -78,9 +88,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get elements() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'elements', { value: result });
-				return result;
+				return replaceField(node, 'elements', convertNodeList(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -98,14 +106,10 @@ const nodeConverters: ((
 			generator: (flags & 4) === 4,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get params() {
-				const result = convertNodeList(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
+				return replaceField(node, 'params', convertNodeList(buffer[position + 5], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 6], buffer, node));
 			},
 			id: null
 		};
@@ -117,20 +121,12 @@ const nodeConverters: ((
 			type: 'AssignmentExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.AssignmentExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
+			operator: FIXED_STRINGS[buffer[position + 3]] as ast.AssignmentExpression['operator'],
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
+				return replaceField(node, 'left', convertNode(buffer[position + 4], buffer, node));
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
+				return replaceField(node, 'right', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -142,14 +138,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get left() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
+				return replaceField(node, 'left', convertNode(buffer[position + 3], buffer, node));
 			},
 			get right() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
+				return replaceField(node, 'right', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -161,9 +153,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -174,20 +164,12 @@ const nodeConverters: ((
 			type: 'BinaryExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.BinaryExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
+			operator: FIXED_STRINGS[buffer[position + 3]] as ast.BinaryExpression['operator'],
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
+				return replaceField(node, 'left', convertNode(buffer[position + 4], buffer, node));
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
+				return replaceField(node, 'right', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -199,9 +181,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNodeList(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -214,9 +194,11 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer, node);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'label',
+					labelPosition === 0 ? null : convertNode(labelPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -232,14 +214,10 @@ const nodeConverters: ((
 			optional: (flags & 1) === 1,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get callee() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'callee', { value: result });
-				return result;
+				return replaceField(node, 'callee', convertNode(buffer[position + 5], buffer, node));
 			},
 			get arguments() {
-				const result = convertNodeList(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'arguments', { value: result });
-				return result;
+				return replaceField(node, 'arguments', convertNodeList(buffer[position + 6], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -252,15 +230,14 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get param() {
-				const result =
-					parameterPosition === 0 ? null : convertNode(parameterPosition, buffer, node);
-				Object.defineProperty(node, 'param', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'param',
+					parameterPosition === 0 ? null : convertNode(parameterPosition, buffer, node)
+				);
 			},
 			get body() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -272,9 +249,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
+				return replaceField(node, 'expression', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -286,9 +261,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNodeList(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -302,25 +275,28 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'decorators',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			},
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'id',
+					idPosition === 0 ? null : convertNode(idPosition, buffer, node)
+				);
 			},
 			get superClass() {
-				const result =
-					superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, node);
-				Object.defineProperty(node, 'superClass', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'superClass',
+					superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, node)
+				);
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 6], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -334,25 +310,28 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'decorators',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			},
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'id',
+					idPosition === 0 ? null : convertNode(idPosition, buffer, node)
+				);
 			},
 			get superClass() {
-				const result =
-					superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, node);
-				Object.defineProperty(node, 'superClass', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'superClass',
+					superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, node)
+				);
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 6], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -364,19 +343,13 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
+				return replaceField(node, 'test', convertNode(buffer[position + 3], buffer, node));
 			},
 			get consequent() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
+				return replaceField(node, 'consequent', convertNode(buffer[position + 4], buffer, node));
 			},
 			get alternate() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'alternate', { value: result });
-				return result;
+				return replaceField(node, 'alternate', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -389,9 +362,11 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer, node);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'label',
+					labelPosition === 0 ? null : convertNode(labelPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -412,9 +387,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
+				return replaceField(node, 'expression', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -426,14 +399,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get directive() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'directive', { value: result });
-				return result;
+				return replaceField(node, 'directive', buffer.convertString(buffer[position + 3]));
 			},
 			get expression() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
+				return replaceField(node, 'expression', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -445,14 +414,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 3], buffer, node));
 			},
 			get test() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
+				return replaceField(node, 'test', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -474,19 +439,21 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get exported() {
-				const result = exportedPosition === 0 ? null : convertNode(exportedPosition, buffer, node);
-				Object.defineProperty(node, 'exported', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'exported',
+					exportedPosition === 0 ? null : convertNode(exportedPosition, buffer, node)
+				);
 			},
 			get source() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
+				return replaceField(node, 'source', convertNode(buffer[position + 4], buffer, node));
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'attributes',
+					convertNodeList(buffer[position + 5], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -498,9 +465,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get declaration() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'declaration', { value: result });
-				return result;
+				return replaceField(node, 'declaration', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -514,25 +479,32 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get specifiers() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'specifiers', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'specifiers',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			},
 			get source() {
-				const result = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer, node);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'source',
+					sourcePosition === 0 ? null : convertNode(sourcePosition, buffer, node)
+				);
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'attributes',
+					convertNodeList(buffer[position + 5], buffer, node)
+				);
 			},
 			get declaration() {
-				const result =
-					declarationPosition === 0 ? null : convertNode(declarationPosition, buffer, node);
-				Object.defineProperty(node, 'declaration', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'declaration',
+					declarationPosition === 0 ? null : convertNode(declarationPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -544,15 +516,17 @@ const nodeConverters: ((
 			type: 'ExportSpecifier',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			local: null as never,
+			get local() {
+				return replaceField(node, 'local', convertNode(buffer[position + 3], buffer, node));
+			},
 			get exported() {
-				const result =
-					exportedPosition === 0 ? node.local : convertNode(exportedPosition, buffer, node);
-				Object.defineProperty(node, 'exported', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'exported',
+					exportedPosition === 0 ? node.local : convertNode(exportedPosition, buffer, node)
+				);
 			}
 		};
-		node.local = convertNode(buffer[position + 3], buffer, node);
 		defineParent(node, position, buffer, parent);
 		return node;
 	},
@@ -562,9 +536,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
+				return replaceField(node, 'expression', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -576,19 +548,13 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get left() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
+				return replaceField(node, 'left', convertNode(buffer[position + 3], buffer, node));
 			},
 			get right() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
+				return replaceField(node, 'right', convertNode(buffer[position + 4], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -602,19 +568,13 @@ const nodeConverters: ((
 			end: buffer[position + 2],
 			await: (flags & 1) === 1,
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
+				return replaceField(node, 'left', convertNode(buffer[position + 4], buffer, node));
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
+				return replaceField(node, 'right', convertNode(buffer[position + 5], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 6], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -629,24 +589,28 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer, node);
-				Object.defineProperty(node, 'init', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'init',
+					initPosition === 0 ? null : convertNode(initPosition, buffer, node)
+				);
 			},
 			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer, node);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'test',
+					testPosition === 0 ? null : convertNode(testPosition, buffer, node)
+				);
 			},
 			get update() {
-				const result = updatePosition === 0 ? null : convertNode(updatePosition, buffer, node);
-				Object.defineProperty(node, 'update', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'update',
+					updatePosition === 0 ? null : convertNode(updatePosition, buffer, node)
+				);
 			},
 			get body() {
-				const result = convertNode(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 6], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -664,19 +628,17 @@ const nodeConverters: ((
 			generator: (flags & 2) === 2,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'id',
+					idPosition === 0 ? null : convertNode(idPosition, buffer, node)
+				);
 			},
 			get params() {
-				const result = convertNodeList(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
+				return replaceField(node, 'params', convertNodeList(buffer[position + 6], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 7], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 7], buffer, node));
 			},
 			expression: false
 		};
@@ -695,19 +657,17 @@ const nodeConverters: ((
 			generator: (flags & 2) === 2,
 			...(annotations.length > 0 ? { annotations } : {}),
 			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer, node);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'id',
+					idPosition === 0 ? null : convertNode(idPosition, buffer, node)
+				);
 			},
 			get params() {
-				const result = convertNodeList(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
+				return replaceField(node, 'params', convertNodeList(buffer[position + 6], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 7], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 7], buffer, node));
 			},
 			expression: false
 		};
@@ -720,9 +680,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', buffer.convertString(buffer[position + 3]));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -735,20 +693,17 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
+				return replaceField(node, 'test', convertNode(buffer[position + 3], buffer, node));
 			},
 			get consequent() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
+				return replaceField(node, 'consequent', convertNode(buffer[position + 4], buffer, node));
 			},
 			get alternate() {
-				const result =
-					alternatePosition === 0 ? null : convertNode(alternatePosition, buffer, node);
-				Object.defineProperty(node, 'alternate', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'alternate',
+					alternatePosition === 0 ? null : convertNode(alternatePosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -760,14 +715,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get key() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
+				return replaceField(node, 'key', convertNode(buffer[position + 3], buffer, node));
 			},
 			get value() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
+				return replaceField(node, 'value', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -780,28 +731,26 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get specifiers() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'specifiers', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'specifiers',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			},
 			get source() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
+				return replaceField(node, 'source', convertNode(buffer[position + 4], buffer, node));
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'attributes',
+					convertNodeList(buffer[position + 5], buffer, node)
+				);
 			},
-			get phase() {
-				const result =
-					phasePosition === 0
-						? undefined
-						: (FIXED_STRINGS[buffer[position + 6]] as ast.ImportDeclaration['phase']);
-				Object.defineProperty(node, 'phase', { value: result });
-				return result;
-			}
+			phase:
+				phasePosition === 0
+					? undefined
+					: (FIXED_STRINGS[buffer[position + 6]] as ast.ImportDeclaration['phase'])
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -812,9 +761,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get local() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'local', { value: result });
-				return result;
+				return replaceField(node, 'local', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -828,23 +775,19 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get source() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
+				return replaceField(node, 'source', convertNode(buffer[position + 3], buffer, node));
 			},
 			get options() {
-				const result = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer, node);
-				Object.defineProperty(node, 'options', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'options',
+					optionsPosition === 0 ? null : convertNode(optionsPosition, buffer, node)
+				);
 			},
-			get phase() {
-				const result =
-					phasePosition === 0
-						? undefined
-						: (FIXED_STRINGS[buffer[position + 5]] as ast.ImportExpression['phase']);
-				Object.defineProperty(node, 'phase', { value: result });
-				return result;
-			}
+			phase:
+				phasePosition === 0
+					? undefined
+					: (FIXED_STRINGS[buffer[position + 5]] as ast.ImportExpression['phase'])
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -855,9 +798,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get local() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'local', { value: result });
-				return result;
+				return replaceField(node, 'local', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -870,14 +811,16 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get imported() {
-				const result =
-					importedPosition === 0 ? node.local : convertNode(importedPosition, buffer, node);
-				Object.defineProperty(node, 'imported', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'imported',
+					importedPosition === 0 ? node.local : convertNode(importedPosition, buffer, node)
+				);
 			},
-			local: null as never
+			get local() {
+				return replaceField(node, 'local', convertNode(buffer[position + 4], buffer, node));
+			}
 		};
-		node.local = convertNode(buffer[position + 4], buffer, node);
 		defineParent(node, position, buffer, parent);
 		return node;
 	},
@@ -888,14 +831,14 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', convertNode(buffer[position + 3], buffer, node));
 			},
 			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer, node);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'value',
+					valuePosition === 0 ? null : convertNode(valuePosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -907,9 +850,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -931,20 +872,21 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get openingElement() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'openingElement', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'openingElement',
+					convertNode(buffer[position + 3], buffer, node)
+				);
 			},
 			get children() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'children', { value: result });
-				return result;
+				return replaceField(node, 'children', convertNodeList(buffer[position + 4], buffer, node));
 			},
 			get closingElement() {
-				const result =
-					closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer, node);
-				Object.defineProperty(node, 'closingElement', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'closingElement',
+					closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -965,9 +907,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
+				return replaceField(node, 'expression', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -979,19 +919,21 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get openingFragment() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'openingFragment', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'openingFragment',
+					convertNode(buffer[position + 3], buffer, node)
+				);
 			},
 			get children() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'children', { value: result });
-				return result;
+				return replaceField(node, 'children', convertNodeList(buffer[position + 4], buffer, node));
 			},
 			get closingFragment() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'closingFragment', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'closingFragment',
+					convertNode(buffer[position + 5], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1003,9 +945,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', buffer.convertString(buffer[position + 3]));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1017,14 +957,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get object() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'object', { value: result });
-				return result;
+				return replaceField(node, 'object', convertNode(buffer[position + 3], buffer, node));
 			},
 			get property() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
+				return replaceField(node, 'property', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1036,14 +972,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get namespace() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'namespace', { value: result });
-				return result;
+				return replaceField(node, 'namespace', convertNode(buffer[position + 3], buffer, node));
 			},
 			get name() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1057,14 +989,14 @@ const nodeConverters: ((
 			end: buffer[position + 2],
 			selfClosing: (flags & 1) === 1,
 			get name() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', convertNode(buffer[position + 4], buffer, node));
 			},
 			get attributes() {
-				const result = convertNodeList(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'attributes',
+					convertNodeList(buffer[position + 5], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1087,9 +1019,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1101,9 +1031,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expression() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
+				return replaceField(node, 'expression', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1115,14 +1043,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get value() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
+				return replaceField(node, 'value', buffer.convertString(buffer[position + 3]));
 			},
 			get raw() {
-				const result = buffer.convertString(buffer[position + 4]);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
+				return replaceField(node, 'raw', buffer.convertString(buffer[position + 4]));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1134,14 +1058,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get label() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
+				return replaceField(node, 'label', convertNode(buffer[position + 3], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1155,9 +1075,7 @@ const nodeConverters: ((
 			end: buffer[position + 2],
 			bigint,
 			get raw() {
-				const result = buffer.convertString(buffer[position + 4]);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
+				return replaceField(node, 'raw', buffer.convertString(buffer[position + 4]));
 			},
 			value: BigInt(bigint)
 		};
@@ -1195,15 +1113,13 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get raw() {
-				const result = rawPosition === 0 ? undefined : buffer.convertString(rawPosition);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'raw',
+					rawPosition === 0 ? undefined : buffer.convertString(rawPosition)
+				);
 			},
-			get value() {
-				const result = buffer.convertFloat64(position + 4);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
+			value: buffer.convertFloat64(position + 4)
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -1229,14 +1145,14 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get value() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
+				return replaceField(node, 'value', buffer.convertString(buffer[position + 3]));
 			},
 			get raw() {
-				const result = rawPosition === 0 ? undefined : buffer.convertString(rawPosition);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'raw',
+					rawPosition === 0 ? undefined : buffer.convertString(rawPosition)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1247,20 +1163,12 @@ const nodeConverters: ((
 			type: 'LogicalExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.LogicalExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
+			operator: FIXED_STRINGS[buffer[position + 3]] as ast.LogicalExpression['operator'],
 			get left() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
+				return replaceField(node, 'left', convertNode(buffer[position + 4], buffer, node));
 			},
 			get right() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
+				return replaceField(node, 'right', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1275,14 +1183,10 @@ const nodeConverters: ((
 			computed: (flags & 1) === 1,
 			optional: (flags & 2) === 2,
 			get object() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'object', { value: result });
-				return result;
+				return replaceField(node, 'object', convertNode(buffer[position + 4], buffer, node));
 			},
 			get property() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
+				return replaceField(node, 'property', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1294,14 +1198,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get meta() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'meta', { value: result });
-				return result;
+				return replaceField(node, 'meta', convertNode(buffer[position + 3], buffer, node));
 			},
 			get property() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
+				return replaceField(node, 'property', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1316,25 +1216,19 @@ const nodeConverters: ((
 			static: (flags & 1) === 1,
 			computed: (flags & 2) === 2,
 			get decorators() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'decorators',
+					convertNodeList(buffer[position + 4], buffer, node)
+				);
 			},
 			get key() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
+				return replaceField(node, 'key', convertNode(buffer[position + 5], buffer, node));
 			},
 			get value() {
-				const result = convertNode(buffer[position + 6], buffer, node);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
+				return replaceField(node, 'value', convertNode(buffer[position + 6], buffer, node));
 			},
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 7]] as ast.MethodDefinition['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			}
+			kind: FIXED_STRINGS[buffer[position + 7]] as ast.MethodDefinition['kind']
 		};
 		defineParent(node, position, buffer, parent);
 		return node;
@@ -1347,14 +1241,10 @@ const nodeConverters: ((
 			end: buffer[position + 2],
 			...(annotations.length > 0 ? { annotations } : {}),
 			get callee() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'callee', { value: result });
-				return result;
+				return replaceField(node, 'callee', convertNode(buffer[position + 4], buffer, node));
 			},
 			get arguments() {
-				const result = convertNodeList(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'arguments', { value: result });
-				return result;
+				return replaceField(node, 'arguments', convertNodeList(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1366,9 +1256,11 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get properties() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'properties', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'properties',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1380,9 +1272,11 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get properties() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'properties', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'properties',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1394,9 +1288,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get name() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
+				return replaceField(node, 'name', buffer.convertString(buffer[position + 3]));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1409,9 +1301,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNodeList(buffer[position + 3], buffer, node));
 			},
 			...(invalidAnnotations.length > 0 ? { invalidAnnotations } : {}),
 			sourceType: 'module'
@@ -1430,22 +1320,21 @@ const nodeConverters: ((
 			shorthand: (flags & 2) === 2,
 			computed: (flags & 4) === 4,
 			get key() {
-				const result = node.shorthand
-					? node.value.type === 'AssignmentPattern'
-						? node.value.left
-						: node.value
-					: convertNode(keyPosition, buffer, node);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'key',
+					node.shorthand
+						? node.value.type === 'AssignmentPattern'
+							? node.value.left
+							: node.value
+						: convertNode(keyPosition, buffer, node)
+				);
 			},
-			value: null as never,
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 6]] as ast.Property['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			}
+			get value() {
+				return replaceField(node, 'value', convertNode(buffer[position + 5], buffer, node));
+			},
+			kind: FIXED_STRINGS[buffer[position + 6]] as ast.Property['kind']
 		};
-		node.value = convertNode(buffer[position + 5], buffer, node);
 		defineParent(node, position, buffer, parent);
 		return node;
 	},
@@ -1459,19 +1348,21 @@ const nodeConverters: ((
 			static: (flags & 1) === 1,
 			computed: (flags & 2) === 2,
 			get decorators() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'decorators',
+					convertNodeList(buffer[position + 4], buffer, node)
+				);
 			},
 			get key() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
+				return replaceField(node, 'key', convertNode(buffer[position + 5], buffer, node));
 			},
 			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer, node);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'value',
+					valuePosition === 0 ? null : convertNode(valuePosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1483,9 +1374,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1498,9 +1387,11 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'argument',
+					argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1512,9 +1403,11 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get expressions() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'expressions', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'expressions',
+					convertNodeList(buffer[position + 3], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1526,9 +1419,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1540,9 +1431,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get body() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNodeList(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1564,14 +1453,18 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer, node);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'test',
+					testPosition === 0 ? null : convertNode(testPosition, buffer, node)
+				);
 			},
 			get consequent() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'consequent',
+					convertNodeList(buffer[position + 4], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1583,14 +1476,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get discriminant() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'discriminant', { value: result });
-				return result;
+				return replaceField(node, 'discriminant', convertNode(buffer[position + 3], buffer, node));
 			},
 			get cases() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'cases', { value: result });
-				return result;
+				return replaceField(node, 'cases', convertNodeList(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1602,14 +1491,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get tag() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'tag', { value: result });
-				return result;
+				return replaceField(node, 'tag', convertNode(buffer[position + 3], buffer, node));
 			},
 			get quasi() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'quasi', { value: result });
-				return result;
+				return replaceField(node, 'quasi', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1636,14 +1521,14 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get quasis() {
-				const result = convertNodeList(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'quasis', { value: result });
-				return result;
+				return replaceField(node, 'quasis', convertNodeList(buffer[position + 3], buffer, node));
 			},
 			get expressions() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'expressions', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'expressions',
+					convertNodeList(buffer[position + 4], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1664,9 +1549,7 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get argument() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 3], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1680,20 +1563,21 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get block() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'block', { value: result });
-				return result;
+				return replaceField(node, 'block', convertNode(buffer[position + 3], buffer, node));
 			},
 			get handler() {
-				const result = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer, node);
-				Object.defineProperty(node, 'handler', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'handler',
+					handlerPosition === 0 ? null : convertNode(handlerPosition, buffer, node)
+				);
 			},
 			get finalizer() {
-				const result =
-					finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer, node);
-				Object.defineProperty(node, 'finalizer', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'finalizer',
+					finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1704,15 +1588,9 @@ const nodeConverters: ((
 			type: 'UnaryExpression',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.UnaryExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
+			operator: FIXED_STRINGS[buffer[position + 3]] as ast.UnaryExpression['operator'],
 			get argument() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 4], buffer, node));
 			},
 			prefix: true
 		};
@@ -1726,15 +1604,9 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			prefix: (flags & 1) === 1,
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 4]] as ast.UpdateExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
+			operator: FIXED_STRINGS[buffer[position + 4]] as ast.UpdateExpression['operator'],
 			get argument() {
-				const result = convertNode(buffer[position + 5], buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(node, 'argument', convertNode(buffer[position + 5], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1745,15 +1617,13 @@ const nodeConverters: ((
 			type: 'VariableDeclaration',
 			start: buffer[position + 1],
 			end: buffer[position + 2],
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.VariableDeclaration['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			},
+			kind: FIXED_STRINGS[buffer[position + 3]] as ast.VariableDeclaration['kind'],
 			get declarations() {
-				const result = convertNodeList(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'declarations', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'declarations',
+					convertNodeList(buffer[position + 4], buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1766,14 +1636,14 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get id() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
+				return replaceField(node, 'id', convertNode(buffer[position + 3], buffer, node));
 			},
 			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer, node);
-				Object.defineProperty(node, 'init', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'init',
+					initPosition === 0 ? null : convertNode(initPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1785,14 +1655,10 @@ const nodeConverters: ((
 			start: buffer[position + 1],
 			end: buffer[position + 2],
 			get test() {
-				const result = convertNode(buffer[position + 3], buffer, node);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
+				return replaceField(node, 'test', convertNode(buffer[position + 3], buffer, node));
 			},
 			get body() {
-				const result = convertNode(buffer[position + 4], buffer, node);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
+				return replaceField(node, 'body', convertNode(buffer[position + 4], buffer, node));
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1807,9 +1673,11 @@ const nodeConverters: ((
 			end: buffer[position + 2],
 			delegate: (flags & 1) === 1,
 			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, node);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
+				return replaceField(
+					node,
+					'argument',
+					argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, node)
+				);
 			}
 		};
 		defineParent(node, position, buffer, parent);
@@ -1846,6 +1714,7 @@ const parentPropertyDescriptor: PropertyDescriptor = {
 function setParent(node: ast.AstNode, parent: ast.AstNode | null): void {
 	parentPropertyDescriptor.value = parent;
 	Object.defineProperty(node, 'parent', parentPropertyDescriptor);
+	parentPropertyDescriptor.value = null;
 }
 
 function defineParent(

@@ -9,7 +9,6 @@ const bufferToJsAstFile = new URL('../src/utils/bufferToLazyAst.ts', import.meta
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];
-	const postAssignments: string[] = [];
 	let offset = 3;
 	if (node.flags) {
 		offset++;
@@ -22,11 +21,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 	}
 	for (const [index, field] of fields.entries()) {
 		definitions.push(getFieldDefinition(field, index + offset));
-		if (isHoistedChildField(field, node)) {
-			postAssignments.push(
-				`node.${field.name} = ${getFieldPropertyBase(field, name, node, index + offset)};\n`
-			);
-		} else if (isHoistedField(field.name, node)) {
+		if (isHoistedField(field.name, node)) {
 			definitions.push(
 				`const ${field.name} = ${getFieldPropertyBase(field, name, node, index + offset)};`
 			);
@@ -37,11 +32,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 			isHoistedField(name, node) ? name : `${name}: (flags & ${1 << index}) === ${1 << index}`
 		),
 		...fields
-			.map((field, index) =>
-				isHoistedChildField(field, node)
-					? `${field.name}: null as never`
-					: getFieldProperty(field, name, node, index + offset)
-			)
+			.map((field, index) => getFieldProperty(field, name, node, index + offset))
 			.filter((property): property is string => !!property),
 		...getFixedProperties(node),
 		...Object.entries(node.additionalFields || []).map(([key, { value }]) => `${key}: ${value}`)
@@ -53,23 +44,13 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
       end: buffer[position + 2],
       ${properties.join(',\n')}
     };
-    ${postAssignments.join('')}defineParent(node, position, buffer, parent);
+    defineParent(node, position, buffer, parent);
     return node;
   }`;
 });
 
-function isHoistedField(name: string, node: NodeDescription): boolean | undefined {
-	return (
-		node.baseForAdditionalFields?.includes(name) ||
-		(node.optionalFallback && Object.values(node.optionalFallback).includes(name))
-	);
-}
-
-function isHoistedChildField(field: FieldDescription, node: NodeDescription): boolean {
-	return (
-		isHoistedField(field.name, node) === true &&
-		(field.type === 'Node' || field.type === 'NodeList')
-	);
+function isHoistedField(name: string, node: NodeDescription): boolean {
+	return node.baseForAdditionalFields?.includes(name) ?? false;
 }
 
 function getFieldDefinition(field: FieldDescription, offset: number): string {
@@ -116,14 +97,25 @@ function getFieldProperty(
 		case 'Annotations': {
 			return `...(${field.name}.length > 0 ? { ${field.name} } : {})`;
 		}
+		case 'FixedString':
+		case 'Float': {
+			return `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`;
+		}
 		default: {
-			return `get ${field.name}() {
-			  const result = ${getFieldPropertyBase(field, nodeName, node, offset)};
-			  Object.defineProperty(node, '${field.name}', { value: result });
-			  return result;
-			}`;
+			return getLazyFieldProperty(field, nodeName, node, offset);
 		}
 	}
+}
+
+function getLazyFieldProperty(
+	field: FieldDescription,
+	nodeName: string,
+	node: NodeDescription,
+	offset: number
+): string {
+	return `get ${field.name}() {
+		return replaceField(node, '${field.name}', ${getFieldPropertyBase(field, nodeName, node, offset)});
+	}`;
 }
 
 function getFieldPropertyBase(
@@ -203,6 +195,22 @@ export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): a
 };
 
 /* eslint-disable sort-keys */
+const replacedFieldDescriptor: PropertyDescriptor = {
+  configurable: true,
+  enumerable: true,
+  value: undefined,
+  writable: false
+};
+
+function replaceField<T>(node: ast.AstNode, key: string, value: T): T {
+  if (Object.isExtensible(node)) {
+    replacedFieldDescriptor.value = value;
+    Object.defineProperty(node, key, replacedFieldDescriptor);
+    replacedFieldDescriptor.value = null;
+  }
+  return value;
+}
+
 const nodeConverters: ((position: number, buffer: AstBuffer, parent: ast.AstNode | null) => ast.AstNode)[] = [
   ${jsConverters.join(',\n')}
 ];
@@ -236,6 +244,7 @@ const parentPropertyDescriptor: PropertyDescriptor = {
 function setParent(node: ast.AstNode, parent: ast.AstNode | null): void {
   parentPropertyDescriptor.value = parent;
   Object.defineProperty(node, 'parent', parentPropertyDescriptor);
+  parentPropertyDescriptor.value = null;
 }
 
 function defineParent(
