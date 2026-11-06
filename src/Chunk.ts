@@ -31,7 +31,13 @@ import { createAddons } from './utils/addons';
 import { EMPTY_OBJECT } from './utils/blank';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import { escapeId } from './utils/escapeId';
-import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
+import {
+	assignExportsToMangledNames,
+	assignExportsToNames,
+	getExternalNamespaceId,
+	isNamespaceExportName,
+	unescapeExportName
+} from './utils/exportNames';
 import type { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -914,7 +920,7 @@ export default class Chunk {
 	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
 		const exports: ChunkExports = [];
 		for (const exportName of this.getExportNames()) {
-			if (exportName[0] === '*') continue;
+			if (isNamespaceExportName(exportName)) continue;
 
 			const variable = this.exportsByName.get(exportName)!;
 			if (!(variable instanceof SyntheticNamedExportVariable)) {
@@ -998,7 +1004,7 @@ export default class Chunk {
 							variable.isNamespace &&
 							namespaceInteropHelpersByInteropType[interop(module.id)] &&
 							(this.imports.has(variable) ||
-								!this.exportNamesByVariable.get(variable)?.every(name => name[0] === '*'))
+								!this.exportNamesByVariable.get(variable)?.every(isNamespaceExportName))
 						) {
 							// We only need to deconflict it if the namespace is actually
 							// created as a variable, i.e. because it is used internally or
@@ -1207,8 +1213,8 @@ export default class Chunk {
 			let dependency: Chunk | ExternalChunk;
 			let imported: string;
 			let needsLiveBinding: boolean;
-			if (exportName[0] === '*') {
-				const id = exportName.slice(1);
+			if (isNamespaceExportName(exportName)) {
+				const id = getExternalNamespaceId(exportName);
 				if (interop(id) === 'defaultOnly') {
 					this.inputOptions.onLog(LOGLEVEL_WARN, logUnexpectedNamespaceReexport(id));
 				}
@@ -1507,7 +1513,7 @@ export default class Chunk {
 				exportVariable.isReassigned &&
 				!exportVariable.isId
 			) {
-				exportVariable.setRenderNames('exports', exportName);
+				exportVariable.setRenderNames('exports', unescapeExportName(exportName));
 			} else if (exportVariable instanceof SyntheticNamedExportVariable) {
 				syntheticExports.add(exportVariable);
 			} else {

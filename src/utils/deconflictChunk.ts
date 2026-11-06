@@ -8,6 +8,7 @@ import ExternalChunk from '../ExternalChunk';
 import ExternalModule from '../ExternalModule';
 import type Module from '../Module';
 import type { GetInterop, InternalModuleFormat } from '../rollup/types';
+import { unescapeExportName } from './exportNames';
 import { makeLegal } from './identifierHelpers';
 import {
 	canDefaultBeTakenFromNamespace,
@@ -200,8 +201,7 @@ function deconflictImportsOther(
 						: chunk.variableName
 				);
 			} else {
-				// if the second parameter is `null`, it uses its "name" for the property name
-				variable.setRenderNames(chunk.variableName, null);
+				variable.setRenderNames(chunk.variableName, unescapeExportName(name));
 			}
 		} else {
 			const chunk = chunkByModule.get(module!)!;
@@ -215,7 +215,7 @@ function deconflictImportsOther(
 			} else {
 				variable.setRenderNames(
 					chunk.variableName,
-					chunk.getVariableExportName(variable) as string | null
+					unescapeExportName(chunk.getVariableExportName(variable))
 				);
 			}
 		}

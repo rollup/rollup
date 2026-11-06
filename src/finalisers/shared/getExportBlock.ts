@@ -1,5 +1,6 @@
 import type { ChunkDependency, ChunkExports } from '../../Chunk';
 import type { GetInterop } from '../../rollup/types';
+import { unescapeExportName } from '../../utils/exportNames';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
@@ -63,7 +64,7 @@ export function getExportBlock(
 					if (exportBlock) exportBlock += n;
 					if (specifier.imported !== '*' && specifier.needsLiveBinding) {
 						exportBlock += `Object.defineProperty(exports,${_}${JSON.stringify(
-							specifier.reexported
+							unescapeExportName(specifier.reexported)
 						)},${_}${getGetter(importName, false, t, snippets)});`;
 					} else if (specifier.reexported === '__proto__') {
 						exportBlock +=
@@ -72,7 +73,7 @@ export function getExportBlock(
 							`${t}value:${_}${importName}${n}});`;
 					} else {
 						exportBlock += `exports${getPropertyAccess(
-							specifier.reexported
+							unescapeExportName(specifier.reexported)
 						)}${_}=${_}${importName};`;
 					}
 				}
@@ -81,13 +82,13 @@ export function getExportBlock(
 	}
 
 	for (const { exported, local, needsLiveBinding } of exports) {
-		const lhs = `exports${getPropertyAccess(exported)}`;
+		const lhs = `exports${getPropertyAccess(unescapeExportName(exported))}`;
 		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
 			if (needsLiveBinding) {
 				exportBlock += `Object.defineProperty(exports,${_}${JSON.stringify(
-					exported
+					unescapeExportName(exported)
 				)},${_}${getGetter(rhs, true, t, snippets)});`;
 				continue;
 			}
@@ -212,7 +213,7 @@ function getReexportedImportName(
 			? namespaceVariableName
 			: moduleVariableName;
 	}
-	return `${moduleVariableName}${getPropertyAccess(imported)}`;
+	return `${moduleVariableName}${getPropertyAccess(unescapeExportName(imported))}`;
 }
 
 function getEsModuleValue(getObject: GenerateCodeSnippets['getObject']) {

@@ -55,6 +55,13 @@ import { EMPTY_OBJECT } from './utils/blank';
 import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
+import {
+	escapeExportName,
+	getExternalNamespaceExportName,
+	getExternalNamespaceId,
+	isNamespaceExportName,
+	unescapeExportName
+} from './utils/exportNames';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -509,7 +516,7 @@ export default class Module {
 				if (exportedVariable) {
 					exportedVariablesByName.set(name, exportedVariable);
 				} else {
-					return error(logMissingEntryExport(name, this.id));
+					return error(logMissingEntryExport(unescapeExportName(name), this.id));
 				}
 			}
 		}
@@ -522,7 +529,7 @@ export default class Module {
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
 				exportedVariablesByName.set(
-					`*${module.id}`,
+					getExternalNamespaceExportName(module.id),
 					module.getVariableForExportName('*', {
 						importChain: [this.id]
 					})[0]
@@ -617,13 +624,13 @@ export default class Module {
 			exportOrReexportModules?: Set<Module>;
 		} = EMPTY_OBJECT
 	): [variable: Variable | null, options?: VariableOptions] {
-		if (name[0] === '*') {
+		if (isNamespaceExportName(name)) {
 			if (name.length === 1) {
 				// export * from './other'
 				return [this.namespace];
 			}
 			// export * from 'external'
-			const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
+			const module = this.graph.modulesById.get(getExternalNamespaceId(name)) as ExternalModule;
 			return module.getVariableForExportName('*', {
 				importChain: [...importChain, this.id]
 			});
@@ -645,7 +652,7 @@ export default class Module {
 			if (!variable) {
 				return this.error(
 					logMissingExport(
-						reexportDeclaration.localName,
+						unescapeExportName(reexportDeclaration.localName),
 						this.id,
 						reexportDeclaration.module.id,
 						!!options?.missingButExportExists
@@ -746,7 +753,11 @@ export default class Module {
 					this.syntheticExports,
 					name,
 					() =>
-						new SyntheticNamedExportVariable(this.astContext, name, this.getSyntheticNamespace())
+						new SyntheticNamedExportVariable(
+							this.astContext,
+							unescapeExportName(name),
+							this.getSyntheticNamespace()
+						)
 				)
 			];
 		}
@@ -927,7 +938,7 @@ export default class Module {
 			newlyIncludedVariableInits: this.graph.newlyIncludedVariableInits,
 			options: this.options,
 			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
-			traceExport: (name: string) => this.getVariableForExportName(name),
+			traceExport: (name: string) => this.getVariableForExportName(escapeExportName(name)),
 			traceVariable: this.traceVariable.bind(this),
 			usesTopLevelAwait: false
 		};
@@ -1038,7 +1049,7 @@ export default class Module {
 			if (!declaration) {
 				return this.error(
 					logMissingExport(
-						importDescription.name,
+						unescapeExportName(importDescription.name),
 						this.id,
 						otherModule.id,
 						!!options?.missingButExportExists
@@ -1093,7 +1104,7 @@ export default class Module {
 
 	private assertUniqueExportName(name: string, nodeStart: number) {
 		if (this.exportDescriptions.has(name) || this.reexportDescriptions.has(name)) {
-			this.error(logDuplicateExportError(name), nodeStart);
+			this.error(logDuplicateExportError(unescapeExportName(name)), nodeStart);
 		}
 	}
 
@@ -1114,7 +1125,9 @@ export default class Module {
 			if (node.exported) {
 				// export * as name from './other'
 
-				const name = node.exported instanceof Literal ? node.exported.value : node.exported.name;
+				const name = escapeExportName(
+					node.exported instanceof Literal ? node.exported.value : node.exported.name
+				);
 				this.assertUniqueExportName(name, node.exported.start);
 				this.reexportDescriptions.set(name, {
 					localName: '*',
@@ -1133,10 +1146,10 @@ export default class Module {
 			const source = node.source.value;
 			this.addSource(source, node);
 			for (const { exported, local, start } of node.specifiers) {
-				const name = exported instanceof Literal ? exported.value : exported.name;
+				const name = escapeExportName(exported instanceof Literal ? exported.value : exported.name);
 				this.assertUniqueExportName(name, start);
 				this.reexportDescriptions.set(name, {
-					localName: local instanceof Literal ? local.value : local.name,
+					localName: escapeExportName(local instanceof Literal ? local.value : local.name),
 					module: null as never, // filled in later,
 					source,
 					start
@@ -1167,7 +1180,9 @@ export default class Module {
 			for (const { local, exported } of node.specifiers) {
 				// except for reexports, local must be an Identifier
 				const localName = (local as Identifier).name;
-				const exportedName = exported instanceof Identifier ? exported.name : exported.value;
+				const exportedName = escapeExportName(
+					exported instanceof Identifier ? exported.name : exported.value
+				);
 				this.assertUniqueExportName(exportedName, exported.start);
 				this.exportDescriptions.set(exportedName, { identifier: null, localName });
 			}
@@ -1193,7 +1208,7 @@ export default class Module {
 							? '*'
 							: specifier.imported instanceof Identifier
 								? specifier.imported.name
-								: specifier.imported.value;
+								: escapeExportName(specifier.imported.value);
 			this.importDescriptions.set(localName, {
 				module: null as never, // filled in later
 				name,
