@@ -364,6 +364,9 @@ function analyzeModuleGraph(
 					allEntriesSet.add(dependency);
 					allEntriesAndManualChunks.push([dependency]);
 				}
+				if (dynamicEntryModules.has(dependency)) {
+					dynamicImportsForCurrentEntry.add(dependency);
+				}
 			}
 		}
 		// A dynamic import can be awaited indirectly through a static dependency.
