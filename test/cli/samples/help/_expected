@@ -54,7 +54,8 @@ Options:
 --importAttributesKey <name> Use the specified keyword for import attributes
 --no-indent                 Don't indent result
 --inlineDynamicImports      Create single bundle when using dynamic imports
---no-interop                Do not include interop block
+--interop <value>           Interop mode for external imports (compat, auto,
+                 esModule, default, defaultOnly)
 --intro <text>              Code to insert at top of bundle (inside wrapper)
 --logLevel <level>          Which kind of logs to display
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
