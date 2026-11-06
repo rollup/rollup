@@ -124,9 +124,7 @@ jobs:
             env:
               TARGET_CC: clang
               CFLAGS: -fuse-ld=lld
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libatomic1-armhf-cross -y
+            setup: ./.github/scripts/install-apt-packages.sh gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libatomic1-armhf-cross
             cross: napi
           - host: ubuntu-latest
             target: armv7-unknown-linux-musleabihf
@@ -136,9 +134,7 @@ jobs:
             env:
               TARGET_CC: clang
               CFLAGS: -fuse-ld=lld
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu -y
+            setup: ./.github/scripts/install-apt-packages.sh gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
             cross: napi
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
@@ -162,9 +158,7 @@ jobs:
             cache-cargo: false
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-riscv64-linux-gnu g++-riscv64-linux-gnu -y
+            setup: ./.github/scripts/install-apt-packages.sh gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-musl
             cross: zig
@@ -173,9 +167,7 @@ jobs:
             env:
               TARGET_CC: clang
               CFLAGS: -fuse-ld=lld
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu -y
+            setup: ./.github/scripts/install-apt-packages.sh gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu
             cross: napi
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-musl
@@ -186,15 +178,12 @@ jobs:
               CC: clang
               TARGET_CC: clang
               CFLAGS: -fuse-ld=lld
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-s390x-linux-gnu g++-s390x-linux-gnu -y
+            setup: ./.github/scripts/install-apt-packages.sh gcc-s390x-linux-gnu g++-s390x-linux-gnu
             cross: napi
           - host: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
             setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-13-loongarch64-linux-gnu -y
+              ./.github/scripts/install-apt-packages.sh gcc-13-loongarch64-linux-gnu
               sudo update-alternatives \
                 --install /usr/bin/loongarch64-linux-gnu-gcc loongarch64-linux-gnu-gcc /usr/bin/loongarch64-linux-gnu-gcc-13 100 \
                 --slave /usr/bin/loongarch64-linux-gnu-gcc-ar loongarch64-linux-gnu-gcc-ar /usr/bin/loongarch64-linux-gnu-gcc-ar-13 \
