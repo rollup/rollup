@@ -340,20 +340,21 @@ function analyzeModuleGraph(
 					staticDependencies.add(dependency);
 				}
 			}
-			for (const {
-				node: { resolution }
-			} of module.dynamicImports) {
+			for (const { node } of module.dynamicImports) {
+				const { resolution } = node;
 				if (
 					resolution instanceof Module &&
 					resolution.includedDynamicImporters.length > 0 &&
 					(dynamicEntryModules.has(resolution) || !allEntriesSet.has(resolution))
 				) {
 					dynamicEntriesForCurrentEntry.add(resolution);
+					if (node.included) {
+						dynamicImportsForCurrentEntry.add(resolution);
+					}
 					if (!allEntriesSet.has(resolution)) {
 						dynamicEntryModules.add(resolution);
 						allEntriesSet.add(resolution);
 						allEntriesAndManualChunks.push([resolution]);
-						dynamicImportsForCurrentEntry.add(resolution);
 					}
 				}
 			}
@@ -362,6 +363,9 @@ function analyzeModuleGraph(
 					dynamicEntryModules.add(dependency);
 					allEntriesSet.add(dependency);
 					allEntriesAndManualChunks.push([dependency]);
+				}
+				if (dynamicEntryModules.has(dependency)) {
+					dynamicImportsForCurrentEntry.add(dependency);
 				}
 			}
 		}
