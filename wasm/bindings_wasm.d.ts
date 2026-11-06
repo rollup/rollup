@@ -14,13 +14,15 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly parse: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-    readonly xxhashBase16: (a: number, b: number) => void;
-    readonly xxhashBase36: (a: number, b: number) => void;
-    readonly xxhashBase64Url: (a: number, b: number) => void;
+    readonly xxhashBase16: (a: number, b: any) => void;
+    readonly xxhashBase36: (a: number, b: any) => void;
+    readonly xxhashBase64Url: (a: number, b: any) => void;
     readonly __wbindgen_export: (a: number, b: number, c: number) => void;
     readonly __wbindgen_export2: (a: number, b: number) => number;
     readonly __wbindgen_export3: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+    readonly __wbindgen_start: () => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
