@@ -69,6 +69,11 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	if (typeof map === 'string') {
 		map = JSON.parse(map) as ExistingRawSourceMap;
 	}
+	// A map this function already returned, e.g. one restored from the cache of a previous build, is
+	// lazy. Reading its mappings below would decode it.
+	if (sourceMapCache.has(map as ExistingDecodedSourceMap)) {
+		return map as ExistingDecodedSourceMap;
+	}
 	if ('sections' in map) {
 		map = flattenIndexSourceMap(map);
 	}

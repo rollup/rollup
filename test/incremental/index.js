@@ -55,6 +55,55 @@ describe('incremental', () => {
 		assert.strictEqual(result, 42);
 	});
 
+	it('does not decode the sourcemaps of cached modules', async () => {
+		const sourcemapPlugin = {
+			resolveId: id => id,
+			load: id => modules[id],
+			transform: (code, id) => ({
+				code,
+				map: { version: 3, sources: [id], names: [], mappings: 'AAAA' }
+			})
+		};
+		const { cache } = await rollup.rollup({
+			input: 'entry',
+			plugins: [sourcemapPlugin]
+		});
+		let mappingsReads = 0;
+		for (const { sourcemapChain } of cache.modules) {
+			for (const map of sourcemapChain) {
+				const { get } = Object.getOwnPropertyDescriptor(map, 'mappings');
+				Object.defineProperty(map, 'mappings', {
+					configurable: true,
+					enumerable: true,
+					get() {
+						mappingsReads++;
+						return get.call(this);
+					}
+				});
+			}
+		}
+
+		const secondBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [sourcemapPlugin],
+			cache
+		});
+		assert.strictEqual(mappingsReads, 0);
+
+		const {
+			output: [{ map }]
+		} = await secondBundle.generate({ format: 'es', sourcemap: true });
+		assert.ok(mappingsReads > 0);
+		const uncachedBundle = await rollup.rollup({
+			input: 'entry',
+			plugins: [sourcemapPlugin]
+		});
+		const {
+			output: [{ map: uncachedMap }]
+		} = await uncachedBundle.generate({ format: 'es', sourcemap: true });
+		assert.strictEqual(map.toString(), uncachedMap.toString());
+	});
+
 	it('does not resolve dynamic ids and transforms in the second time', () => {
 		modules = {
 			entry: `export default import('foo');`,
