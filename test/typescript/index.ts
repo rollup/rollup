@@ -157,3 +157,29 @@ const _nullSourcesPlugin: rollup.Plugin = {
 	},
 	name: 'test'
 };
+
+// Lazy AST parents
+const _lazyAst: rollup.ast.LazyNode<rollup.ast.Program> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.Program>;
+const _eagerAst: rollup.ast.Program = null as unknown as rollup.ast.Program;
+const _lazyParent: rollup.ast.AstNode | null | undefined = _lazyAst.body[0].parent;
+const _lazyParentType: string | null | undefined = _lazyAst.body[0].parent?.type;
+const _lazyParentIsPresent: boolean = 'parent' in _lazyAst.body[0];
+const _programParent: null | undefined = _lazyAst.parent;
+// @ts-expect-error eager AST nodes do not have parents
+const _eagerParent = _eagerAst.body[0].parent;
+
+const _lazyDeclarator: rollup.ast.LazyNode<rollup.ast.VariableDeclarator> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.VariableDeclarator>;
+const _declaratorParent: rollup.ast.VariableDeclaratorParent | null | undefined =
+	_lazyDeclarator.parent;
+const _declaratorParentType: string | null | undefined = _lazyDeclarator.parent?.type;
+const _declaratorGrandParent: rollup.ast.AstNode | null | undefined =
+	_lazyDeclarator.parent?.parent;
+
+const _walkHandler: rollup.ParseAndWalkHandler<rollup.ast.VariableDeclarator> = (node, api) => {
+	const _parent: rollup.ast.VariableDeclaratorParent | null | undefined = node.parent;
+	const _idParent: rollup.ast.AstNode | null | undefined = node.id.parent;
+	const _idType: string = node.id.type;
+	api.parseChildren();
+};

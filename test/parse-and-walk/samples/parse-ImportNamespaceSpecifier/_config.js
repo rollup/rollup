@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const importNamespaceSpecifiers = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(importNamespaceSpecifiers, [
+		assertAstEqual(importNamespaceSpecifiers, [
 			{
 				type: 'ImportNamespaceSpecifier',
 				start: 7,

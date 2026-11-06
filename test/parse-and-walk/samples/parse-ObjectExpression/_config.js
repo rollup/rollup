@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const objectExpressions = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(objectExpressions, [
+		assertAstEqual(objectExpressions, [
 			{
 				type: 'ObjectExpression',
 				start: 15,

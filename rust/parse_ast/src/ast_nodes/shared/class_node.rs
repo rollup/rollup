@@ -30,6 +30,9 @@ impl AstConverter<'_> {
       CLASS_DECLARATION_RESERVED_BYTES,
       false,
     );
+    if let Some(decorator_list_position) = outside_class_span_decorators_insert_position {
+      self.reparent_decorators(decorator_list_position);
+    }
     let mut body_start_search = class.span.lo.0 - 1;
     // decorators
     if let Some(outside_class_span_decorators_insert_position) =

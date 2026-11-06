@@ -2368,11 +2368,18 @@ Rollup uses Abstract Syntax Trees (ASTs) to parse and analyze JavaScript code.
 
 ### Lazy AST Generation
 
-For performance reasons, some ASTs returned by Rollup are generated lazily. This means that all non-primitive properties of AST nodes are getters that replace themselves with the actual node values on first access. When you access a node property for the first time, the getter computes the value and replaces itself with a regular property containing the actual node.
+For performance reasons, some ASTs returned by Rollup are generated lazily. A lazy node owns only `start` and `end` as plain regular properties, plus a few eagerly decoded scalars such as `kind`, `operator` or `computed`. `type` and every other property—child nodes, child lists, strings, numbers and derived values such as `raw` or `regex`—lives on a prototype that is shared by all nodes of that type across ASTs. Reading such a property decodes it from Rollup's internal binary representation; nodes are cached, so repeated access and repeated traversal always return the same node objects.
 
-This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. The lazy getter implementation is transparent to most use cases—you can access AST properties normally without worrying about the underlying mechanism.
+This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. Accessing properties is transparent to most use cases. The one visible difference to an eager AST is that lazy properties are not own properties: `Object.keys(node)` only lists `start`, `end` and the eagerly decoded scalars (plus any derived values such as `regex` that were memoised on first access), and spreading or stringifying a lazy node loses its children and parent. Use property access, or convert the AST if you need a plain object.
 
 [`this.parse`](#this-parse) and the standalone [`parseAst`](../javascript-api/index.md#accessing-the-parser) / [`parseAstAsync`](../javascript-api/index.md#accessing-the-parser) helpers return fully materialized plain JavaScript objects (eager ASTs). If you need a lazy AST from code, use [`parseLazyAst` or `parseLazyAstAsync`](../javascript-api/index.md#accessing-the-parser) instead.
+
+### Parent links
+
+Nodes of a lazy AST have a `parent` property that points to the node containing them. This includes nodes passed to a [`parseAndWalk`](#this-parseandwalk) visitor.
+
+- Like other lazy properties, `parent` is a getter on the shared prototype and is resolved from the buffer when accessed. Rollup always returns the same node objects for the same source node within one AST, so `node.parent.body[0] === node` holds for a node that is the first child of its parent, and keeping a visited node alive also keeps the nodes materialized during the same walk alive.
+- Each node has exactly one parent. For default destructuring like `const { x = 1 } = obj`, `key` and `value.left` are the same `Identifier` whose `parent` is the `AssignmentPattern` rather than the `Property`.
 
 ### Accessing ASTs from Module Info
 

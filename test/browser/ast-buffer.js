@@ -82,19 +82,52 @@ describe('ast buffer', () => {
 
 	it('stores strings and float values in the documented word format', () => {
 		const numberWords = toWords(serializeAst({ type: 'Literal', start: 0, end: 0, value: 1.5 }));
-		// word 3 is the raw reference, which is unset here; then 1.5 is stored
+		// word 4 is the raw reference, which is unset here; then 1.5 is stored
 		// as the low/high pair of its f64 bit pattern 0x3ff8000000000000
-		assert.strictEqual(numberWords[3], 0x00000000);
 		assert.strictEqual(numberWords[4], 0x00000000);
-		assert.strictEqual(numberWords[5], 0x3ff80000);
+		assert.strictEqual(numberWords[5], 0x00000000);
+		assert.strictEqual(numberWords[6], 0x3ff80000);
 		const stringWords = toWords(
 			serializeAst({ type: 'Literal', start: 0, end: 0, value: 'abcde', raw: '"abcde"' })
 		);
-		const stringPosition = stringWords[3];
+		const stringPosition = stringWords[4];
 		assert.strictEqual(stringWords[stringPosition], 5);
 		// the bytes are packed LSB-first: 'a' into the lowest byte position
 		assert.strictEqual(stringWords[stringPosition + 1], 0x64636261);
 		assert.strictEqual(stringWords[stringPosition + 2], 0x00000065);
+	});
+
+	it('stores the parent node position in every node header', () => {
+		const words = toWords(
+			serializeAst({
+				body: [
+					{
+						end: 2,
+						expression: { end: 1, start: 0, type: 'Literal', value: 1 },
+						start: 0,
+						type: 'ExpressionStatement'
+					}
+				],
+				end: 2,
+				sourceType: 'module',
+				start: 0,
+				type: 'Program'
+			})
+		);
+		assert.strictEqual(words[1], 0, 'the root has no parent');
+		const bodyListPosition = words[4];
+		const statementPosition = words[bodyListPosition + 1];
+		assert.strictEqual(
+			words[statementPosition + 1],
+			1,
+			'the child stores the root position plus one'
+		);
+		const literalPosition = words[statementPosition + 4];
+		assert.strictEqual(
+			words[literalPosition + 1],
+			statementPosition + 1,
+			'the grandchild stores the parent node position plus one'
+		);
 	});
 
 	it('round-trips special float and string values through serialize and decode', () => {

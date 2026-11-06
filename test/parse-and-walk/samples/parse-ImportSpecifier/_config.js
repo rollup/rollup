@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const importSpecifiers = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(importSpecifiers, [
+		assertAstEqual(importSpecifiers, [
 			{
 				type: 'ImportSpecifier',
 				start: 9,

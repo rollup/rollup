@@ -1,3 +1,4 @@
+const { serializeModuleInfo } = require('../../../testHelpers');
 const assert = require('node:assert');
 const path = require('node:path');
 
@@ -16,7 +17,7 @@ module.exports = defineTest({
 					parsedModules.push(moduleInfo);
 				},
 				buildEnd() {
-					assert.deepStrictEqual(JSON.parse(JSON.stringify(parsedModules)), [
+					assert.deepStrictEqual(serializeModuleInfo(parsedModules), [
 						{
 							id: ID_MAIN,
 							attributes: {},

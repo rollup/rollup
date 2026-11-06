@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const literals = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(literals, [{ type: 'Literal', start: 15, end: 19, raw: 'true', value: true }]);
+		assertAstEqual(literals, [{ type: 'Literal', start: 15, end: 19, raw: 'true', value: true }]);
 	},
 	expectedAst: {
 		type: 'Program',

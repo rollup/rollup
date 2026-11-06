@@ -26,7 +26,7 @@ const { importAssertions } = require('acorn-import-assertions');
 const importPhases = require('acorn-import-phases');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
-const { serializeAst, deserializeLazyAst } = require('../dist/parseAst');
+const { deserializeAst, deserializeLazyAst, serializeAst } = require('../dist/parseAst');
 
 if (!globalThis.defineTest) {
 	globalThis.defineTest = config => config;
@@ -578,13 +578,70 @@ exports.verifyAstPlugin = {
 	name: 'verify-ast',
 	moduleParsed: ({ ast, code }) => {
 		const acornAst = acornParser.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+		const eagerAst = deserializeAst(serializeAst(ast));
 		assert.deepStrictEqual(
-			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
+			JSON.parse(JSON.stringify(eagerAst, replaceStringifyValues), reviveStringifyValues),
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
 		);
-		assert.deepStrictEqual(deserializeLazyAst(serializeAst(ast)), ast);
+		exports.assertAstEqual(deserializeLazyAst(serializeAst(ast)), eagerAst);
 	}
 };
+
+function assertAstValueEqual(actual, expected, path) {
+	if (Array.isArray(expected)) {
+		assert.ok(Array.isArray(actual), `${path} should be an array`);
+		assert.strictEqual(actual.length, expected.length, `${path} length`);
+		for (let index = 0; index < expected.length; index++) {
+			assertAstValueEqual(actual[index], expected[index], `${path}[${index}]`);
+		}
+		return;
+	}
+	if (expected !== null && typeof expected === 'object') {
+		assert.ok(actual !== null && typeof actual === 'object', `${path} should be an object`);
+		for (const key of Object.keys(expected)) {
+			if (key === 'parent' || expected[key] === undefined) continue;
+			assertAstValueEqual(actual[key], expected[key], `${path}.${key}`);
+		}
+		for (const key of getEnumerableKeys(actual)) {
+			if (key === 'parent' || actual[key] === undefined) continue;
+			assert.ok(expected[key] !== undefined, `${path} has unexpected property "${key}"`);
+		}
+		return;
+	}
+	assert.strictEqual(actual, expected, path);
+}
+
+exports.assertAstEqual = (actual, expected) => assertAstValueEqual(actual, expected, 'ast');
+
+function getEnumerableKeys(value) {
+	const keys = new Set();
+	let current = value;
+	while (current && current !== Object.prototype) {
+		for (const key of Object.keys(current)) keys.add(key);
+		current = Object.getPrototypeOf(current);
+	}
+	return keys;
+}
+
+function toSerializableValue(value) {
+	if (Array.isArray(value)) {
+		return value.map(toSerializableValue);
+	}
+	if (value !== null && typeof value === 'object') {
+		const result = {};
+		for (const key of getEnumerableKeys(value)) {
+			if (key === 'parent') continue;
+			const childValue = value[key];
+			if (childValue !== undefined) {
+				result[key] = toSerializableValue(childValue);
+			}
+		}
+		return result;
+	}
+	return value;
+}
+
+exports.serializeModuleInfo = moduleInfo => toSerializableValue(moduleInfo);
 
 exports.getRandomElement = function getRandomElement(array) {
 	return array[Math.floor(Math.random() * array.length)];

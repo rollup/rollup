@@ -41,14 +41,14 @@ const canonicalSerializers = Object.entries(astNodesByAstType)
 			nonCanonicalAstTypes.push({ astType: astType as AstTypeName, nodes });
 			return `${astType}: serialize${astType}Node`;
 		}
-		return `${astType}: (node, buffer) => ${getNodeSerializerBody(nodes[0])}`;
+		return `${astType}: (node, buffer, encodedParent) => ${getNodeSerializerBody(nodes[0])}`;
 	})
 	.join(',\n');
 
 const nonCanonicalSerializers = nonCanonicalAstTypes
 	.flatMap(({ nodes }) =>
 		nodes.map(node => {
-			return `const serialize${node.nodeName}: NodeSerializer<ast.${node.nodeName}> = (node, buffer) => ${getNodeSerializerBody(node)}`;
+			return `const serialize${node.nodeName}: NodeSerializer<ast.${node.nodeName}> = (node, buffer, encodedParent) => ${getNodeSerializerBody(node)}`;
 		})
 	)
 	.join('\n\n');
@@ -57,10 +57,10 @@ function getNodeSerializerBody({
 	index,
 	fields,
 	flags,
-	node: { optionalFallback, serializeHiddenFields }
+	node: { optionalFallback, serializeHiddenFields, shorthandKey }
 }: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
-	let nextPosition = 3; // 1 for type, 2 for start and end
+	let nextPosition = 4; // 1 for type, 1 for parent, 2 for start and end
 	if (flags) {
 		const flagConverters = flags.map((flag, index) => `((node.${flag} as any) << ${index})`);
 		fieldSerializers.push(
@@ -73,10 +73,13 @@ function getNodeSerializerBody({
 		switch (field.type) {
 			case 'Node': {
 				const nodeTypeCast = field.allowNull ? ` as AstNode & { ${fieldName}: AstNode }` : '';
-				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition});`;
+				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition}, nodePosition + 1);`;
 				if (field.allowNull) {
 					if (optionalFallback?.[fieldName]) {
-						fieldSerializer = `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
+						fieldSerializer =
+							shorthandKey && field.name === 'key'
+								? `if (!node.shorthand) ${fieldSerializer}`
+								: `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
 					} else {
 						fieldSerializer = `if (node.${fieldName} != null) ${fieldSerializer}`;
 					}
@@ -86,7 +89,7 @@ function getNodeSerializerBody({
 			}
 			case 'NodeList': {
 				fieldSerializers.push(
-					`buffer = serializeNodeList(${JSON.stringify(fieldName)}, node, buffer, nodePosition + ${nextPosition});`
+					`buffer = serializeNodeList(${JSON.stringify(fieldName)}, node, buffer, nodePosition + ${nextPosition}, nodePosition + 1);`
 				);
 				break;
 			}
@@ -132,8 +135,9 @@ function getNodeSerializerBody({
 		  const nodePosition = buffer.position;
 		  buffer = buffer.reserve(${nextPosition});
 		  buffer[nodePosition] = ${index};
-		  buffer[nodePosition + 1] = node.start;
-		  buffer[nodePosition + 2] = node.end;
+		  buffer[nodePosition + 1] = encodedParent;
+		  buffer[nodePosition + 2] = node.start;
+		  buffer[nodePosition + 3] = node.end;
 		  ${fieldSerializers.map(s => s + '\n').join('')}return buffer;
 		}`;
 }
@@ -148,7 +152,8 @@ import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
 type NodeSerializer<T extends ast.AstNode> = (
 	node: T,
-	buffer: AstBufferForWriting
+	buffer: AstBufferForWriting,
+	encodedParent: number
 ) => AstBufferForWriting;
 
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
@@ -157,30 +162,30 @@ export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = 
   const initialBuffer = (
     typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
   )(INITIAL_BUFFER_SIZE);
-  const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, initialBuffer);
+  const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, initialBuffer, 0);
   return buffer.toOutput();
 };
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
-> = (node, buffer) => {
-	return 'directive' in node ? serializeDirective(node, buffer) : serializeExpressionStatement(node, buffer);
+> = (node, buffer, encodedParent) => {
+	return 'directive' in node ? serializeDirective(node, buffer, encodedParent) : serializeExpressionStatement(node, buffer, encodedParent);
 };
 
-const serializeLiteralNode: NodeSerializer<ast.Literal> = (node, buffer) => {
+const serializeLiteralNode: NodeSerializer<ast.Literal> = (node, buffer, encodedParent) => {
 	switch (typeof node.value) {
 		case 'object':
 			if (node.value === null) {
-				return serializeLiteralNull(node, buffer);
+				return serializeLiteralNull(node, buffer, encodedParent);
 			}
-			return serializeLiteralRegExp(node as ast.LiteralRegExp, buffer);
+			return serializeLiteralRegExp(node as ast.LiteralRegExp, buffer, encodedParent);
 		case 'boolean':
-			return serializeLiteralBoolean(node as ast.LiteralBoolean, buffer);
+			return serializeLiteralBoolean(node as ast.LiteralBoolean, buffer, encodedParent);
 		case 'number':
-			return serializeLiteralNumber(node as ast.LiteralNumber, buffer);
+			return serializeLiteralNumber(node as ast.LiteralNumber, buffer, encodedParent);
 		case 'string':
-			return serializeLiteralString(node as ast.LiteralString, buffer);
+			return serializeLiteralString(node as ast.LiteralString, buffer, encodedParent);
 		case 'bigint':
-			return serializeLiteralBigInt(node as ast.LiteralBigInt, buffer);
+			return serializeLiteralBigInt(node as ast.LiteralBigInt, buffer, encodedParent);
 		default: {
 			/* istanbul ignore next */
 			throw new Error(\`Unexpected node value type for Literal: $\{typeof node.value}\`);
@@ -198,14 +203,14 @@ const nodeSerializers: NodeSerializers = {
 
 ${nonCanonicalSerializers}
 
-function serializeNode<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, AstNode>, buffer: AstBufferForWriting, referencePosition: number
+function serializeNode<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, AstNode>, buffer: AstBufferForWriting, referencePosition: number, encodedParent: number
 ): AstBufferForWriting {
 	buffer[referencePosition] = buffer.position;
 	const node = parent[field];
-	return (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer);
+	return (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer, encodedParent);
 }
 
-function serializeNodeList<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, readonly (AstNode | null)[]>, buffer: AstBufferForWriting, referencePosition: number
+function serializeNodeList<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, readonly (AstNode | null)[]>, buffer: AstBufferForWriting, referencePosition: number, encodedParent: number
 ): AstBufferForWriting {
   const nodes = parent[field];
   if (nodes == null) {
@@ -227,7 +232,7 @@ function serializeNodeList<FIELD extends string>(field: FIELD, parent: AstNode &
 		const node = nodes[index];
 		if (node != null) {
 			buffer[insertPosition + index] = buffer.position;
-			buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer);
+			buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer, encodedParent);
 		}
 	}
 	return buffer;

@@ -43,6 +43,12 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	}
 	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
 		needsScope = true;
+		if (node.shorthandKey) {
+			definitions.push(
+				`node.${fieldName} = node.shorthand ? ((node.value as ast.AssignmentPattern).type === 'AssignmentPattern' ? (node.value as ast.AssignmentPattern).left : node.value) : convertNode(node, scope, ${fieldName}Position, buffer);\n`
+			);
+			continue;
+		}
 		definitions.push(
 			`node.${fieldName} = ${fieldName}Position === 0 ? node.${fallbackName} : convertNode(node, scope, ${fieldName}Position, buffer);\n`
 		);
@@ -224,9 +230,9 @@ function convertNode(
   }
   const node = new NodeConstructor(parent, parentScope);
   node.type = nodeTypeStrings[nodeType] as any;
-  node.start = buffer[position + 1];
-  node.end = buffer[position + 2];
-  bufferParsers[nodeType](node, position + 3, buffer);
+  node.start = buffer[position + 2];
+  node.end = buffer[position + 3];
+  bufferParsers[nodeType](node, position + 4, buffer);
   node.initialise();
   return node;
 }
