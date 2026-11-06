@@ -1,5 +1,31 @@
 # rollup changelog
 
+## 4.68.0
+
+_2026-11-06_
+
+### Features
+
+- Use the directory name instead of "index" for dynamic chunks of `index.js` files (#6630)
+- Support tree-shaking of namespace members through default exports (#6631)
+- Use cached sourcemaps if available when reading cached files (#6636)
+
+### Bug Fixes
+
+- No longer confuse import names starting with a literal "*" with internal namespace import placeholders (#6628)
+- Resolve a situation where a shared module accessed through different dynamic imports was wrongly merged into the first (#6632)
+
+### Pull Requests
+
+- [#6628](https://github.com/rollup/rollup/pull/6628): Preserve import and export names starting with "*" (@clean99, @lukastaegert)
+- [#6630](https://github.com/rollup/rollup/pull/6630): Name dynamic chunks of index files after their directory (@clean99, @lukastaegert)
+- [#6631](https://github.com/rollup/rollup/pull/6631): Tree-shake namespace members accessed through a default export (@thelastbackspace)
+- [#6632](https://github.com/rollup/rollup/pull/6632): Record live dynamic import edges for chunk assignment (@mayankdhingra02, @lukastaegert)
+- [#6633](https://github.com/rollup/rollup/pull/6633): Update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6634](https://github.com/rollup/rollup/pull/6634): Update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6635](https://github.com/rollup/rollup/pull/6635): Lock file maintenance (@renovate[bot], @lukastaegert)
+- [#6636](https://github.com/rollup/rollup/pull/6636): Do not decode cached sourcemaps again when reusing cached modules (@Ice-Hazymoon, @lukastaegert)
+
 ## 4.67.5
 
 _2026-11-04_
