@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import type Variable from '../ast/variables/Variable';
+import { unescapeExportName } from './exportNames';
 import type { RenderOptions } from './renderHelpers';
 
 export function getSystemExportStatement(
@@ -13,13 +14,16 @@ export function getSystemExportStatement(
 	) {
 		const variable = exportedVariables[0];
 		return `exports(${JSON.stringify(
-			exportNamesByVariable.get(variable)![0]
+			unescapeExportName(exportNamesByVariable.get(variable)![0])
 		)},${_}${variable.getName(getPropertyAccess)}${modifier})`;
 	} else {
 		const fields: [key: string, value: string][] = [];
 		for (const variable of exportedVariables) {
 			for (const exportName of exportNamesByVariable.get(variable)!) {
-				fields.push([exportName, variable.getName(getPropertyAccess) + modifier]);
+				fields.push([
+					unescapeExportName(exportName),
+					variable.getName(getPropertyAccess) + modifier
+				]);
 			}
 		}
 		return `exports(${getObject(fields, { lineBreakIndent: null })})`;
@@ -36,7 +40,7 @@ export function renderSystemExportExpression(
 ): void {
 	code.prependRight(
 		expressionStart,
-		`exports(${JSON.stringify(exportNamesByVariable.get(exportedVariable)![0])},${_}`
+		`exports(${JSON.stringify(unescapeExportName(exportNamesByVariable.get(exportedVariable)![0]))},${_}`
 	);
 	code.appendLeft(expressionEnd, ')');
 }

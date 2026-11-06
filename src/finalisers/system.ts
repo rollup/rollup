@@ -1,6 +1,7 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { ChunkDependency, ChunkExports, ModuleDeclarations } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
+import { unescapeExportName } from '../utils/exportNames';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { stringifyObjectKeyIfNeeded } from '../utils/identifierHelpers';
 import { getHelpersBlock } from '../utils/interopHelpers';
@@ -114,7 +115,9 @@ function analyzeDependencies(
 				if (specifier.imported === '*') {
 					setter.push(`${specifier.local}${_}=${_}module;`);
 				} else {
-					setter.push(`${specifier.local}${_}=${_}module${getPropertyAccess(specifier.imported)};`);
+					setter.push(
+						`${specifier.local}${_}=${_}module${getPropertyAccess(unescapeExportName(specifier.imported))};`
+					);
 				}
 			}
 		}
@@ -126,8 +129,8 @@ function analyzeDependencies(
 					hasStarReexport = true;
 				} else {
 					reexportedNames.push([
-						reexported,
-						imported === '*' ? 'module' : `module${getPropertyAccess(imported)}`
+						unescapeExportName(reexported),
+						imported === '*' ? 'module' : `module${getPropertyAccess(unescapeExportName(imported))}`
 					]);
 				}
 			}
@@ -160,12 +163,12 @@ function analyzeDependencies(
 }
 
 const getStarExcludes = ({ dependencies, exports }: ModuleDeclarations): Set<string> => {
-	const starExcludes = new Set(exports.map(expt => expt.exported));
+	const starExcludes = new Set(exports.map(expt => unescapeExportName(expt.exported)));
 	starExcludes.add('default');
 	for (const { reexports } of dependencies) {
 		if (reexports) {
 			for (const reexport of reexports) {
-				if (reexport.reexported !== '*') starExcludes.add(reexport.reexported);
+				if (reexport.reexported !== '*') starExcludes.add(unescapeExportName(reexport.reexported));
 			}
 		}
 	}
@@ -216,12 +219,15 @@ function getExportsBlock(
 		return '';
 	}
 	if (exports.length === 1) {
-		return `exports(${JSON.stringify(exports[0].name)},${_}${exports[0].value});${n}${n}`;
+		return `exports(${JSON.stringify(unescapeExportName(exports[0].name))},${_}${exports[0].value});${n}${n}`;
 	}
 	return (
 		`exports({${n}` +
 		exports
-			.map(({ name, value }) => `${t}${stringifyObjectKeyIfNeeded(name)}:${_}${value}`)
+			.map(
+				({ name, value }) =>
+					`${t}${stringifyObjectKeyIfNeeded(unescapeExportName(name))}:${_}${value}`
+			)
 			.join(`,${n}`) +
 		`${n}});${n}${n}`
 	);

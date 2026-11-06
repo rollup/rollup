@@ -84,6 +84,23 @@ export default class ExportDefaultVariable extends LocalVariable {
 			: null;
 	}
 
+	/**
+	 * Returns the namespace if this default export is just a re-export of a
+	 * namespace import. Namespace variables can neither be reassigned nor be
+	 * accessed in their TDZ, so this is safe to call while binding.
+	 */
+	getOriginalNamespaceVariable(): Variable | null {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		let current: Variable | undefined = this;
+		const checkedVariables = new Set<Variable>();
+		while (current instanceof ExportDefaultVariable && !checkedVariables.has(current)) {
+			checkedVariables.add(current);
+			if (current.hasId || !current.originalId) return null;
+			current = current.originalId.variable as Variable | undefined;
+		}
+		return current?.isNamespace ? current : null;
+	}
+
 	getName(getPropertyAccess: (name: string) => string): string {
 		const original = this.getOriginalVariable();
 		return original === this

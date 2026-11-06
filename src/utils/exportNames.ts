@@ -40,3 +40,20 @@ export function assignExportsToNames(
 		exportNamesByVariable.set(variable, [exportName]);
 	}
 }
+
+// Names starting with "*" are used internally, e.g. "*" for namespaces and "*"
+// followed by an id for namespaces reexported from external modules. To avoid
+// conflicts, actual export names starting with "*" get an additional "*", and
+// external ids starting with "*" or "\0" are prefixed with "\0".
+export const escapeExportName = (name: string): string => (name[0] === '*' ? `*${name}` : name);
+
+export const unescapeExportName = (name: string): string =>
+	name.startsWith('**') ? name.slice(1) : name;
+
+export const isNamespaceExportName = (name: string): boolean => name[0] === '*' && name[1] !== '*';
+
+export const getExternalNamespaceExportName = (id: string): string =>
+	id[0] === '*' || id[0] === '\0' ? `*\0${id}` : `*${id}`;
+
+export const getExternalNamespaceId = (exportName: string): string =>
+	exportName.slice(exportName[1] === '\0' ? 2 : 1);
