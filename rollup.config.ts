@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
+import { chokidarChangeThrottleReplacement } from './build-plugins/chokidar-change-throttle-replacement';
 import { chokidarReaddirThrottleReplacement } from './build-plugins/chokidar-readdir-throttle-replacement';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
@@ -42,6 +43,7 @@ const treeshake = {
 const nodePlugins: readonly Plugin[] = [
 	replace(fsEventsReplacement),
 	replace(chokidarReaddirThrottleReplacement),
+	replace(chokidarChangeThrottleReplacement),
 	alias(moduleAliases),
 	nodeResolve({ preferBuiltins: true }),
 	json(),
