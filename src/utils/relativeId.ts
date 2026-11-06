@@ -6,6 +6,14 @@ export function getAliasName(id: string): string {
 	return base.slice(0, Math.max(0, base.length - extname(id).length));
 }
 
+export function getDynamicAliasName(id: string): string {
+	const aliasName = getAliasName(id);
+	if (aliasName !== 'index') return aliasName;
+	const directoryName = basename(dirname(id));
+	// with the separator, a bare drive letter and the empty name of a root path count too
+	return isPathFragment(directoryName + '/') ? aliasName : directoryName;
+}
+
 export default function relativeId(id: string): string {
 	if (!isAbsolute(id)) return id;
 	return relative(resolve(), id);
