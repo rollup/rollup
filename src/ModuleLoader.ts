@@ -39,6 +39,7 @@ import {
 import {
 	generateIdByRawIdAndAttributes,
 	normalizeModuleId,
+	normalizeModuleIdAndAttributes,
 	normalizeModuleIdToObject
 } from './utils/moduleId';
 import { deserializeLazyAst } from './utils/parseAst';
@@ -191,22 +192,27 @@ export class ModuleLoader {
 		return module;
 	}
 
-	public async preloadModule(
-		resolvedId: {
-			id: string;
-			rawId: string;
-			attributes?: Record<string, string>;
-			resolveDependencies?: boolean;
-		} & Partial<PartialNull<ModuleOptions>>
-	): Promise<ModuleInfo> {
+	public async preloadModule({
+		attributes,
+		id,
+		resolveDependencies,
+		...moduleOptions
+	}: {
+		id: UniqueModuleId;
+		attributes?: Record<string, string> | null;
+		resolveDependencies?: boolean;
+	} & Partial<PartialNull<ModuleOptions>>): Promise<ModuleInfo> {
+		const { attributes: moduleAttributes = EMPTY_OBJECT, rawId } = normalizeModuleIdAndAttributes(
+			id,
+			attributes
+		);
 		const module = await this.fetchModule(
-			{
-				...(this.getResolvedIdWithDefaults(resolvedId, EMPTY_OBJECT) as ResolvedId),
-				rawId: resolvedId.rawId
-			},
+			this.toModuleResolvedId(
+				this.getResolvedIdWithDefaults({ ...moduleOptions, id: rawId }, moduleAttributes)!
+			),
 			undefined,
 			false,
-			resolvedId.resolveDependencies ? RESOLVE_DEPENDENCIES : true
+			resolveDependencies ? RESOLVE_DEPENDENCIES : true
 		);
 		return module.info;
 	}

@@ -135,6 +135,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CIRCULAR_CHUNK = 'CIRCULAR_CHUNK',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CONFLICTING_MODULE_ATTRIBUTES = 'CONFLICTING_MODULE_ATTRIBUTES',
 	CONST_REASSIGN = 'CONST_REASSIGN',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
@@ -385,6 +386,19 @@ export function logCircularReexport(exportName: string, exporter: string): Rollu
 		message: `"${exportName}" cannot be exported from "${relativeId(
 			exporter
 		)}" as it is a reexport that references itself.`
+	};
+}
+
+export function logConflictingModuleAttributes(
+	rawId: string,
+	idAttributes: Record<string, string>,
+	attributes: Record<string, string>
+): RollupLog {
+	return {
+		code: CONFLICTING_MODULE_ATTRIBUTES,
+		message: `Cannot use the import attributes ${JSON.stringify(attributes)} for "${relativeId(
+			rawId
+		)}" as its module id already encodes the import attributes ${JSON.stringify(idAttributes)}.`
 	};
 }
 

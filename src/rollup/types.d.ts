@@ -301,6 +301,7 @@ export interface PluginContext extends MinimalPluginContext {
 	load: (
 		options: {
 			id: UniqueModuleId;
+			attributes?: Record<string, string> | null;
 			resolveDependencies?: boolean;
 		} & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;

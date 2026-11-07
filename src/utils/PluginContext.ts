@@ -103,10 +103,7 @@ export function getPluginContext(
 		getWatchFiles: () => Object.keys(graph.watchFiles),
 		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		load(resolvedId) {
-			return graph.moduleLoader.preloadModule({
-				...resolvedId,
-				...normalizeModuleIdToObject(resolvedId.id)
-			});
+			return graph.moduleLoader.preloadModule(resolvedId);
 		},
 		meta: {
 			rollupVersion,

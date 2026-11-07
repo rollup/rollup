@@ -1778,6 +1778,7 @@ If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to
 ```typescript
 type Load = (options: {
 	id: UniqueModuleId;
+	attributes?: Record<string, string> | null;
 	resolveDependencies?: boolean;
 	meta?: CustomPluginOptions | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
@@ -1789,7 +1790,9 @@ The `UniqueModuleId` type is defined in [`this.getModuleInfo`](#this-getmodulein
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. The id can either be a string or a `{ rawId, attributes }` object if you need to identify a module that uses import attributes. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
-This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#this-resolve) to this function as long as it is neither `null` nor external.
+Alternatively, you can provide the import attributes via the `attributes` option, which are then combined with the id. If the id already specifies attributes, i.e. it is a composite id like `moduleInfo.id` (see [Module identity](#module-identity)) or an object with an `attributes` property, the `attributes` option needs to specify the same attributes, otherwise Rollup throws a `CONFLICTING_MODULE_ATTRIBUTES` error. Here, an empty object explicitly means "no import attributes" on both sides, while `null` or omitting the option uses the attributes of the id.
+
+This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#this-resolve), including its `attributes`, to this function as long as it is neither `null` nor external.
 
 The returned Promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the Promise returned by `this.load` wait until all dependency ids have been resolved.
 
