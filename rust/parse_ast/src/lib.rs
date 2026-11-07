@@ -25,6 +25,7 @@ pub fn parse_ast(
   jsx: bool,
   walked_nodes_bitset_buffer: Option<&[u64]>,
   collect_scopes: bool,
+  collect_sourcemap_locations: bool,
 ) -> Vec<u8> {
   let walked_nodes_bitset: Option<[u64; 2]> = walked_nodes_bitset_buffer
     .map(|buffer| buffer.try_into().expect("bitset must have 2 elements"));
@@ -83,6 +84,7 @@ pub fn parse_ast(
             &annotations,
             walked_nodes_bitset,
             collect_scopes,
+            collect_sourcemap_locations,
           );
           converter.convert_ast_to_buffer(&program)
         }

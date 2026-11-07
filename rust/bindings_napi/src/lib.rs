@@ -18,6 +18,7 @@ pub struct ParseTask {
   pub allow_return_outside_function: bool,
   pub jsx: bool,
   pub collect_scopes: bool,
+  pub collect_sourcemap_locations: bool,
 }
 
 #[napi]
@@ -32,6 +33,7 @@ impl<'task> ScopedTask<'task> for ParseTask {
       self.jsx,
       None,
       self.collect_scopes,
+      self.collect_sourcemap_locations,
     ))
   }
 
@@ -46,6 +48,7 @@ pub struct ParseAndWalkTask {
   pub jsx: bool,
   pub walked_nodes_bitset: BigUint64Array,
   pub collect_scopes: bool,
+  pub collect_sourcemap_locations: bool,
 }
 
 #[napi]
@@ -60,6 +63,7 @@ impl<'task> ScopedTask<'task> for ParseAndWalkTask {
       self.jsx,
       Some(self.walked_nodes_bitset.as_ref()),
       self.collect_scopes,
+      self.collect_sourcemap_locations,
     ))
   }
 
@@ -74,10 +78,18 @@ pub fn parse<'env>(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
+  collect_sourcemap_locations: bool,
 ) -> Result<BufferSlice<'env>> {
   BufferSlice::from_data(
     env,
-    parse_ast(code, allow_return_outside_function, jsx, None, false),
+    parse_ast(
+      code,
+      allow_return_outside_function,
+      jsx,
+      None,
+      false,
+      collect_sourcemap_locations,
+    ),
   )
 }
 
@@ -86,12 +98,14 @@ pub fn parse_async(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
+  collect_sourcemap_locations: bool,
 ) -> AsyncTask<ParseTask> {
   AsyncTask::new(ParseTask {
     code,
     allow_return_outside_function,
     jsx,
     collect_scopes: false,
+    collect_sourcemap_locations,
   })
 }
 
@@ -102,6 +116,7 @@ pub fn parse_and_walk(
   jsx: bool,
   walked_nodes_bitset: BigUint64Array,
   collect_scopes: bool,
+  collect_sourcemap_locations: bool,
 ) -> AsyncTask<ParseAndWalkTask> {
   AsyncTask::new(ParseAndWalkTask {
     code,
@@ -109,6 +124,7 @@ pub fn parse_and_walk(
     jsx,
     walked_nodes_bitset,
     collect_scopes,
+    collect_sourcemap_locations,
   })
 }
 

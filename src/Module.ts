@@ -58,6 +58,7 @@ import {
 	isNamespaceExportName,
 	unescapeExportName
 } from './utils/exportNames';
+import { getAstBuffer } from './utils/getAstBuffer';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -81,6 +82,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
+import type { MagicStringWithSourcemapLocations } from './utils/magicString';
 import { generateIdByRawIdAndAttributes } from './utils/moduleId';
 import { deserializeLazyAst } from './utils/parseAst';
 import {
@@ -933,6 +935,11 @@ export default class Module {
 		this.magicString = new MagicString(code, {
 			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
+		const sourcemapLocations = getAstBuffer(astBuffer).sourcemapLocations;
+		if (sourcemapLocations && sourcemapLocations.length === (code.length >> 5) + 1) {
+			(this.magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits =
+				sourcemapLocations.slice();
+		}
 
 		this.astContext = {
 			addDynamicImport: this.addDynamicImport.bind(this),

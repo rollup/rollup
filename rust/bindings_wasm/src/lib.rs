@@ -3,9 +3,21 @@ use parse_ast::parse_ast;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn parse(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
+pub fn parse(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  collect_sourcemap_locations: bool,
+) -> Vec<u8> {
   console_error_panic_hook::set_once();
-  parse_ast(code, allow_return_outside_function, jsx, None, false)
+  parse_ast(
+    code,
+    allow_return_outside_function,
+    jsx,
+    None,
+    false,
+    collect_sourcemap_locations,
+  )
 }
 
 #[wasm_bindgen(js_name=parseAndWalkSync)]
@@ -15,6 +27,7 @@ pub fn parse_and_walk_sync(
   jsx: bool,
   walked_nodes_bitset: BigUint64Array,
   collect_scopes: bool,
+  collect_sourcemap_locations: bool,
 ) -> Vec<u8> {
   console_error_panic_hook::set_once();
   // The bitset is read by value so its words are interpreted as u64 values
@@ -28,6 +41,7 @@ pub fn parse_and_walk_sync(
       walked_nodes_bitset.get_index(1),
     ]),
     collect_scopes,
+    collect_sourcemap_locations,
   )
 }
 

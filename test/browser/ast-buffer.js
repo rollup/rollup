@@ -34,16 +34,23 @@ describe('ast buffer', () => {
 			'const regexp = /[a-z]+/giu;',
 			'export default /* @__PURE__ */ Object.freeze({ value, string, regexp });'
 		].join('\n');
-		const nativeBuffer = native.parse(code, false, false);
-		const wasmBuffer = toHostByteOrder(parse(code, false, false));
+		const nativeBuffer = native.parse(code, false, false, false);
+		const wasmBuffer = toHostByteOrder(parse(code, false, false, false));
 		assert(Buffer.from(wasmBuffer).equals(nativeBuffer));
 
 		// 72 is the node type id of Program, which lives in the second (high)
 		// word of the walked-nodes bitset, pinning the bitset word order.
 		const walkedNodesBitset = new BigUint64Array([0n, 1n << 8n]);
-		const nativeWalkBuffer = await native.parseAndWalk(code, false, false, walkedNodesBitset, true);
+		const nativeWalkBuffer = await native.parseAndWalk(
+			code,
+			false,
+			false,
+			walkedNodesBitset,
+			true,
+			false
+		);
 		const wasmWalkBuffer = toHostByteOrder(
-			parseAndWalkSync(code, false, false, walkedNodesBitset, true)
+			parseAndWalkSync(code, false, false, walkedNodesBitset, true, false)
 		);
 		assert(Buffer.from(wasmWalkBuffer).equals(nativeWalkBuffer));
 		assert.notStrictEqual(
@@ -117,7 +124,7 @@ describe('ast buffer', () => {
 				type: 'Program'
 			})
 		);
-		const nativeWords = toWords(native.parse('x;', false, false));
+		const nativeWords = toWords(native.parse('x;', false, false, false));
 		assert.strictEqual(words[0], nativeWords[0], 'the root type is at word 0');
 		assert.strictEqual(words[1], 0, 'the root has no parent');
 		assert.strictEqual(words[2], 0, 'the root start is at word 2');

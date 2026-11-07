@@ -1,6 +1,7 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { ast } from '../../../rollup/types';
+import { addSourcemapLocation } from '../../../utils/magicString';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { childNodeKeys } from '../../childNodeKeys';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
@@ -278,8 +279,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * initialised
 	 */
 	initialise(): void {
-		this.scope.context.magicString.addSourcemapLocation(this.start);
-		this.scope.context.magicString.addSourcemapLocation(this.end);
+		addSourcemapLocation(this.scope.context.magicString, this.start);
+		addSourcemapLocation(this.scope.context.magicString, this.end);
 	}
 
 	removeAnnotations(code: MagicString): void {

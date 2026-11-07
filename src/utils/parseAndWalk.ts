@@ -23,7 +23,8 @@ export async function parseAndWalk(
 			allowReturnOutsideFunction,
 			jsx,
 			selectedNodesBuffer,
-			collectScopes
+			collectScopes,
+			false
 		)
 	);
 
@@ -133,5 +134,5 @@ function walkAstBuffer(
 		return scope;
 	}
 
-	walkUntilPosition(astBuffer.length);
+	walkUntilPosition(astBuffer.astEnd);
 }

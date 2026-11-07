@@ -41,6 +41,8 @@ const _: () = {
   assert!(NODE_DATA_BYTES_AFTER_END == (NODE_DATA_OFFSET - NODE_END_OFFSET) * WORD_SIZE);
 };
 
+const SOURCE_MAP_LOCATIONS_MAGIC: u32 = 0xff4d_4c42;
+
 pub(crate) struct WalkEntry {
   pub(crate) node_buffer_position: u32,
   pub(crate) skip_to_index: u32,
@@ -76,6 +78,8 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
   pub(crate) walked_nodes_bitset: Option<[u64; 2]>,
   pub(crate) collect_scopes: bool,
+  pub(crate) sourcemap_locations: Option<Vec<u32>>,
+  pub(crate) program_end: u32,
   pub(crate) walking_entries: Vec<WalkEntry>,
   pub(crate) scope_stack: Vec<ScopeRecord>,
   pub(crate) declaration_kind: Option<DeclarationKind>,
@@ -89,13 +93,23 @@ impl<'a> AstConverter<'a> {
     annotations: &'a [AnnotationWithType],
     walked_nodes_bitset: Option<[u64; 2]>,
     collect_scopes: bool,
+    collect_sourcemap_locations: bool,
   ) -> Self {
+    let sourcemap_locations = if collect_sourcemap_locations {
+      // UTF-16 length is never larger than the UTF-8 byte length. The vector is
+      // truncated to the exact Program end before the trailer is written.
+      Some(vec![0; (code.len() >> 5) + 1])
+    } else {
+      None
+    };
     Self {
       buffer,
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
       walked_nodes_bitset,
       collect_scopes,
+      sourcemap_locations,
+      program_end: 0,
       walking_entries: Vec::new(),
       scope_stack: Vec::new(),
       declaration_kind: None,
@@ -128,6 +142,21 @@ impl<'a> AstConverter<'a> {
           .buffer
           .extend_from_slice(&entry.scope_position.to_ne_bytes());
       }
+    }
+
+    // Sourcemap locations trailer: bitset words, word count, magic marker.
+    if let Some(locations) = &mut self.sourcemap_locations {
+      locations.truncate((self.program_end >> 5) as usize + 1);
+    }
+    if let Some(locations) = self.sourcemap_locations.take() {
+      let word_count = locations.len() as u32;
+      for location in locations {
+        self.buffer.extend_from_slice(&location.to_ne_bytes());
+      }
+      self.buffer.extend_from_slice(&word_count.to_ne_bytes());
+      self
+        .buffer
+        .extend_from_slice(&SOURCE_MAP_LOCATIONS_MAGIC.to_ne_bytes());
     }
 
     self.buffer.shrink_to_fit();
@@ -306,6 +335,13 @@ impl<'a> AstConverter<'a> {
   }
 
   // === helpers
+  pub(crate) fn add_sourcemap_location(&mut self, position: u32) {
+    if let Some(locations) = &mut self.sourcemap_locations {
+      let index = position as usize;
+      locations[index >> 5] |= 1 << (index & 31);
+    }
+  }
+
   fn add_type_and_parent(&mut self, node_type: &[u8; 4]) -> u32 {
     let node_position = (self.buffer.len() / WORD_SIZE) as u32;
     let parent_position = self
@@ -339,6 +375,7 @@ impl<'a> AstConverter<'a> {
     );
     // start
     let start = self.index_converter.convert(utf8_start, keep_annotations);
+    self.add_sourcemap_location(start);
     self.buffer.extend_from_slice(&start.to_ne_bytes());
     // end
     let end_position = self.buffer.len();
@@ -366,18 +403,20 @@ impl<'a> AstConverter<'a> {
     self.add_type_and_utf8_start(node_type, utf8_start, reserved_bytes, false)
   }
 
-  pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
-    self.add_explicit_end(end_position, span.hi.0 - 1);
+  pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) -> u32 {
+    self.add_explicit_end(end_position, span.hi.0 - 1)
   }
 
-  pub(crate) fn add_explicit_end(&mut self, end_position: usize, utf8_end: u32) {
+  pub(crate) fn add_explicit_end(&mut self, end_position: usize, utf8_end: u32) -> u32 {
     let node_position = self
       .node_position_stack
       .pop()
       .expect("Cannot end a node that was not started") as usize;
     debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
-    self.buffer[end_position..end_position + WORD_SIZE]
-      .copy_from_slice(&self.index_converter.convert(utf8_end, false).to_ne_bytes());
+    let end = self.index_converter.convert(utf8_end, false);
+    self.buffer[end_position..end_position + WORD_SIZE].copy_from_slice(&end.to_ne_bytes());
+    self.add_sourcemap_location(end);
+    end
   }
 
   pub(crate) fn convert_item_list<T, F>(

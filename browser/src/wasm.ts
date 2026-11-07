@@ -19,12 +19,26 @@ const toHostByteOrder = (result: Uint8Array): Uint8Array => {
 	return result;
 };
 
-export function parse(code: string, allowReturnOutsideFunction: boolean, jsx: boolean) {
-	return toHostByteOrder(parseWasm(code, allowReturnOutsideFunction, jsx));
+export function parse(
+	code: string,
+	allowReturnOutsideFunction: boolean,
+	jsx: boolean,
+	collectSourcemapLocations: boolean
+) {
+	return toHostByteOrder(
+		parseWasm(code, allowReturnOutsideFunction, jsx, collectSourcemapLocations)
+	);
 }
 
-export async function parseAsync(code: string, allowReturnOutsideFunction: boolean, jsx: boolean) {
-	return toHostByteOrder(parseWasm(code, allowReturnOutsideFunction, jsx));
+export async function parseAsync(
+	code: string,
+	allowReturnOutsideFunction: boolean,
+	jsx: boolean,
+	collectSourcemapLocations: boolean
+) {
+	return toHostByteOrder(
+		parseWasm(code, allowReturnOutsideFunction, jsx, collectSourcemapLocations)
+	);
 }
 
 export async function parseAndWalk(
@@ -32,9 +46,17 @@ export async function parseAndWalk(
 	allowReturnOutsideFunction: boolean,
 	jsx: boolean,
 	walkedNodesBitset: BigUint64Array,
-	collectScopes: boolean
+	collectScopes: boolean,
+	collectSourcemapLocations: boolean
 ) {
 	return toHostByteOrder(
-		parseAndWalkSync(code, allowReturnOutsideFunction, jsx, walkedNodesBitset, collectScopes)
+		parseAndWalkSync(
+			code,
+			allowReturnOutsideFunction,
+			jsx,
+			walkedNodesBitset,
+			collectScopes,
+			collectSourcemapLocations
+		)
 	);
 }

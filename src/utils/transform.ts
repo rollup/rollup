@@ -187,7 +187,9 @@ export default async function transform(
 	) {
 		module.transformFiles = emittedFiles;
 	}
-	const astBuffer = ast ? serializeAst(ast) : await parseAsync(code, false, options.jsx !== false);
+	const astBuffer = ast
+		? serializeAst(ast)
+		: await parseAsync(code, false, options.jsx !== false, true);
 
 	return {
 		astBuffer,

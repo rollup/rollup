@@ -65,7 +65,8 @@ impl AstConverter<'_> {
       }
     }
     // end
-    self.add_explicit_end(end_position, self.code.len() as u32);
+    let end = self.add_explicit_end(end_position, self.code.len() as u32);
+    self.program_end = end;
     // annotations, these need to come after end so that trailing comments are
     // included
     self.index_converter.invalidate_collected_annotations();
