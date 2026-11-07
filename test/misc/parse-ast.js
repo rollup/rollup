@@ -12,6 +12,49 @@ const { rollup } = require('../../dist/rollup');
 const { assertAstEqual, hasEsBuild } = require('../testHelpers');
 
 describe('parseAst', () => {
+	it('round-trips a serialized AST', () => {
+		const ast = parseAst('function getValue() { return 42; }');
+		assert.deepStrictEqual(deserializeAst(serializeAst(ast)), ast);
+	});
+
+	it('generates the same sourcemap with a supplied AST', async () => {
+		const code = `const value = 41;
+function outer(a) {
+	if (a > value) {
+		return { result: a + value, nested: () => [a, value] };
+	}
+	for (let i = 0; i < 3; i++) {
+		a += i;
+	}
+	return a;
+}
+export const result = outer(2);
+`;
+		const generate = async useAst => {
+			const bundle = await rollup({
+				input: 'entry.js',
+				plugins: [
+					{
+						name: 'virtual',
+						resolveId: id => (id === 'entry.js' ? id : null),
+						load: id => (id === 'entry.js' ? code : null),
+						transform(code) {
+							if (useAst) {
+								return { ast: this.parse(code), code, map: null };
+							}
+						}
+					}
+				]
+			});
+			const { output } = await bundle.generate({ format: 'es', sourcemap: true });
+			return output[0].map;
+		};
+		const withoutAst = await generate(false);
+		const withAst = await generate(true);
+		assert.strictEqual(withAst.mappings, withoutAst.mappings);
+		assert.deepStrictEqual(withAst.sources, withoutAst.sources);
+	});
+
 	it('parses an AST', async () => {
 		assert.deepStrictEqual(parseAst('console.log("ok")'), {
 			type: 'Program',

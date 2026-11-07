@@ -64,6 +64,7 @@ function getNodeSerializerBody({
 	index,
 	fields,
 	flags,
+	typeName,
 	node: { serializeHiddenFields }
 }: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
@@ -138,6 +139,7 @@ function getNodeSerializerBody({
 		  buffer[nodePosition + ${NODE_PARENT_OFFSET}] = encodedParent;
 		  buffer[nodePosition + ${NODE_START_OFFSET}] = node.start;
 		  buffer[nodePosition + ${NODE_END_OFFSET}] = node.end;
+		  buffer.addSourcemapLocation(node.start, node.end, ${typeName === 'BlockStatement'});
 		  ${fieldSerializers.map(s => s + '\n').join('')}return buffer;
 		}`;
 }
@@ -146,7 +148,11 @@ const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
 import type { ast, SerializeAst } from '../rollup/types';
 import type { AstBufferForWriting } from './getAstBuffer';
-import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
+import {
+  createAstBufferNode,
+  createAstBufferUint8,
+  SOURCE_MAP_LOCATIONS_MAGIC
+} from './getAstBuffer';
 import { error, logExpectedNodeList, logUnknownNodeType } from './logs';
 import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
@@ -159,11 +165,17 @@ type NodeSerializer<T extends ast.AstNode> = (
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
 export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = node => {
+  const sourcemapLocations = new Uint32Array((node.end >> 5) + 1);
   const initialBuffer = (
     typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
-  )(INITIAL_BUFFER_SIZE);
+  )(INITIAL_BUFFER_SIZE, sourcemapLocations);
   const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, initialBuffer, 0);
-  return buffer.toOutput();
+  const trailerStart = buffer.position;
+  const trailer = buffer.reserve(sourcemapLocations.length + 2);
+  trailer.set(sourcemapLocations, trailerStart);
+  trailer[trailerStart + sourcemapLocations.length] = sourcemapLocations.length;
+  trailer[trailerStart + sourcemapLocations.length + 1] = SOURCE_MAP_LOCATIONS_MAGIC;
+  return trailer.toOutput();
 };
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
