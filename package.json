@@ -72,6 +72,7 @@
     "lint:rust": "cd rust && cargo fmt && cargo clippy --fix --allow-dirty",
     "lint:rust:nofix": "cd rust && cargo fmt --check && cargo clippy",
     "perf": "npm run build:bootstrap:cjs && node --expose-gc scripts/perf-report/index.js",
+    "perf:rollup": "npm run build:bootstrap:cjs && node --expose-gc scripts/perf-report/rollup.js",
     "prepare": "husky && npm run prepare:patch && node scripts/check-release.ts || npm run build:prepare",
     "prepare:patch": "patch-package",
     "prepublishOnly": "node scripts/check-release.ts && node scripts/prepublish.ts",
