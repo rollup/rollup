@@ -31,19 +31,12 @@ export async function resolveId(
 
 	if (pluginResult != null) {
 		const [resolveIdResult, plugin] = pluginResult;
-		if (typeof resolveIdResult === 'object' && !resolveIdResult.resolvedBy) {
-			return {
-				...resolveIdResult,
-				resolvedBy: plugin.name
-			};
-		}
 		if (typeof resolveIdResult === 'string') {
-			return {
-				id: resolveIdResult,
-				resolvedBy: plugin.name
-			};
+			return { id: resolveIdResult, resolvedBy: plugin.name };
 		}
-		return resolveIdResult;
+		return typeof resolveIdResult === 'object'
+			? withResolvedBy(resolveIdResult, plugin.name)
+			: resolveIdResult;
 	}
 
 	// external modules (non-entry modules that start with neither '.' or '/')
@@ -92,4 +85,13 @@ async function findFile(
 	} catch {
 		// suppress
 	}
+}
+
+export function withResolvedBy<T extends { resolvedBy?: string | null }>(
+	resolution: T,
+	pluginName: string | undefined
+): T {
+	return resolution.resolvedBy || !pluginName
+		? resolution
+		: { ...resolution, resolvedBy: pluginName };
 }
