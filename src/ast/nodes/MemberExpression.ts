@@ -37,6 +37,7 @@ import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type { PromiseHandler } from '../variables/PromiseHandler';
 import type Variable from '../variables/Variable';
+import ChainExpression from './ChainExpression';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import type * as NodeType from './NodeType';
@@ -56,6 +57,7 @@ import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
+import UnaryExpression from './UnaryExpression';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -152,6 +154,11 @@ export default class MemberExpression
 
 	bind(): void {
 		this.bound = true;
+		const parent = this.parent instanceof ChainExpression ? this.parent.parent : this.parent;
+		if (parent instanceof UnaryExpression && parent.operator === 'delete') {
+			super.bind();
+			return;
+		}
 		const path = getPathIfNotComputed(this);
 		let baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable instanceof ExportDefaultVariable) {
