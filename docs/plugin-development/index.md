@@ -601,28 +601,43 @@ function injectPolyfillPlugin() {
 				// mess up relative external import generation. Also
 				// keeping the name and just adding a "?query" to the end
 				// ensures that preserveModules will generate the original
-				// entry name for this entry.
-				return `${resolution.id}${PROXY_SUFFIX}`;
+				// entry name for this entry. We also give the proxy the
+				// attributes of the resolved entry so that the load hook
+				// can forward them to identify the entry module.
+				return {
+					attributes: resolution.attributes,
+					id: `${resolution.id}${PROXY_SUFFIX}`
+				};
 			}
 			return null;
 		},
-		load(id) {
+		load(id, { attributes, rawId }) {
 			if (id === POLYFILL_ID) {
 				// Replace with actual polyfill
 				return "console.log('polyfill');";
 			}
-			if (id.endsWith(PROXY_SUFFIX)) {
-				const entryId = id.slice(0, -PROXY_SUFFIX.length);
+			// The id of a proxy for an entry with import attributes also
+			// encodes those attributes, so we match on the raw id
+			if (rawId.endsWith(PROXY_SUFFIX)) {
+				const entryId = rawId.slice(0, -PROXY_SUFFIX.length);
 				// We know ModuleInfo.hasDefaultExport is reliable because
 				// we awaited this.load in resolveId
-				const { hasDefaultExport } = this.getModuleInfo(entryId);
+				const { hasDefaultExport } = this.getModuleInfo({
+					attributes,
+					rawId: entryId
+				});
+				// The proxy has the same import attributes as the entry,
+				// which we need to forward to identify the entry module
+				const entryIdWithAttributes = `${JSON.stringify(
+					entryId
+				)} with ${JSON.stringify(attributes)}`;
 				let code =
 					`import ${JSON.stringify(POLYFILL_ID)};` +
-					`export * from ${JSON.stringify(entryId)};`;
+					`export * from ${entryIdWithAttributes};`;
 				// Namespace reexports do not reexport default, so we need
 				// special handling here
 				if (hasDefaultExport) {
-					code += `export { default } from ${JSON.stringify(entryId)};`;
+					code += `export { default } from ${entryIdWithAttributes};`;
 				}
 				return code;
 			}
@@ -1805,7 +1820,7 @@ Note that with regard to the `meta`, `moduleSideEffects` and `syntheticNamedExpo
 export default function addProxyPlugin() {
 	return {
 		async resolveId(source, importer, options) {
-			if (importer?.endsWith('?proxy')) {
+			if (options.importerRawId?.endsWith('?proxy')) {
 				// Do not proxy ids used in proxies
 				return null;
 			}
@@ -1817,26 +1832,39 @@ export default function addProxyPlugin() {
 				// we pass on the entire resolution information
 				const moduleInfo = await this.load(resolution);
 				if (moduleInfo.code.includes('/* use proxy */')) {
-					return `${resolution.id}?proxy`;
+					// The proxy gets the attributes of the proxied module
+					// so that it can forward them
+					return {
+						attributes: resolution.attributes,
+						id: `${resolution.id}?proxy`
+					};
 				}
 			}
 			// As we already fully resolved the module, there is no reason
 			// to resolve it again
 			return resolution;
 		},
-		load(id) {
-			if (id.endsWith('?proxy')) {
-				const importee = id.slice(0, -'?proxy'.length);
+		load(id, { attributes, rawId }) {
+			// The id of a proxy for a module with import attributes also
+			// encodes those attributes, so we match on the raw id
+			if (rawId.endsWith('?proxy')) {
+				const importee = rawId.slice(0, -'?proxy'.length);
+				// The proxy has the same import attributes as the proxied
+				// module, which we need to forward to identify the module
+				const importeeWithAttributes = `${JSON.stringify(
+					importee
+				)} with ${JSON.stringify(attributes)}`;
 				// Note that namespace reexports do not reexport default
 				// exports
-				let code = `console.log('proxy for ${importee}'); export * from ${JSON.stringify(
-					importee
-				)};`;
+				let code = `console.log('proxy for ${importee}'); export * from ${importeeWithAttributes};`;
 				// We know that while resolving the proxy, importee was
 				// already fully loaded and parsed, so we can rely on
 				// hasDefaultExport
-				if (this.getModuleInfo(importee).hasDefaultExport) {
-					code += `export { default } from ${JSON.stringify(importee)};`;
+				if (
+					this.getModuleInfo({ attributes, rawId: importee })
+						.hasDefaultExport
+				) {
+					code += `export { default } from ${importeeWithAttributes};`;
 				}
 				return code;
 			}
@@ -1863,11 +1891,13 @@ const DYNAMIC_IMPORT_PROXY_PREFIX = '\0dynamic-import:';
 export default function dynamicChunkLogsPlugin() {
 	return {
 		name: 'dynamic-chunk-logs',
-		async resolveDynamicImport(specifier, importer) {
+		async resolveDynamicImport(specifier, importer, { attributes }) {
 			// Ignore non-static targets
 			if (!(typeof specifier === 'string')) return;
 			// Get the id and initial meta information of the import target
-			const resolved = await this.resolve(specifier, importer);
+			const resolved = await this.resolve(specifier, importer, {
+				attributes
+			});
 			// Ignore external targets. Explicit externals have the
 			// "external" property while unresolved imports are "null".
 			if (resolved && !resolved.external) {
@@ -1880,45 +1910,57 @@ export default function dynamicChunkLogsPlugin() {
 				// later use "this.load" again in the load hook with just
 				// the module id.
 				this.load(resolved);
-				return `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`;
+				// The proxy gets the attributes of the proxied module so
+				// that it can forward them
+				return {
+					attributes: resolved.attributes,
+					id: `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`
+				};
 			}
 		},
-		async load(id) {
-			// Ignore all files except our dynamic import proxies
-			if (!id.startsWith('\0dynamic-import:')) return null;
-			const actualId = id.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+		async load(id, { attributes, rawId }) {
+			// Ignore all files except our dynamic import proxies. As the
+			// proxy has the same import attributes as the proxied module,
+			// we match on the raw id and forward the attributes.
+			if (!rawId.startsWith(DYNAMIC_IMPORT_PROXY_PREFIX)) return null;
+			const actualId = rawId.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+			const actualIdWithAttributes = `${JSON.stringify(
+				actualId
+			)} with ${JSON.stringify(attributes)}`;
 			// To allow loading modules in parallel while keeping
 			// complexity low, we do not directly await each "this.load"
 			// call but put their promises into an array where we await
 			// them via an async for loop.
 			const moduleInfoPromises = [
-				this.load({ id: actualId, resolveDependencies: true })
+				this.load({ attributes, id: actualId, resolveDependencies: true })
 			];
-			// We track each loaded dependency here so that we do not load
-			// a file twice and also do  not get stuck when there are
-			// circular dependencies.
-			const dependencies = new Set([actualId]);
+			// We track the ids of all loaded modules here so that we do
+			// not get stuck when there are circular dependencies. Module
+			// ids also encode import attributes so that importing the
+			// same file with different attributes is tracked separately.
+			const dependencies = new Set();
 			// "importedIdResolutions" tracks the objects created by
 			// resolveId hooks. We are using those instead of "importedIds"
 			// so that again, important meta information is not lost.
-			for await (const { importedIdResolutions } of moduleInfoPromises) {
-				for (const resolved of importedIdResolutions) {
-					if (!dependencies.has(resolved.id)) {
-						dependencies.add(resolved.id);
-						moduleInfoPromises.push(
-							this.load({ ...resolved, resolveDependencies: true })
-						);
-					}
+			for await (const moduleInfo of moduleInfoPromises) {
+				if (dependencies.has(moduleInfo.id)) continue;
+				dependencies.add(moduleInfo.id);
+				for (const resolved of moduleInfo.importedIdResolutions) {
+					moduleInfoPromises.push(
+						this.load({ ...resolved, resolveDependencies: true })
+					);
 				}
 			}
 			// We log all modules in a dynamic chunk when it is loaded.
 			let code = `console.log([${[...dependencies]
 				.map(JSON.stringify)
-				.join(', ')}]); export * from ${JSON.stringify(actualId)};`;
+				.join(', ')}]); export * from ${actualIdWithAttributes};`;
 			// Namespace reexports do not reexport default exports, which
 			// is why we reexport it manually if it exists
-			if (this.getModuleInfo(actualId).hasDefaultExport) {
-				code += `export { default } from ${JSON.stringify(actualId)};`;
+			if (
+				this.getModuleInfo({ attributes, rawId: actualId }).hasDefaultExport
+			) {
+				code += `export { default } from ${actualIdWithAttributes};`;
 			}
 			return code;
 		}
