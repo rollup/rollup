@@ -58,15 +58,16 @@ const DISCARDING_CHANGE_THROTTLE = `  if (event === EV_CHANGE) {
 const REPLAYING_CHANGE_THROTTLE = `  if (event === EV_CHANGE) {
     if (!this._pendingChanges) this._pendingChanges = new Map();
     const fullPath = opts.cwd ? sysPath.join(opts.cwd, path) : path;
-    const isWatched = () => {
-      const watchedDirectory = this._watched.get(sysPath.resolve(sysPath.dirname(fullPath)));
-      return Boolean(watchedDirectory && watchedDirectory.has(sysPath.basename(fullPath)));
-    };
+    // unwatch() marks the path as ignored synchronously and add() clears the
+    // mark synchronously, so a file that is unwatched and re-added, which
+    // Rollup does on every change on Linux, is still considered watched while
+    // the asynchronous re-registration is in progress.
+    const isUnwatched = () => this._ignoredPaths.has(sysPath.resolve(fullPath));
     const isEmptyFile = (stats) => Boolean(stats && stats.isFile() && stats.size === 0);
     const throttler = this._throttle(EV_CHANGE, path, 50, (suppressedCount) => {
       const pending = this._pendingChanges.get(path);
       this._pendingChanges.delete(path);
-      if (suppressedCount === 0 || !pending || !pending.replay || !isWatched()) return;
+      if (suppressedCount === 0 || !pending || !pending.replay || isUnwatched()) return;
       void this._emit(EV_CHANGE, fullPath, ...pending.args.slice(2));
     });
     if (!throttler) {
@@ -98,7 +99,7 @@ const REPLAYING_CHANGE_THROTTLE = `  if (event === EV_CHANGE) {
       const release = () => {
         clearTimeout(pending.held.timer);
         pending.held = undefined;
-        if (this._pendingChanges.get(path) !== pending || this.closed || !isWatched()) return;
+        if (this._pendingChanges.get(path) !== pending || this.closed || isUnwatched()) return;
         pending.replay = false;
         this.emitWithAll(EV_CHANGE, pending.args);
       };

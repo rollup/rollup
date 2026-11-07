@@ -3501,8 +3501,8 @@ describe('rollup.watch', function () {
 		// The bundled chokidar used to silently discard changes to a file within
 		// a few milliseconds of the previous change, so rollup kept the stale
 		// build, see https://github.com/paulmillr/chokidar/issues/1455. These
-		// tests only fail on inotify platforms; on macOS, fsevents reports
-		// changes in delayed batches.
+		// tests can fail with the Node.js fs.watch backend, which Linux and
+		// Windows use; on macOS, fsevents reports changes in delayed batches.
 		const watchBasic = async () => {
 			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			watcher = rollup.watch({
