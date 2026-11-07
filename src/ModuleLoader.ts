@@ -14,6 +14,7 @@ import type {
 	PartialNull,
 	Plugin,
 	ResolvedId,
+	ResolvedImport,
 	ResolveIdResult,
 	SourceDescription,
 	UniqueModuleId
@@ -74,13 +75,11 @@ type NormalizedResolveIdWithoutDefaults = Exclude<ResolveIdResult, false | NullV
 	external?: boolean | 'absolute';
 };
 
-type ModuleResolvedId = ResolvedId & { rawId: string };
-
 type ResolveStaticDependencyPromise = Promise<
-	readonly [source: string, resolvedId: ModuleResolvedId]
+	readonly [source: string, resolvedId: ResolvedImport]
 >;
 type ResolveDynamicDependencyPromise = Promise<
-	readonly [dynamicImport: DynamicImport, resolvedId: ModuleResolvedId | string | null]
+	readonly [dynamicImport: DynamicImport, resolvedId: ResolvedImport | string | null]
 >;
 type LoadModulePromise = Promise<
 	[
@@ -206,7 +205,7 @@ export class ModuleLoader {
 			attributes
 		);
 		const module = await this.fetchModule(
-			this.toModuleResolvedId(
+			this.toResolvedImport(
 				this.getResolvedIdWithDefaults({ ...moduleOptions, id: rawId }, moduleAttributes)!
 			),
 			undefined,
@@ -413,7 +412,7 @@ export class ModuleLoader {
 	// its dependencies to be loaded.
 	// Otherwise, it returns immediately.
 	private async fetchModule(
-		{ attributes, id, rawId, meta, moduleSideEffects, syntheticNamedExports }: ModuleResolvedId,
+		{ attributes, id, rawId, meta, moduleSideEffects, syntheticNamedExports }: ResolvedImport,
 		importer: string | undefined,
 		isEntry: boolean,
 		isPreload: PreloadType
@@ -483,7 +482,7 @@ export class ModuleLoader {
 	private fetchResolvedDependency(
 		source: string,
 		importer: string,
-		resolvedId: ModuleResolvedId
+		resolvedId: ResolvedImport
 	): Promise<Module | ExternalModule> {
 		if (resolvedId.external) {
 			const { attributes, external, id, rawId, moduleSideEffects, meta } = resolvedId;
@@ -630,7 +629,7 @@ export class ModuleLoader {
 				if (existingResolution) {
 					return [source, existingResolution] as const;
 				}
-				const resolution = this.toModuleResolvedId(
+				const resolution = this.toResolvedImport(
 					this.handleInvalidResolvedId(
 						await this.resolveId(
 							source,
@@ -765,7 +764,7 @@ export class ModuleLoader {
 			);
 		}
 		return this.fetchModule(
-			this.toModuleResolvedId(
+			this.toResolvedImport(
 				this.getResolvedIdWithDefaults(
 					typeof resolveIdResult === 'object'
 						? (resolveIdResult as NormalizedResolveIdWithoutDefaults)
@@ -818,7 +817,7 @@ export class ModuleLoader {
 		return sourceDescription;
 	}
 
-	private toModuleResolvedId(resolveIdResult: ResolvedId): ModuleResolvedId {
+	private toResolvedImport(resolveIdResult: ResolvedId): ResolvedImport {
 		const { id, attributes } = resolveIdResult;
 		return {
 			...resolveIdResult,
@@ -832,7 +831,7 @@ export class ModuleLoader {
 		specifier: string | ast.Expression,
 		importer: string,
 		attributes: Record<string, string>
-	): Promise<ModuleResolvedId | string | null> {
+	): Promise<ResolvedImport | string | null> {
 		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
 			specifier,
 			importer,
@@ -845,7 +844,7 @@ export class ModuleLoader {
 			if (!resolution) {
 				return null;
 			}
-			return this.toModuleResolvedId(
+			return this.toResolvedImport(
 				this.getResolvedIdWithDefaults(
 					resolution as NormalizedResolveIdWithoutDefaults,
 					attributes
@@ -872,10 +871,10 @@ export class ModuleLoader {
 				module.id,
 				attributes
 			);
-			module.resolvedIds[id] = this.toModuleResolvedId(resolution);
+			module.resolvedIds[id] = this.toResolvedImport(resolution);
 			return module.resolvedIds[id];
 		}
-		return this.toModuleResolvedId(
+		return this.toResolvedImport(
 			this.handleInvalidResolvedId(
 				this.getResolvedIdWithDefaults(
 					this.getNormalizedResolvedIdWithoutDefaults(

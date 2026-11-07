@@ -43,8 +43,8 @@ import type {
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
-	ResolvedId,
 	ResolvedIdMap,
+	ResolvedImport,
 	RollupError,
 	RollupLog
 } from './rollup/types';
@@ -335,7 +335,7 @@ export default class Module {
 							typeof argument === 'string' &&
 							module.resolvedIds[generateIdByRawIdAndAttributes(argument, attributes)]
 					)
-					.filter(Boolean) as ResolvedId[];
+					.filter((resolution): resolution is ResolvedImport => !!resolution);
 			},
 			get dynamicallyImportedIds() {
 				// We cannot use this.dynamicDependencies because this is needed before

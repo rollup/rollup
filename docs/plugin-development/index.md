@@ -1724,12 +1724,12 @@ interface ModuleInfo {
 	isExternal: boolean; // for external modules that are referenced but not included in the graph
 	isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
 	importedIds: string[]; // the module ids statically imported by this module
-	importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
+	importedIdResolutions: ResolvedImport[]; // how statically imported ids were resolved, for use with this.load
 	importers: string[]; // the ids of all modules that statically import this module
 	exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
 	exports: string[] | null; // all exported variables, `null` if external
 	dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
-	dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
+	dynamicallyImportedIdResolutions: ResolvedImport[]; // how ids imported via dynamic import() were resolved
 	dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
 	implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
 	implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
@@ -1739,7 +1739,7 @@ interface ModuleInfo {
 }
 
 interface ResolvedId {
-	id: string; // the id of the imported module
+	id: string; // the resolved id of the imported module without import attributes
 	external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
 	attributes: { [key: string]: string }; // import attributes for this import
 	meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
@@ -1747,9 +1747,16 @@ interface ResolvedId {
 	resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
 	syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 }
+
+interface ResolvedImport extends ResolvedId {
+	id: string; // the module id of the imported module, which also encodes its import attributes
+	rawId: string; // the resolved id of the imported module without import attributes
+}
 ```
 
 Returns additional information about the module in question. See [Working with ASTs](#working-with-asts) for important details about the `ast` property.
+
+The `id` of a `ResolvedImport` is the module id of the imported module, which also encodes its import attributes (see [Module identity](#module-identity)) and matches the entries of `importedIds` and `dynamicallyImportedIds`, while its `rawId` is the resolved id without import attributes. In contrast, the `id` of the `ResolvedId` returned by [`this.resolve`](#this-resolve) does not contain import attributes. Like the result of `this.resolve`, a `ResolvedImport` that is not external can be passed directly to [`this.load`](#this-load). If you want to return such a resolution from a [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) hook, however, use `{ ...resolution, id: resolution.rawId }` as Rollup would otherwise encode the attributes a second time.
 
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](#buildend) hook:
 
@@ -2516,9 +2523,9 @@ Import attributes are part of a module's identity. If the same resolved raw id i
 
 Internally, Rollup tracks three different identifiers for each module:
 
-- **`rawId`**: the resolved module id without import attributes, returned by [`resolveId`](#resolveid) and corresponding to the file or virtual module on disk. It is what [`load`](#load) uses to read from the file system, what Rollup adds to its watch list, and what is exposed as [`moduleInfo.rawId`](#this-getmoduleinfo) and `RenderedModule.rawId` (the values of `modules` on the output chunk, see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)). Function-form [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) receive the `rawId` together with the `attributes` so they can key on either. For modules without import attributes, `rawId` and `id` (below) are identical.
+- **`rawId`**: the resolved module id without import attributes, returned by [`resolveId`](#resolveid) and corresponding to the file or virtual module on disk. It is what [`load`](#load) uses to read from the file system, what Rollup adds to its watch list, and what is exposed as [`moduleInfo.rawId`](#this-getmoduleinfo), the `rawId` of the entries of `importedIdResolutions` / `dynamicallyImportedIdResolutions` and `RenderedModule.rawId` (the values of `modules` on the output chunk, see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)). Function-form [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) receive the `rawId` together with the `attributes` so they can key on either. For modules without import attributes, `rawId` and `id` (below) are identical.
 - **`attributes`**: the import attributes (`Record<string, string>`) that were applied to this module, where an empty object means "no import attributes". Exposed on [`moduleInfo.attributes`](#this-getmoduleinfo), `RenderedModule.attributes`, and `facadeModuleAttributes` on the `PreRenderedChunk` / `RenderedChunk` types (see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)).
-- **`id`**: the composite module identifier Rollup uses internally, derived from `rawId` and `attributes` as described above, so importing the same `rawId` with different `attributes` yields different `id` values and thus different modules. It appears in [`moduleInfo.id`](#this-getmoduleinfo), `moduleInfo.importers` and `moduleInfo.dynamicImporters`, `importedIds` / `dynamicallyImportedIds`, `moduleIds` on the output chunk (see [`generateBundle`](#generatebundle)), and in error and warning messages. It is also what the `importer` parameter of the [`resolveId`](#resolveid) and [`resolveDynamicImport`](#resolvedynamicimport) hooks receives for modules that were themselves imported with attributes.
+- **`id`**: the composite module identifier Rollup uses internally, derived from `rawId` and `attributes` as described above, so importing the same `rawId` with different `attributes` yields different `id` values and thus different modules. It appears in [`moduleInfo.id`](#this-getmoduleinfo), `moduleInfo.importers` and `moduleInfo.dynamicImporters`, `importedIds` / `dynamicallyImportedIds` as well as the `id` of the entries of `importedIdResolutions` / `dynamicallyImportedIdResolutions`, `moduleIds` on the output chunk (see [`generateBundle`](#generatebundle)), and in error and warning messages. It is also what the `importer` parameter of the [`resolveId`](#resolveid) and [`resolveDynamicImport`](#resolvedynamicimport) hooks receives for modules that were themselves imported with attributes.
 
 Because the `importer` parameter may contain the `?attributes=` suffix, plugins that compare, parse, or pattern-match the importer should prefer the `importerRawId` option (which is always the id without attributes) when they need the underlying file or virtual id. Use `importerAttributes` to get the importing module's own import attributes.
 

@@ -193,7 +193,7 @@ export interface ModuleInfo extends ModuleOptions {
 	ast: ast.Program | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
-	dynamicallyImportedIdResolutions: readonly ResolvedId[];
+	dynamicallyImportedIdResolutions: readonly ResolvedImport[];
 	dynamicallyImportedIds: readonly string[];
 	exportedBindings: Record<string, string[]> | null;
 	exports: string[] | null;
@@ -202,7 +202,7 @@ export interface ModuleInfo extends ModuleOptions {
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
 	implicitlyLoadedBefore: readonly string[];
-	importedIdResolutions: readonly ResolvedId[];
+	importedIdResolutions: readonly ResolvedImport[];
 	importedIds: readonly string[];
 	importers: readonly string[];
 	isEntry: boolean;
@@ -349,7 +349,14 @@ export interface ResolvedId extends ModuleOptions {
 	resolvedBy: string;
 }
 
-export type ResolvedIdMap = Record<string, ResolvedId & { rawId: string }>;
+export interface ResolvedImport extends ResolvedId {
+	/** The module id of the imported module, which also encodes its import attributes */
+	id: string;
+	/** The resolved id of the imported module without import attributes */
+	rawId: string;
+}
+
+export type ResolvedIdMap = Record<string, ResolvedImport>;
 
 export interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	attributes?: Record<string, string>;
