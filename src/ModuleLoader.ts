@@ -262,40 +262,45 @@ export class ModuleLoader {
 		implicitlyLoadedAfter: readonly UniqueModuleId[]
 	): Promise<Module> {
 		return this.extendLoadModulesPromise(
-			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
-				async entryModule => {
-					addChunkNamesToModule(entryModule, unresolvedModule, false);
+			this.loadEntryModule(
+				unresolvedModule.id,
+				false,
+				unresolvedModule.importer,
+				null,
+				undefined,
+				unresolvedModule.attributes
+			).then(async entryModule => {
+				addChunkNamesToModule(entryModule, unresolvedModule, false);
+				if (!entryModule.info.isEntry) {
+					const implicitlyLoadedAfterModules = await Promise.all(
+						implicitlyLoadedAfter.map(id => {
+							const { attributes, rawId } = normalizeModuleIdToObject(id);
+							return this.loadEntryModule(
+								rawId,
+								false,
+								unresolvedModule.importer,
+								entryModule.id,
+								undefined,
+								attributes
+							);
+						})
+					);
+					// We need to check again if this is still an entry module as these
+					// changes need to be performed atomically to avoid race conditions
+					// if the same module is re-emitted as an entry module.
+					// The inverse changes happen in "handleExistingModule"
 					if (!entryModule.info.isEntry) {
-						const implicitlyLoadedAfterModules = await Promise.all(
-							implicitlyLoadedAfter.map(id => {
-								const normalizedId = normalizeModuleIdToObject(id);
-								return this.loadEntryModule(
-									normalizedId.id,
-									false,
-									unresolvedModule.importer,
-									entryModule.id,
-									undefined,
-									normalizedId.attributes
-								);
-							})
-						);
-						// We need to check again if this is still an entry module as these
-						// changes need to be performed atomically to avoid race conditions
-						// if the same module is re-emitted as an entry module.
-						// The inverse changes happen in "handleExistingModule"
-						if (!entryModule.info.isEntry) {
-							this.implicitEntryModules.add(entryModule);
-							for (const module of implicitlyLoadedAfterModules) {
-								entryModule.implicitlyLoadedAfter.add(module);
-							}
-							for (const dependent of entryModule.implicitlyLoadedAfter) {
-								dependent.implicitlyLoadedBefore.add(entryModule);
-							}
+						this.implicitEntryModules.add(entryModule);
+						for (const module of implicitlyLoadedAfterModules) {
+							entryModule.implicitlyLoadedAfter.add(module);
+						}
+						for (const dependent of entryModule.implicitlyLoadedAfter) {
+							dependent.implicitlyLoadedBefore.add(entryModule);
 						}
 					}
-					return entryModule;
 				}
-			)
+				return entryModule;
+			})
 		);
 	}
 
