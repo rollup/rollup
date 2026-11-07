@@ -606,7 +606,7 @@ export class ModuleLoader {
 				dynamicImport.node.shouldIncludeDynamicAttributes = true;
 			} else {
 				dynamicImport.node.shouldIncludeDynamicAttributes = !!resolvedId.external;
-				dynamicImport.id = resolvedId.id;
+				dynamicImport.resolution = resolvedId;
 			}
 			return [dynamicImport, resolvedId] as const;
 		});
