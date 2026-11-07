@@ -43,7 +43,6 @@ import {
 	normalizeModuleIdToObject
 } from './utils/moduleId';
 import { deserializeLazyAst } from './utils/parseAst';
-import { getAttributesFromImportExpression } from './utils/parseImportAttributes';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import type { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
@@ -606,7 +605,7 @@ export class ModuleLoader {
 				module,
 				dynamicImport.argument,
 				module.id,
-				getAttributesFromImportExpression(dynamicImport.node)
+				dynamicImport.attributes
 			);
 			if (!resolvedId || typeof resolvedId === 'string') {
 				dynamicImport.node.shouldIncludeDynamicAttributes = true;

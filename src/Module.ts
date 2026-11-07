@@ -85,7 +85,8 @@ import { generateIdByRawIdAndAttributes } from './utils/moduleId';
 import { deserializeLazyAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
-	getAttributesFromImportExportDeclaration
+	getAttributesFromImportExportDeclaration,
+	getAttributesFromImportExpression
 } from './utils/parseImportAttributes';
 import { basename, extname } from './utils/path';
 import type { PureFunctions } from './utils/pureFunctions';
@@ -154,6 +155,7 @@ export interface AstContext {
 
 export interface DynamicImport {
 	argument: string | ast.Expression;
+	attributes: Record<string, string>;
 	id: string | null;
 	node: ImportExpression;
 }
@@ -328,7 +330,11 @@ export default class Module {
 			code: null,
 			get dynamicallyImportedIdResolutions() {
 				return dynamicImports
-					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
+					.map(
+						({ argument, attributes }) =>
+							typeof argument === 'string' &&
+							module.resolvedIds[generateIdByRawIdAndAttributes(argument, attributes)]
+					)
 					.filter(Boolean) as ResolvedId[];
 			},
 			get dynamicallyImportedIds() {
@@ -1084,7 +1090,12 @@ export default class Module {
 		} else if (argument.type === NodeType.Literal && typeof argument.value === 'string') {
 			argument = argument.value!;
 		}
-		this.dynamicImports.push({ argument, id: null, node });
+		this.dynamicImports.push({
+			argument,
+			attributes: getAttributesFromImportExpression(node),
+			id: null,
+			node
+		});
 	}
 
 	private assertUniqueExportName(name: string, nodeStart: number) {
