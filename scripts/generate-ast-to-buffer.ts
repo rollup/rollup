@@ -164,8 +164,8 @@ type NodeSerializer<T extends ast.AstNode> = (
 
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
-export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = node => {
-  const sourcemapLocations = new Uint32Array((node.end >> 5) + 1);
+export const serializeAst: SerializeAst | ((node: ast.AstNode, codeLength?: number) => Uint8Array) = (node, codeLength = node.end) => {
+  const sourcemapLocations = new Uint32Array((codeLength >> 5) + 1);
   const initialBuffer = (
     typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
   )(INITIAL_BUFFER_SIZE, sourcemapLocations);

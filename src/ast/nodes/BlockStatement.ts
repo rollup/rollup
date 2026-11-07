@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import { addSourcemapLocation } from '../../utils/magicString';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
@@ -71,8 +70,6 @@ export default class BlockStatement extends NodeBase {
 	}
 
 	initialise(): void {
-		super.initialise();
-		addSourcemapLocation(this.scope.context.magicString, this.end - 1);
 		const firstBodyStatement = this.body[0];
 		this.deoptimizeBody =
 			firstBodyStatement instanceof ExpressionStatement &&

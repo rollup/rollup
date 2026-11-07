@@ -82,7 +82,6 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
-import type { MagicStringWithSourcemapLocations } from './utils/magicString';
 import { generateIdByRawIdAndAttributes } from './utils/moduleId';
 import { deserializeLazyAst } from './utils/parseAst';
 import {
@@ -226,6 +225,10 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 		}
 	}
 	return sideEffectModules;
+}
+
+interface MagicStringWithSourcemapLocations extends MagicString {
+	sourcemapLocations: { bits: Uint32Array };
 }
 
 export default class Module {
@@ -936,10 +939,12 @@ export default class Module {
 			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
 		const sourcemapLocations = getAstBuffer(astBuffer).sourcemapLocations;
-		if (sourcemapLocations && sourcemapLocations.length === (code.length >> 5) + 1) {
-			(this.magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits =
-				sourcemapLocations.slice();
+		const fittedSourcemapLocations = new Uint32Array((code.length >> 5) + 1);
+		if (sourcemapLocations) {
+			fittedSourcemapLocations.set(sourcemapLocations.subarray(0, fittedSourcemapLocations.length));
 		}
+		(this.magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits =
+			fittedSourcemapLocations;
 
 		this.astContext = {
 			addDynamicImport: this.addDynamicImport.bind(this),
