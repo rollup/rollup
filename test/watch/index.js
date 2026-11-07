@@ -3599,7 +3599,13 @@ describe('rollup.watch', function () {
 			await wait(10);
 			await unlink(watchedId);
 			await wait(300);
-			assert.deepStrictEqual(watchedEvents, ['update', 'delete']);
+			// File watchers may report the changes and the deletion as a single
+			// deletion, but the throttled change must not be reported again.
+			assert.strictEqual(watchedEvents.at(-1), 'delete', `Reported events: ${watchedEvents}`);
+			assert.ok(
+				watchedEvents.filter(event => event === 'update').length <= 1,
+				`Reported events: ${watchedEvents}`
+			);
 		});
 	});
 
