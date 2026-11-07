@@ -3497,6 +3497,118 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	describe('quick successive changes', () => {
+		// The bundled chokidar used to silently discard changes to a file within
+		// a few milliseconds of the previous change, so rollup kept the stale
+		// build, see https://github.com/paulmillr/chokidar/issues/1455. These
+		// tests only fail on inotify platforms; on macOS, fsevents reports
+		// changes in delayed batches.
+		const watchBasic = async () => {
+			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			watcher = rollup.watch({
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				}
+			});
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The initial build did not finish.');
+			});
+			assert.strictEqual(run(BUNDLE_FILE), 42);
+		};
+
+		const waitForBundleResult = async (expected, message) => {
+			const deadline = Date.now() + 5000;
+			while (readBundleResult() !== expected) {
+				if (Date.now() > deadline) {
+					throw new Error(`${message} The bundle returns ${readBundleResult()}.`);
+				}
+				await wait(50);
+			}
+		};
+
+		const waitUntilChangesAreReported = async () => {
+			const deadline = Date.now() + 5000;
+			// File watchers may drop changes that happen before they are fully
+			// initialized, hence the file is changed again until a rebuild picks it up.
+			while (readBundleResult() !== 43) {
+				if (Date.now() > deadline) {
+					throw new Error('The change did not trigger a rebuild.');
+				}
+				await writeFile(ENTRY_FILE, 'export default 43;');
+				await wait(300);
+			}
+		};
+
+		it('rebuilds with the latest content when a file is changed twice in quick succession', async () => {
+			await watchBasic();
+			await waitUntilChangesAreReported();
+			await writeFile(ENTRY_FILE, 'export default 44;');
+			await wait(10);
+			await writeFile(ENTRY_FILE, 'export default 45;');
+			await waitForBundleResult(45, 'The second change was not rebuilt.');
+		});
+
+		it('rebuilds when a file is fixed right after a failed build', async () => {
+			await watchBasic();
+			await waitUntilChangesAreReported();
+			let isErrorReported = false;
+			watcher.on('event', event => {
+				if (event.code === 'ERROR' && !isErrorReported) {
+					isErrorReported = true;
+					writeFileSync(ENTRY_FILE, 'export default 44;');
+				}
+			});
+			await writeFile(ENTRY_FILE, 'export default {;');
+			await waitForBundleResult(44, 'The fix after the failed build was not rebuilt.');
+			assert.ok(isErrorReported, 'The invalid code did not fail the build.');
+		});
+
+		it('does not report a change after a quickly changed file is deleted', async () => {
+			const watchedId = path.join(INPUT_DIR, 'dep');
+			await writeFile(watchedId, 'initial');
+			const watchedEvents = [];
+			await copy(path.join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			watcher = rollup.watch({
+				input: ENTRY_FILE,
+				output: {
+					file: BUNDLE_FILE,
+					format: 'cjs',
+					exports: 'auto'
+				},
+				plugins: {
+					buildStart() {
+						this.addWatchFile(watchedId);
+					}
+				}
+			});
+			watcher.on('change', (id, { event }) => {
+				if (id === watchedId) {
+					watchedEvents.push(event);
+				}
+			});
+			await withTimeout(waitForWatcherEvent(watcher, 'END'), 10_000, () => {
+				throw new Error('The initial build did not finish.');
+			});
+			await waitUntilChangesAreReported();
+			await writeFile(watchedId, 'first');
+			await wait(10);
+			await writeFile(watchedId, 'second');
+			await wait(10);
+			await unlink(watchedId);
+			await wait(300);
+			// File watchers may report the changes and the deletion as a single
+			// deletion, but the throttled change must not be reported again.
+			assert.strictEqual(watchedEvents.at(-1), 'delete', `Reported events: ${watchedEvents}`);
+			assert.ok(
+				watchedEvents.filter(event => event === 'update').length <= 1,
+				`Reported events: ${watchedEvents}`
+			);
+		});
+	});
+
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', async () => {
 			const buildEndFile = path.resolve(path.join(INPUT_DIR, 'buildEnd'));
