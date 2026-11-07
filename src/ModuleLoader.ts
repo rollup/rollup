@@ -112,14 +112,22 @@ export class ModuleLoader {
 	}
 
 	async addAdditionalModules(
-		unresolvedModules: readonly string[],
+		unresolvedModules: readonly UniqueModuleId[],
 		isAddForManualChunks: boolean
 	): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
 			Promise.all(
-				unresolvedModules.map(id =>
-					this.loadEntryModule(id, false, undefined, null, isAddForManualChunks)
-				)
+				unresolvedModules.map(unresolvedModule => {
+					const { attributes, rawId } = normalizeModuleIdToObject(unresolvedModule);
+					return this.loadEntryModule(
+						rawId,
+						false,
+						undefined,
+						null,
+						isAddForManualChunks,
+						attributes
+					);
+				})
 			)
 		);
 		await this.awaitLoadModulesPromise();

@@ -1555,7 +1555,7 @@ export default {
 
 |  |  |
 | --: | :-- |
-| Type: | `{ [chunkAlias: string]: string[] } \| ((id: string, {getModuleInfo, getModuleIds}) => string \| void)` |
+| Type: | `{ [chunkAlias: string]: (string \| { rawId: string, attributes?: Record<string, string> })[] } \| ((id: string, {getModuleInfo, getModuleIds}) => string \| void)` |
 
 Allows the creation of custom shared common chunks. The object form can be used for an easier and safer manual chunking, and the function form can be used for a more powerful and controlled behavior.
 
@@ -1569,7 +1569,13 @@ manualChunks: {
 
 will merge the `get` module and the lodash modules only used by it into a manual chunk named `lodash`.
 
-The object form resolves the listed ids without import attributes and thus only assigns the module instance without attributes. Modules imported with import attributes are separate modules whose id encodes the attributes; they can only be assigned via the function form, which receives this full id.
+As modules imported with import attributes are separate modules (see [Module identity](../plugin-development/index.md#module-identity)), plain ids only assign the module instance without attributes. To assign a module with import attributes, list it as an object `{ rawId, attributes }`, where `rawId` is resolved like the plain ids, or as the exact composite module id that encodes the attributes, e.g. taken from `moduleInfo.id`:
+
+```javascript
+manualChunks: {
+	data: [{ rawId: './data.json', attributes: { type: 'json' } }],
+}
+```
 
 When using the function form, each resolved module id will be passed to the function. If a string is returned, the module is added to the manual chunk with the given name, while its dependencies are chunked normally into separate chunks. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
 

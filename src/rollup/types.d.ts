@@ -742,7 +742,7 @@ export type GlobalsOption =
 
 export type InputOption = string | string[] | Record<string, string>;
 
-export type ManualChunksOption = Record<string, string[]> | GetManualChunk;
+export type ManualChunksOption = Record<string, UniqueModuleId[]> | GetManualChunk;
 
 export type LogHandlerWithDefault = (
 	level: LogLevel,
