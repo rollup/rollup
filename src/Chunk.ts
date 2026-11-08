@@ -2,6 +2,7 @@ import MagicString, { Bundle as MagicStringBundle, type SourceMap } from 'magic-
 import { relative } from '../browser/src/path';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
+import Identifier from './ast/nodes/Identifier';
 import type ImportExpression from './ast/nodes/ImportExpression';
 import { formatsMaybeAccessDocumentCurrentScript } from './ast/nodes/MetaProperty';
 import type ChildScope from './ast/scopes/ChildScope';
@@ -975,7 +976,10 @@ export default class Chunk {
 				hoisted,
 				local,
 				needsLiveBinding:
-					variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1
+					(variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1) ||
+					// Pattern bindings are plain locals; a trailing assignment
+					// would lose later reassignments.
+					(variable.isTargetOfAssignment && isDeclaredInDestructuringPattern(variable))
 			});
 		}
 		return exports;
@@ -1511,7 +1515,8 @@ export default class Chunk {
 				format !== 'es' &&
 				format !== 'system' &&
 				exportVariable.isReassigned &&
-				!exportVariable.isId
+				!exportVariable.isId &&
+				!isDeclaredInDestructuringPattern(exportVariable)
 			) {
 				exportVariable.setRenderNames('exports', unescapeExportName(exportName));
 			} else if (exportVariable instanceof SyntheticNamedExportVariable) {
@@ -1629,6 +1634,16 @@ export default class Chunk {
 
 function getChunkNameFromModule(module: Module): string {
 	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
+}
+
+function isDeclaredInDestructuringPattern(variable: Variable): boolean {
+	return (
+		variable instanceof LocalVariable &&
+		variable.declarations.some(
+			declaration =>
+				declaration instanceof Identifier && declaration.isDeclarationInDestructuringPattern()
+		)
+	);
 }
 
 function getPredefinedChunkNameFromModule(module: Module): string {

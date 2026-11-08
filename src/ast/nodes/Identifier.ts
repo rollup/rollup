@@ -16,6 +16,7 @@ import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
 import IdentifierBase from './shared/IdentifierBase';
+import type { Node } from './shared/Node';
 import { ObjectMember } from './shared/ObjectMember';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -147,6 +148,18 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 
 	markDeclarationReached(): void {
 		this.variable!.initReached = true;
+	}
+
+	isDeclarationInDestructuringPattern(): boolean {
+		let parent: Node | { type?: string } = this.parent;
+		while (
+			parent.type === NodeType.Property ||
+			parent.type === NodeType.AssignmentPattern ||
+			parent.type === NodeType.RestElement
+		) {
+			parent = (parent as Node).parent;
+		}
+		return parent.type === NodeType.ObjectPattern || parent.type === NodeType.ArrayPattern;
 	}
 
 	render(
