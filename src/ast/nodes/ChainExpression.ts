@@ -20,6 +20,10 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	// deoptimizations are not relevant as we are not caching values
 	deoptimizeCache(): void {}
 
+	deoptimizePath(path: ObjectPath): void {
+		this.expression.deoptimizePath(path);
+	}
+
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker,

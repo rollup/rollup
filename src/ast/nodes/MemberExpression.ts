@@ -39,7 +39,7 @@ import type { PromiseHandler } from '../variables/PromiseHandler';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
-import type * as NodeType from './NodeType';
+import * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { getChainElementLiteralValueAtPath } from './shared/chainElements';
@@ -52,10 +52,17 @@ import {
 	UnknownValue
 } from './shared/Expression';
 import type FunctionBase from './shared/FunctionBase';
-import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import type {
+	ChainElement,
+	ExpressionNode,
+	IncludeChildren,
+	Node,
+	SkippedChain
+} from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
+import type UnaryExpression from './UnaryExpression';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -143,6 +150,13 @@ export default class MemberExpression
 		this.flags = setFlag(this.flags, Flag.bound, value);
 	}
 
+	private get deleteOfMissingNamespaceMember(): boolean {
+		return isFlagSet(this.flags, Flag.deleteOfMissingNamespaceMember);
+	}
+	private set deleteOfMissingNamespaceMember(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.deleteOfMissingNamespaceMember, value);
+	}
+
 	private get isUndefined(): boolean {
 		return isFlagSet(this.flags, Flag.isUndefined);
 	}
@@ -163,7 +177,9 @@ export default class MemberExpression
 				path!.slice(1),
 				this.scope.context
 			);
-			if (!resolvedVariable) {
+			const isDelete = this.isDeleteTarget();
+			if (!resolvedVariable || this.assignmentInteraction || isDelete) {
+				this.deleteOfMissingNamespaceMember = isDelete && resolvedVariable === 'undefined';
 				super.bind();
 			} else if (resolvedVariable === 'undefined') {
 				this.isUndefined = true;
@@ -566,23 +582,12 @@ export default class MemberExpression
 	}
 
 	private disallowNamespaceReassignment() {
-		if (this.object instanceof Identifier) {
-			const variable = this.scope.findVariable(this.object.name);
-			if (variable.isNamespace) {
-				if (this.variable) {
-					this.scope.context.includeVariableInModule(
-						this.variable,
-						UNKNOWN_PATH,
-						createInclusionContext()
-					);
-				}
-				this.scope.context.log(
-					LOGLEVEL_WARN,
-					logIllegalImportReassignment(this.object.name, this.scope.context.module.id),
-					this.start
-				);
-			}
-		}
+		if (!this.getNamespaceVariableOfObject() || this.deleteOfMissingNamespaceMember) return;
+		this.scope.context.log(
+			LOGLEVEL_WARN,
+			logIllegalImportReassignment(this.getNamespaceName(), this.scope.context.module.id),
+			this.start
+		);
 	}
 
 	private getDynamicPropertyKey(): ObjectPathKey {
@@ -599,6 +604,27 @@ export default class MemberExpression
 		return this.dynamicPropertyKey;
 	}
 
+	private getNamespaceName(): string {
+		return this.object instanceof Identifier
+			? this.object.name
+			: getStringFromPath(getPathIfNotComputed(this.object as MemberExpression)!);
+	}
+
+	private getNamespaceVariableOfObject(): Variable | null {
+		let variable: Variable | null;
+		if (this.object instanceof Identifier) {
+			variable = this.scope.findVariable(this.object.name);
+		} else if (this.object instanceof MemberExpression) {
+			variable = this.object.variable;
+		} else {
+			return null;
+		}
+		if (variable instanceof ExportDefaultVariable) {
+			variable = variable.getOriginalNamespaceVariable() || variable;
+		}
+		return variable?.isNamespace ? variable : null;
+	}
+
 	private hasAccessEffect(context: HasEffectsContext) {
 		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
@@ -611,6 +637,14 @@ export default class MemberExpression
 					this.accessInteraction,
 					context
 				))
+		);
+	}
+
+	private isDeleteTarget(): boolean {
+		const parent =
+			this.parent.type === NodeType.ChainExpression ? (this.parent as Node).parent : this.parent;
+		return (
+			parent.type === NodeType.UnaryExpression && (parent as UnaryExpression).operator === 'delete'
 		);
 	}
 }

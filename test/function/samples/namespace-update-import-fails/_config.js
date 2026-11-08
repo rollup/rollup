@@ -6,7 +6,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'disallows updates to namespace exports',
 	code(code) {
-		assertIncludes(code, 'foo++');
+		assertIncludes(code, "exp['foo']++");
 	},
 	warnings: [
 		{
@@ -27,7 +27,7 @@ module.exports = defineTest({
 		}
 	],
 	runtimeError(error) {
-		assert.strictEqual(error.message, 'Assignment to constant variable.');
+		assert.ok(error instanceof TypeError);
 	}
 });
 
