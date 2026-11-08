@@ -1,6 +1,6 @@
 /* global gc */
 
-import commonjs from '@rollup/plugin-commonjs';
+import commonjsModule from '@rollup/plugin-commonjs';
 import { createHash } from 'node:crypto';
 import { mkdir, symlink, writeFile } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
@@ -12,6 +12,8 @@ import prettyBytes from 'pretty-bytes';
 import { runWithEcho } from '../helpers.ts';
 import reportCollector from './report-collector.js';
 import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.js';
+
+const commonjs = /** @type {any} */ (commonjsModule).default || commonjsModule;
 
 /**
  * @typedef {Record<string,{memory:number,time:number}>} CollectedTimings
