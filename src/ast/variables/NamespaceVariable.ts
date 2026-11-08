@@ -147,7 +147,14 @@ export default class NamespaceVariable extends Variable {
 			.filter(([name, variable]) => !isNamespaceExportName(name) && variable.included)
 			.map(([name, variable]) => {
 				const key = unescapeExportName(name);
-				if (this.referencedEarly || variable.isReassigned || variable === this) {
+				if (
+					this.referencedEarly ||
+					variable.isReassigned ||
+					variable === this ||
+					(variable.module &&
+						!variable.module.info.isExternal &&
+						variable.module.execIndex > this.module.execIndex)
+				) {
 					return [
 						null,
 						`get ${stringifyObjectKeyIfNeeded(key)}${_}()${_}{${_}return ${variable.getName(
