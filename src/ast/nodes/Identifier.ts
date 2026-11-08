@@ -16,6 +16,7 @@ import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity } from './shared/Expression';
 import IdentifierBase from './shared/IdentifierBase';
+import type { Node } from './shared/Node';
 import { ObjectMember } from './shared/ObjectMember';
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -149,13 +150,33 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 		this.variable!.initReached = true;
 	}
 
+	/**
+	 * Whether this identifier binds a variable inside a destructuring pattern.
+	 * Such bindings must render as plain names: a member expression like
+	 * `exports.foo` is not a valid binding target.
+	 */
+	isDestructuringBinding(): boolean {
+		if (this.isVariableReference) return false;
+		let parent: Node | { type?: string } = this.parent;
+		while (
+			parent.type === NodeType.Property ||
+			parent.type === NodeType.AssignmentPattern ||
+			parent.type === NodeType.RestElement
+		) {
+			parent = (parent as Node).parent;
+		}
+		return parent.type === NodeType.ObjectPattern || parent.type === NodeType.ArrayPattern;
+	}
+
 	render(
 		code: MagicString,
 		{ snippets: { getPropertyAccess }, useOriginalName }: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent, isShorthandProperty }: NodeRenderOptions = BLANK
 	): void {
 		if (this.variable) {
-			const name = this.variable.getName(getPropertyAccess, useOriginalName);
+			const name = this.isDestructuringBinding()
+				? this.variable.getBindingName(useOriginalName)
+				: this.variable.getName(getPropertyAccess, useOriginalName);
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
