@@ -178,6 +178,8 @@ export const NODE_UNION_TYPES: Record<AstUnionName, AstTypeName[]> = {
 		'FunctionExpression',
 		'Identifier',
 		'ImportExpression',
+		'JSXElement',
+		'JSXFragment',
 		'Literal',
 		'LogicalExpression',
 		'MemberExpression',

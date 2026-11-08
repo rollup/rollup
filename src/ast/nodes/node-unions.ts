@@ -109,6 +109,8 @@ export type Expression =
 	| FunctionExpression
 	| Identifier
 	| ImportExpression
+	| JSXElement
+	| JSXFragment
 	| Literal
 	| LogicalExpression
 	| MemberExpression
@@ -427,13 +429,13 @@ export type JSXClosingElementParent = JSXElement;
 
 export type JSXClosingFragmentParent = JSXFragment;
 
-export type JSXElementParent = JSXChildParent | JSXAttribute;
+export type JSXElementParent = ExpressionParent | JSXChildParent | JSXAttribute;
 
 export type JSXEmptyExpressionParent = JSXExpressionContainer | JSXSpreadChild;
 
 export type JSXExpressionContainerParent = JSXChildParent | JSXAttribute;
 
-export type JSXFragmentParent = JSXChildParent;
+export type JSXFragmentParent = ExpressionParent | JSXChildParent;
 
 export type JSXIdentifierParent = JSXTagNameExpressionParent | JSXAttribute | JSXNamespacedName;
 
