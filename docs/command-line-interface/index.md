@@ -49,6 +49,7 @@ export default {
 	// core input options
 	external,
 	input, // conditionally required
+	jsx,
 	plugins,
 
 	// advanced input options
@@ -72,6 +73,7 @@ export default {
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
 	experimentalMinChunkSize,
+	fs,
 	perf,
 
 	// required (can be an array, for multiple outputs)
@@ -116,6 +118,7 @@ export default {
 		sourcemapIgnoreList,
 		sourcemapPathTransform,
 		validate,
+		virtualDirname,
 
 		// danger zone
 		amd,
@@ -125,6 +128,7 @@ export default {
 		freeze,
 		indent,
 		noConflict,
+		reexportProtoFromExternal,
 		sanitizeFileName,
 		strict,
 		systemNullSetters,
