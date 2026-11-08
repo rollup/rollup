@@ -27,7 +27,8 @@ export const enum Flag {
 	hasDeoptimizedCache = 1 << 25,
 	hasEffects = 1 << 26,
 	checkedForWarnings = 1 << 27,
-	shouldIncludeDynamicAttributes = 1 << 28
+	shouldIncludeDynamicAttributes = 1 << 28,
+	deleteOfMissingNamespaceMember = 1 << 29
 }
 
 export function isFlagSet(flags: number, flag: Flag): boolean {

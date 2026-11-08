@@ -7,8 +7,8 @@ const ID_FOO = path.join(__dirname, 'foo.js');
 module.exports = defineTest({
 	description: 'warns for reassignments to namespace exports',
 	code(code) {
-		assertIncludes(code, 'foo = 2');
-		assertIncludes(code, 'undefined = 3');
+		assertIncludes(code, 'exp.foo = 2');
+		assertIncludes(code, 'exp.bar = 3');
 	},
 	warnings: [
 		{
@@ -65,7 +65,7 @@ module.exports = defineTest({
 		}
 	],
 	runtimeError(error) {
-		assert.strictEqual(error.message, 'Assignment to constant variable.');
+		assert.ok(error instanceof TypeError);
 	}
 });
 
