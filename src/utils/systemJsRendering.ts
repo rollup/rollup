@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import * as NodeType from '../ast/nodes/NodeType';
 import type Variable from '../ast/variables/Variable';
 import { unescapeExportName } from './exportNames';
 import type { RenderOptions } from './renderHelpers';
@@ -83,6 +84,40 @@ export function renderSystemExportSequenceAfterExpression(
 	if (needsParens) {
 		code.prependRight(expressionStart, '(');
 		code.appendLeft(expressionEnd, ')');
+	}
+}
+
+export function renderSystemExportForLoop(
+	left: {
+		addExportedVariables(
+			variables: Variable[],
+			exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+		): void;
+	},
+	body: { end: number; start: number; type: string },
+	code: MagicString,
+	options: RenderOptions
+): void {
+	const exportedVariables: Variable[] = [];
+	left.addExportedVariables(exportedVariables, options.exportNamesByVariable);
+	if (exportedVariables.length === 0) return;
+
+	const { _ } = options.snippets;
+	const exportStatement = `${getSystemExportStatement(exportedVariables, options)};`;
+	// An empty statement has no scope. Any other body is wrapped so a block
+	// binding cannot shadow the loop assignment or the system `exports` parameter.
+	if (body.type === NodeType.EmptyStatement) {
+		const previousCharacter = code.original.charCodeAt(body.start - 1);
+		const needsSpace =
+			!!_ &&
+			previousCharacter !== 32 &&
+			previousCharacter !== 9 &&
+			previousCharacter !== 10 &&
+			previousCharacter !== 13;
+		code.overwrite(body.start, body.end, `${needsSpace ? _ : ''}${exportStatement}`);
+	} else {
+		code.prependRight(body.start, `{${_}${exportStatement}${_}`);
+		code.appendLeft(body.end, `${_}}`);
 	}
 }
 
