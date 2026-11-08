@@ -105,21 +105,6 @@ export default class Variable extends ExpressionEntity {
 		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
 	}
 
-	/**
-	 * The name this variable renders as in a binding position, where a base
-	 * name like `exports` cannot be used because a member expression is not
-	 * a valid binding target.
-	 */
-	getBindingName(useOriginalName?: RenderOptions['useOriginalName']): string {
-		if (useOriginalName?.(this)) {
-			return this.name;
-		}
-		if (this.renderedLikeHoisted) {
-			return this.renderedLikeHoisted.getBindingName(useOriginalName);
-		}
-		return this.renderName || this.name;
-	}
-
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		{ type }: NodeInteraction,

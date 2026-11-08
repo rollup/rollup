@@ -963,11 +963,6 @@ export default class Chunk {
 						break;
 					}
 				}
-				// Variables declared in a destructuring pattern render as plain
-				// bindings, so the export block needs to assign them explicitly.
-				if (isDeclaredInDestructuringPattern(variable)) {
-					local = variable.getBindingName();
-				}
 			} else if (variable instanceof SyntheticNamedExportVariable) {
 				expression = local;
 				if (format === 'es') {
@@ -982,10 +977,9 @@ export default class Chunk {
 				local,
 				needsLiveBinding:
 					(variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1) ||
-					// Pattern bindings render as plain locals, so a trailing
-					// assignment would overwrite later reassignments. A getter
-					// keeps the export live instead.
-					(isDeclaredInDestructuringPattern(variable) && variable.isTargetOfAssignment)
+					// Pattern bindings are plain locals; a trailing assignment
+					// would lose later reassignments.
+					(variable.isTargetOfAssignment && isDeclaredInDestructuringPattern(variable))
 			});
 		}
 		return exports;
@@ -1646,7 +1640,8 @@ function isDeclaredInDestructuringPattern(variable: Variable): boolean {
 	return (
 		variable instanceof LocalVariable &&
 		variable.declarations.some(
-			declaration => declaration instanceof Identifier && declaration.isDestructuringBinding()
+			declaration =>
+				declaration instanceof Identifier && declaration.isDeclarationInDestructuringPattern()
 		)
 	);
 }

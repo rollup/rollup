@@ -150,13 +150,7 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 		this.variable!.initReached = true;
 	}
 
-	/**
-	 * Whether this identifier binds a variable inside a destructuring pattern.
-	 * Such bindings must render as plain names: a member expression like
-	 * `exports.foo` is not a valid binding target.
-	 */
-	isDestructuringBinding(): boolean {
-		if (this.isVariableReference) return false;
+	isDeclarationInDestructuringPattern(): boolean {
 		let parent: Node | { type?: string } = this.parent;
 		while (
 			parent.type === NodeType.Property ||
@@ -174,9 +168,7 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 		{ renderedParentType, isCalleeOfRenderedParent, isShorthandProperty }: NodeRenderOptions = BLANK
 	): void {
 		if (this.variable) {
-			const name = this.isDestructuringBinding()
-				? this.variable.getBindingName(useOriginalName)
-				: this.variable.getName(getPropertyAccess, useOriginalName);
+			const name = this.variable.getName(getPropertyAccess, useOriginalName);
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
