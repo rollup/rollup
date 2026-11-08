@@ -596,6 +596,10 @@ function assertAstValueEqual(actual, expected, path) {
 		}
 		return;
 	}
+	if (expected instanceof RegExp || actual instanceof RegExp) {
+		assert.deepStrictEqual(actual, expected, path);
+		return;
+	}
 	if (expected !== null && typeof expected === 'object') {
 		assert.ok(actual !== null && typeof actual === 'object', `${path} should be an object`);
 		for (const key of Object.keys(expected)) {

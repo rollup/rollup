@@ -662,6 +662,8 @@ export type Expression =
 	| FunctionExpression
 	| Identifier
 	| ImportExpression
+	| JSXElement
+	| JSXFragment
 	| Literal
 	| LogicalExpression
 	| MemberExpression
@@ -808,9 +810,8 @@ export type AstNode =
 	| WhileStatement
 	| YieldExpression;
 
-export type PanicErrorParent = never;
-export type ParseErrorParent = never;
 export type ArrayExpressionParent =
+	| ArrayExpression
 	| ArrowFunctionExpression
 	| AssignmentExpression
 	| AssignmentPattern
@@ -852,6 +853,7 @@ export type ArrayExpressionParent =
 	| WhileStatement
 	| YieldExpression;
 export type ArrayPatternParent =
+	| ArrayPattern
 	| ArrowFunctionExpression
 	| AssignmentExpression
 	| AssignmentPattern
@@ -865,6 +867,7 @@ export type ArrayPatternParent =
 	| VariableDeclarator;
 export type ArrowFunctionExpressionParent =
 	| ArrayExpression
+	| ArrowFunctionExpression
 	| AssignmentExpression
 	| AssignmentPattern
 	| AwaitExpression
@@ -907,6 +910,7 @@ export type ArrowFunctionExpressionParent =
 export type AssignmentExpressionParent =
 	| ArrayExpression
 	| ArrowFunctionExpression
+	| AssignmentExpression
 	| AssignmentPattern
 	| AwaitExpression
 	| BinaryExpression
@@ -960,6 +964,7 @@ export type AwaitExpressionParent =
 	| ArrowFunctionExpression
 	| AssignmentExpression
 	| AssignmentPattern
+	| AwaitExpression
 	| BinaryExpression
 	| CallExpression
 	| ClassDeclaration
@@ -1002,6 +1007,7 @@ export type BinaryExpressionParent =
 	| AssignmentExpression
 	| AssignmentPattern
 	| AwaitExpression
+	| BinaryExpression
 	| CallExpression
 	| ClassDeclaration
 	| ClassExpression
@@ -1039,6 +1045,7 @@ export type BinaryExpressionParent =
 	| YieldExpression;
 export type BlockStatementParent =
 	| ArrowFunctionExpression
+	| BlockStatement
 	| CatchClause
 	| DoWhileStatement
 	| ForInStatement
@@ -1072,6 +1079,7 @@ export type CallExpressionParent =
 	| AssignmentPattern
 	| AwaitExpression
 	| BinaryExpression
+	| CallExpression
 	| ChainExpression
 	| ClassDeclaration
 	| ClassExpression
@@ -1174,6 +1182,7 @@ export type ClassExpressionParent =
 	| BinaryExpression
 	| CallExpression
 	| ClassDeclaration
+	| ClassExpression
 	| ConditionalExpression
 	| Decorator
 	| DoWhileStatement
@@ -1216,6 +1225,7 @@ export type ConditionalExpressionParent =
 	| CallExpression
 	| ClassDeclaration
 	| ClassExpression
+	| ConditionalExpression
 	| Decorator
 	| DoWhileStatement
 	| ExportDefaultDeclaration
@@ -1273,9 +1283,9 @@ export type DebuggerStatementParent =
 	| WhileStatement;
 export type DecoratorParent =
 	ClassDeclaration | ClassExpression | MethodDefinition | PropertyDefinition;
-export type DirectiveParent = BlockStatement | Program;
 export type DoWhileStatementParent =
 	| BlockStatement
+	| DoWhileStatement
 	| ForInStatement
 	| ForOfStatement
 	| ForStatement
@@ -1316,6 +1326,7 @@ export type ExpressionStatementParent =
 export type ForInStatementParent =
 	| BlockStatement
 	| DoWhileStatement
+	| ForInStatement
 	| ForOfStatement
 	| ForStatement
 	| IfStatement
@@ -1328,6 +1339,7 @@ export type ForOfStatementParent =
 	| BlockStatement
 	| DoWhileStatement
 	| ForInStatement
+	| ForOfStatement
 	| ForStatement
 	| IfStatement
 	| LabeledStatement
@@ -1340,6 +1352,7 @@ export type ForStatementParent =
 	| DoWhileStatement
 	| ForInStatement
 	| ForOfStatement
+	| ForStatement
 	| IfStatement
 	| LabeledStatement
 	| Program
@@ -1465,6 +1478,7 @@ export type IfStatementParent =
 	| ForInStatement
 	| ForOfStatement
 	| ForStatement
+	| IfStatement
 	| LabeledStatement
 	| Program
 	| StaticBlock
@@ -1493,6 +1507,7 @@ export type ImportExpressionParent =
 	| ForOfStatement
 	| ForStatement
 	| IfStatement
+	| ImportExpression
 	| JSXExpressionContainer
 	| JSXSpreadAttribute
 	| JSXSpreadChild
@@ -1520,13 +1535,100 @@ export type ImportSpecifierParent = ImportDeclaration;
 export type JSXAttributeParent = JSXOpeningElement;
 export type JSXClosingElementParent = JSXElement;
 export type JSXClosingFragmentParent = JSXFragment;
-export type JSXElementParent = JSXAttribute | JSXFragment;
+export type JSXElementParent =
+	| ArrayExpression
+	| ArrowFunctionExpression
+	| AssignmentExpression
+	| AssignmentPattern
+	| AwaitExpression
+	| BinaryExpression
+	| CallExpression
+	| ClassDeclaration
+	| ClassExpression
+	| ConditionalExpression
+	| Decorator
+	| DoWhileStatement
+	| ExportDefaultDeclaration
+	| ExpressionStatement
+	| ForInStatement
+	| ForOfStatement
+	| ForStatement
+	| IfStatement
+	| ImportExpression
+	| JSXAttribute
+	| JSXElement
+	| JSXExpressionContainer
+	| JSXFragment
+	| JSXSpreadAttribute
+	| JSXSpreadChild
+	| LogicalExpression
+	| MemberExpression
+	| MethodDefinition
+	| NewExpression
+	| Property
+	| PropertyDefinition
+	| ReturnStatement
+	| SequenceExpression
+	| SpreadElement
+	| SwitchCase
+	| SwitchStatement
+	| TaggedTemplateExpression
+	| TemplateLiteral
+	| ThrowStatement
+	| UnaryExpression
+	| UpdateExpression
+	| VariableDeclarator
+	| WhileStatement
+	| YieldExpression;
 export type JSXEmptyExpressionParent = JSXExpressionContainer | JSXSpreadChild;
 export type JSXExpressionContainerParent = JSXAttribute | JSXElement | JSXFragment;
-export type JSXFragmentParent = JSXElement;
+export type JSXFragmentParent =
+	| ArrayExpression
+	| ArrowFunctionExpression
+	| AssignmentExpression
+	| AssignmentPattern
+	| AwaitExpression
+	| BinaryExpression
+	| CallExpression
+	| ClassDeclaration
+	| ClassExpression
+	| ConditionalExpression
+	| Decorator
+	| DoWhileStatement
+	| ExportDefaultDeclaration
+	| ExpressionStatement
+	| ForInStatement
+	| ForOfStatement
+	| ForStatement
+	| IfStatement
+	| ImportExpression
+	| JSXElement
+	| JSXExpressionContainer
+	| JSXFragment
+	| JSXSpreadAttribute
+	| JSXSpreadChild
+	| LogicalExpression
+	| MemberExpression
+	| MethodDefinition
+	| NewExpression
+	| Property
+	| PropertyDefinition
+	| ReturnStatement
+	| SequenceExpression
+	| SpreadElement
+	| SwitchCase
+	| SwitchStatement
+	| TaggedTemplateExpression
+	| TemplateLiteral
+	| ThrowStatement
+	| UnaryExpression
+	| UpdateExpression
+	| VariableDeclarator
+	| WhileStatement
+	| YieldExpression;
 export type JSXIdentifierParent =
 	JSXAttribute | JSXClosingElement | JSXMemberExpression | JSXNamespacedName | JSXOpeningElement;
-export type JSXMemberExpressionParent = JSXClosingElement | JSXOpeningElement;
+export type JSXMemberExpressionParent = JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
 export type JSXNamespacedNameParent =
 	JSXAttribute | JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
 export type JSXOpeningElementParent = JSXElement;
@@ -1541,241 +1643,12 @@ export type LabeledStatementParent =
 	| ForOfStatement
 	| ForStatement
 	| IfStatement
+	| LabeledStatement
 	| Program
 	| StaticBlock
 	| SwitchCase
 	| WhileStatement;
-export type LiteralBigIntParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportAttribute
-	| ImportExpression
-	| ImportSpecifier
-	| JSXAttribute
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type LiteralBooleanParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportAttribute
-	| ImportExpression
-	| ImportSpecifier
-	| JSXAttribute
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type LiteralNullParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportAttribute
-	| ImportExpression
-	| ImportSpecifier
-	| JSXAttribute
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type LiteralNumberParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportAttribute
-	| ImportExpression
-	| ImportSpecifier
-	| JSXAttribute
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type LiteralRegExpParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportAttribute
-	| ImportExpression
-	| ImportSpecifier
-	| JSXAttribute
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type LiteralStringParent =
+export type LiteralParent =
 	| ArrayExpression
 	| ArrowFunctionExpression
 	| AssignmentExpression
@@ -1848,6 +1721,7 @@ export type LogicalExpressionParent =
 	| JSXExpressionContainer
 	| JSXSpreadAttribute
 	| JSXSpreadChild
+	| LogicalExpression
 	| MemberExpression
 	| MethodDefinition
 	| NewExpression
@@ -1892,6 +1766,7 @@ export type MemberExpressionParent =
 	| JSXSpreadAttribute
 	| JSXSpreadChild
 	| LogicalExpression
+	| MemberExpression
 	| MethodDefinition
 	| NewExpression
 	| Property
@@ -1979,6 +1854,7 @@ export type NewExpressionParent =
 	| LogicalExpression
 	| MemberExpression
 	| MethodDefinition
+	| NewExpression
 	| Property
 	| PropertyDefinition
 	| ReturnStatement
@@ -2049,6 +1925,8 @@ export type ObjectPatternParent =
 	| Property
 	| RestElement
 	| VariableDeclarator;
+export type PanicErrorParent = never;
+export type ParseErrorParent = never;
 export type PrivateIdentifierParent =
 	BinaryExpression | LogicalExpression | MemberExpression | MethodDefinition | PropertyDefinition;
 export type ProgramParent = never;
@@ -2063,7 +1941,8 @@ export type RestElementParent =
 	| FunctionDeclaration
 	| FunctionExpression
 	| ObjectPattern
-	| Property;
+	| Property
+	| RestElement;
 export type ReturnStatementParent =
 	| BlockStatement
 	| DoWhileStatement
@@ -2106,6 +1985,7 @@ export type SequenceExpressionParent =
 	| Property
 	| PropertyDefinition
 	| ReturnStatement
+	| SequenceExpression
 	| SpreadElement
 	| SwitchCase
 	| SwitchStatement
@@ -2129,6 +2009,7 @@ export type StaticBlockParent =
 	| IfStatement
 	| LabeledStatement
 	| Program
+	| StaticBlock
 	| SwitchCase
 	| WhileStatement;
 export type SuperParent = CallExpression | MemberExpression;
@@ -2179,6 +2060,7 @@ export type TaggedTemplateExpressionParent =
 	| SpreadElement
 	| SwitchCase
 	| SwitchStatement
+	| TaggedTemplateExpression
 	| TemplateLiteral
 	| ThrowStatement
 	| UnaryExpression
@@ -2222,6 +2104,7 @@ export type TemplateLiteralParent =
 	| SwitchCase
 	| SwitchStatement
 	| TaggedTemplateExpression
+	| TemplateLiteral
 	| ThrowStatement
 	| UnaryExpression
 	| UpdateExpression
@@ -2331,6 +2214,7 @@ export type UnaryExpressionParent =
 	| TaggedTemplateExpression
 	| TemplateLiteral
 	| ThrowStatement
+	| UnaryExpression
 	| UpdateExpression
 	| VariableDeclarator
 	| WhileStatement
@@ -2373,6 +2257,7 @@ export type UpdateExpressionParent =
 	| TemplateLiteral
 	| ThrowStatement
 	| UnaryExpression
+	| UpdateExpression
 	| VariableDeclarator
 	| WhileStatement
 	| YieldExpression;
@@ -2400,7 +2285,8 @@ export type WhileStatementParent =
 	| LabeledStatement
 	| Program
 	| StaticBlock
-	| SwitchCase;
+	| SwitchCase
+	| WhileStatement;
 export type YieldExpressionParent =
 	| ArrayExpression
 	| ArrowFunctionExpression
@@ -2441,11 +2327,10 @@ export type YieldExpressionParent =
 	| UnaryExpression
 	| UpdateExpression
 	| VariableDeclarator
-	| WhileStatement;
+	| WhileStatement
+	| YieldExpression;
 
 export interface ParentMap {
-	PanicError: PanicErrorParent;
-	ParseError: ParseErrorParent;
 	ArrayExpression: ArrayExpressionParent;
 	ArrayPattern: ArrayPatternParent;
 	ArrowFunctionExpression: ArrowFunctionExpressionParent;
@@ -2465,7 +2350,6 @@ export interface ParentMap {
 	ContinueStatement: ContinueStatementParent;
 	DebuggerStatement: DebuggerStatementParent;
 	Decorator: DecoratorParent;
-	Directive: DirectiveParent;
 	DoWhileStatement: DoWhileStatementParent;
 	EmptyStatement: EmptyStatementParent;
 	ExportAllDeclaration: ExportAllDeclarationParent;
@@ -2502,12 +2386,7 @@ export interface ParentMap {
 	JSXSpreadChild: JSXSpreadChildParent;
 	JSXText: JSXTextParent;
 	LabeledStatement: LabeledStatementParent;
-	LiteralBigInt: LiteralBigIntParent;
-	LiteralBoolean: LiteralBooleanParent;
-	LiteralNull: LiteralNullParent;
-	LiteralNumber: LiteralNumberParent;
-	LiteralRegExp: LiteralRegExpParent;
-	LiteralString: LiteralStringParent;
+	Literal: LiteralParent;
 	LogicalExpression: LogicalExpressionParent;
 	MemberExpression: MemberExpressionParent;
 	MetaProperty: MetaPropertyParent;
@@ -2515,6 +2394,8 @@ export interface ParentMap {
 	NewExpression: NewExpressionParent;
 	ObjectExpression: ObjectExpressionParent;
 	ObjectPattern: ObjectPatternParent;
+	PanicError: PanicErrorParent;
+	ParseError: ParseErrorParent;
 	PrivateIdentifier: PrivateIdentifierParent;
 	Program: ProgramParent;
 	Property: PropertyParent;
@@ -2545,22 +2426,29 @@ export interface ParentMap {
  * The possible parents of a node, derived from the field definitions of all
  * node types.
  */
-export type ParentOf<T extends AstNode> = ParentMap[Extract<T['type'], keyof ParentMap>] & AstNode;
+export type ParentOf<T extends AstNode> = Extract<
+	ParentMap[Extract<T['type'], keyof ParentMap>],
+	AstNode
+>;
 
 /**
  * A lazy AST node with a precise parent link. The root node of a parse has
  * `parent === null`, so the link is optional and the chain can be followed
  * with optional chaining.
  */
+type WithParentValue<Value> = Value extends AstNode
+	? WithParent<Value>
+	: Value extends readonly (infer Element)[]
+		? Element extends AstNode
+			? readonly WithParentValue<Element>[]
+			: Value
+		: Value;
+
 export type WithParent<T extends AstNode = AstNode> = T extends AstNode
-	? T & { parent?: WithParent<ParentOf<T>> | null } & {
-			[K in keyof T]: T[K] extends AstNode
-				? WithParent<T[K]>
-				: T[K] extends readonly (infer Element)[]
-					? Element extends AstNode
-						? readonly WithParent<Element>[]
-						: T[K]
-					: T[K];
+	? T & {
+			parent?: WithParent<ParentOf<T>> | null;
+		} & {
+			[K in keyof T]: WithParentValue<T[K]>;
 		}
 	: never;
 
