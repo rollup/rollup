@@ -247,7 +247,9 @@ export default class Chunk {
 			chunkByModule.set(module, this);
 			if (
 				module.namespace.included &&
-				(!outputOptions.preserveModules || module.info.syntheticNamedExports)
+				(!outputOptions.preserveModules ||
+					module.info.syntheticNamedExports ||
+					importsOrExportsOwnNamespace(module))
 			) {
 				includedNamespaces.add(module);
 			}
@@ -1634,6 +1636,22 @@ export default class Chunk {
 
 function getChunkNameFromModule(module: Module): string {
 	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
+}
+
+function importsOrExportsOwnNamespace(module: Module): boolean {
+	for (const { module: importedModule, name } of module.importDescriptions.values()) {
+		if (importedModule === module && name === '*') {
+			return true;
+		}
+	}
+	for (const variable of module.getExportedVariablesByName().values()) {
+		const baseVariable =
+			variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
+		if (baseVariable === module.namespace) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function isDeclaredInDestructuringPattern(variable: Variable): boolean {
