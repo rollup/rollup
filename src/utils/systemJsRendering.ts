@@ -90,11 +90,16 @@ export function renderSystemExportSequenceAfterExpression(
 export function renderSystemExportForLoop(
 	left: {
 		addExportedVariables(
-			variables: Variable[],
+			variables: readonly Variable[],
 			exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 		): void;
 	},
-	body: { end: number; start: number; type: string },
+	body: {
+		end: number;
+		scope: { variables: ReadonlyMap<string, Variable> };
+		start: number;
+		type: string;
+	},
 	code: MagicString,
 	options: RenderOptions
 ): void {
@@ -102,23 +107,39 @@ export function renderSystemExportForLoop(
 	left.addExportedVariables(exportedVariables, options.exportNamesByVariable);
 	if (exportedVariables.length === 0) return;
 
-	const { _ } = options.snippets;
+	const { _, getPropertyAccess } = options.snippets;
 	const exportStatement = `${getSystemExportStatement(exportedVariables, options)};`;
-	// An empty statement has no scope. Any other body is wrapped so a block
-	// binding cannot shadow the loop assignment or the system `exports` parameter.
 	if (body.type === NodeType.EmptyStatement) {
-		const previousCharacter = code.original.charCodeAt(body.start - 1);
-		const needsSpace =
-			!!_ &&
-			previousCharacter !== 32 &&
-			previousCharacter !== 9 &&
-			previousCharacter !== 10 &&
-			previousCharacter !== 13;
-		code.overwrite(body.start, body.end, `${needsSpace ? _ : ''}${exportStatement}`);
+		code.overwrite(body.start, body.end, exportStatement);
+	} else if (
+		body.type === NodeType.BlockStatement &&
+		!scopeShadowsExportedBindings(body.scope, exportedVariables, getPropertyAccess)
+	) {
+		code.prependRight(body.start + 1, `${_}${exportStatement}`);
 	} else {
 		code.prependRight(body.start, `{${_}${exportStatement}${_}`);
 		code.appendLeft(body.end, `${_}}`);
 	}
+}
+
+function scopeShadowsExportedBindings(
+	scope: { variables: ReadonlyMap<string, Variable> },
+	exportedVariables: readonly Variable[],
+	getPropertyAccess: RenderOptions['snippets']['getPropertyAccess']
+): boolean {
+	const referencedNames = new Set<string>(['exports']);
+	for (const variable of exportedVariables) {
+		referencedNames.add(variable.getName(getPropertyAccess));
+	}
+	for (const variable of scope.variables.values()) {
+		if (
+			(variable.included || variable.alwaysRendered) &&
+			referencedNames.has(variable.getName(getPropertyAccess))
+		) {
+			return true;
+		}
+	}
+	return false;
 }
 
 export function renderSystemExportSequenceBeforeExpression(

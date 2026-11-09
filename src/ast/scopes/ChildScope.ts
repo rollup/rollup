@@ -106,6 +106,16 @@ export default class ChildScope extends Scope {
 		}
 	}
 
+	// Stop before the scope that owns the binding. A `var` in a nested function
+	// is a different binding and must not reserve names outside that function.
+	propagateAccessedVariable(variable: Variable): void {
+		if (this.variables.get(variable.name) === variable) return;
+		this.accessedOutsideVariables.set(variable.name, variable);
+		if (this.parent instanceof ChildScope) {
+			this.parent.propagateAccessedVariable(variable);
+		}
+	}
+
 	findLexicalBoundary(): ChildScope {
 		return (this.parent as ChildScope).findLexicalBoundary();
 	}

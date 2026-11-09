@@ -36,7 +36,6 @@
 - Nodes render by mutating the shared `MagicString` (cloned in `Module.render`), staying within their own `[start, end)` range or the boundaries passed via render options — statement renderers get extended comment/whitespace boundaries, and `MetaProperty` deliberately overwrites its parent
 - Renaming identifiers during render uses `code.overwrite(..., { contentOnly: true, storeName: true })`: `storeName` records the original name for the sourcemap's `names` array, `contentOnly` limits the overwrite to the identifier's own range so adjacent appended/prepended content survives (see `Identifier.render`)
 - `options.snippets` (from `getGenerateCodeSnippets`) is the shared source for syntax that depends on `compact`/`generatedCode` — use it instead of hand-rolling those choices
-- System export IIFEs for destructuring assignments must be parenthesized when they are the first token of an expression statement (`[name] = values`). `({ name } = obj)` already starts at `(`, so the source paren keeps the function in expression position. `for-of`/`for-in` heads are not assignment expressions; exported bindings there need `exports(...)` at the start of the loop body
 
 ## Transform Chain
 

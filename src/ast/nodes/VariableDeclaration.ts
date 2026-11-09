@@ -14,13 +14,16 @@ import {
 } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
+import type ChildScope from '../scopes/ChildScope';
 import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
+import AssignmentPattern from './AssignmentPattern';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
+import RestElement from './RestElement';
 import type { InclusionOptions } from './shared/Expression';
 import {
 	doNotDeoptimize,
@@ -28,6 +31,7 @@ import {
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 import type { VariableDeclarationKind } from './shared/VariableKinds';
 import type VariableDeclarator from './VariableDeclarator';
 
@@ -35,6 +39,29 @@ export default class VariableDeclaration extends NodeBase {
 	declare declarations: readonly VariableDeclarator[];
 	declare kind: VariableDeclarationKind;
 	declare type: NodeType.tVariableDeclaration;
+
+	addExportedVariables(
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+	): void {
+		// Only `var` is hoisted to the surrounding scope, so only those bindings can
+		// be the exported ones. `let` and `const` in a loop head are new bindings.
+		if (this.kind !== 'var') return;
+		for (const declarator of this.declarations) {
+			declarator.id.addExportedVariables(variables, exportNamesByVariable);
+		}
+	}
+
+	// A for-in/of head is a declaration, so ancestor scopes never see a reference.
+	// System output still reads the binding via `exports(...)`.
+	markForHeadBindingsAccessedFrom(scope: ChildScope): void {
+		if (this.kind !== 'var') return;
+		for (const declarator of this.declarations) {
+			visitDeclaredPattern(declarator.id, variable => {
+				scope.propagateAccessedVariable(variable);
+			});
+		}
+	}
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
@@ -88,7 +115,14 @@ export default class VariableDeclaration extends NodeBase {
 		options: RenderOptions,
 		nodeRenderOptions: NodeRenderOptions = BLANK
 	): void {
-		if (this.areAllDeclarationsIncludedAndNotExported(options.exportNamesByVariable)) {
+		// A for-in/of head is not a statement. Rewriting it like one inserts a
+		// semicolon and turns `for (var name of ...)` into invalid code. Exported
+		// `var` bindings are updated from the loop body instead.
+		if (
+			this.parent.type === NodeType.ForOfStatement ||
+			this.parent.type === NodeType.ForInStatement ||
+			this.areAllDeclarationsIncludedAndNotExported(options.exportNamesByVariable)
+		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
@@ -279,6 +313,28 @@ function gatherSystemExportsAndGetSingleExport(
 		}
 	}
 	return singleSystemExport;
+}
+
+function visitDeclaredPattern(pattern: PatternNode, visit: (variable: Variable) => void): void {
+	if (pattern instanceof Identifier) {
+		if (pattern.variable) visit(pattern.variable);
+	} else if (pattern instanceof AssignmentPattern) {
+		visitDeclaredPattern(pattern.left, visit);
+	} else if (pattern instanceof RestElement) {
+		visitDeclaredPattern(pattern.argument, visit);
+	} else if (pattern instanceof ArrayPattern) {
+		for (const element of pattern.elements) {
+			if (element) visitDeclaredPattern(element, visit);
+		}
+	} else if (pattern instanceof ObjectPattern) {
+		for (const property of pattern.properties) {
+			if (property.type === NodeType.Property) {
+				visitDeclaredPattern(property.value as PatternNode, visit);
+			} else {
+				visitDeclaredPattern(property.argument, visit);
+			}
+		}
+	}
 }
 
 VariableDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
