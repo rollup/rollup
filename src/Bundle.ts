@@ -370,7 +370,14 @@ function addModuleToManualChunk(
 	manualChunkAliasByEntry.set(module, alias);
 }
 
+const WINDOWS_DRIVE_LETTER_PREFIX_REGEX = /^[a-z]:/i;
+
 function isFileNameOutsideOutputDirectory(fileName: string): boolean {
+	// A leading drive letter makes the path drive-relative on Windows, where it
+	// is resolved against the current directory of that drive.
+	if (WINDOWS_DRIVE_LETTER_PREFIX_REGEX.test(fileName)) {
+		return true;
+	}
 	// Use join() to normalize ".." segments, then replace backslashes so the
 	// string checks below work identically on Windows and POSIX.
 	const normalized = join(fileName).replaceAll('\\', '/');
