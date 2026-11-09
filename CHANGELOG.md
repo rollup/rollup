@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.68.1
+
+_2026-11-09_
+
+### Bug Fixes
+
+- Improve namespace object generation in cyclic imports (#6644)
+- Warn about deleting or reassigning namespace members but make those operations catchable runtime errors (#6645)
+- Do not generate invalid code for non-esm output when exporting destructing declarations with defaults (#6648)
+
+### Pull Requests
+
+- [#6638](https://github.com/rollup/rollup/pull/6638): docs: add missing options to the config file example (@Aryapatel-007, @lukastaegert)
+- [#6639](https://github.com/rollup/rollup/pull/6639): List --interop modes in CLI help instead of --no-interop (@ZainnQureshii, @lukastaegert)
+- [#6643](https://github.com/rollup/rollup/pull/6643): docs: update the ES modules sentence in the introduction (@vigohan95)
+- [#6644](https://github.com/rollup/rollup/pull/6644): Defer namespace bindings initialized later in a cycle (@mayankdhingra02)
+- [#6645](https://github.com/rollup/rollup/pull/6645): Preserve namespace property references in delete expressions (@mayankdhingra02, @lukastaegert)
+- [#6648](https://github.com/rollup/rollup/pull/6648): Fix invalid output for exported destructuring declarations with defaults (@trleo, @lukastaegert)
+
 ## 4.68.0
 
 _2026-11-06_
