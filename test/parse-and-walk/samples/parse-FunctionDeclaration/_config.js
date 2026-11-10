@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const functionDeclarations = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(functionDeclarations, [
+		assertAstEqual(functionDeclarations, [
 			{
 				type: 'FunctionDeclaration',
 				start: 0,

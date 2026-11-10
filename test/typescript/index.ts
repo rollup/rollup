@@ -157,3 +157,59 @@ const _nullSourcesPlugin: rollup.Plugin = {
 	},
 	name: 'test'
 };
+
+// Lazy AST parents
+const _lazyAst: rollup.ast.LazyNode<rollup.ast.Program> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.Program>;
+const _eagerAst: rollup.ast.Program = null as unknown as rollup.ast.Program;
+const _lazyParent: rollup.ast.AstNode | null | undefined = _lazyAst.body[0].parent;
+const _lazyParentType: string | null | undefined = _lazyAst.body[0].parent?.type;
+const _lazyParentIsPresent: boolean = 'parent' in _lazyAst.body[0];
+const _programParent: null | undefined = _lazyAst.parent;
+// @ts-expect-error eager AST nodes do not have parents
+const _eagerParent = _eagerAst.body[0].parent;
+
+const _lazyDeclarator: rollup.ast.LazyNode<rollup.ast.VariableDeclarator> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.VariableDeclarator>;
+const _declaratorParent: rollup.ast.VariableDeclaratorParent | null | undefined =
+	_lazyDeclarator.parent;
+const _declaratorParentType: string | null | undefined = _lazyDeclarator.parent?.type;
+if (_lazyDeclarator.parent?.type === 'VariableDeclaration') {
+	const _declaratorGrandParent: rollup.ast.VariableDeclarationParent | null | undefined =
+		_lazyDeclarator.parent.parent;
+}
+
+const _anyLazyNode: rollup.ast.LazyNode = null as unknown as rollup.ast.LazyNode;
+if (_anyLazyNode.type === 'Literal') {
+	const _anyLiteralParent: rollup.ast.LiteralParent | null | undefined = _anyLazyNode.parent;
+}
+
+const _literalParent: rollup.ast.LiteralParent | null =
+	null as unknown as rollup.ast.LiteralParent | null;
+if (_literalParent?.type === 'BinaryExpression') {
+	const _literalBinaryParent: rollup.ast.BinaryExpression = _literalParent;
+}
+
+const _binaryParent: rollup.ast.BinaryExpressionParent | null =
+	null as unknown as rollup.ast.BinaryExpressionParent | null;
+if (_binaryParent?.type === 'BinaryExpression') {
+	const _nestedBinaryParent: rollup.ast.BinaryExpression = _binaryParent;
+}
+
+const _nullableInitParent: unknown = (
+	null as unknown as rollup.ast.WithParent<rollup.ast.VariableDeclarator>
+).init?.parent;
+
+const _jsx: rollup.ast.LazyNode<rollup.ast.JSXElement> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.JSXElement>;
+const _jsxParent: rollup.ast.JSXElementParent | null | undefined = _jsx.parent;
+if (_jsxParent?.type === 'ExportDefaultDeclaration') {
+	const _jsxExportParent: rollup.ast.ExportDefaultDeclaration = _jsxParent;
+}
+
+const _walkHandler: rollup.ParseAndWalkHandler<rollup.ast.VariableDeclarator> = (node, api) => {
+	const _parent: rollup.ast.VariableDeclaratorParent | null | undefined = node.parent;
+	const _idParent: rollup.ast.AstNode | null | undefined = node.id.parent;
+	const _idType: string = node.id.type;
+	api.parseChildren();
+};

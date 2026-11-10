@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const checks = [];
 
@@ -11,7 +11,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(checks, [
+		assertAstEqual(checks, [
 			// import locals are declared in the module scope; the imported name
 			// ("named") is not a local declaration.
 			['imported', 7, true],

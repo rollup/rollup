@@ -9,6 +9,60 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
+/* eslint-disable sort-keys */
+const POSITION: unique symbol = Symbol('rollup.ast.position');
+const BUFFER: unique symbol = Symbol('rollup.ast.buffer');
+
+function getPosition(node: unknown): number {
+	return (node as { [POSITION]: number })[POSITION];
+}
+
+function getNodeValue<T>(node: ast.AstNode, key: string, createValue: () => T): T {
+	const value = createValue();
+	Object.defineProperty(node, key, {
+		configurable: true,
+		enumerable: true,
+		value,
+		writable: true
+	});
+	return value;
+}
+
+export function convertNode(position: number, buffer: AstBuffer): any {
+	const cache = (buffer.lazyNodes ??= new Map());
+	const cachedNode = cache.get(position);
+	if (cachedNode !== undefined) {
+		return cachedNode;
+	}
+	const nodeType = buffer[position];
+	const prototype = nodePrototypes[nodeType];
+	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
+	if (!prototype) {
+		console.trace();
+		throw new Error(`Unknown node type: ${nodeType}`);
+	}
+	const node = nodeFactories[nodeType](position + 1, buffer, prototype);
+	cache.set(position, node);
+	return node;
+}
+
+function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
+	if (position === 0) return EMPTY_ARRAY;
+	const cache = (buffer.lazyLists ??= new Map());
+	const cachedList = cache.get(position);
+	if (cachedList !== undefined) {
+		return cachedList;
+	}
+	const length = buffer[position];
+	const list: any[] = new Array(length);
+	for (let index = 0; index < length; index++) {
+		const nodePosition = buffer[position + 1 + index];
+		list[index] = nodePosition ? convertNode(nodePosition, buffer) : null;
+	}
+	cache.set(position, list);
+	return list;
+}
+
 export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): ast.AstNode => {
 	const node = convertNode(position, buffer);
 	switch (node.type) {
@@ -24,1708 +78,3255 @@ export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): a
 	}
 };
 
-/* eslint-disable sort-keys */
-const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] = [
-	function panicError(position, buffer): ast.PanicError {
-		const node: ast.PanicError = {
-			type: 'PanicError',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get message() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'message', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function parseError(position, buffer): ast.ParseError {
-		const node: ast.ParseError = {
-			type: 'ParseError',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get message() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'message', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function arrayExpression(position, buffer): ast.ArrayExpression {
-		const node: ast.ArrayExpression = {
-			type: 'ArrayExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get elements() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'elements', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function arrayPattern(position, buffer): ast.ArrayPattern {
-		const node: ast.ArrayPattern = {
-			type: 'ArrayPattern',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get elements() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'elements', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function arrowFunctionExpression(position, buffer): ast.ArrowFunctionExpression {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const node: ast.ArrowFunctionExpression = {
-			type: 'ArrowFunctionExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			async: (flags & 1) === 1,
-			expression: (flags & 2) === 2,
-			generator: (flags & 4) === 4,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get params() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			id: null
-		};
-		return node;
-	},
-	function assignmentExpression(position, buffer): ast.AssignmentExpression {
-		const node: ast.AssignmentExpression = {
-			type: 'AssignmentExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.AssignmentExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function assignmentPattern(position, buffer): ast.AssignmentPattern {
-		const node: ast.AssignmentPattern = {
-			type: 'AssignmentPattern',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get left() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function awaitExpression(position, buffer): ast.AwaitExpression {
-		const node: ast.AwaitExpression = {
-			type: 'AwaitExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function binaryExpression(position, buffer): ast.BinaryExpression {
-		const node: ast.BinaryExpression = {
-			type: 'BinaryExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.BinaryExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function blockStatement(position, buffer): ast.BlockStatement {
-		const node: ast.BlockStatement = {
-			type: 'BlockStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function breakStatement(position, buffer): ast.BreakStatement {
-		const labelPosition = buffer[position + 2];
-		const node: ast.BreakStatement = {
-			type: 'BreakStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function callExpression(position, buffer): ast.CallExpression {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const node: ast.CallExpression = {
-			type: 'CallExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			optional: (flags & 1) === 1,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get callee() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'callee', { value: result });
-				return result;
-			},
-			get arguments() {
-				const result = convertNodeList(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'arguments', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function catchClause(position, buffer): ast.CatchClause {
-		const parameterPosition = buffer[position + 2];
-		const node: ast.CatchClause = {
-			type: 'CatchClause',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get param() {
-				const result = parameterPosition === 0 ? null : convertNode(parameterPosition, buffer);
-				Object.defineProperty(node, 'param', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function chainExpression(position, buffer): ast.ChainExpression {
-		const node: ast.ChainExpression = {
-			type: 'ChainExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function classBody(position, buffer): ast.ClassBody {
-		const node: ast.ClassBody = {
-			type: 'ClassBody',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function classDeclaration(position, buffer): ast.ClassDeclaration {
-		const idPosition = buffer[position + 3];
-		const superClassPosition = buffer[position + 4];
-		const node: ast.ClassDeclaration = {
-			type: 'ClassDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get decorators() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get superClass() {
-				const result = superClassPosition === 0 ? null : convertNode(superClassPosition, buffer);
-				Object.defineProperty(node, 'superClass', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function classExpression(position, buffer): ast.ClassExpression {
-		const idPosition = buffer[position + 3];
-		const superClassPosition = buffer[position + 4];
-		const node: ast.ClassExpression = {
-			type: 'ClassExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get decorators() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get superClass() {
-				const result = superClassPosition === 0 ? null : convertNode(superClassPosition, buffer);
-				Object.defineProperty(node, 'superClass', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function conditionalExpression(position, buffer): ast.ConditionalExpression {
-		const node: ast.ConditionalExpression = {
-			type: 'ConditionalExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get consequent() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
-			},
-			get alternate() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'alternate', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function continueStatement(position, buffer): ast.ContinueStatement {
-		const labelPosition = buffer[position + 2];
-		const node: ast.ContinueStatement = {
-			type: 'ContinueStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function debuggerStatement(position, buffer): ast.DebuggerStatement {
-		const node: ast.DebuggerStatement = {
-			type: 'DebuggerStatement',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function decorator(position, buffer): ast.Decorator {
-		const node: ast.Decorator = {
-			type: 'Decorator',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function directive(position, buffer): ast.Directive {
-		const node: ast.Directive = {
-			type: 'ExpressionStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get directive() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'directive', { value: result });
-				return result;
-			},
-			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function doWhileStatement(position, buffer): ast.DoWhileStatement {
-		const node: ast.DoWhileStatement = {
-			type: 'DoWhileStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			get test() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function emptyStatement(position, buffer): ast.EmptyStatement {
-		const node: ast.EmptyStatement = {
-			type: 'EmptyStatement',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function exportAllDeclaration(position, buffer): ast.ExportAllDeclaration {
-		const exportedPosition = buffer[position + 2];
-		const node: ast.ExportAllDeclaration = {
-			type: 'ExportAllDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get exported() {
-				const result = exportedPosition === 0 ? null : convertNode(exportedPosition, buffer);
-				Object.defineProperty(node, 'exported', { value: result });
-				return result;
-			},
-			get source() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function exportDefaultDeclaration(position, buffer): ast.ExportDefaultDeclaration {
-		const node: ast.ExportDefaultDeclaration = {
-			type: 'ExportDefaultDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get declaration() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'declaration', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function exportNamedDeclaration(position, buffer): ast.ExportNamedDeclaration {
-		const sourcePosition = buffer[position + 3];
-		const declarationPosition = buffer[position + 5];
-		const node: ast.ExportNamedDeclaration = {
-			type: 'ExportNamedDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get specifiers() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'specifiers', { value: result });
-				return result;
-			},
-			get source() {
-				const result = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			},
-			get declaration() {
-				const result = declarationPosition === 0 ? null : convertNode(declarationPosition, buffer);
-				Object.defineProperty(node, 'declaration', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function exportSpecifier(position, buffer): ast.ExportSpecifier {
-		const local = convertNode(buffer[position + 2], buffer);
-		const exportedPosition = buffer[position + 3];
-		const node: ast.ExportSpecifier = {
-			type: 'ExportSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			local,
-			get exported() {
-				const result =
-					exportedPosition === 0 ? { ...local } : convertNode(exportedPosition, buffer);
-				Object.defineProperty(node, 'exported', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function expressionStatement(position, buffer): ast.ExpressionStatement {
-		const node: ast.ExpressionStatement = {
-			type: 'ExpressionStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function forInStatement(position, buffer): ast.ForInStatement {
-		const node: ast.ForInStatement = {
-			type: 'ForInStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get left() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function forOfStatement(position, buffer): ast.ForOfStatement {
-		const flags = buffer[position + 2];
-		const node: ast.ForOfStatement = {
-			type: 'ForOfStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			await: (flags & 1) === 1,
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function forStatement(position, buffer): ast.ForStatement {
-		const initPosition = buffer[position + 2];
-		const testPosition = buffer[position + 3];
-		const updatePosition = buffer[position + 4];
-		const node: ast.ForStatement = {
-			type: 'ForStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer);
-				Object.defineProperty(node, 'init', { value: result });
-				return result;
-			},
-			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get update() {
-				const result = updatePosition === 0 ? null : convertNode(updatePosition, buffer);
-				Object.defineProperty(node, 'update', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function functionDeclaration(position, buffer): ast.FunctionDeclaration {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const idPosition = buffer[position + 4];
-		const node: ast.FunctionDeclaration = {
-			type: 'FunctionDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			async: (flags & 1) === 1,
-			generator: (flags & 2) === 2,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get params() {
-				const result = convertNodeList(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			expression: false
-		};
-		return node;
-	},
-	function functionExpression(position, buffer): ast.FunctionExpression {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const idPosition = buffer[position + 4];
-		const node: ast.FunctionExpression = {
-			type: 'FunctionExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			async: (flags & 1) === 1,
-			generator: (flags & 2) === 2,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get params() {
-				const result = convertNodeList(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			expression: false
-		};
-		return node;
-	},
-	function identifier(position, buffer): ast.Identifier {
-		const node: ast.Identifier = {
-			type: 'Identifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function ifStatement(position, buffer): ast.IfStatement {
-		const alternatePosition = buffer[position + 4];
-		const node: ast.IfStatement = {
-			type: 'IfStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get consequent() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
-			},
-			get alternate() {
-				const result = alternatePosition === 0 ? null : convertNode(alternatePosition, buffer);
-				Object.defineProperty(node, 'alternate', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importAttribute(position, buffer): ast.ImportAttribute {
-		const node: ast.ImportAttribute = {
-			type: 'ImportAttribute',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get key() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			get value() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importDeclaration(position, buffer): ast.ImportDeclaration {
-		const phasePosition = buffer[position + 5];
-		const node: ast.ImportDeclaration = {
-			type: 'ImportDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get specifiers() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'specifiers', { value: result });
-				return result;
-			},
-			get source() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			},
-			get phase() {
-				const result =
-					phasePosition === 0
-						? undefined
-						: (FIXED_STRINGS[buffer[position + 5]] as ast.ImportDeclaration['phase']);
-				Object.defineProperty(node, 'phase', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importDefaultSpecifier(position, buffer): ast.ImportDefaultSpecifier {
-		const node: ast.ImportDefaultSpecifier = {
-			type: 'ImportDefaultSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get local() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'local', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importExpression(position, buffer): ast.ImportExpression {
-		const optionsPosition = buffer[position + 3];
-		const phasePosition = buffer[position + 4];
-		const node: ast.ImportExpression = {
-			type: 'ImportExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get source() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get options() {
-				const result = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer);
-				Object.defineProperty(node, 'options', { value: result });
-				return result;
-			},
-			get phase() {
-				const result =
-					phasePosition === 0
-						? undefined
-						: (FIXED_STRINGS[buffer[position + 4]] as ast.ImportExpression['phase']);
-				Object.defineProperty(node, 'phase', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importNamespaceSpecifier(position, buffer): ast.ImportNamespaceSpecifier {
-		const node: ast.ImportNamespaceSpecifier = {
-			type: 'ImportNamespaceSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get local() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'local', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importSpecifier(position, buffer): ast.ImportSpecifier {
-		const importedPosition = buffer[position + 2];
-		const local = convertNode(buffer[position + 3], buffer);
-		const node: ast.ImportSpecifier = {
-			type: 'ImportSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get imported() {
-				const result =
-					importedPosition === 0 ? { ...local } : convertNode(importedPosition, buffer);
-				Object.defineProperty(node, 'imported', { value: result });
-				return result;
-			},
-			local
-		};
-		return node;
-	},
-	function jsxAttribute(position, buffer): ast.JSXAttribute {
-		const valuePosition = buffer[position + 3];
-		const node: ast.JSXAttribute = {
-			type: 'JSXAttribute',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			},
-			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxClosingElement(position, buffer): ast.JSXClosingElement {
-		const node: ast.JSXClosingElement = {
-			type: 'JSXClosingElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxClosingFragment(position, buffer): ast.JSXClosingFragment {
-		const node: ast.JSXClosingFragment = {
-			type: 'JSXClosingFragment',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function jsxElement(position, buffer): ast.JSXElement {
-		const closingElementPosition = buffer[position + 4];
-		const node: ast.JSXElement = {
-			type: 'JSXElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get openingElement() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'openingElement', { value: result });
-				return result;
-			},
-			get children() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'children', { value: result });
-				return result;
-			},
-			get closingElement() {
-				const result =
-					closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer);
-				Object.defineProperty(node, 'closingElement', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxEmptyExpression(position, buffer): ast.JSXEmptyExpression {
-		const node: ast.JSXEmptyExpression = {
-			type: 'JSXEmptyExpression',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function jsxExpressionContainer(position, buffer): ast.JSXExpressionContainer {
-		const node: ast.JSXExpressionContainer = {
-			type: 'JSXExpressionContainer',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxFragment(position, buffer): ast.JSXFragment {
-		const node: ast.JSXFragment = {
-			type: 'JSXFragment',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get openingFragment() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'openingFragment', { value: result });
-				return result;
-			},
-			get children() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'children', { value: result });
-				return result;
-			},
-			get closingFragment() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'closingFragment', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxIdentifier(position, buffer): ast.JSXIdentifier {
-		const node: ast.JSXIdentifier = {
-			type: 'JSXIdentifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxMemberExpression(position, buffer): ast.JSXMemberExpression {
-		const node: ast.JSXMemberExpression = {
-			type: 'JSXMemberExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get object() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'object', { value: result });
-				return result;
-			},
-			get property() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxNamespacedName(position, buffer): ast.JSXNamespacedName {
-		const node: ast.JSXNamespacedName = {
-			type: 'JSXNamespacedName',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get namespace() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'namespace', { value: result });
-				return result;
-			},
-			get name() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxOpeningElement(position, buffer): ast.JSXOpeningElement {
-		const flags = buffer[position + 2];
-		const node: ast.JSXOpeningElement = {
-			type: 'JSXOpeningElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			selfClosing: (flags & 1) === 1,
-			get name() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxOpeningFragment(position, buffer): ast.JSXOpeningFragment {
-		const node: ast.JSXOpeningFragment = {
-			type: 'JSXOpeningFragment',
-			start: buffer[position],
-			end: buffer[position + 1],
-			attributes: [],
-			selfClosing: false
-		};
-		return node;
-	},
-	function jsxSpreadAttribute(position, buffer): ast.JSXSpreadAttribute {
-		const node: ast.JSXSpreadAttribute = {
-			type: 'JSXSpreadAttribute',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxSpreadChild(position, buffer): ast.JSXSpreadChild {
-		const node: ast.JSXSpreadChild = {
-			type: 'JSXSpreadChild',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxText(position, buffer): ast.JSXText {
-		const node: ast.JSXText = {
-			type: 'JSXText',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get value() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			},
-			get raw() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function labeledStatement(position, buffer): ast.LabeledStatement {
-		const node: ast.LabeledStatement = {
-			type: 'LabeledStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get label() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function literalBigInt(position, buffer): ast.LiteralBigInt {
-		const bigint = buffer.convertString(buffer[position + 2]);
-		const node: ast.LiteralBigInt = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			bigint,
-			get raw() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			},
-			value: BigInt(bigint)
-		};
-		return node;
-	},
-	function literalBoolean(position, buffer): ast.LiteralBoolean {
-		const flags = buffer[position + 2];
-		const value = (flags & 1) === 1;
-		const node: ast.LiteralBoolean = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			value,
-			raw: value ? 'true' : 'false'
-		};
-		return node;
-	},
-	function literalNull(position, buffer): ast.LiteralNull {
-		const node: ast.LiteralNull = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			raw: 'null',
-			value: null
-		};
-		return node;
-	},
-	function literalNumber(position, buffer): ast.LiteralNumber {
-		const rawPosition = buffer[position + 2];
-		const node: ast.LiteralNumber = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get raw() {
-				const result = rawPosition === 0 ? undefined : buffer.convertString(rawPosition);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			},
-			get value() {
-				const result = buffer.convertFloat64(position + 3);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function literalRegExp(position, buffer): ast.LiteralRegExp {
-		const flags = buffer.convertString(buffer[position + 2]);
-		const pattern = buffer.convertString(buffer[position + 3]);
-		const node: ast.LiteralRegExp = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			raw: `/${pattern}/${flags}`,
-			regex: { flags, pattern },
-			value: new RegExp(pattern, flags)
-		};
-		return node;
-	},
-	function literalString(position, buffer): ast.LiteralString {
-		const rawPosition = buffer[position + 3];
-		const node: ast.LiteralString = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get value() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			},
-			get raw() {
-				const result = rawPosition === 0 ? undefined : buffer.convertString(rawPosition);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function logicalExpression(position, buffer): ast.LogicalExpression {
-		const node: ast.LogicalExpression = {
-			type: 'LogicalExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.LogicalExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function memberExpression(position, buffer): ast.MemberExpression {
-		const flags = buffer[position + 2];
-		const node: ast.MemberExpression = {
-			type: 'MemberExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			computed: (flags & 1) === 1,
-			optional: (flags & 2) === 2,
-			get object() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'object', { value: result });
-				return result;
-			},
-			get property() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function metaProperty(position, buffer): ast.MetaProperty {
-		const node: ast.MetaProperty = {
-			type: 'MetaProperty',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get meta() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'meta', { value: result });
-				return result;
-			},
-			get property() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function methodDefinition(position, buffer): ast.MethodDefinition {
-		const flags = buffer[position + 2];
-		const node: ast.MethodDefinition = {
-			type: 'MethodDefinition',
-			start: buffer[position],
-			end: buffer[position + 1],
-			static: (flags & 1) === 1,
-			computed: (flags & 2) === 2,
-			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get key() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			get value() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			},
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 6]] as ast.MethodDefinition['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function newExpression(position, buffer): ast.NewExpression {
-		const annotations = convertAnnotations(buffer[position + 2], buffer);
-		const node: ast.NewExpression = {
-			type: 'NewExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			...(annotations.length > 0 ? { annotations } : {}),
-			get callee() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'callee', { value: result });
-				return result;
-			},
-			get arguments() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'arguments', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function objectExpression(position, buffer): ast.ObjectExpression {
-		const node: ast.ObjectExpression = {
-			type: 'ObjectExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get properties() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'properties', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function objectPattern(position, buffer): ast.ObjectPattern {
-		const node: ast.ObjectPattern = {
-			type: 'ObjectPattern',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get properties() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'properties', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function privateIdentifier(position, buffer): ast.PrivateIdentifier {
-		const node: ast.PrivateIdentifier = {
-			type: 'PrivateIdentifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function program(position, buffer): ast.Program {
-		const invalidAnnotations = convertAnnotations(buffer[position + 3], buffer);
-		const node: ast.Program = {
-			type: 'Program',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			...(invalidAnnotations.length > 0 ? { invalidAnnotations } : {}),
-			sourceType: 'module'
-		};
-		return node;
-	},
-	function property(position, buffer): ast.Property {
-		const flags = buffer[position + 2];
-		const keyPosition = buffer[position + 3];
-		const value = convertNode(buffer[position + 4], buffer);
-		const node: ast.Property = {
-			type: 'Property',
-			start: buffer[position],
-			end: buffer[position + 1],
-			method: (flags & 1) === 1,
-			shorthand: (flags & 2) === 2,
-			computed: (flags & 4) === 4,
-			get key() {
-				const result = keyPosition === 0 ? { ...value } : convertNode(keyPosition, buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			value,
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 5]] as ast.Property['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function propertyDefinition(position, buffer): ast.PropertyDefinition {
-		const flags = buffer[position + 2];
-		const valuePosition = buffer[position + 5];
-		const node: ast.PropertyDefinition = {
-			type: 'PropertyDefinition',
-			start: buffer[position],
-			end: buffer[position + 1],
-			static: (flags & 1) === 1,
-			computed: (flags & 2) === 2,
-			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get key() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function restElement(position, buffer): ast.RestElement {
-		const node: ast.RestElement = {
-			type: 'RestElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function returnStatement(position, buffer): ast.ReturnStatement {
-		const argumentPosition = buffer[position + 2];
-		const node: ast.ReturnStatement = {
-			type: 'ReturnStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function sequenceExpression(position, buffer): ast.SequenceExpression {
-		const node: ast.SequenceExpression = {
-			type: 'SequenceExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expressions() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expressions', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function spreadElement(position, buffer): ast.SpreadElement {
-		const node: ast.SpreadElement = {
-			type: 'SpreadElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function staticBlock(position, buffer): ast.StaticBlock {
-		const node: ast.StaticBlock = {
-			type: 'StaticBlock',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function superElement(position, buffer): ast.Super {
-		const node: ast.Super = {
-			type: 'Super',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function switchCase(position, buffer): ast.SwitchCase {
-		const testPosition = buffer[position + 2];
-		const node: ast.SwitchCase = {
-			type: 'SwitchCase',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get consequent() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function switchStatement(position, buffer): ast.SwitchStatement {
-		const node: ast.SwitchStatement = {
-			type: 'SwitchStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get discriminant() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'discriminant', { value: result });
-				return result;
-			},
-			get cases() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'cases', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function taggedTemplateExpression(position, buffer): ast.TaggedTemplateExpression {
-		const node: ast.TaggedTemplateExpression = {
-			type: 'TaggedTemplateExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get tag() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'tag', { value: result });
-				return result;
-			},
-			get quasi() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'quasi', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function templateElement(position, buffer): ast.TemplateElement {
-		const flags = buffer[position + 2];
-		const cookedPosition = buffer[position + 3];
-		const cooked = cookedPosition === 0 ? undefined : buffer.convertString(cookedPosition);
-		const raw = buffer.convertString(buffer[position + 4]);
-		const node: ast.TemplateElement = {
-			type: 'TemplateElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			tail: (flags & 1) === 1,
-			value: { cooked, raw }
-		};
-		return node;
-	},
-	function templateLiteral(position, buffer): ast.TemplateLiteral {
-		const node: ast.TemplateLiteral = {
-			type: 'TemplateLiteral',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get quasis() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'quasis', { value: result });
-				return result;
-			},
-			get expressions() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'expressions', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function thisExpression(position, buffer): ast.ThisExpression {
-		const node: ast.ThisExpression = {
-			type: 'ThisExpression',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function throwStatement(position, buffer): ast.ThrowStatement {
-		const node: ast.ThrowStatement = {
-			type: 'ThrowStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function tryStatement(position, buffer): ast.TryStatement {
-		const handlerPosition = buffer[position + 3];
-		const finalizerPosition = buffer[position + 4];
-		const node: ast.TryStatement = {
-			type: 'TryStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get block() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'block', { value: result });
-				return result;
-			},
-			get handler() {
-				const result = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer);
-				Object.defineProperty(node, 'handler', { value: result });
-				return result;
-			},
-			get finalizer() {
-				const result = finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer);
-				Object.defineProperty(node, 'finalizer', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function unaryExpression(position, buffer): ast.UnaryExpression {
-		const node: ast.UnaryExpression = {
-			type: 'UnaryExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.UnaryExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			},
-			prefix: true
-		};
-		return node;
-	},
-	function updateExpression(position, buffer): ast.UpdateExpression {
-		const flags = buffer[position + 2];
-		const node: ast.UpdateExpression = {
-			type: 'UpdateExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			prefix: (flags & 1) === 1,
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.UpdateExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get argument() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function variableDeclaration(position, buffer): ast.VariableDeclaration {
-		const node: ast.VariableDeclaration = {
-			type: 'VariableDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.VariableDeclaration['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			},
-			get declarations() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'declarations', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function variableDeclarator(position, buffer): ast.VariableDeclarator {
-		const initPosition = buffer[position + 3];
-		const node: ast.VariableDeclarator = {
-			type: 'VariableDeclarator',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get id() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer);
-				Object.defineProperty(node, 'init', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function whileStatement(position, buffer): ast.WhileStatement {
-		const node: ast.WhileStatement = {
-			type: 'WhileStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function yieldExpression(position, buffer): ast.YieldExpression {
-		const flags = buffer[position + 2];
-		const argumentPosition = buffer[position + 3];
-		const node: ast.YieldExpression = {
-			type: 'YieldExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			delegate: (flags & 1) === 1,
-			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
+const PanicErrorPrototype: object = {
+	type: 'PanicError',
+	get message() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 3]);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(PanicErrorPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ParseErrorPrototype: object = {
+	type: 'ParseError',
+	get message() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 3]);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ParseErrorPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ArrayExpressionPrototype: object = {
+	type: 'ArrayExpression',
+	get elements() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ArrayExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ArrayPatternPrototype: object = {
+	type: 'ArrayPattern',
+	get elements() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ArrayPatternPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ArrowFunctionExpressionPrototype: object = {
+	type: 'ArrowFunctionExpression',
+	get annotations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	},
+	get params() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 6], buffer);
+	},
+	id: null
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ArrowFunctionExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const AssignmentExpressionPrototype: object = {
+	type: 'AssignmentExpression',
+	get left() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get right() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(AssignmentExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const AssignmentPatternPrototype: object = {
+	type: 'AssignmentPattern',
+	get left() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get right() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(AssignmentPatternPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const AwaitExpressionPrototype: object = {
+	type: 'AwaitExpression',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(AwaitExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const BinaryExpressionPrototype: object = {
+	type: 'BinaryExpression',
+	get left() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get right() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(BinaryExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const BlockStatementPrototype: object = {
+	type: 'BlockStatement',
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(BlockStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const BreakStatementPrototype: object = {
+	type: 'BreakStatement',
+	get label() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(BreakStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const CallExpressionPrototype: object = {
+	type: 'CallExpression',
+	get annotations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	},
+	get callee() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get arguments() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(CallExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const CatchClausePrototype: object = {
+	type: 'CatchClause',
+	get param() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(CatchClausePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ChainExpressionPrototype: object = {
+	type: 'ChainExpression',
+	get expression() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ChainExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ClassBodyPrototype: object = {
+	type: 'ClassBody',
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ClassBodyPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ClassDeclarationPrototype: object = {
+	type: 'ClassDeclaration',
+	get decorators() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	},
+	get id() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get superClass() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ClassDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ClassExpressionPrototype: object = {
+	type: 'ClassExpression',
+	get decorators() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	},
+	get id() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get superClass() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ClassExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ConditionalExpressionPrototype: object = {
+	type: 'ConditionalExpression',
+	get test() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get consequent() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get alternate() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ConditionalExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ContinueStatementPrototype: object = {
+	type: 'ContinueStatement',
+	get label() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ContinueStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const DebuggerStatementPrototype: object = {
+	type: 'DebuggerStatement'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(DebuggerStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const DecoratorPrototype: object = {
+	type: 'Decorator',
+	get expression() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(DecoratorPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const DirectivePrototype: object = {
+	type: 'ExpressionStatement',
+	get directive() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 3]);
+	},
+	get expression() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(DirectivePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const DoWhileStatementPrototype: object = {
+	type: 'DoWhileStatement',
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get test() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(DoWhileStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const EmptyStatementPrototype: object = {
+	type: 'EmptyStatement'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(EmptyStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ExportAllDeclarationPrototype: object = {
+	type: 'ExportAllDeclaration',
+	get exported() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get source() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get attributes() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ExportAllDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ExportDefaultDeclarationPrototype: object = {
+	type: 'ExportDefaultDeclaration',
+	get declaration() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ExportDefaultDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ExportNamedDeclarationPrototype: object = {
+	type: 'ExportNamedDeclaration',
+	get specifiers() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	},
+	get source() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get attributes() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+	},
+	get declaration() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 6] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ExportNamedDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ExportSpecifierPrototype: object = {
+	type: 'ExportSpecifier',
+	get local() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get exported() {
+		const node = this as any;
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? node.local
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ExportSpecifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ExpressionStatementPrototype: object = {
+	type: 'ExpressionStatement',
+	get expression() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ExpressionStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ForInStatementPrototype: object = {
+	type: 'ForInStatement',
+	get left() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get right() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ForInStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ForOfStatementPrototype: object = {
+	type: 'ForOfStatement',
+	get left() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get right() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ForOfStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ForStatementPrototype: object = {
+	type: 'ForStatement',
+	get init() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get test() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get update() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ForStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const FunctionDeclarationPrototype: object = {
+	type: 'FunctionDeclaration',
+	get annotations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	},
+	get id() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get params() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 7], buffer);
+	},
+	expression: false
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(FunctionDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const FunctionExpressionPrototype: object = {
+	type: 'FunctionExpression',
+	get annotations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	},
+	get id() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get params() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 7], buffer);
+	},
+	expression: false
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(FunctionExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const IdentifierPrototype: object = {
+	type: 'Identifier'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(IdentifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const IfStatementPrototype: object = {
+	type: 'IfStatement',
+	get test() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get consequent() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get alternate() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(IfStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ImportAttributePrototype: object = {
+	type: 'ImportAttribute',
+	get key() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ImportAttributePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ImportDeclarationPrototype: object = {
+	type: 'ImportDeclaration',
+	get specifiers() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	},
+	get source() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get attributes() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ImportDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ImportDefaultSpecifierPrototype: object = {
+	type: 'ImportDefaultSpecifier',
+	get local() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ImportDefaultSpecifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ImportExpressionPrototype: object = {
+	type: 'ImportExpression',
+	get source() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get options() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ImportExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ImportNamespaceSpecifierPrototype: object = {
+	type: 'ImportNamespaceSpecifier',
+	get local() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ImportNamespaceSpecifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ImportSpecifierPrototype: object = {
+	type: 'ImportSpecifier',
+	get imported() {
+		const node = this as any;
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? node.local
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get local() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ImportSpecifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXAttributePrototype: object = {
+	type: 'JSXAttribute',
+	get name() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXAttributePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXClosingElementPrototype: object = {
+	type: 'JSXClosingElement',
+	get name() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXClosingElementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXClosingFragmentPrototype: object = {
+	type: 'JSXClosingFragment'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXClosingFragmentPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXElementPrototype: object = {
+	type: 'JSXElement',
+	get openingElement() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get children() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	},
+	get closingElement() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXElementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXEmptyExpressionPrototype: object = {
+	type: 'JSXEmptyExpression'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXEmptyExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXExpressionContainerPrototype: object = {
+	type: 'JSXExpressionContainer',
+	get expression() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXExpressionContainerPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXFragmentPrototype: object = {
+	type: 'JSXFragment',
+	get openingFragment() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get children() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	},
+	get closingFragment() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXFragmentPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXIdentifierPrototype: object = {
+	type: 'JSXIdentifier'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXIdentifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXMemberExpressionPrototype: object = {
+	type: 'JSXMemberExpression',
+	get object() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get property() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXMemberExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXNamespacedNamePrototype: object = {
+	type: 'JSXNamespacedName',
+	get namespace() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get name() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXNamespacedNamePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXOpeningElementPrototype: object = {
+	type: 'JSXOpeningElement',
+	get name() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get attributes() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXOpeningElementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXOpeningFragmentPrototype: object = {
+	type: 'JSXOpeningFragment',
+	get attributes() {
+		return [];
+	},
+	get selfClosing() {
+		return false;
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXOpeningFragmentPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXSpreadAttributePrototype: object = {
+	type: 'JSXSpreadAttribute',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXSpreadAttributePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXSpreadChildPrototype: object = {
+	type: 'JSXSpreadChild',
+	get expression() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXSpreadChildPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const JSXTextPrototype: object = {
+	type: 'JSXText',
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 3]);
+	},
+	get raw() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 4]);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(JSXTextPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LabeledStatementPrototype: object = {
+	type: 'LabeledStatement',
+	get label() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LabeledStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LiteralBigIntPrototype: object = {
+	type: 'Literal',
+	get bigint() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 3]);
+	},
+	get raw() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 4]);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this);
+		const bigint = buffer.convertString(buffer[position + 3]);
+		return BigInt(bigint);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LiteralBigIntPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LiteralBooleanPrototype: object = {
+	type: 'Literal',
+	get raw() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this);
+		const value = (buffer[position + 3] & 1) === 1;
+		return value ? 'true' : 'false';
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LiteralBooleanPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LiteralNullPrototype: object = {
+	type: 'Literal',
+	get value() {
+		return null;
+	},
+	raw: 'null'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LiteralNullPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LiteralNumberPrototype: object = {
+	type: 'Literal',
+	get raw() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this) + 3;
+		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertFloat64(getPosition(this) + 4);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LiteralNumberPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LiteralRegExpPrototype: object = {
+	type: 'Literal',
+	get raw() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this);
+		const flags = buffer.convertString(buffer[position + 3]);
+		const pattern = buffer.convertString(buffer[position + 4]);
+		return `/${pattern}/${flags}`;
+	},
+	get regex() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this);
+		const flags = buffer.convertString(buffer[position + 3]);
+		const pattern = buffer.convertString(buffer[position + 4]);
+		return getNodeValue(this as ast.AstNode, 'regex', () => ({ flags, pattern }));
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this);
+		const flags = buffer.convertString(buffer[position + 3]);
+		const pattern = buffer.convertString(buffer[position + 4]);
+		return getNodeValue(this as ast.AstNode, 'value', () => new RegExp(pattern, flags));
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LiteralRegExpPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LiteralStringPrototype: object = {
+	type: 'Literal',
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer.convertString(buffer[getPosition(this) + 3]);
+	},
+	get raw() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this) + 4;
+		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LiteralStringPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const LogicalExpressionPrototype: object = {
+	type: 'LogicalExpression',
+	get left() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get right() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(LogicalExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const MemberExpressionPrototype: object = {
+	type: 'MemberExpression',
+	get object() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get property() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(MemberExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const MetaPropertyPrototype: object = {
+	type: 'MetaProperty',
+	get meta() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get property() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(MetaPropertyPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const MethodDefinitionPrototype: object = {
+	type: 'MethodDefinition',
+	get decorators() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	},
+	get key() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(MethodDefinitionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const NewExpressionPrototype: object = {
+	type: 'NewExpression',
+	get annotations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const annotations = convertAnnotations(buffer[getPosition(this) + 3], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	},
+	get callee() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get arguments() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(NewExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ObjectExpressionPrototype: object = {
+	type: 'ObjectExpression',
+	get properties() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ObjectExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ObjectPatternPrototype: object = {
+	type: 'ObjectPattern',
+	get properties() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ObjectPatternPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const PrivateIdentifierPrototype: object = {
+	type: 'PrivateIdentifier'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(PrivateIdentifierPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ProgramPrototype: object = {
+	type: 'Program',
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	},
+	get invalidAnnotations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	},
+	sourceType: 'module'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ProgramPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const PropertyPrototype: object = {
+	type: 'Property',
+	get key() {
+		const node = this as any;
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return node.shorthand
+			? node.value.type === 'AssignmentPattern'
+				? node.value.left
+				: node.value
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(PropertyPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const PropertyDefinitionPrototype: object = {
+	type: 'PropertyDefinition',
+	get decorators() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	},
+	get key() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 6] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 6], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(PropertyDefinitionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const RestElementPrototype: object = {
+	type: 'RestElement',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(RestElementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ReturnStatementPrototype: object = {
+	type: 'ReturnStatement',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ReturnStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const SequenceExpressionPrototype: object = {
+	type: 'SequenceExpression',
+	get expressions() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(SequenceExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const SpreadElementPrototype: object = {
+	type: 'SpreadElement',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(SpreadElementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const StaticBlockPrototype: object = {
+	type: 'StaticBlock',
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(StaticBlockPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const SuperPrototype: object = {
+	type: 'Super'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(SuperPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const SwitchCasePrototype: object = {
+	type: 'SwitchCase',
+	get test() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 3] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get consequent() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(SwitchCasePrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const SwitchStatementPrototype: object = {
+	type: 'SwitchStatement',
+	get discriminant() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get cases() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(SwitchStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const TaggedTemplateExpressionPrototype: object = {
+	type: 'TaggedTemplateExpression',
+	get tag() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get quasi() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(TaggedTemplateExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const TemplateElementPrototype: object = {
+	type: 'TemplateElement',
+	get value() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const position = getPosition(this);
+		const cooked =
+			buffer[position + 4] === 0 ? undefined : buffer.convertString(buffer[position + 4]);
+		const raw = buffer.convertString(buffer[position + 5]);
+		return getNodeValue(this as ast.AstNode, 'value', () => ({ cooked, raw }));
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(TemplateElementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const TemplateLiteralPrototype: object = {
+	type: 'TemplateLiteral',
+	get quasis() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+	},
+	get expressions() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(TemplateLiteralPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ThisExpressionPrototype: object = {
+	type: 'ThisExpression'
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ThisExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const ThrowStatementPrototype: object = {
+	type: 'ThrowStatement',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(ThrowStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const TryStatementPrototype: object = {
+	type: 'TryStatement',
+	get block() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get handler() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	get finalizer() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 5] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(TryStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const UnaryExpressionPrototype: object = {
+	type: 'UnaryExpression',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	},
+	prefix: true
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(UnaryExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const UpdateExpressionPrototype: object = {
+	type: 'UpdateExpression',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 5], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(UpdateExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const VariableDeclarationPrototype: object = {
+	type: 'VariableDeclaration',
+	get declarations() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(VariableDeclarationPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const VariableDeclaratorPrototype: object = {
+	type: 'VariableDeclarator',
+	get id() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get init() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(VariableDeclaratorPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const WhileStatementPrototype: object = {
+	type: 'WhileStatement',
+	get test() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 3], buffer);
+	},
+	get body() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(WhileStatementPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const YieldExpressionPrototype: object = {
+	type: 'YieldExpression',
+	get argument() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 4] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 4], buffer);
+	}
+};
+/* The parent must not be enumerable as that would make for..in based
+   walkers like estree-walker traverse it into cycles. */
+Object.defineProperty(YieldExpressionPrototype, 'parent', {
+	get() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		const parentPosition = buffer[getPosition(this)];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+});
+
+const nodePrototypes: object[] = [
+	PanicErrorPrototype,
+	ParseErrorPrototype,
+	ArrayExpressionPrototype,
+	ArrayPatternPrototype,
+	ArrowFunctionExpressionPrototype,
+	AssignmentExpressionPrototype,
+	AssignmentPatternPrototype,
+	AwaitExpressionPrototype,
+	BinaryExpressionPrototype,
+	BlockStatementPrototype,
+	BreakStatementPrototype,
+	CallExpressionPrototype,
+	CatchClausePrototype,
+	ChainExpressionPrototype,
+	ClassBodyPrototype,
+	ClassDeclarationPrototype,
+	ClassExpressionPrototype,
+	ConditionalExpressionPrototype,
+	ContinueStatementPrototype,
+	DebuggerStatementPrototype,
+	DecoratorPrototype,
+	DirectivePrototype,
+	DoWhileStatementPrototype,
+	EmptyStatementPrototype,
+	ExportAllDeclarationPrototype,
+	ExportDefaultDeclarationPrototype,
+	ExportNamedDeclarationPrototype,
+	ExportSpecifierPrototype,
+	ExpressionStatementPrototype,
+	ForInStatementPrototype,
+	ForOfStatementPrototype,
+	ForStatementPrototype,
+	FunctionDeclarationPrototype,
+	FunctionExpressionPrototype,
+	IdentifierPrototype,
+	IfStatementPrototype,
+	ImportAttributePrototype,
+	ImportDeclarationPrototype,
+	ImportDefaultSpecifierPrototype,
+	ImportExpressionPrototype,
+	ImportNamespaceSpecifierPrototype,
+	ImportSpecifierPrototype,
+	JSXAttributePrototype,
+	JSXClosingElementPrototype,
+	JSXClosingFragmentPrototype,
+	JSXElementPrototype,
+	JSXEmptyExpressionPrototype,
+	JSXExpressionContainerPrototype,
+	JSXFragmentPrototype,
+	JSXIdentifierPrototype,
+	JSXMemberExpressionPrototype,
+	JSXNamespacedNamePrototype,
+	JSXOpeningElementPrototype,
+	JSXOpeningFragmentPrototype,
+	JSXSpreadAttributePrototype,
+	JSXSpreadChildPrototype,
+	JSXTextPrototype,
+	LabeledStatementPrototype,
+	LiteralBigIntPrototype,
+	LiteralBooleanPrototype,
+	LiteralNullPrototype,
+	LiteralNumberPrototype,
+	LiteralRegExpPrototype,
+	LiteralStringPrototype,
+	LogicalExpressionPrototype,
+	MemberExpressionPrototype,
+	MetaPropertyPrototype,
+	MethodDefinitionPrototype,
+	NewExpressionPrototype,
+	ObjectExpressionPrototype,
+	ObjectPatternPrototype,
+	PrivateIdentifierPrototype,
+	ProgramPrototype,
+	PropertyPrototype,
+	PropertyDefinitionPrototype,
+	RestElementPrototype,
+	ReturnStatementPrototype,
+	SequenceExpressionPrototype,
+	SpreadElementPrototype,
+	StaticBlockPrototype,
+	SuperPrototype,
+	SwitchCasePrototype,
+	SwitchStatementPrototype,
+	TaggedTemplateExpressionPrototype,
+	TemplateElementPrototype,
+	TemplateLiteralPrototype,
+	ThisExpressionPrototype,
+	ThrowStatementPrototype,
+	TryStatementPrototype,
+	UnaryExpressionPrototype,
+	UpdateExpressionPrototype,
+	VariableDeclarationPrototype,
+	VariableDeclaratorPrototype,
+	WhileStatementPrototype,
+	YieldExpressionPrototype
+];
+
+const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) => ast.AstNode)[] = [
+	function createPanicError(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.PanicError {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createParseError(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ParseError {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createArrayExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ArrayExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createArrayPattern(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ArrayPattern {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createArrowFunctionExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ArrowFunctionExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.async = (flags & 1) === 1;
+		node.expression = (flags & 2) === 2;
+		node.generator = (flags & 4) === 4;
+		return node;
+	},
+	function createAssignmentExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.AssignmentExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		return node;
+	},
+	function createAssignmentPattern(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.AssignmentPattern {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createAwaitExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.AwaitExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createBinaryExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.BinaryExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		return node;
+	},
+	function createBlockStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.BlockStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createBreakStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.BreakStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createCallExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.CallExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.optional = (flags & 1) === 1;
+		return node;
+	},
+	function createCatchClause(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.CatchClause {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createChainExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ChainExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createClassBody(position: number, buffer: AstBuffer, prototype: object): ast.ClassBody {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createClassDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ClassDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createClassExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ClassExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createConditionalExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ConditionalExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createContinueStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ContinueStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createDebuggerStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.DebuggerStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createDecorator(position: number, buffer: AstBuffer, prototype: object): ast.Decorator {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createDirective(position: number, buffer: AstBuffer, prototype: object): ast.Directive {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createDoWhileStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.DoWhileStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createEmptyStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.EmptyStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createExportAllDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ExportAllDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createExportDefaultDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ExportDefaultDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createExportNamedDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ExportNamedDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createExportSpecifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ExportSpecifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createExpressionStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ExpressionStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createForInStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ForInStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createForOfStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ForOfStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.await = (flags & 1) === 1;
+		return node;
+	},
+	function createForStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ForStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createFunctionDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.FunctionDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.async = (flags & 1) === 1;
+		node.generator = (flags & 2) === 2;
+		return node;
+	},
+	function createFunctionExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.FunctionExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.async = (flags & 1) === 1;
+		node.generator = (flags & 2) === 2;
+		return node;
+	},
+	function createIdentifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.Identifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.name = buffer.convertString(buffer[position + 3]);
+		return node;
+	},
+	function createIfStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.IfStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createImportAttribute(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ImportAttribute {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createImportDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ImportDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.phase = buffer[position + 6] === 0 ? undefined : FIXED_STRINGS[buffer[position + 6]];
+		return node;
+	},
+	function createImportDefaultSpecifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ImportDefaultSpecifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createImportExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ImportExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.phase = buffer[position + 5] === 0 ? undefined : FIXED_STRINGS[buffer[position + 5]];
+		return node;
+	},
+	function createImportNamespaceSpecifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ImportNamespaceSpecifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createImportSpecifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ImportSpecifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXAttribute(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXAttribute {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXClosingElement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXClosingElement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXClosingFragment(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXClosingFragment {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXElement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXElement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXEmptyExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXEmptyExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXExpressionContainer(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXExpressionContainer {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXFragment(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXFragment {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXIdentifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXIdentifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.name = buffer.convertString(buffer[position + 3]);
+		return node;
+	},
+	function createJSXMemberExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXMemberExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXNamespacedName(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXNamespacedName {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXOpeningElement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXOpeningElement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.selfClosing = (flags & 1) === 1;
+		return node;
+	},
+	function createJSXOpeningFragment(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXOpeningFragment {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXSpreadAttribute(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXSpreadAttribute {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXSpreadChild(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.JSXSpreadChild {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createJSXText(position: number, buffer: AstBuffer, prototype: object): ast.JSXText {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLabeledStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LabeledStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLiteralBigInt(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LiteralBigInt {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLiteralBoolean(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LiteralBoolean {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.value = (flags & 1) === 1;
+		return node;
+	},
+	function createLiteralNull(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LiteralNull {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLiteralNumber(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LiteralNumber {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLiteralRegExp(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LiteralRegExp {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLiteralString(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LiteralString {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createLogicalExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LogicalExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		return node;
+	},
+	function createMemberExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.MemberExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.computed = (flags & 1) === 1;
+		node.optional = (flags & 2) === 2;
+		return node;
+	},
+	function createMetaProperty(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.MetaProperty {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createMethodDefinition(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.MethodDefinition {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.static = (flags & 1) === 1;
+		node.computed = (flags & 2) === 2;
+		node.kind = FIXED_STRINGS[buffer[position + 7]];
+		return node;
+	},
+	function createNewExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.NewExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createObjectExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ObjectExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createObjectPattern(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ObjectPattern {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createPrivateIdentifier(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.PrivateIdentifier {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.name = buffer.convertString(buffer[position + 3]);
+		return node;
+	},
+	function createProgram(position: number, buffer: AstBuffer, prototype: object): ast.Program {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createProperty(position: number, buffer: AstBuffer, prototype: object): ast.Property {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.method = (flags & 1) === 1;
+		node.shorthand = (flags & 2) === 2;
+		node.computed = (flags & 4) === 4;
+		node.kind = FIXED_STRINGS[buffer[position + 6]];
+		return node;
+	},
+	function createPropertyDefinition(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.PropertyDefinition {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.static = (flags & 1) === 1;
+		node.computed = (flags & 2) === 2;
+		return node;
+	},
+	function createRestElement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.RestElement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createReturnStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ReturnStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createSequenceExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.SequenceExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createSpreadElement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.SpreadElement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createStaticBlock(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.StaticBlock {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createSuper(position: number, buffer: AstBuffer, prototype: object): ast.Super {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createSwitchCase(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.SwitchCase {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createSwitchStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.SwitchStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createTaggedTemplateExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.TaggedTemplateExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createTemplateElement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.TemplateElement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.tail = (flags & 1) === 1;
+		return node;
+	},
+	function createTemplateLiteral(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.TemplateLiteral {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createThisExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ThisExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createThrowStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.ThrowStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createTryStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.TryStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createUnaryExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.UnaryExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		return node;
+	},
+	function createUpdateExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.UpdateExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.prefix = (flags & 1) === 1;
+		node.operator = FIXED_STRINGS[buffer[position + 4]];
+		return node;
+	},
+	function createVariableDeclaration(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.VariableDeclaration {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		node.kind = FIXED_STRINGS[buffer[position + 3]];
+		return node;
+	},
+	function createVariableDeclarator(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.VariableDeclarator {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createWhileStatement(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.WhileStatement {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		return node;
+	},
+	function createYieldExpression(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.YieldExpression {
+		const node: any = Object.create(prototype);
+		node[POSITION] = position;
+		node[BUFFER] = buffer;
+		node.start = buffer[position + 1];
+		node.end = buffer[position + 2];
+		const flags = buffer[position + 3];
+		node.delegate = (flags & 1) === 1;
 		return node;
 	}
 ];
-
-export function convertNode(position: number, buffer: AstBuffer): any {
-	const nodeType = buffer[position];
-	const converter = nodeConverters[nodeType];
-	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
-	if (!converter) {
-		console.trace();
-		throw new Error(`Unknown node type: ${nodeType}`);
-	}
-	return converter(position + 1, buffer);
-}
-
-function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
-	if (position === 0) return EMPTY_ARRAY;
-	const length = buffer[position++];
-	const list: any[] = new Array(length);
-	for (let index = 0; index < length; index++) {
-		const nodePosition = buffer[position++];
-		list[index] = nodePosition ? convertNode(nodePosition, buffer) : null;
-	}
-	return list;
-}

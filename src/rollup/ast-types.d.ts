@@ -6,33 +6,39 @@ export interface BaseNode {
 	start: number;
 }
 
+/**
+ * Base of every AST node. Lazy AST nodes add a `parent` link on top of this
+ * shape via {@link WithParent}; eager AST nodes never have one.
+ */
+export type AstNodeBase = BaseNode;
+
 export type AnnotationType = 'pure' | 'noSideEffects';
 
 interface Annotation extends BaseNode {
 	type: AnnotationType;
 }
 
-export interface PanicError extends BaseNode {
+export interface PanicError extends AstNodeBase {
 	type: 'PanicError';
 	message: string;
 }
 
-export interface ParseError extends BaseNode {
+export interface ParseError extends AstNodeBase {
 	type: 'ParseError';
 	message: string;
 }
 
-export interface ArrayExpression extends BaseNode {
+export interface ArrayExpression extends AstNodeBase {
 	type: 'ArrayExpression';
 	elements: readonly (Expression | SpreadElement | null)[];
 }
 
-export interface ArrayPattern extends BaseNode {
+export interface ArrayPattern extends AstNodeBase {
 	type: 'ArrayPattern';
 	elements: readonly (DestructuringPattern | null)[];
 }
 
-export interface ArrowFunctionExpression extends BaseNode {
+export interface ArrowFunctionExpression extends AstNodeBase {
 	type: 'ArrowFunctionExpression';
 	annotations?: readonly Annotation[];
 	params: readonly Parameter[];
@@ -43,7 +49,7 @@ export interface ArrowFunctionExpression extends BaseNode {
 	generator: boolean;
 }
 
-export interface AssignmentExpression extends BaseNode {
+export interface AssignmentExpression extends AstNodeBase {
 	type: 'AssignmentExpression';
 	operator:
 		| '='
@@ -66,18 +72,18 @@ export interface AssignmentExpression extends BaseNode {
 	right: Expression;
 }
 
-export interface AssignmentPattern extends BaseNode {
+export interface AssignmentPattern extends AstNodeBase {
 	type: 'AssignmentPattern';
 	left: BindingPattern;
 	right: Expression;
 }
 
-export interface AwaitExpression extends BaseNode {
+export interface AwaitExpression extends AstNodeBase {
 	type: 'AwaitExpression';
 	argument: Expression;
 }
 
-export interface BinaryExpression extends BaseNode {
+export interface BinaryExpression extends AstNodeBase {
 	type: 'BinaryExpression';
 	operator:
 		| '=='
@@ -106,17 +112,17 @@ export interface BinaryExpression extends BaseNode {
 	right: Expression;
 }
 
-export interface BlockStatement extends BaseNode {
+export interface BlockStatement extends AstNodeBase {
 	type: 'BlockStatement';
-	body: readonly Statement[];
+	body: readonly (Directive | Statement)[];
 }
 
-export interface BreakStatement extends BaseNode {
+export interface BreakStatement extends AstNodeBase {
 	type: 'BreakStatement';
 	label: Identifier | null;
 }
 
-export interface CallExpression extends BaseNode {
+export interface CallExpression extends AstNodeBase {
 	type: 'CallExpression';
 	annotations?: readonly Annotation[];
 	callee: Expression | Super;
@@ -124,23 +130,23 @@ export interface CallExpression extends BaseNode {
 	optional: boolean;
 }
 
-export interface CatchClause extends BaseNode {
+export interface CatchClause extends AstNodeBase {
 	type: 'CatchClause';
 	param: BindingPattern | null;
 	body: BlockStatement;
 }
 
-export interface ChainExpression extends BaseNode {
+export interface ChainExpression extends AstNodeBase {
 	type: 'ChainExpression';
 	expression: CallExpression | MemberExpression;
 }
 
-export interface ClassBody extends BaseNode {
+export interface ClassBody extends AstNodeBase {
 	type: 'ClassBody';
 	body: readonly (MethodDefinition | PropertyDefinition | StaticBlock)[];
 }
 
-export interface ClassDeclaration extends BaseNode {
+export interface ClassDeclaration extends AstNodeBase {
 	type: 'ClassDeclaration';
 	decorators: readonly Decorator[];
 	id: Identifier | null;
@@ -148,7 +154,7 @@ export interface ClassDeclaration extends BaseNode {
 	body: ClassBody;
 }
 
-export interface ClassExpression extends BaseNode {
+export interface ClassExpression extends AstNodeBase {
 	type: 'ClassExpression';
 	decorators: readonly Decorator[];
 	id: Identifier | null;
@@ -156,56 +162,56 @@ export interface ClassExpression extends BaseNode {
 	body: ClassBody;
 }
 
-export interface ConditionalExpression extends BaseNode {
+export interface ConditionalExpression extends AstNodeBase {
 	type: 'ConditionalExpression';
 	test: Expression;
 	consequent: Expression;
 	alternate: Expression;
 }
 
-export interface ContinueStatement extends BaseNode {
+export interface ContinueStatement extends AstNodeBase {
 	type: 'ContinueStatement';
 	label: Identifier | null;
 }
 
-export interface DebuggerStatement extends BaseNode {
+export interface DebuggerStatement extends AstNodeBase {
 	type: 'DebuggerStatement';
 }
 
-export interface Decorator extends BaseNode {
+export interface Decorator extends AstNodeBase {
 	type: 'Decorator';
 	expression: Expression;
 }
 
-export interface Directive extends BaseNode {
+export interface Directive extends AstNodeBase {
 	type: 'ExpressionStatement';
 	directive: string;
 	expression: LiteralString;
 }
 
-export interface DoWhileStatement extends BaseNode {
+export interface DoWhileStatement extends AstNodeBase {
 	type: 'DoWhileStatement';
 	body: Statement;
 	test: Expression;
 }
 
-export interface EmptyStatement extends BaseNode {
+export interface EmptyStatement extends AstNodeBase {
 	type: 'EmptyStatement';
 }
 
-export interface ExportAllDeclaration extends BaseNode {
+export interface ExportAllDeclaration extends AstNodeBase {
 	type: 'ExportAllDeclaration';
 	exported: Identifier | null;
 	source: LiteralString;
 	attributes: readonly ImportAttribute[];
 }
 
-export interface ExportDefaultDeclaration extends BaseNode {
+export interface ExportDefaultDeclaration extends AstNodeBase {
 	type: 'ExportDefaultDeclaration';
 	declaration: FunctionDeclaration | ClassDeclaration | Expression;
 }
 
-export interface ExportNamedDeclaration extends BaseNode {
+export interface ExportNamedDeclaration extends AstNodeBase {
 	type: 'ExportNamedDeclaration';
 	specifiers: readonly ExportSpecifier[];
 	source: Literal | null;
@@ -213,25 +219,25 @@ export interface ExportNamedDeclaration extends BaseNode {
 	declaration: FunctionDeclaration | VariableDeclaration | ClassDeclaration | null;
 }
 
-export interface ExportSpecifier extends BaseNode {
+export interface ExportSpecifier extends AstNodeBase {
 	type: 'ExportSpecifier';
 	local: Identifier | LiteralString;
 	exported: Identifier | LiteralString;
 }
 
-export interface ExpressionStatement extends BaseNode {
+export interface ExpressionStatement extends AstNodeBase {
 	type: 'ExpressionStatement';
 	expression: Expression;
 }
 
-export interface ForInStatement extends BaseNode {
+export interface ForInStatement extends AstNodeBase {
 	type: 'ForInStatement';
 	left: VariableDeclaration | DestructuringPattern;
 	right: Expression;
 	body: Statement;
 }
 
-export interface ForOfStatement extends BaseNode {
+export interface ForOfStatement extends AstNodeBase {
 	type: 'ForOfStatement';
 	left: VariableDeclaration | DestructuringPattern;
 	right: Expression;
@@ -239,7 +245,7 @@ export interface ForOfStatement extends BaseNode {
 	await: boolean;
 }
 
-export interface ForStatement extends BaseNode {
+export interface ForStatement extends AstNodeBase {
 	type: 'ForStatement';
 	init: Expression | VariableDeclaration | null;
 	test: Expression | null;
@@ -247,7 +253,7 @@ export interface ForStatement extends BaseNode {
 	body: Statement;
 }
 
-export interface FunctionDeclaration extends BaseNode {
+export interface FunctionDeclaration extends AstNodeBase {
 	type: 'FunctionDeclaration';
 	annotations?: readonly Annotation[];
 	id: Identifier | null;
@@ -258,7 +264,7 @@ export interface FunctionDeclaration extends BaseNode {
 	generator: boolean;
 }
 
-export interface FunctionExpression extends BaseNode {
+export interface FunctionExpression extends AstNodeBase {
 	type: 'FunctionExpression';
 	annotations?: readonly Annotation[];
 	id: Identifier | null;
@@ -269,25 +275,25 @@ export interface FunctionExpression extends BaseNode {
 	generator: boolean;
 }
 
-export interface Identifier extends BaseNode {
+export interface Identifier extends AstNodeBase {
 	type: 'Identifier';
 	name: string;
 }
 
-export interface IfStatement extends BaseNode {
+export interface IfStatement extends AstNodeBase {
 	type: 'IfStatement';
 	test: Expression;
 	consequent: Statement;
 	alternate: Statement | null;
 }
 
-export interface ImportAttribute extends BaseNode {
+export interface ImportAttribute extends AstNodeBase {
 	type: 'ImportAttribute';
 	key: Identifier | Literal;
 	value: Literal;
 }
 
-export interface ImportDeclaration extends BaseNode {
+export interface ImportDeclaration extends AstNodeBase {
 	type: 'ImportDeclaration';
 	specifiers: readonly (ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier)[];
 	source: LiteralString;
@@ -295,165 +301,165 @@ export interface ImportDeclaration extends BaseNode {
 	phase?: 'source' | 'defer';
 }
 
-export interface ImportDefaultSpecifier extends BaseNode {
+export interface ImportDefaultSpecifier extends AstNodeBase {
 	type: 'ImportDefaultSpecifier';
 	local: Identifier;
 }
 
-export interface ImportExpression extends BaseNode {
+export interface ImportExpression extends AstNodeBase {
 	type: 'ImportExpression';
 	source: Expression;
 	options: Expression | null;
 	phase?: 'source' | 'defer';
 }
 
-export interface ImportNamespaceSpecifier extends BaseNode {
+export interface ImportNamespaceSpecifier extends AstNodeBase {
 	type: 'ImportNamespaceSpecifier';
 	local: Identifier;
 }
 
-export interface ImportSpecifier extends BaseNode {
+export interface ImportSpecifier extends AstNodeBase {
 	type: 'ImportSpecifier';
 	imported: Identifier | Literal;
 	local: Identifier;
 }
 
-export interface JSXAttribute extends BaseNode {
+export interface JSXAttribute extends AstNodeBase {
 	type: 'JSXAttribute';
 	name: JSXIdentifier | JSXNamespacedName;
 	value: JSXElement | JSXExpressionContainer | JSXSpreadChild | Literal | null;
 }
 
-export interface JSXClosingElement extends BaseNode {
+export interface JSXClosingElement extends AstNodeBase {
 	type: 'JSXClosingElement';
 	name: JSXTagNameExpression;
 }
 
-export interface JSXClosingFragment extends BaseNode {
+export interface JSXClosingFragment extends AstNodeBase {
 	type: 'JSXClosingFragment';
 }
 
-export interface JSXElement extends BaseNode {
+export interface JSXElement extends AstNodeBase {
 	type: 'JSXElement';
 	openingElement: JSXOpeningElement;
 	children: readonly JSXChild[];
 	closingElement: JSXClosingElement | null;
 }
 
-export interface JSXEmptyExpression extends BaseNode {
+export interface JSXEmptyExpression extends AstNodeBase {
 	type: 'JSXEmptyExpression';
 }
 
-export interface JSXExpressionContainer extends BaseNode {
+export interface JSXExpressionContainer extends AstNodeBase {
 	type: 'JSXExpressionContainer';
 	expression: Expression | JSXEmptyExpression;
 }
 
-export interface JSXFragment extends BaseNode {
+export interface JSXFragment extends AstNodeBase {
 	type: 'JSXFragment';
 	openingFragment: JSXOpeningFragment;
 	children: readonly JSXChild[];
 	closingFragment: JSXClosingFragment;
 }
 
-export interface JSXIdentifier extends BaseNode {
+export interface JSXIdentifier extends AstNodeBase {
 	type: 'JSXIdentifier';
 	name: string;
 }
 
-export interface JSXMemberExpression extends BaseNode {
+export interface JSXMemberExpression extends AstNodeBase {
 	type: 'JSXMemberExpression';
 	object: JSXTagNameExpression;
 	property: JSXIdentifier;
 }
 
-export interface JSXNamespacedName extends BaseNode {
+export interface JSXNamespacedName extends AstNodeBase {
 	type: 'JSXNamespacedName';
 	namespace: JSXIdentifier;
 	name: JSXIdentifier;
 }
 
-export interface JSXOpeningElement extends BaseNode {
+export interface JSXOpeningElement extends AstNodeBase {
 	type: 'JSXOpeningElement';
 	name: JSXTagNameExpression;
 	attributes: readonly (JSXAttribute | JSXSpreadAttribute)[];
 	selfClosing: boolean;
 }
 
-export interface JSXOpeningFragment extends BaseNode {
+export interface JSXOpeningFragment extends AstNodeBase {
 	type: 'JSXOpeningFragment';
 	attributes: never[];
 	selfClosing: false;
 }
 
-export interface JSXSpreadAttribute extends BaseNode {
+export interface JSXSpreadAttribute extends AstNodeBase {
 	type: 'JSXSpreadAttribute';
 	argument: Expression;
 }
 
-export interface JSXSpreadChild extends BaseNode {
+export interface JSXSpreadChild extends AstNodeBase {
 	type: 'JSXSpreadChild';
 	expression: Expression | JSXEmptyExpression;
 }
 
-export interface JSXText extends BaseNode {
+export interface JSXText extends AstNodeBase {
 	type: 'JSXText';
 	value: string;
 	raw: string;
 }
 
-export interface LabeledStatement extends BaseNode {
+export interface LabeledStatement extends AstNodeBase {
 	type: 'LabeledStatement';
 	label: Identifier;
 	body: Statement;
 }
 
-export interface LiteralBigInt extends BaseNode {
+export interface LiteralBigInt extends AstNodeBase {
 	type: 'Literal';
 	bigint: string;
 	raw: string;
 	value: bigint;
 }
 
-export interface LiteralBoolean extends BaseNode {
+export interface LiteralBoolean extends AstNodeBase {
 	type: 'Literal';
 	raw: string;
 	value: boolean;
 }
 
-export interface LiteralNull extends BaseNode {
+export interface LiteralNull extends AstNodeBase {
 	type: 'Literal';
 	value: null;
 	raw: 'null';
 }
 
-export interface LiteralNumber extends BaseNode {
+export interface LiteralNumber extends AstNodeBase {
 	type: 'Literal';
 	raw?: string;
 	value: number;
 }
 
-export interface LiteralRegExp extends BaseNode {
+export interface LiteralRegExp extends AstNodeBase {
 	type: 'Literal';
 	raw: string;
 	regex: { flags: string; pattern: string };
 	value: RegExp;
 }
 
-export interface LiteralString extends BaseNode {
+export interface LiteralString extends AstNodeBase {
 	type: 'Literal';
 	value: string;
 	raw?: string;
 }
 
-export interface LogicalExpression extends BaseNode {
+export interface LogicalExpression extends AstNodeBase {
 	type: 'LogicalExpression';
 	operator: '||' | '&&' | '??';
 	left: Expression | PrivateIdentifier;
 	right: Expression;
 }
 
-export interface MemberExpression extends BaseNode {
+export interface MemberExpression extends AstNodeBase {
 	type: 'MemberExpression';
 	object: Expression | Super;
 	property: Expression | PrivateIdentifier;
@@ -461,13 +467,13 @@ export interface MemberExpression extends BaseNode {
 	optional: boolean;
 }
 
-export interface MetaProperty extends BaseNode {
+export interface MetaProperty extends AstNodeBase {
 	type: 'MetaProperty';
 	meta: Identifier;
 	property: Identifier;
 }
 
-export interface MethodDefinition extends BaseNode {
+export interface MethodDefinition extends AstNodeBase {
 	type: 'MethodDefinition';
 	decorators: readonly Decorator[];
 	key: Expression | PrivateIdentifier;
@@ -477,36 +483,36 @@ export interface MethodDefinition extends BaseNode {
 	computed: boolean;
 }
 
-export interface NewExpression extends BaseNode {
+export interface NewExpression extends AstNodeBase {
 	type: 'NewExpression';
 	annotations?: readonly Annotation[];
 	callee: Expression;
 	arguments: readonly (Expression | SpreadElement)[];
 }
 
-export interface ObjectExpression extends BaseNode {
+export interface ObjectExpression extends AstNodeBase {
 	type: 'ObjectExpression';
 	properties: readonly (Property | SpreadElement)[];
 }
 
-export interface ObjectPattern extends BaseNode {
+export interface ObjectPattern extends AstNodeBase {
 	type: 'ObjectPattern';
 	properties: readonly (Property | RestElement)[];
 }
 
-export interface PrivateIdentifier extends BaseNode {
+export interface PrivateIdentifier extends AstNodeBase {
 	type: 'PrivateIdentifier';
 	name: string;
 }
 
-export interface Program extends BaseNode {
+export interface Program extends AstNodeBase {
 	type: 'Program';
 	body: readonly (Statement | Directive | ModuleDeclaration)[];
 	invalidAnnotations?: readonly Annotation[];
 	sourceType: 'module';
 }
 
-export interface Property extends BaseNode {
+export interface Property extends AstNodeBase {
 	type: 'Property';
 	key: Expression;
 	value: Expression | DestructuringPattern;
@@ -516,7 +522,7 @@ export interface Property extends BaseNode {
 	computed: boolean;
 }
 
-export interface PropertyDefinition extends BaseNode {
+export interface PropertyDefinition extends AstNodeBase {
 	type: 'PropertyDefinition';
 	decorators: readonly Decorator[];
 	key: Expression | PrivateIdentifier;
@@ -525,114 +531,114 @@ export interface PropertyDefinition extends BaseNode {
 	computed: boolean;
 }
 
-export interface RestElement extends BaseNode {
+export interface RestElement extends AstNodeBase {
 	type: 'RestElement';
 	argument: DestructuringPattern;
 }
 
-export interface ReturnStatement extends BaseNode {
+export interface ReturnStatement extends AstNodeBase {
 	type: 'ReturnStatement';
 	argument: Expression | null;
 }
 
-export interface SequenceExpression extends BaseNode {
+export interface SequenceExpression extends AstNodeBase {
 	type: 'SequenceExpression';
 	expressions: readonly Expression[];
 }
 
-export interface SpreadElement extends BaseNode {
+export interface SpreadElement extends AstNodeBase {
 	type: 'SpreadElement';
 	argument: Expression;
 }
 
-export interface StaticBlock extends BaseNode {
+export interface StaticBlock extends AstNodeBase {
 	type: 'StaticBlock';
 	body: readonly Statement[];
 }
 
-export interface Super extends BaseNode {
+export interface Super extends AstNodeBase {
 	type: 'Super';
 }
 
-export interface SwitchCase extends BaseNode {
+export interface SwitchCase extends AstNodeBase {
 	type: 'SwitchCase';
 	test: Expression | null;
 	consequent: readonly Statement[];
 }
 
-export interface SwitchStatement extends BaseNode {
+export interface SwitchStatement extends AstNodeBase {
 	type: 'SwitchStatement';
 	discriminant: Expression;
 	cases: readonly SwitchCase[];
 }
 
-export interface TaggedTemplateExpression extends BaseNode {
+export interface TaggedTemplateExpression extends AstNodeBase {
 	type: 'TaggedTemplateExpression';
 	tag: Expression;
 	quasi: TemplateLiteral;
 }
 
-export interface TemplateElement extends BaseNode {
+export interface TemplateElement extends AstNodeBase {
 	type: 'TemplateElement';
 	value: { cooked?: string; raw: string };
 	tail: boolean;
 }
 
-export interface TemplateLiteral extends BaseNode {
+export interface TemplateLiteral extends AstNodeBase {
 	type: 'TemplateLiteral';
 	quasis: readonly TemplateElement[];
 	expressions: readonly Expression[];
 }
 
-export interface ThisExpression extends BaseNode {
+export interface ThisExpression extends AstNodeBase {
 	type: 'ThisExpression';
 }
 
-export interface ThrowStatement extends BaseNode {
+export interface ThrowStatement extends AstNodeBase {
 	type: 'ThrowStatement';
 	argument: Expression;
 }
 
-export interface TryStatement extends BaseNode {
+export interface TryStatement extends AstNodeBase {
 	type: 'TryStatement';
 	block: BlockStatement;
 	handler: CatchClause | null;
 	finalizer: BlockStatement | null;
 }
 
-export interface UnaryExpression extends BaseNode {
+export interface UnaryExpression extends AstNodeBase {
 	type: 'UnaryExpression';
 	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
 	argument: Expression;
 	prefix: true;
 }
 
-export interface UpdateExpression extends BaseNode {
+export interface UpdateExpression extends AstNodeBase {
 	type: 'UpdateExpression';
 	operator: '++' | '--';
 	argument: Expression;
 	prefix: boolean;
 }
 
-export interface VariableDeclaration extends BaseNode {
+export interface VariableDeclaration extends AstNodeBase {
 	type: 'VariableDeclaration';
 	kind: 'var' | 'let' | 'const' | 'using' | 'await using';
 	declarations: readonly VariableDeclarator[];
 }
 
-export interface VariableDeclarator extends BaseNode {
+export interface VariableDeclarator extends AstNodeBase {
 	type: 'VariableDeclarator';
 	id: BindingPattern;
 	init: Expression | null;
 }
 
-export interface WhileStatement extends BaseNode {
+export interface WhileStatement extends AstNodeBase {
 	type: 'WhileStatement';
 	test: Expression;
 	body: Statement;
 }
 
-export interface YieldExpression extends BaseNode {
+export interface YieldExpression extends AstNodeBase {
 	type: 'YieldExpression';
 	argument: Expression | null;
 	delegate: boolean;
@@ -656,6 +662,8 @@ export type Expression =
 	| FunctionExpression
 	| Identifier
 	| ImportExpression
+	| JSXElement
+	| JSXFragment
 	| Literal
 	| LogicalExpression
 	| MemberExpression
@@ -801,6 +809,327 @@ export type AstNode =
 	| VariableDeclarator
 	| WhileStatement
 	| YieldExpression;
+
+export type BindingPatternParent =
+	| ArrayPattern
+	| ArrowFunctionExpression
+	| AssignmentExpression
+	| AssignmentPattern
+	| CatchClause
+	| ForInStatement
+	| ForOfStatement
+	| FunctionDeclaration
+	| FunctionExpression
+	| Property
+	| RestElement
+	| VariableDeclarator;
+export type DestructuringPatternParent =
+	ArrayPattern | AssignmentExpression | ForInStatement | ForOfStatement | Property | RestElement;
+export type ExpressionParent =
+	| ArrayExpression
+	| ArrowFunctionExpression
+	| AssignmentExpression
+	| AssignmentPattern
+	| AwaitExpression
+	| BinaryExpression
+	| CallExpression
+	| ClassDeclaration
+	| ClassExpression
+	| ConditionalExpression
+	| Decorator
+	| DoWhileStatement
+	| ExportDefaultDeclaration
+	| ExpressionStatement
+	| ForInStatement
+	| ForOfStatement
+	| ForStatement
+	| IfStatement
+	| ImportExpression
+	| JSXExpressionContainer
+	| JSXSpreadAttribute
+	| JSXSpreadChild
+	| LogicalExpression
+	| MemberExpression
+	| MethodDefinition
+	| NewExpression
+	| Property
+	| PropertyDefinition
+	| ReturnStatement
+	| SequenceExpression
+	| SpreadElement
+	| SwitchCase
+	| SwitchStatement
+	| TaggedTemplateExpression
+	| TemplateLiteral
+	| ThrowStatement
+	| UnaryExpression
+	| UpdateExpression
+	| VariableDeclarator
+	| WhileStatement
+	| YieldExpression;
+export type JSXChildParent = JSXElement | JSXFragment;
+export type JSXTagNameExpressionParent =
+	JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
+export type ModuleDeclarationParent = Program;
+export type ParameterParent = ArrowFunctionExpression | FunctionDeclaration | FunctionExpression;
+export type StatementParent =
+	| BlockStatement
+	| DoWhileStatement
+	| ForInStatement
+	| ForOfStatement
+	| ForStatement
+	| IfStatement
+	| LabeledStatement
+	| Program
+	| StaticBlock
+	| SwitchCase
+	| WhileStatement;
+export type ArrayExpressionParent = ExpressionParent;
+export type ArrayPatternParent = BindingPatternParent;
+export type ArrowFunctionExpressionParent = ExpressionParent;
+export type AssignmentExpressionParent = ExpressionParent;
+export type AssignmentPatternParent = DestructuringPatternParent | ParameterParent;
+export type AwaitExpressionParent = ExpressionParent;
+export type BinaryExpressionParent = ExpressionParent;
+export type BlockStatementParent =
+	| StatementParent
+	| ArrowFunctionExpression
+	| CatchClause
+	| FunctionDeclaration
+	| FunctionExpression
+	| TryStatement;
+export type BreakStatementParent = StatementParent;
+export type CallExpressionParent = ExpressionParent | ChainExpression;
+export type CatchClauseParent = TryStatement;
+export type ChainExpressionParent = ExpressionParent;
+export type ClassBodyParent = ClassDeclaration | ClassExpression;
+export type ClassDeclarationParent =
+	StatementParent | ExportDefaultDeclaration | ExportNamedDeclaration;
+export type ClassExpressionParent = ExpressionParent;
+export type ConditionalExpressionParent = ExpressionParent;
+export type ContinueStatementParent = StatementParent;
+export type DebuggerStatementParent = StatementParent;
+export type DecoratorParent =
+	ClassDeclaration | ClassExpression | MethodDefinition | PropertyDefinition;
+export type DoWhileStatementParent = StatementParent;
+export type EmptyStatementParent = StatementParent;
+export type ExportAllDeclarationParent = ModuleDeclarationParent;
+export type ExportDefaultDeclarationParent = ModuleDeclarationParent;
+export type ExportNamedDeclarationParent = ModuleDeclarationParent;
+export type ExportSpecifierParent = ExportNamedDeclaration;
+export type ExpressionStatementParent = StatementParent;
+export type ForInStatementParent = StatementParent;
+export type ForOfStatementParent = StatementParent;
+export type ForStatementParent = StatementParent;
+export type FunctionDeclarationParent =
+	StatementParent | ExportDefaultDeclaration | ExportNamedDeclaration;
+export type FunctionExpressionParent = ExpressionParent;
+export type IdentifierParent =
+	| BindingPatternParent
+	| ExpressionParent
+	| BreakStatement
+	| ContinueStatement
+	| ExportAllDeclaration
+	| ExportSpecifier
+	| ImportAttribute
+	| ImportDefaultSpecifier
+	| ImportNamespaceSpecifier
+	| ImportSpecifier
+	| LabeledStatement
+	| MetaProperty;
+export type IfStatementParent = StatementParent;
+export type ImportAttributeParent =
+	ExportAllDeclaration | ExportNamedDeclaration | ImportDeclaration;
+export type ImportDeclarationParent = ModuleDeclarationParent;
+export type ImportDefaultSpecifierParent = ImportDeclaration;
+export type ImportExpressionParent = ExpressionParent;
+export type ImportNamespaceSpecifierParent = ImportDeclaration;
+export type ImportSpecifierParent = ImportDeclaration;
+export type JSXAttributeParent = JSXOpeningElement;
+export type JSXClosingElementParent = JSXElement;
+export type JSXClosingFragmentParent = JSXFragment;
+export type JSXElementParent = ExpressionParent | JSXChildParent | JSXAttribute;
+export type JSXEmptyExpressionParent = JSXExpressionContainer | JSXSpreadChild;
+export type JSXExpressionContainerParent = JSXChildParent | JSXAttribute;
+export type JSXFragmentParent = ExpressionParent | JSXChildParent;
+export type JSXIdentifierParent = JSXTagNameExpressionParent | JSXAttribute | JSXNamespacedName;
+export type JSXMemberExpressionParent = JSXTagNameExpressionParent;
+export type JSXNamespacedNameParent = JSXTagNameExpressionParent | JSXAttribute;
+export type JSXOpeningElementParent = JSXElement;
+export type JSXOpeningFragmentParent = JSXFragment;
+export type JSXSpreadAttributeParent = JSXOpeningElement;
+export type JSXSpreadChildParent = JSXChildParent | JSXAttribute;
+export type JSXTextParent = JSXChildParent;
+export type LabeledStatementParent = StatementParent;
+export type LiteralParent =
+	| ExpressionParent
+	| ExportAllDeclaration
+	| ExportNamedDeclaration
+	| ExportSpecifier
+	| ImportAttribute
+	| ImportDeclaration
+	| ImportSpecifier
+	| JSXAttribute;
+export type LogicalExpressionParent = ExpressionParent;
+export type MemberExpressionParent =
+	DestructuringPatternParent | ExpressionParent | ChainExpression;
+export type MetaPropertyParent = ExpressionParent;
+export type MethodDefinitionParent = ClassBody;
+export type NewExpressionParent = ExpressionParent;
+export type ObjectExpressionParent = ExpressionParent;
+export type ObjectPatternParent = BindingPatternParent;
+export type PanicErrorParent = never;
+export type ParseErrorParent = never;
+export type PrivateIdentifierParent =
+	BinaryExpression | LogicalExpression | MemberExpression | MethodDefinition | PropertyDefinition;
+export type ProgramParent = never;
+export type PropertyParent = ObjectExpression | ObjectPattern;
+export type PropertyDefinitionParent = ClassBody;
+export type RestElementParent = DestructuringPatternParent | ParameterParent | ObjectPattern;
+export type ReturnStatementParent = StatementParent;
+export type SequenceExpressionParent = ExpressionParent;
+export type SpreadElementParent =
+	ArrayExpression | CallExpression | NewExpression | ObjectExpression;
+export type StaticBlockParent = StatementParent | ClassBody;
+export type SuperParent = CallExpression | MemberExpression;
+export type SwitchCaseParent = SwitchStatement;
+export type SwitchStatementParent = StatementParent;
+export type TaggedTemplateExpressionParent = ExpressionParent;
+export type TemplateElementParent = TemplateLiteral;
+export type TemplateLiteralParent = ExpressionParent;
+export type ThisExpressionParent = ExpressionParent;
+export type ThrowStatementParent = StatementParent;
+export type TryStatementParent = StatementParent;
+export type UnaryExpressionParent = ExpressionParent;
+export type UpdateExpressionParent = ExpressionParent;
+export type VariableDeclarationParent = StatementParent | ExportNamedDeclaration;
+export type VariableDeclaratorParent = VariableDeclaration;
+export type WhileStatementParent = StatementParent;
+export type YieldExpressionParent = ExpressionParent;
+
+export interface ParentMap {
+	ArrayExpression: ArrayExpressionParent;
+	ArrayPattern: ArrayPatternParent;
+	ArrowFunctionExpression: ArrowFunctionExpressionParent;
+	AssignmentExpression: AssignmentExpressionParent;
+	AssignmentPattern: AssignmentPatternParent;
+	AwaitExpression: AwaitExpressionParent;
+	BinaryExpression: BinaryExpressionParent;
+	BlockStatement: BlockStatementParent;
+	BreakStatement: BreakStatementParent;
+	CallExpression: CallExpressionParent;
+	CatchClause: CatchClauseParent;
+	ChainExpression: ChainExpressionParent;
+	ClassBody: ClassBodyParent;
+	ClassDeclaration: ClassDeclarationParent;
+	ClassExpression: ClassExpressionParent;
+	ConditionalExpression: ConditionalExpressionParent;
+	ContinueStatement: ContinueStatementParent;
+	DebuggerStatement: DebuggerStatementParent;
+	Decorator: DecoratorParent;
+	DoWhileStatement: DoWhileStatementParent;
+	EmptyStatement: EmptyStatementParent;
+	ExportAllDeclaration: ExportAllDeclarationParent;
+	ExportDefaultDeclaration: ExportDefaultDeclarationParent;
+	ExportNamedDeclaration: ExportNamedDeclarationParent;
+	ExportSpecifier: ExportSpecifierParent;
+	ExpressionStatement: ExpressionStatementParent;
+	ForInStatement: ForInStatementParent;
+	ForOfStatement: ForOfStatementParent;
+	ForStatement: ForStatementParent;
+	FunctionDeclaration: FunctionDeclarationParent;
+	FunctionExpression: FunctionExpressionParent;
+	Identifier: IdentifierParent;
+	IfStatement: IfStatementParent;
+	ImportAttribute: ImportAttributeParent;
+	ImportDeclaration: ImportDeclarationParent;
+	ImportDefaultSpecifier: ImportDefaultSpecifierParent;
+	ImportExpression: ImportExpressionParent;
+	ImportNamespaceSpecifier: ImportNamespaceSpecifierParent;
+	ImportSpecifier: ImportSpecifierParent;
+	JSXAttribute: JSXAttributeParent;
+	JSXClosingElement: JSXClosingElementParent;
+	JSXClosingFragment: JSXClosingFragmentParent;
+	JSXElement: JSXElementParent;
+	JSXEmptyExpression: JSXEmptyExpressionParent;
+	JSXExpressionContainer: JSXExpressionContainerParent;
+	JSXFragment: JSXFragmentParent;
+	JSXIdentifier: JSXIdentifierParent;
+	JSXMemberExpression: JSXMemberExpressionParent;
+	JSXNamespacedName: JSXNamespacedNameParent;
+	JSXOpeningElement: JSXOpeningElementParent;
+	JSXOpeningFragment: JSXOpeningFragmentParent;
+	JSXSpreadAttribute: JSXSpreadAttributeParent;
+	JSXSpreadChild: JSXSpreadChildParent;
+	JSXText: JSXTextParent;
+	LabeledStatement: LabeledStatementParent;
+	Literal: LiteralParent;
+	LogicalExpression: LogicalExpressionParent;
+	MemberExpression: MemberExpressionParent;
+	MetaProperty: MetaPropertyParent;
+	MethodDefinition: MethodDefinitionParent;
+	NewExpression: NewExpressionParent;
+	ObjectExpression: ObjectExpressionParent;
+	ObjectPattern: ObjectPatternParent;
+	PanicError: PanicErrorParent;
+	ParseError: ParseErrorParent;
+	PrivateIdentifier: PrivateIdentifierParent;
+	Program: ProgramParent;
+	Property: PropertyParent;
+	PropertyDefinition: PropertyDefinitionParent;
+	RestElement: RestElementParent;
+	ReturnStatement: ReturnStatementParent;
+	SequenceExpression: SequenceExpressionParent;
+	SpreadElement: SpreadElementParent;
+	StaticBlock: StaticBlockParent;
+	Super: SuperParent;
+	SwitchCase: SwitchCaseParent;
+	SwitchStatement: SwitchStatementParent;
+	TaggedTemplateExpression: TaggedTemplateExpressionParent;
+	TemplateElement: TemplateElementParent;
+	TemplateLiteral: TemplateLiteralParent;
+	ThisExpression: ThisExpressionParent;
+	ThrowStatement: ThrowStatementParent;
+	TryStatement: TryStatementParent;
+	UnaryExpression: UnaryExpressionParent;
+	UpdateExpression: UpdateExpressionParent;
+	VariableDeclaration: VariableDeclarationParent;
+	VariableDeclarator: VariableDeclaratorParent;
+	WhileStatement: WhileStatementParent;
+	YieldExpression: YieldExpressionParent;
+}
+
+/**
+ * The possible parents of a node, derived from the field definitions of all
+ * node types.
+ */
+export type ParentOf<T extends AstNode> = Extract<
+	ParentMap[Extract<T['type'], keyof ParentMap>],
+	AstNode
+>;
+
+/**
+ * A lazy AST node with a precise parent link. The root node of a parse has
+ * `parent === null`, so the link is optional and the chain can be followed
+ * with optional chaining.
+ */
+type WithParentValue<Value> = Value extends AstNode
+	? WithParent<Value>
+	: Value extends readonly (infer Element)[]
+		? Element extends AstNode
+			? readonly WithParentValue<Element>[]
+			: Value
+		: Value;
+
+export type WithParent<T extends AstNode = AstNode> = T extends AstNode
+	? T & {
+			parent?: WithParent<ParentOf<T>> | null;
+		} & {
+			[K in keyof T]: WithParentValue<T[K]>;
+		}
+	: never;
+
+export type LazyNode<T extends AstNode = AstNode> = WithParent<T>;
 
 export interface AstNodeTypeMap {
 	PanicError: PanicError;

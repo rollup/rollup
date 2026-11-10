@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const directives = [];
 
@@ -12,7 +12,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(directives, [
+		assertAstEqual(directives, [
 			{
 				type: 'ExpressionStatement',
 				start: 0,
