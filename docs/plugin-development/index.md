@@ -703,7 +703,7 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 ```typescript
 type ShouldTransformCachedModuleHook = (options: {
-	ast: ast.Program;
+	ast: ast.LazyNode<ast.Program>;
 	attributes: Record<string, string>;
 	code: string;
 	id: string;
@@ -1718,7 +1718,7 @@ interface ModuleInfo {
 	rawId: string; // the id of the module without import attributes
 	attributes: { [key: string]: string }; // import attributes for this module
 	code: string | null; // the source code of the module, `null` if external or not yet available
-	ast: ast.Program; // the parsed abstract syntax tree if available
+	ast: ast.LazyNode<ast.Program> | null; // the parsed abstract syntax tree if available
 	hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
 	isEntry: boolean; // is this a user- or plugin-defined entry point
 	isExternal: boolean; // for external modules that are referenced but not included in the graph
@@ -2024,7 +2024,7 @@ interface ParseOptions {
 // `node` will be typed accordingly based on the visitor key
 type Visitors = {
 	[NodeType: string]: (
-		node: AstNode,
+		node: ast.LazyNode,
 		api: {
 			parseChildren: () => void;
 			skipChildren: () => void;
@@ -2042,7 +2042,7 @@ Efficiently walk specific types of AST nodes without traversing the entire tree.
 
 Each visitor function receives:
 
-- `node`: The AST node with full type information based on the visitor key
+- `node`: The lazy AST node with full type information based on the visitor key
 - `api.parseChildren()`: Parse and visit all children of the current node
 - `api.skipChildren()`: Skip parsing children of the current node
 - `api.scope`: The scope the node lives in (only present when `collectScopes: true` is passed)
@@ -2434,18 +2434,19 @@ Rollup uses Abstract Syntax Trees (ASTs) to parse and analyze JavaScript code.
 
 ### Lazy AST Generation
 
-For performance reasons, some ASTs returned by Rollup are generated lazily. A lazy node owns only `start` and `end` as plain regular properties, plus a few eagerly decoded scalars such as `kind`, `operator` or `computed`. `type` and every other property—child nodes, child lists, strings, numbers and derived values such as `raw` or `regex`—lives on a prototype that is shared by all nodes of that type across ASTs. Reading such a property decodes it from Rollup's internal binary representation; nodes are cached, so repeated access and repeated traversal always return the same node objects.
+For performance reasons, some ASTs returned by Rollup are generated lazily. A lazy node decodes its properties from Rollup's internal binary representation when they are accessed, so parts of the AST that are never read are never materialized. Within one AST, child nodes are cached, so repeated access returns the same node objects.
 
-This lazy generation significantly improves performance when working with large codebases, as not all parts of the AST need to be materialized if they are never accessed. Accessing properties is transparent to most use cases. The one visible difference to an eager AST is that lazy properties are not own properties: `Object.keys(node)` only lists `start`, `end` and the eagerly decoded scalars (plus any derived values such as `regex` that were memoised on first access), and spreading or stringifying a lazy node loses its children and parent. Use property access, or convert the AST if you need a plain object.
+Lazy ASTs are a read-only view of that representation. Mutating nodes, adding properties or freezing them is not supported.
+
+Lazy properties are not own properties, so `Object.keys`, spread and `JSON.stringify` miss most of them, including `type` and all child nodes. Use property access instead.
 
 [`this.parse`](#this-parse) and the standalone [`parseAst`](../javascript-api/index.md#accessing-the-parser) / [`parseAstAsync`](../javascript-api/index.md#accessing-the-parser) helpers return fully materialized plain JavaScript objects (eager ASTs). If you need a lazy AST from code, use [`parseLazyAst` or `parseLazyAstAsync`](../javascript-api/index.md#accessing-the-parser) instead.
 
 ### Parent links
 
-Nodes of a lazy AST have a `parent` property that points to the node containing them. This includes nodes passed to a [`parseAndWalk`](#this-parseandwalk) visitor.
+Nodes of a lazy AST have a `parent` property that points to the containing node. This includes nodes passed to a [`parseAndWalk`](#this-parseandwalk) visitor.
 
-- Like other lazy properties, `parent` is a getter on the shared prototype and is resolved from the buffer when accessed. Rollup always returns the same node objects for the same source node within one AST, so `node.parent.body[0] === node` holds for a node that is the first child of its parent, and keeping a visited node alive also keeps the nodes materialized during the same walk alive.
-- Each node has exactly one parent. For default destructuring like `const { x = 1 } = obj`, `key` and `value.left` are the same `Identifier` whose `parent` is the `AssignmentPattern` rather than the `Property`.
+Each node has exactly one parent. For default destructuring like `const { x = 1 } = obj`, `key` and `value.left` are the same `Identifier` whose `parent` is the `AssignmentPattern` rather than the `Property`.
 
 ### Accessing ASTs from Module Info
 
@@ -2478,7 +2479,7 @@ function examplePlugin() {
 
 ### Known AST nodes and TypeScript support
 
-When using TypeScript, all Rollup ASTs will be fully typed. Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. See [src/rollup/ast-types.d.ts](https://github.com/rollup/rollup/blob/main/src/rollup/ast-types.d.ts) for a full list of all nodes types and interfaces currently supported by Rollup.
+When using TypeScript, all Rollup ASTs will be fully typed. Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. Lazy ASTs are typed as `ast.LazyNode<T>`, and `ast.ParentOf<T>` is the union of node types that can contain a `T`. See [src/rollup/ast-types.d.ts](https://github.com/rollup/rollup/blob/main/src/rollup/ast-types.d.ts) for a full list of all node types and interfaces currently supported by Rollup.
 
 ### Returning ASTs from Hooks
 
