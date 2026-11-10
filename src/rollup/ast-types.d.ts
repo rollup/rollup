@@ -810,49 +810,7 @@ export type AstNode =
 	| WhileStatement
 	| YieldExpression;
 
-export type ArrayExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ArrayPatternParent =
+export type BindingPatternParent =
 	| ArrayPattern
 	| ArrowFunctionExpression
 	| AssignmentExpression
@@ -865,7 +823,9 @@ export type ArrayPatternParent =
 	| Property
 	| RestElement
 	| VariableDeclarator;
-export type ArrowFunctionExpressionParent =
+export type DestructuringPatternParent =
+	ArrayPattern | AssignmentExpression | ForInStatement | ForOfStatement | Property | RestElement;
+export type ExpressionParent =
 	| ArrayExpression
 	| ArrowFunctionExpression
 	| AssignmentExpression
@@ -907,1024 +867,117 @@ export type ArrowFunctionExpressionParent =
 	| VariableDeclarator
 	| WhileStatement
 	| YieldExpression;
-export type AssignmentExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
+export type JSXChildParent = JSXElement | JSXFragment;
+export type JSXTagNameExpressionParent =
+	JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
+export type ModuleDeclarationParent = Program;
+export type ParameterParent = ArrowFunctionExpression | FunctionDeclaration | FunctionExpression;
+export type StatementParent =
+	| BlockStatement
 	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
 	| ForInStatement
 	| ForOfStatement
 	| ForStatement
 	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
+	| LabeledStatement
+	| Program
+	| StaticBlock
 	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type AssignmentPatternParent =
-	| ArrayPattern
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| ForInStatement
-	| ForOfStatement
-	| FunctionDeclaration
-	| FunctionExpression
-	| Property
-	| RestElement;
-export type AwaitExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type BinaryExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+	| WhileStatement;
+export type ArrayExpressionParent = ExpressionParent;
+export type ArrayPatternParent = BindingPatternParent;
+export type ArrowFunctionExpressionParent = ExpressionParent;
+export type AssignmentExpressionParent = ExpressionParent;
+export type AssignmentPatternParent = DestructuringPatternParent | ParameterParent;
+export type AwaitExpressionParent = ExpressionParent;
+export type BinaryExpressionParent = ExpressionParent;
 export type BlockStatementParent =
+	| StatementParent
 	| ArrowFunctionExpression
-	| BlockStatement
 	| CatchClause
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
 	| FunctionDeclaration
 	| FunctionExpression
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| TryStatement
-	| WhileStatement;
-export type BreakStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type CallExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ChainExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+	| TryStatement;
+export type BreakStatementParent = StatementParent;
+export type CallExpressionParent = ExpressionParent | ChainExpression;
 export type CatchClauseParent = TryStatement;
-export type ChainExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+export type ChainExpressionParent = ExpressionParent;
 export type ClassBodyParent = ClassDeclaration | ClassExpression;
 export type ClassDeclarationParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type ClassExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ConditionalExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ContinueStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type DebuggerStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
+	StatementParent | ExportDefaultDeclaration | ExportNamedDeclaration;
+export type ClassExpressionParent = ExpressionParent;
+export type ConditionalExpressionParent = ExpressionParent;
+export type ContinueStatementParent = StatementParent;
+export type DebuggerStatementParent = StatementParent;
 export type DecoratorParent =
 	ClassDeclaration | ClassExpression | MethodDefinition | PropertyDefinition;
-export type DoWhileStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type EmptyStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type ExportAllDeclarationParent = Program;
-export type ExportDefaultDeclarationParent = Program;
-export type ExportNamedDeclarationParent = Program;
+export type DoWhileStatementParent = StatementParent;
+export type EmptyStatementParent = StatementParent;
+export type ExportAllDeclarationParent = ModuleDeclarationParent;
+export type ExportDefaultDeclarationParent = ModuleDeclarationParent;
+export type ExportNamedDeclarationParent = ModuleDeclarationParent;
 export type ExportSpecifierParent = ExportNamedDeclaration;
-export type ExpressionStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type ForInStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type ForOfStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type ForStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
+export type ExpressionStatementParent = StatementParent;
+export type ForInStatementParent = StatementParent;
+export type ForOfStatementParent = StatementParent;
+export type ForStatementParent = StatementParent;
 export type FunctionDeclarationParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExportNamedDeclaration
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type FunctionExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+	StatementParent | ExportDefaultDeclaration | ExportNamedDeclaration;
+export type FunctionExpressionParent = ExpressionParent;
 export type IdentifierParent =
-	| ArrayExpression
-	| ArrayPattern
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
+	| BindingPatternParent
+	| ExpressionParent
 	| BreakStatement
-	| CallExpression
-	| CatchClause
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
 	| ContinueStatement
-	| Decorator
-	| DoWhileStatement
 	| ExportAllDeclaration
-	| ExportDefaultDeclaration
 	| ExportSpecifier
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| FunctionDeclaration
-	| FunctionExpression
-	| IfStatement
 	| ImportAttribute
 	| ImportDefaultSpecifier
-	| ImportExpression
 	| ImportNamespaceSpecifier
 	| ImportSpecifier
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
 	| LabeledStatement
-	| LogicalExpression
-	| MemberExpression
-	| MetaProperty
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| RestElement
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type IfStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
+	| MetaProperty;
+export type IfStatementParent = StatementParent;
 export type ImportAttributeParent =
 	ExportAllDeclaration | ExportNamedDeclaration | ImportDeclaration;
-export type ImportDeclarationParent = Program;
+export type ImportDeclarationParent = ModuleDeclarationParent;
 export type ImportDefaultSpecifierParent = ImportDeclaration;
-export type ImportExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+export type ImportExpressionParent = ExpressionParent;
 export type ImportNamespaceSpecifierParent = ImportDeclaration;
 export type ImportSpecifierParent = ImportDeclaration;
 export type JSXAttributeParent = JSXOpeningElement;
 export type JSXClosingElementParent = JSXElement;
 export type JSXClosingFragmentParent = JSXFragment;
-export type JSXElementParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXAttribute
-	| JSXElement
-	| JSXExpressionContainer
-	| JSXFragment
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+export type JSXElementParent = ExpressionParent | JSXChildParent | JSXAttribute;
 export type JSXEmptyExpressionParent = JSXExpressionContainer | JSXSpreadChild;
-export type JSXExpressionContainerParent = JSXAttribute | JSXElement | JSXFragment;
-export type JSXFragmentParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXElement
-	| JSXExpressionContainer
-	| JSXFragment
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type JSXIdentifierParent =
-	JSXAttribute | JSXClosingElement | JSXMemberExpression | JSXNamespacedName | JSXOpeningElement;
-export type JSXMemberExpressionParent = JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
-export type JSXNamespacedNameParent =
-	JSXAttribute | JSXClosingElement | JSXMemberExpression | JSXOpeningElement;
+export type JSXExpressionContainerParent = JSXChildParent | JSXAttribute;
+export type JSXFragmentParent = ExpressionParent | JSXChildParent;
+export type JSXIdentifierParent = JSXTagNameExpressionParent | JSXAttribute | JSXNamespacedName;
+export type JSXMemberExpressionParent = JSXTagNameExpressionParent;
+export type JSXNamespacedNameParent = JSXTagNameExpressionParent | JSXAttribute;
 export type JSXOpeningElementParent = JSXElement;
 export type JSXOpeningFragmentParent = JSXFragment;
 export type JSXSpreadAttributeParent = JSXOpeningElement;
-export type JSXSpreadChildParent = JSXAttribute | JSXElement | JSXFragment;
-export type JSXTextParent = JSXElement | JSXFragment;
-export type LabeledStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
+export type JSXSpreadChildParent = JSXChildParent | JSXAttribute;
+export type JSXTextParent = JSXChildParent;
+export type LabeledStatementParent = StatementParent;
 export type LiteralParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| Directive
-	| DoWhileStatement
+	| ExpressionParent
 	| ExportAllDeclaration
-	| ExportDefaultDeclaration
 	| ExportNamedDeclaration
 	| ExportSpecifier
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
 	| ImportAttribute
 	| ImportDeclaration
-	| ImportExpression
 	| ImportSpecifier
-	| JSXAttribute
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type LogicalExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+	| JSXAttribute;
+export type LogicalExpressionParent = ExpressionParent;
 export type MemberExpressionParent =
-	| ArrayExpression
-	| ArrayPattern
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ChainExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| RestElement
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type MetaPropertyParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+	DestructuringPatternParent | ExpressionParent | ChainExpression;
+export type MetaPropertyParent = ExpressionParent;
 export type MethodDefinitionParent = ClassBody;
-export type NewExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ObjectExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ObjectPatternParent =
-	| ArrayPattern
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| CatchClause
-	| ForInStatement
-	| ForOfStatement
-	| FunctionDeclaration
-	| FunctionExpression
-	| Property
-	| RestElement
-	| VariableDeclarator;
+export type NewExpressionParent = ExpressionParent;
+export type ObjectExpressionParent = ExpressionParent;
+export type ObjectPatternParent = BindingPatternParent;
 export type PanicErrorParent = never;
 export type ParseErrorParent = never;
 export type PrivateIdentifierParent =
@@ -1932,403 +985,27 @@ export type PrivateIdentifierParent =
 export type ProgramParent = never;
 export type PropertyParent = ObjectExpression | ObjectPattern;
 export type PropertyDefinitionParent = ClassBody;
-export type RestElementParent =
-	| ArrayPattern
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| ForInStatement
-	| ForOfStatement
-	| FunctionDeclaration
-	| FunctionExpression
-	| ObjectPattern
-	| Property
-	| RestElement;
-export type ReturnStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type SequenceExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+export type RestElementParent = DestructuringPatternParent | ParameterParent | ObjectPattern;
+export type ReturnStatementParent = StatementParent;
+export type SequenceExpressionParent = ExpressionParent;
 export type SpreadElementParent =
 	ArrayExpression | CallExpression | NewExpression | ObjectExpression;
-export type StaticBlockParent =
-	| BlockStatement
-	| ClassBody
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
+export type StaticBlockParent = StatementParent | ClassBody;
 export type SuperParent = CallExpression | MemberExpression;
 export type SwitchCaseParent = SwitchStatement;
-export type SwitchStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type TaggedTemplateExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+export type SwitchStatementParent = StatementParent;
+export type TaggedTemplateExpressionParent = ExpressionParent;
 export type TemplateElementParent = TemplateLiteral;
-export type TemplateLiteralParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ThisExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type ThrowStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type TryStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type UnaryExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type UpdateExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
-export type VariableDeclarationParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ExportNamedDeclaration
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
+export type TemplateLiteralParent = ExpressionParent;
+export type ThisExpressionParent = ExpressionParent;
+export type ThrowStatementParent = StatementParent;
+export type TryStatementParent = StatementParent;
+export type UnaryExpressionParent = ExpressionParent;
+export type UpdateExpressionParent = ExpressionParent;
+export type VariableDeclarationParent = StatementParent | ExportNamedDeclaration;
 export type VariableDeclaratorParent = VariableDeclaration;
-export type WhileStatementParent =
-	| BlockStatement
-	| DoWhileStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| LabeledStatement
-	| Program
-	| StaticBlock
-	| SwitchCase
-	| WhileStatement;
-export type YieldExpressionParent =
-	| ArrayExpression
-	| ArrowFunctionExpression
-	| AssignmentExpression
-	| AssignmentPattern
-	| AwaitExpression
-	| BinaryExpression
-	| CallExpression
-	| ClassDeclaration
-	| ClassExpression
-	| ConditionalExpression
-	| Decorator
-	| DoWhileStatement
-	| ExportDefaultDeclaration
-	| ExpressionStatement
-	| ForInStatement
-	| ForOfStatement
-	| ForStatement
-	| IfStatement
-	| ImportExpression
-	| JSXExpressionContainer
-	| JSXSpreadAttribute
-	| JSXSpreadChild
-	| LogicalExpression
-	| MemberExpression
-	| MethodDefinition
-	| NewExpression
-	| Property
-	| PropertyDefinition
-	| ReturnStatement
-	| SequenceExpression
-	| SpreadElement
-	| SwitchCase
-	| SwitchStatement
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThrowStatement
-	| UnaryExpression
-	| UpdateExpression
-	| VariableDeclarator
-	| WhileStatement
-	| YieldExpression;
+export type WhileStatementParent = StatementParent;
+export type YieldExpressionParent = ExpressionParent;
 
 export interface ParentMap {
 	ArrayExpression: ArrayExpressionParent;

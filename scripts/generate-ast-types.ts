@@ -126,12 +126,137 @@ const parentAstTypes = [
 	...new Set(astNodeNamesWithFieldOrder.map(({ name, node }) => node.astType || name))
 ].sort();
 
-const parentTypes = parentAstTypes
-	.map(astType => {
-		const parents = astTypeParentNames.get(astType);
-		return `export type ${astType}Parent = ${parents ? [...parents].sort().join(' | ') : 'never'};`;
-	})
-	.join('\n');
+const astTypeBySchemaName = new Map<string, string>(
+	astNodeNamesWithFieldOrder.map(({ name, node }) => [name, node.astType || name])
+);
+
+const unionTypes = new Set(Object.keys(NODE_UNION_TYPES));
+const astTypeNames = new Set(parentAstTypes);
+
+const astTypesByUnionType = new Map();
+for (const [unionType, members] of Object.entries(NODE_UNION_TYPES)) {
+	const astTypes = new Set();
+	for (const member of members) {
+		if (unionTypes.has(member)) {
+			astTypes.add(member);
+			continue;
+		}
+		const astType = astTypeBySchemaName.get(member);
+		if (!astType) {
+			throw new Error(`Unknown node: ${member}`);
+		}
+		astTypes.add(astType);
+	}
+	astTypesByUnionType.set(unionType, [...astTypes]);
+}
+
+const parentsByFieldType = new Map();
+for (const { name, fields, node } of astNodeNamesWithFieldOrder) {
+	const parentAstType = node.astType || name;
+	for (const field of fields) {
+		if (field.type !== 'Node' && field.type !== 'NodeList') {
+			continue;
+		}
+		for (const fieldTypeName of field.nodeTypes) {
+			const parents = parentsByFieldType.get(fieldTypeName);
+			if (parents) {
+				parents.add(parentAstType);
+			} else {
+				parentsByFieldType.set(fieldTypeName, new Set([parentAstType]));
+			}
+		}
+	}
+}
+
+const explicitParentsByAstType = new Map();
+for (const [schemaName, astType] of astTypeBySchemaName) {
+	const parents = new Set(explicitParentsByAstType.get(astType) ?? []);
+	for (const parent of parentsByFieldType.get(schemaName) ?? []) {
+		parents.add(parent);
+	}
+	for (const parent of parentsByFieldType.get(astType) ?? []) {
+		parents.add(parent);
+	}
+	explicitParentsByAstType.set(astType, parents);
+}
+
+const unionsByAstType = new Map();
+for (const [unionType, members] of astTypesByUnionType) {
+	for (const member of members) {
+		if (member === unionType) {
+			continue;
+		}
+		const unions = unionsByAstType.get(member);
+		if (unions) {
+			unions.add(unionType);
+		} else {
+			unionsByAstType.set(member, new Set([unionType]));
+		}
+	}
+}
+
+const normalizedParentsByUnion = new Map();
+for (const unionType of unionTypes) {
+	const includedUnions = new Set([unionType]);
+	for (const includedUnion of includedUnions) {
+		for (const parentUnion of unionsByAstType.get(includedUnion) ?? []) {
+			includedUnions.add(parentUnion);
+		}
+	}
+	const parents = new Set();
+	for (const includedUnion of includedUnions) {
+		for (const parent of parentsByFieldType.get(includedUnion) ?? []) {
+			parents.add(parent);
+		}
+	}
+	normalizedParentsByUnion.set(unionType, parents);
+}
+
+const usedUnionNames = new Set();
+const parentTypeAliases = [];
+for (const astType of parentAstTypes) {
+	const unions = [...(unionsByAstType.get(astType) ?? [])]
+		.filter(unionType => !astTypeNames.has(unionType))
+		.sort();
+	const coveredParents = new Set();
+	for (const unionType of unions) {
+		for (const parent of normalizedParentsByUnion.get(unionType)) {
+			coveredParents.add(parent);
+		}
+	}
+	const remainingParents = [...(explicitParentsByAstType.get(astType) ?? [])]
+		.filter(parent => !coveredParents.has(parent))
+		.sort();
+	const composedParents = new Set([...coveredParents, ...remainingParents]);
+	const expectedParents = new Set(
+		[...(astTypeParentNames.get(astType) ?? [])].map(name => astTypeBySchemaName.get(name) ?? name)
+	);
+	if (
+		composedParents.size !== expectedParents.size ||
+		[...composedParents].some(parent => !expectedParents.has(parent))
+	) {
+		throw new Error(
+			`Parent types for ${astType} are not equivalent: missing ${[...expectedParents].filter(p => !composedParents.has(p)).join(',')} extra ${[...composedParents].filter(p => !expectedParents.has(p)).join(',')}`
+		);
+	}
+	const unionReferences = unions.map(unionType => {
+		usedUnionNames.add(unionType);
+		return `${unionType}Parent`;
+	});
+	const parts = [...unionReferences, ...remainingParents];
+	parentTypeAliases.push(
+		`export type ${astType}Parent = ${parts.length > 0 ? parts.join(' | ') : 'never'};`
+	);
+}
+
+const unionTypeAliases = [...usedUnionNames]
+	.sort()
+	.map(
+		unionName =>
+			`export type ${unionName}Parent = ${[...normalizedParentsByUnion.get(unionName)].sort().join(' | ')};`
+	);
+
+const parentTypes = [...unionTypeAliases, ...parentTypeAliases].join('\n');
 
 const parentMap = `export interface ParentMap {\n${parentAstTypes
 	.map(astType => `  ${astType}: ${astType}Parent;`)
