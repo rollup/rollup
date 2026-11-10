@@ -1505,7 +1505,7 @@ export default class Module {
 
 	private tryParseLazy(astBuffer: Uint8Array) {
 		try {
-			return deserializeLazyAst(astBuffer) as ast.Program;
+			return deserializeLazyAst(astBuffer) as ast.LazyNode<ast.Program>;
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

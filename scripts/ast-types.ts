@@ -666,7 +666,13 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{
 				allowNull: true,
 				name: 'value',
-				nodeTypes: ['JSXElement', 'JSXExpressionContainer', 'JSXSpreadChild', 'Literal'],
+				nodeTypes: [
+					'JSXElement',
+					'JSXFragment',
+					'JSXExpressionContainer',
+					'JSXSpreadChild',
+					'Literal'
+				],
 				type: 'Node'
 			}
 		]

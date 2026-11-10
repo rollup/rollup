@@ -63,7 +63,10 @@ function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
 	return list;
 }
 
-export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): ast.AstNode => {
+export const deserializeLazyAstBuffer = (
+	buffer: AstBuffer,
+	position: number
+): ast.LazyNode<ast.AstNode> => {
 	const node = convertNode(position, buffer);
 	switch (node.type) {
 		case PanicError: {
@@ -2166,12 +2169,16 @@ const nodePrototypes: object[] = [
 	YieldExpressionPrototype
 ];
 
-const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) => ast.AstNode)[] = [
+const nodeFactories: ((
+	position: number,
+	buffer: AstBuffer,
+	prototype: object
+) => ast.LazyNode<ast.AstNode>)[] = [
 	function createPanicError(
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.PanicError {
+	): ast.LazyNode<ast.PanicError> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2183,7 +2190,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ParseError {
+	): ast.LazyNode<ast.ParseError> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2195,7 +2202,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ArrayExpression {
+	): ast.LazyNode<ast.ArrayExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2207,7 +2214,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ArrayPattern {
+	): ast.LazyNode<ast.ArrayPattern> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2219,7 +2226,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ArrowFunctionExpression {
+	): ast.LazyNode<ast.ArrowFunctionExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2235,7 +2242,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.AssignmentExpression {
+	): ast.LazyNode<ast.AssignmentExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2248,7 +2255,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.AssignmentPattern {
+	): ast.LazyNode<ast.AssignmentPattern> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2260,7 +2267,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.AwaitExpression {
+	): ast.LazyNode<ast.AwaitExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2272,7 +2279,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.BinaryExpression {
+	): ast.LazyNode<ast.BinaryExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2285,7 +2292,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.BlockStatement {
+	): ast.LazyNode<ast.BlockStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2297,7 +2304,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.BreakStatement {
+	): ast.LazyNode<ast.BreakStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2309,7 +2316,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.CallExpression {
+	): ast.LazyNode<ast.CallExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2323,7 +2330,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.CatchClause {
+	): ast.LazyNode<ast.CatchClause> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2335,7 +2342,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ChainExpression {
+	): ast.LazyNode<ast.ChainExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2343,7 +2350,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.end = buffer[position + 2];
 		return node;
 	},
-	function createClassBody(position: number, buffer: AstBuffer, prototype: object): ast.ClassBody {
+	function createClassBody(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.ClassBody> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2355,7 +2366,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ClassDeclaration {
+	): ast.LazyNode<ast.ClassDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2367,7 +2378,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ClassExpression {
+	): ast.LazyNode<ast.ClassExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2379,7 +2390,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ConditionalExpression {
+	): ast.LazyNode<ast.ConditionalExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2391,7 +2402,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ContinueStatement {
+	): ast.LazyNode<ast.ContinueStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2403,7 +2414,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.DebuggerStatement {
+	): ast.LazyNode<ast.DebuggerStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2411,7 +2422,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.end = buffer[position + 2];
 		return node;
 	},
-	function createDecorator(position: number, buffer: AstBuffer, prototype: object): ast.Decorator {
+	function createDecorator(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.Decorator> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2419,7 +2434,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.end = buffer[position + 2];
 		return node;
 	},
-	function createDirective(position: number, buffer: AstBuffer, prototype: object): ast.Directive {
+	function createDirective(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.Directive> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2431,7 +2450,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.DoWhileStatement {
+	): ast.LazyNode<ast.DoWhileStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2443,7 +2462,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.EmptyStatement {
+	): ast.LazyNode<ast.EmptyStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2455,7 +2474,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ExportAllDeclaration {
+	): ast.LazyNode<ast.ExportAllDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2467,7 +2486,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ExportDefaultDeclaration {
+	): ast.LazyNode<ast.ExportDefaultDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2479,7 +2498,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ExportNamedDeclaration {
+	): ast.LazyNode<ast.ExportNamedDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2491,7 +2510,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ExportSpecifier {
+	): ast.LazyNode<ast.ExportSpecifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2503,7 +2522,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ExpressionStatement {
+	): ast.LazyNode<ast.ExpressionStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2515,7 +2534,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ForInStatement {
+	): ast.LazyNode<ast.ForInStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2527,7 +2546,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ForOfStatement {
+	): ast.LazyNode<ast.ForOfStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2541,7 +2560,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ForStatement {
+	): ast.LazyNode<ast.ForStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2553,7 +2572,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.FunctionDeclaration {
+	): ast.LazyNode<ast.FunctionDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2568,7 +2587,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.FunctionExpression {
+	): ast.LazyNode<ast.FunctionExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2583,7 +2602,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.Identifier {
+	): ast.LazyNode<ast.Identifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2596,7 +2615,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.IfStatement {
+	): ast.LazyNode<ast.IfStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2608,7 +2627,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ImportAttribute {
+	): ast.LazyNode<ast.ImportAttribute> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2620,7 +2639,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ImportDeclaration {
+	): ast.LazyNode<ast.ImportDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2633,7 +2652,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ImportDefaultSpecifier {
+	): ast.LazyNode<ast.ImportDefaultSpecifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2645,7 +2664,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ImportExpression {
+	): ast.LazyNode<ast.ImportExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2658,7 +2677,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ImportNamespaceSpecifier {
+	): ast.LazyNode<ast.ImportNamespaceSpecifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2670,7 +2689,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ImportSpecifier {
+	): ast.LazyNode<ast.ImportSpecifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2682,7 +2701,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXAttribute {
+	): ast.LazyNode<ast.JSXAttribute> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2694,7 +2713,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXClosingElement {
+	): ast.LazyNode<ast.JSXClosingElement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2706,7 +2725,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXClosingFragment {
+	): ast.LazyNode<ast.JSXClosingFragment> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2718,7 +2737,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXElement {
+	): ast.LazyNode<ast.JSXElement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2730,7 +2749,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXEmptyExpression {
+	): ast.LazyNode<ast.JSXEmptyExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2742,7 +2761,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXExpressionContainer {
+	): ast.LazyNode<ast.JSXExpressionContainer> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2754,7 +2773,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXFragment {
+	): ast.LazyNode<ast.JSXFragment> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2766,7 +2785,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXIdentifier {
+	): ast.LazyNode<ast.JSXIdentifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2779,7 +2798,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXMemberExpression {
+	): ast.LazyNode<ast.JSXMemberExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2791,7 +2810,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXNamespacedName {
+	): ast.LazyNode<ast.JSXNamespacedName> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2803,7 +2822,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXOpeningElement {
+	): ast.LazyNode<ast.JSXOpeningElement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2817,7 +2836,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXOpeningFragment {
+	): ast.LazyNode<ast.JSXOpeningFragment> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2829,7 +2848,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXSpreadAttribute {
+	): ast.LazyNode<ast.JSXSpreadAttribute> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2841,7 +2860,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.JSXSpreadChild {
+	): ast.LazyNode<ast.JSXSpreadChild> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2849,7 +2868,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.end = buffer[position + 2];
 		return node;
 	},
-	function createJSXText(position: number, buffer: AstBuffer, prototype: object): ast.JSXText {
+	function createJSXText(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.JSXText> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2861,7 +2884,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LabeledStatement {
+	): ast.LazyNode<ast.LabeledStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2873,7 +2896,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LiteralBigInt {
+	): ast.LazyNode<ast.LiteralBigInt> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2885,7 +2908,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LiteralBoolean {
+	): ast.LazyNode<ast.LiteralBoolean> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2899,7 +2922,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LiteralNull {
+	): ast.LazyNode<ast.LiteralNull> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2911,7 +2934,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LiteralNumber {
+	): ast.LazyNode<ast.LiteralNumber> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2923,7 +2946,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LiteralRegExp {
+	): ast.LazyNode<ast.LiteralRegExp> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2935,7 +2958,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LiteralString {
+	): ast.LazyNode<ast.LiteralString> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2947,7 +2970,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.LogicalExpression {
+	): ast.LazyNode<ast.LogicalExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2960,7 +2983,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.MemberExpression {
+	): ast.LazyNode<ast.MemberExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2975,7 +2998,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.MetaProperty {
+	): ast.LazyNode<ast.MetaProperty> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -2987,7 +3010,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.MethodDefinition {
+	): ast.LazyNode<ast.MethodDefinition> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3003,7 +3026,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.NewExpression {
+	): ast.LazyNode<ast.NewExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3015,7 +3038,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ObjectExpression {
+	): ast.LazyNode<ast.ObjectExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3027,7 +3050,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ObjectPattern {
+	): ast.LazyNode<ast.ObjectPattern> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3039,7 +3062,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.PrivateIdentifier {
+	): ast.LazyNode<ast.PrivateIdentifier> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3048,7 +3071,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.name = buffer.convertString(buffer[position + 3]);
 		return node;
 	},
-	function createProgram(position: number, buffer: AstBuffer, prototype: object): ast.Program {
+	function createProgram(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.Program> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3056,7 +3083,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.end = buffer[position + 2];
 		return node;
 	},
-	function createProperty(position: number, buffer: AstBuffer, prototype: object): ast.Property {
+	function createProperty(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.Property> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3073,7 +3104,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.PropertyDefinition {
+	): ast.LazyNode<ast.PropertyDefinition> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3088,7 +3119,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.RestElement {
+	): ast.LazyNode<ast.RestElement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3100,7 +3131,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ReturnStatement {
+	): ast.LazyNode<ast.ReturnStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3112,7 +3143,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.SequenceExpression {
+	): ast.LazyNode<ast.SequenceExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3124,7 +3155,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.SpreadElement {
+	): ast.LazyNode<ast.SpreadElement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3136,7 +3167,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.StaticBlock {
+	): ast.LazyNode<ast.StaticBlock> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3144,7 +3175,11 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		node.end = buffer[position + 2];
 		return node;
 	},
-	function createSuper(position: number, buffer: AstBuffer, prototype: object): ast.Super {
+	function createSuper(
+		position: number,
+		buffer: AstBuffer,
+		prototype: object
+	): ast.LazyNode<ast.Super> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3156,7 +3191,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.SwitchCase {
+	): ast.LazyNode<ast.SwitchCase> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3168,7 +3203,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.SwitchStatement {
+	): ast.LazyNode<ast.SwitchStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3180,7 +3215,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.TaggedTemplateExpression {
+	): ast.LazyNode<ast.TaggedTemplateExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3192,7 +3227,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.TemplateElement {
+	): ast.LazyNode<ast.TemplateElement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3206,7 +3241,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.TemplateLiteral {
+	): ast.LazyNode<ast.TemplateLiteral> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3218,7 +3253,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ThisExpression {
+	): ast.LazyNode<ast.ThisExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3230,7 +3265,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.ThrowStatement {
+	): ast.LazyNode<ast.ThrowStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3242,7 +3277,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.TryStatement {
+	): ast.LazyNode<ast.TryStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3254,7 +3289,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.UnaryExpression {
+	): ast.LazyNode<ast.UnaryExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3267,7 +3302,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.UpdateExpression {
+	): ast.LazyNode<ast.UpdateExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3282,7 +3317,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.VariableDeclaration {
+	): ast.LazyNode<ast.VariableDeclaration> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3295,7 +3330,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.VariableDeclarator {
+	): ast.LazyNode<ast.VariableDeclarator> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3307,7 +3342,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.WhileStatement {
+	): ast.LazyNode<ast.WhileStatement> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
@@ -3319,7 +3354,7 @@ const nodeFactories: ((position: number, buffer: AstBuffer, prototype: object) =
 		position: number,
 		buffer: AstBuffer,
 		prototype: object
-	): ast.YieldExpression {
+	): ast.LazyNode<ast.YieldExpression> {
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;

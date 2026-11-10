@@ -70,7 +70,7 @@ const nodeFactories = astNodeNamesWithFieldOrder.map(({ name, fields, node }) =>
 			);
 		}
 	}
-	return `function create${name}(position: number, buffer: AstBuffer, prototype: object): ast.${name} {
+	return `function create${name}(position: number, buffer: AstBuffer, prototype: object): ast.LazyNode<ast.${name}> {
 	const node: any = Object.create(prototype);
 	node[POSITION] = position;
 	node[BUFFER] = buffer;
@@ -254,7 +254,10 @@ function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
 	return list;
 }
 
-export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): ast.AstNode => {
+export const deserializeLazyAstBuffer = (
+	buffer: AstBuffer,
+	position: number
+): ast.LazyNode<ast.AstNode> => {
 	const node = convertNode(position, buffer);
 	switch (node.type) {
 		case PanicError: {
@@ -279,7 +282,7 @@ const nodeFactories: ((
 	position: number,
 	buffer: AstBuffer,
 	prototype: object
-) => ast.AstNode)[] = [
+) => ast.LazyNode<ast.AstNode>)[] = [
 	${nodeFactories.join(',\n')}
 ];
 `;
