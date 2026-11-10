@@ -74,8 +74,6 @@ ${parentMap}
 
 ${parentOf}
 
-${sortedUnionTypes.map(renderParentType).join('\n\n')}
-
 ${sortedAstTypes.map(renderParentType).join('\n\n')}
 `;
 

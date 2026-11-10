@@ -248,7 +248,7 @@ export type AstNode =
 	| WhileStatement
 	| YieldExpression;
 
-export interface ParentMap {
+interface ParentMap {
 	ArrayExpression:
 		| ArrayExpression
 		| ArrowFunctionExpression
@@ -1767,22 +1767,6 @@ export interface ParentMap {
 }
 
 export type ParentOf<T extends AstNode> = ParentMap[Extract<T['type'], keyof ParentMap>];
-
-export type BindingPatternParent = ParentOf<BindingPattern>;
-
-export type DestructuringPatternParent = ParentOf<DestructuringPattern>;
-
-export type ExpressionParent = ParentOf<Expression>;
-
-export type JSXChildParent = ParentOf<JSXChild>;
-
-export type JSXTagNameExpressionParent = ParentOf<JSXTagNameExpression>;
-
-export type ModuleDeclarationParent = ParentOf<ModuleDeclaration>;
-
-export type ParameterParent = ParentOf<Parameter>;
-
-export type StatementParent = ParentOf<Statement>;
 
 export type ArrayExpressionParent = ParentOf<ArrayExpression>;
 

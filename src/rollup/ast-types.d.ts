@@ -807,7 +807,7 @@ export type AstNode =
 /**
  * The possible parents of a node, keyed by AST node type.
  */
-export interface ParentMap {
+interface ParentMap {
 	ArrayExpression:
 		| ArrayExpression
 		| ArrowFunctionExpression

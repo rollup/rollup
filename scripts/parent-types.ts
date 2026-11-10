@@ -82,7 +82,7 @@ export function renderParentMap(
 		].sort();
 		return `\t${astType}: ${parents.length > 0 ? parents.join(' | ') : 'never'};`;
 	});
-	return `export interface ParentMap {\n${entries.join('\n')}\n}`;
+	return `interface ParentMap {\n${entries.join('\n')}\n}`;
 }
 
 export function renderParentOf(): string {
