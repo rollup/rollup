@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.68.2
+
+_2026-11-09_
+
+### Bug Fixes
+
+- Fail if generated file names would write outside the target directory using Windows drive-relative paths (#6652)
+
+### Pull Requests
+
+- [#6652](https://github.com/rollup/rollup/pull/6652): Reject Windows drive-relative output file names (@lukastaegert)
+
 ## 4.68.1
 
 _2026-11-09_
