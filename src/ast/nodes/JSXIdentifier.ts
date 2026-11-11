@@ -1,7 +1,10 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
+import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logThisIsUndefined } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
+import ModuleScope from '../scopes/ModuleScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type JSXMemberExpression from './JSXMemberExpression';
@@ -19,12 +22,16 @@ export default class JSXIdentifier extends IdentifierBase {
 	declare name: string;
 
 	private isNativeElement = false;
+	private thisAlias: string | null = null;
 
 	bind(): void {
 		const type = this.getType();
 		if (type === IdentifierType.Reference) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
+			if (this.name === 'this') {
+				this.initialiseThisAlias();
+			}
 		} else if (type === IdentifierType.NativeElementName) {
 			this.isNativeElement = true;
 		}
@@ -58,7 +65,10 @@ export default class JSXIdentifier extends IdentifierBase {
 		{ snippets: { getPropertyAccess }, useOriginalName }: RenderOptions
 	): void {
 		if (this.variable) {
-			const name = this.variable.getName(getPropertyAccess, useOriginalName);
+			const name =
+				this.name === 'this'
+					? (this.thisAlias ?? this.name)
+					: this.variable.getName(getPropertyAccess, useOriginalName);
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
@@ -71,6 +81,15 @@ export default class JSXIdentifier extends IdentifierBase {
 			(this.scope.context.options.jsx as NormalizedJsxOptions).mode !== 'preserve'
 		) {
 			code.update(this.start, this.end, JSON.stringify(this.name));
+		}
+	}
+
+	private initialiseThisAlias(): void {
+		if (this.scope.findLexicalBoundary() instanceof ModuleScope) {
+			this.thisAlias = this.scope.context.moduleContext;
+			if (this.thisAlias === 'undefined') {
+				this.scope.context.log(LOGLEVEL_WARN, logThisIsUndefined(), this.start);
+			}
 		}
 	}
 
