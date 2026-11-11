@@ -115,14 +115,15 @@ export default class VariableDeclaration extends NodeBase {
 		options: RenderOptions,
 		nodeRenderOptions: NodeRenderOptions = BLANK
 	): void {
-		// A for-in/of head is not a statement. Rewriting it like one inserts a
-		// semicolon and turns `for (var name of ...)` into invalid code. Exported
-		// `var` bindings are updated from the loop body instead.
-		if (
-			this.parent.type === NodeType.ForOfStatement ||
-			this.parent.type === NodeType.ForInStatement ||
-			this.areAllDeclarationsIncludedAndNotExported(options.exportNamesByVariable)
-		) {
+		// A `var` declaration can be the body of a for-in/of loop. Only the
+		// left-hand side is a loop head. Rewriting that head as a statement
+		// inserts a semicolon and turns `for (var name of ...)` into invalid code.
+		// Exported `var` bindings are updated from the loop body instead.
+		if (this.isForInOfHead()) {
+			this.renderForInOfHead(code, options);
+			return;
+		}
+		if (this.areAllDeclarationsIncludedAndNotExported(options.exportNamesByVariable)) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
@@ -133,7 +134,33 @@ export default class VariableDeclaration extends NodeBase {
 				code.appendLeft(this.end, ';');
 			}
 		} else {
-			this.renderReplacedDeclarations(code, options);
+			this.renderReplacedDeclarations(code, options, nodeRenderOptions.isNoStatement);
+		}
+	}
+
+	private isForInOfHead(): boolean {
+		const parent = this.parent;
+		return (
+			(parent.type === NodeType.ForOfStatement || parent.type === NodeType.ForInStatement) &&
+			(parent as { left?: unknown }).left === this
+		);
+	}
+
+	private renderForInOfHead(code: MagicString, options: RenderOptions): void {
+		const declarator = this.declarations[0];
+		if (
+			declarator.id instanceof Identifier &&
+			isReassignedExportsMember(declarator.id.variable!, options.exportNamesByVariable)
+		) {
+			// `for (var name of xs)` declares `name`, but a reassigned export is
+			// rendered as `exports.name`. Keeping `var`, or synthesizing `= void 0`
+			// because the declarator has no initializer, is a syntax error.
+			code.remove(this.start, declarator.id.start);
+			declarator.id.render(code, options);
+			return;
+		}
+		for (const eachDeclarator of this.declarations) {
+			eachDeclarator.render(code, options);
 		}
 	}
 
@@ -144,14 +171,21 @@ export default class VariableDeclaration extends NodeBase {
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		systemPatternExports: readonly Variable[],
-		options: RenderOptions
+		options: RenderOptions,
+		omitTrailingSemicolon: boolean
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		separatorString += ';';
+		// A for-loop initializer is not a statement. The separator after it
+		// belongs to the for statement, so another semicolon makes the head invalid.
+		if (!omitTrailingSemicolon) {
+			separatorString += ';';
+		}
 		if (lastSeparatorPos === null) {
-			code.appendLeft(renderedContentEnd, separatorString);
+			if (separatorString) {
+				code.appendLeft(renderedContentEnd, separatorString);
+			}
 		} else {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
@@ -178,7 +212,11 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private renderReplacedDeclarations(code: MagicString, options: RenderOptions): void {
+	private renderReplacedDeclarations(
+		code: MagicString,
+		options: RenderOptions,
+		omitTrailingSemicolon = false
+	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
@@ -260,7 +298,8 @@ export default class VariableDeclaration extends NodeBase {
 			actualContentEnd!,
 			renderedContentEnd,
 			aggregatedSystemExports,
-			options
+			options,
+			omitTrailingSemicolon
 		);
 	}
 
