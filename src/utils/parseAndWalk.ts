@@ -1,4 +1,5 @@
 import { parseAndWalk as parseAndWalkNative } from '../../native';
+import { IDENTIFIER_NAME_OFFSET } from '../ast/bufferLayout';
 import { nodeIds } from '../ast/nodeIds';
 import type { ParseAndWalkApi, ParseAndWalkHandler, ParseAndWalkVisitors } from '../rollup/types';
 import { convertNode, deserializeLazyAstBuffer } from './bufferToLazyAst';
@@ -9,8 +10,6 @@ import {
 	SCOPE_DECLARATIONS_OFFSET,
 	SCOPE_PARENT_OFFSET
 } from './scopeConstants';
-
-const IDENTIFIER_NAME_OFFSET = 4;
 
 export async function parseAndWalk(
 	input: string,

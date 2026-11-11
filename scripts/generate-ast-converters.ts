@@ -3,6 +3,7 @@
 import './generate-ast-macros.ts';
 import './generate-ast-to-buffer.ts';
 import './generate-ast-types.ts';
+import './generate-buffer-layout.ts';
 import './generate-buffer-parsers.ts';
 import './generate-buffer-to-ast.ts';
 import './generate-buffer-to-lazy-ast.ts';

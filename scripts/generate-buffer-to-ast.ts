@@ -1,6 +1,12 @@
 import { writeFile } from 'node:fs/promises';
 import type { FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import {
+	getFirstFieldWordOffset,
+	NODE_DATA_OFFSET,
+	NODE_END_OFFSET,
+	NODE_START_OFFSET
+} from './buffer-layout.ts';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
@@ -9,10 +15,9 @@ const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];
-	let offset = 3;
+	const offset = getFirstFieldWordOffset(Boolean(node.flags));
 	if (node.flags) {
-		offset++;
-		definitions.push('const flags = buffer[position + 3];\n');
+		definitions.push(`const flags = buffer[position + ${NODE_DATA_OFFSET}];\n`);
 		for (const [index, flag] of node.flags.entries()) {
 			if (isHoistedField(flag, node)) {
 				definitions.push(`const ${flag} = (flags & ${1 << index}) === ${1 << index};`);
@@ -40,8 +45,8 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 	return `function ${node.converterFunction || firstLettersLowercase(name)} (position, buffer): ast.${name} {
     ${definitions.join('')}return {
       type: '${node.astType || name}',
-      start: buffer[position + 1],
-      end: buffer[position + 2],
+      start: buffer[position + ${NODE_START_OFFSET}],
+      end: buffer[position + ${NODE_END_OFFSET}],
       ${properties.join(',\n')}
     };
   }`;
@@ -198,7 +203,7 @@ export function convertNode(position: number, buffer: AstBuffer): any {
     console.trace();
     throw new Error(\`Unknown node type: \${nodeType}\`);
   }
-  return converter(position + 1, buffer);
+  return converter(position, buffer);
 }
 
 function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {

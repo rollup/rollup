@@ -97,7 +97,7 @@ describe('ast buffer', () => {
 		assert.strictEqual(stringWords[stringPosition + 2], 0x00000065);
 	});
 
-	it('stores the parent node position in every node header', () => {
+	it('stores the node header at the documented word offsets', () => {
 		const words = toWords(
 			serializeAst({
 				body: [
@@ -114,7 +114,29 @@ describe('ast buffer', () => {
 				type: 'Program'
 			})
 		);
+		const nativeWords = toWords(native.parse('x;', false, false));
+		assert.strictEqual(words[0], nativeWords[0], 'the root type is at word 0');
 		assert.strictEqual(words[1], 0, 'the root has no parent');
+		assert.strictEqual(words[2], 0, 'the root start is at word 2');
+		assert.strictEqual(words[3], 2, 'the root end is at word 3');
+		assert.strictEqual(nativeWords[1], 0, 'the native root has no parent');
+		assert.strictEqual(nativeWords[2], 0, 'the native root start is at word 2');
+		assert.strictEqual(nativeWords[3], 2, 'the native root end is at word 3');
+		const nativeBodyListPosition = nativeWords[4];
+		const nativeStatementPosition = nativeWords[nativeBodyListPosition + 1];
+		assert.strictEqual(
+			nativeWords[nativeStatementPosition + 1],
+			1,
+			'the native child stores the root position plus one'
+		);
+		const nativeIdentifierPosition = nativeWords[nativeStatementPosition + 4];
+		const nativeNamePosition = nativeWords[nativeIdentifierPosition + 4];
+		assert.strictEqual(nativeWords[nativeNamePosition], 1, 'the native name length is at word 4');
+		assert.strictEqual(
+			nativeWords[nativeNamePosition + 1],
+			'x'.charCodeAt(0),
+			'the native identifier name points at its characters'
+		);
 		const bodyListPosition = words[4];
 		const statementPosition = words[bodyListPosition + 1];
 		assert.strictEqual(
@@ -122,12 +144,56 @@ describe('ast buffer', () => {
 			1,
 			'the child stores the root position plus one'
 		);
+		assert.strictEqual(words[statementPosition + 2], 0, 'the child start is at word 2');
+		assert.strictEqual(words[statementPosition + 3], 2, 'the child end is at word 3');
 		const literalPosition = words[statementPosition + 4];
 		assert.strictEqual(
 			words[literalPosition + 1],
 			statementPosition + 1,
 			'the grandchild stores the parent node position plus one'
 		);
+	});
+
+	it('stores flags and eager string fields at the documented word offsets', () => {
+		const arrowWords = toWords(
+			serializeAst({
+				async: true,
+				body: { body: [], end: 0, start: 0, type: 'BlockStatement' },
+				end: 0,
+				expression: false,
+				generator: false,
+				params: [],
+				start: 0,
+				type: 'ArrowFunctionExpression'
+			})
+		);
+		assert.strictEqual(arrowWords[4], 1, 'the async flag is the first bit of the flags word');
+
+		const identifierWords = toWords(
+			serializeAst({
+				body: [
+					{
+						end: 1,
+						expression: { end: 1, name: 'x', start: 0, type: 'Identifier' },
+						start: 0,
+						type: 'ExpressionStatement'
+					}
+				],
+				end: 1,
+				sourceType: 'module',
+				start: 0,
+				type: 'Program'
+			})
+		);
+		const statementPosition = identifierWords[identifierWords[4] + 1];
+		const identifierPosition = identifierWords[statementPosition + 4];
+		const namePosition = identifierWords[identifierPosition + 4];
+		assert.strictEqual(
+			identifierWords[namePosition],
+			1,
+			'the Identifier name string reference is the first data word'
+		);
+		assert.strictEqual(identifierWords[namePosition + 1], 'x'.charCodeAt(0));
 	});
 
 	it('round-trips special float and string values through serialize and decode', () => {

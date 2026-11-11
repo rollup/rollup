@@ -41,7 +41,7 @@ export function convertNode(position: number, buffer: AstBuffer): any {
 		console.trace();
 		throw new Error(`Unknown node type: ${nodeType}`);
 	}
-	const node = nodeFactories[nodeType](position + 1, buffer, prototype);
+	const node = nodeFactories[nodeType](position, buffer, prototype);
 	cache.set(position, node);
 	return node;
 }
@@ -85,7 +85,7 @@ const PanicErrorPrototype: object = {
 	type: 'PanicError',
 	get message() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 3]);
+		return buffer.convertString(buffer[getPosition(this) + 4]);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -93,7 +93,7 @@ const PanicErrorPrototype: object = {
 Object.defineProperty(PanicErrorPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -102,7 +102,7 @@ const ParseErrorPrototype: object = {
 	type: 'ParseError',
 	get message() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 3]);
+		return buffer.convertString(buffer[getPosition(this) + 4]);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -110,7 +110,7 @@ const ParseErrorPrototype: object = {
 Object.defineProperty(ParseErrorPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -119,7 +119,7 @@ const ArrayExpressionPrototype: object = {
 	type: 'ArrayExpression',
 	get elements() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -127,7 +127,7 @@ const ArrayExpressionPrototype: object = {
 Object.defineProperty(ArrayExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -136,7 +136,7 @@ const ArrayPatternPrototype: object = {
 	type: 'ArrayPattern',
 	get elements() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -144,7 +144,7 @@ const ArrayPatternPrototype: object = {
 Object.defineProperty(ArrayPatternPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -153,16 +153,16 @@ const ArrowFunctionExpressionPrototype: object = {
 	type: 'ArrowFunctionExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	},
 	get params() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+		return convertNode(buffer[getPosition(this) + 7], buffer);
 	},
 	id: null
 };
@@ -171,7 +171,7 @@ const ArrowFunctionExpressionPrototype: object = {
 Object.defineProperty(ArrowFunctionExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -180,11 +180,11 @@ const AssignmentExpressionPrototype: object = {
 	type: 'AssignmentExpression',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get right() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -192,7 +192,7 @@ const AssignmentExpressionPrototype: object = {
 Object.defineProperty(AssignmentExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -201,11 +201,11 @@ const AssignmentPatternPrototype: object = {
 	type: 'AssignmentPattern',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get right() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -213,7 +213,7 @@ const AssignmentPatternPrototype: object = {
 Object.defineProperty(AssignmentPatternPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -222,7 +222,7 @@ const AwaitExpressionPrototype: object = {
 	type: 'AwaitExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -230,7 +230,7 @@ const AwaitExpressionPrototype: object = {
 Object.defineProperty(AwaitExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -239,11 +239,11 @@ const BinaryExpressionPrototype: object = {
 	type: 'BinaryExpression',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get right() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -251,7 +251,7 @@ const BinaryExpressionPrototype: object = {
 Object.defineProperty(BinaryExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -260,7 +260,7 @@ const BlockStatementPrototype: object = {
 	type: 'BlockStatement',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -268,7 +268,7 @@ const BlockStatementPrototype: object = {
 Object.defineProperty(BlockStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -277,9 +277,9 @@ const BreakStatementPrototype: object = {
 	type: 'BreakStatement',
 	get label() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -287,7 +287,7 @@ const BreakStatementPrototype: object = {
 Object.defineProperty(BreakStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -296,16 +296,16 @@ const CallExpressionPrototype: object = {
 	type: 'CallExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	},
 	get callee() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	},
 	get arguments() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+		return convertNodeList(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -313,7 +313,7 @@ const CallExpressionPrototype: object = {
 Object.defineProperty(CallExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -322,13 +322,13 @@ const CatchClausePrototype: object = {
 	type: 'CatchClause',
 	get param() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -336,7 +336,7 @@ const CatchClausePrototype: object = {
 Object.defineProperty(CatchClausePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -345,7 +345,7 @@ const ChainExpressionPrototype: object = {
 	type: 'ChainExpression',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -353,7 +353,7 @@ const ChainExpressionPrototype: object = {
 Object.defineProperty(ChainExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -362,7 +362,7 @@ const ClassBodyPrototype: object = {
 	type: 'ClassBody',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -370,7 +370,7 @@ const ClassBodyPrototype: object = {
 Object.defineProperty(ClassBodyPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -379,23 +379,23 @@ const ClassDeclarationPrototype: object = {
 	type: 'ClassDeclaration',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	},
 	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get superClass() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 5] === 0
 			? null
 			: convertNode(buffer[getPosition(this) + 5], buffer);
 	},
+	get superClass() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 6] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 6], buffer);
+	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+		return convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -403,7 +403,7 @@ const ClassDeclarationPrototype: object = {
 Object.defineProperty(ClassDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -412,23 +412,23 @@ const ClassExpressionPrototype: object = {
 	type: 'ClassExpression',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	},
 	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get superClass() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 5] === 0
 			? null
 			: convertNode(buffer[getPosition(this) + 5], buffer);
 	},
+	get superClass() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 6] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 6], buffer);
+	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+		return convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -436,7 +436,7 @@ const ClassExpressionPrototype: object = {
 Object.defineProperty(ClassExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -445,15 +445,15 @@ const ConditionalExpressionPrototype: object = {
 	type: 'ConditionalExpression',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get consequent() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get alternate() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -461,7 +461,7 @@ const ConditionalExpressionPrototype: object = {
 Object.defineProperty(ConditionalExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -470,9 +470,9 @@ const ContinueStatementPrototype: object = {
 	type: 'ContinueStatement',
 	get label() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -480,7 +480,7 @@ const ContinueStatementPrototype: object = {
 Object.defineProperty(ContinueStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -493,7 +493,7 @@ const DebuggerStatementPrototype: object = {
 Object.defineProperty(DebuggerStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -502,7 +502,7 @@ const DecoratorPrototype: object = {
 	type: 'Decorator',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -510,7 +510,7 @@ const DecoratorPrototype: object = {
 Object.defineProperty(DecoratorPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -519,11 +519,11 @@ const DirectivePrototype: object = {
 	type: 'ExpressionStatement',
 	get directive() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 3]);
+		return buffer.convertString(buffer[getPosition(this) + 4]);
 	},
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -531,7 +531,7 @@ const DirectivePrototype: object = {
 Object.defineProperty(DirectivePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -540,11 +540,11 @@ const DoWhileStatementPrototype: object = {
 	type: 'DoWhileStatement',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -552,7 +552,7 @@ const DoWhileStatementPrototype: object = {
 Object.defineProperty(DoWhileStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -565,7 +565,7 @@ const EmptyStatementPrototype: object = {
 Object.defineProperty(EmptyStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -574,17 +574,17 @@ const ExportAllDeclarationPrototype: object = {
 	type: 'ExportAllDeclaration',
 	get exported() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get source() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get attributes() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -592,7 +592,7 @@ const ExportAllDeclarationPrototype: object = {
 Object.defineProperty(ExportAllDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -601,7 +601,7 @@ const ExportDefaultDeclarationPrototype: object = {
 	type: 'ExportDefaultDeclaration',
 	get declaration() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -609,7 +609,7 @@ const ExportDefaultDeclarationPrototype: object = {
 Object.defineProperty(ExportDefaultDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -618,23 +618,23 @@ const ExportNamedDeclarationPrototype: object = {
 	type: 'ExportNamedDeclaration',
 	get specifiers() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	},
 	get source() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
+		return buffer[getPosition(this) + 5] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get attributes() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	},
 	get declaration() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
+		return buffer[getPosition(this) + 7] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
+			: convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -642,7 +642,7 @@ const ExportNamedDeclarationPrototype: object = {
 Object.defineProperty(ExportNamedDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -651,14 +651,14 @@ const ExportSpecifierPrototype: object = {
 	type: 'ExportSpecifier',
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get exported() {
 		const node = this as any;
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
+		return buffer[getPosition(this) + 5] === 0
 			? node.local
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -666,7 +666,7 @@ const ExportSpecifierPrototype: object = {
 Object.defineProperty(ExportSpecifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -675,7 +675,7 @@ const ExpressionStatementPrototype: object = {
 	type: 'ExpressionStatement',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -683,7 +683,7 @@ const ExpressionStatementPrototype: object = {
 Object.defineProperty(ExpressionStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -692,15 +692,15 @@ const ForInStatementPrototype: object = {
 	type: 'ForInStatement',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get right() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -708,7 +708,7 @@ const ForInStatementPrototype: object = {
 Object.defineProperty(ForInStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -717,15 +717,15 @@ const ForOfStatementPrototype: object = {
 	type: 'ForOfStatement',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get right() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+		return convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -733,7 +733,7 @@ const ForOfStatementPrototype: object = {
 Object.defineProperty(ForOfStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -742,25 +742,25 @@ const ForStatementPrototype: object = {
 	type: 'ForStatement',
 	get init() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
-	},
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 4] === 0
 			? null
 			: convertNode(buffer[getPosition(this) + 4], buffer);
 	},
-	get update() {
+	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 5] === 0
 			? null
 			: convertNode(buffer[getPosition(this) + 5], buffer);
 	},
+	get update() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 6] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 6], buffer);
+	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+		return convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -768,7 +768,7 @@ const ForStatementPrototype: object = {
 Object.defineProperty(ForStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -777,22 +777,22 @@ const FunctionDeclarationPrototype: object = {
 	type: 'FunctionDeclaration',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	},
 	get id() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
+		return buffer[getPosition(this) + 6] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+			: convertNode(buffer[getPosition(this) + 6], buffer);
 	},
 	get params() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+		return convertNodeList(buffer[getPosition(this) + 7], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+		return convertNode(buffer[getPosition(this) + 8], buffer);
 	},
 	expression: false
 };
@@ -801,7 +801,7 @@ const FunctionDeclarationPrototype: object = {
 Object.defineProperty(FunctionDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -810,22 +810,22 @@ const FunctionExpressionPrototype: object = {
 	type: 'FunctionExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	},
 	get id() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
+		return buffer[getPosition(this) + 6] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+			: convertNode(buffer[getPosition(this) + 6], buffer);
 	},
 	get params() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+		return convertNodeList(buffer[getPosition(this) + 7], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+		return convertNode(buffer[getPosition(this) + 8], buffer);
 	},
 	expression: false
 };
@@ -834,7 +834,7 @@ const FunctionExpressionPrototype: object = {
 Object.defineProperty(FunctionExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -847,7 +847,7 @@ const IdentifierPrototype: object = {
 Object.defineProperty(IdentifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -856,17 +856,17 @@ const IfStatementPrototype: object = {
 	type: 'IfStatement',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get consequent() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get alternate() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
+		return buffer[getPosition(this) + 6] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+			: convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -874,7 +874,7 @@ const IfStatementPrototype: object = {
 Object.defineProperty(IfStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -883,11 +883,11 @@ const ImportAttributePrototype: object = {
 	type: 'ImportAttribute',
 	get key() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -895,7 +895,7 @@ const ImportAttributePrototype: object = {
 Object.defineProperty(ImportAttributePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -904,15 +904,15 @@ const ImportDeclarationPrototype: object = {
 	type: 'ImportDeclaration',
 	get specifiers() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	},
 	get source() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get attributes() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -920,7 +920,7 @@ const ImportDeclarationPrototype: object = {
 Object.defineProperty(ImportDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -929,7 +929,7 @@ const ImportDefaultSpecifierPrototype: object = {
 	type: 'ImportDefaultSpecifier',
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -937,7 +937,7 @@ const ImportDefaultSpecifierPrototype: object = {
 Object.defineProperty(ImportDefaultSpecifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -946,13 +946,13 @@ const ImportExpressionPrototype: object = {
 	type: 'ImportExpression',
 	get source() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get options() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
+		return buffer[getPosition(this) + 5] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -960,7 +960,7 @@ const ImportExpressionPrototype: object = {
 Object.defineProperty(ImportExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -969,7 +969,7 @@ const ImportNamespaceSpecifierPrototype: object = {
 	type: 'ImportNamespaceSpecifier',
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -977,7 +977,7 @@ const ImportNamespaceSpecifierPrototype: object = {
 Object.defineProperty(ImportNamespaceSpecifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -987,13 +987,13 @@ const ImportSpecifierPrototype: object = {
 	get imported() {
 		const node = this as any;
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? node.local
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get local() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1001,7 +1001,7 @@ const ImportSpecifierPrototype: object = {
 Object.defineProperty(ImportSpecifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1010,13 +1010,13 @@ const JSXAttributePrototype: object = {
 	type: 'JSXAttribute',
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
+		return buffer[getPosition(this) + 5] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1024,7 +1024,7 @@ const JSXAttributePrototype: object = {
 Object.defineProperty(JSXAttributePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1033,7 +1033,7 @@ const JSXClosingElementPrototype: object = {
 	type: 'JSXClosingElement',
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1041,7 +1041,7 @@ const JSXClosingElementPrototype: object = {
 Object.defineProperty(JSXClosingElementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1054,7 +1054,7 @@ const JSXClosingFragmentPrototype: object = {
 Object.defineProperty(JSXClosingFragmentPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1063,17 +1063,17 @@ const JSXElementPrototype: object = {
 	type: 'JSXElement',
 	get openingElement() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get children() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	},
 	get closingElement() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
+		return buffer[getPosition(this) + 6] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+			: convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1081,7 +1081,7 @@ const JSXElementPrototype: object = {
 Object.defineProperty(JSXElementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1094,7 +1094,7 @@ const JSXEmptyExpressionPrototype: object = {
 Object.defineProperty(JSXEmptyExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1103,7 +1103,7 @@ const JSXExpressionContainerPrototype: object = {
 	type: 'JSXExpressionContainer',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1111,7 +1111,7 @@ const JSXExpressionContainerPrototype: object = {
 Object.defineProperty(JSXExpressionContainerPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1120,15 +1120,15 @@ const JSXFragmentPrototype: object = {
 	type: 'JSXFragment',
 	get openingFragment() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get children() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	},
 	get closingFragment() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1136,7 +1136,7 @@ const JSXFragmentPrototype: object = {
 Object.defineProperty(JSXFragmentPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1149,7 +1149,7 @@ const JSXIdentifierPrototype: object = {
 Object.defineProperty(JSXIdentifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1158,11 +1158,11 @@ const JSXMemberExpressionPrototype: object = {
 	type: 'JSXMemberExpression',
 	get object() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get property() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1170,7 +1170,7 @@ const JSXMemberExpressionPrototype: object = {
 Object.defineProperty(JSXMemberExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1179,11 +1179,11 @@ const JSXNamespacedNamePrototype: object = {
 	type: 'JSXNamespacedName',
 	get namespace() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1191,7 +1191,7 @@ const JSXNamespacedNamePrototype: object = {
 Object.defineProperty(JSXNamespacedNamePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1200,11 +1200,11 @@ const JSXOpeningElementPrototype: object = {
 	type: 'JSXOpeningElement',
 	get name() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get attributes() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1212,7 +1212,7 @@ const JSXOpeningElementPrototype: object = {
 Object.defineProperty(JSXOpeningElementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1231,7 +1231,7 @@ const JSXOpeningFragmentPrototype: object = {
 Object.defineProperty(JSXOpeningFragmentPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1240,7 +1240,7 @@ const JSXSpreadAttributePrototype: object = {
 	type: 'JSXSpreadAttribute',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1248,7 +1248,7 @@ const JSXSpreadAttributePrototype: object = {
 Object.defineProperty(JSXSpreadAttributePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1257,7 +1257,7 @@ const JSXSpreadChildPrototype: object = {
 	type: 'JSXSpreadChild',
 	get expression() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1265,7 +1265,7 @@ const JSXSpreadChildPrototype: object = {
 Object.defineProperty(JSXSpreadChildPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1274,11 +1274,11 @@ const JSXTextPrototype: object = {
 	type: 'JSXText',
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 3]);
+		return buffer.convertString(buffer[getPosition(this) + 4]);
 	},
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
+		return buffer.convertString(buffer[getPosition(this) + 5]);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1286,7 +1286,7 @@ const JSXTextPrototype: object = {
 Object.defineProperty(JSXTextPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1295,11 +1295,11 @@ const LabeledStatementPrototype: object = {
 	type: 'LabeledStatement',
 	get label() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1307,7 +1307,7 @@ const LabeledStatementPrototype: object = {
 Object.defineProperty(LabeledStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1316,16 +1316,16 @@ const LiteralBigIntPrototype: object = {
 	type: 'Literal',
 	get bigint() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 3]);
+		return buffer.convertString(buffer[getPosition(this) + 4]);
 	},
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
+		return buffer.convertString(buffer[getPosition(this) + 5]);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
-		const bigint = buffer.convertString(buffer[position + 3]);
+		const bigint = buffer.convertString(buffer[position + 4]);
 		return BigInt(bigint);
 	}
 };
@@ -1334,7 +1334,7 @@ const LiteralBigIntPrototype: object = {
 Object.defineProperty(LiteralBigIntPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1344,7 +1344,7 @@ const LiteralBooleanPrototype: object = {
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
-		const value = (buffer[position + 3] & 1) === 1;
+		const value = (buffer[position + 4] & 1) === 1;
 		return value ? 'true' : 'false';
 	}
 };
@@ -1353,7 +1353,7 @@ const LiteralBooleanPrototype: object = {
 Object.defineProperty(LiteralBooleanPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1370,7 +1370,7 @@ const LiteralNullPrototype: object = {
 Object.defineProperty(LiteralNullPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1379,12 +1379,12 @@ const LiteralNumberPrototype: object = {
 	type: 'Literal',
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this) + 3;
+		const position = getPosition(this) + 4;
 		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertFloat64(getPosition(this) + 4);
+		return buffer.convertFloat64(getPosition(this) + 5);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1392,7 +1392,7 @@ const LiteralNumberPrototype: object = {
 Object.defineProperty(LiteralNumberPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1402,22 +1402,22 @@ const LiteralRegExpPrototype: object = {
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
-		const flags = buffer.convertString(buffer[position + 3]);
-		const pattern = buffer.convertString(buffer[position + 4]);
+		const flags = buffer.convertString(buffer[position + 4]);
+		const pattern = buffer.convertString(buffer[position + 5]);
 		return `/${pattern}/${flags}`;
 	},
 	get regex() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
-		const flags = buffer.convertString(buffer[position + 3]);
-		const pattern = buffer.convertString(buffer[position + 4]);
+		const flags = buffer.convertString(buffer[position + 4]);
+		const pattern = buffer.convertString(buffer[position + 5]);
 		return getNodeValue(this as ast.AstNode, 'regex', () => ({ flags, pattern }));
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
-		const flags = buffer.convertString(buffer[position + 3]);
-		const pattern = buffer.convertString(buffer[position + 4]);
+		const flags = buffer.convertString(buffer[position + 4]);
+		const pattern = buffer.convertString(buffer[position + 5]);
 		return getNodeValue(this as ast.AstNode, 'value', () => new RegExp(pattern, flags));
 	}
 };
@@ -1426,7 +1426,7 @@ const LiteralRegExpPrototype: object = {
 Object.defineProperty(LiteralRegExpPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1435,11 +1435,11 @@ const LiteralStringPrototype: object = {
 	type: 'Literal',
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 3]);
+		return buffer.convertString(buffer[getPosition(this) + 4]);
 	},
 	get raw() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this) + 4;
+		const position = getPosition(this) + 5;
 		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
 	}
 };
@@ -1448,7 +1448,7 @@ const LiteralStringPrototype: object = {
 Object.defineProperty(LiteralStringPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1457,11 +1457,11 @@ const LogicalExpressionPrototype: object = {
 	type: 'LogicalExpression',
 	get left() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get right() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1469,7 +1469,7 @@ const LogicalExpressionPrototype: object = {
 Object.defineProperty(LogicalExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1478,11 +1478,11 @@ const MemberExpressionPrototype: object = {
 	type: 'MemberExpression',
 	get object() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get property() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1490,7 +1490,7 @@ const MemberExpressionPrototype: object = {
 Object.defineProperty(MemberExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1499,11 +1499,11 @@ const MetaPropertyPrototype: object = {
 	type: 'MetaProperty',
 	get meta() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get property() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1511,7 +1511,7 @@ const MetaPropertyPrototype: object = {
 Object.defineProperty(MetaPropertyPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1520,15 +1520,15 @@ const MethodDefinitionPrototype: object = {
 	type: 'MethodDefinition',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	},
 	get key() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+		return convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1536,7 +1536,7 @@ const MethodDefinitionPrototype: object = {
 Object.defineProperty(MethodDefinitionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1545,16 +1545,16 @@ const NewExpressionPrototype: object = {
 	type: 'NewExpression',
 	get annotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 3], buffer);
+		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	},
 	get callee() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get arguments() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1562,7 +1562,7 @@ const NewExpressionPrototype: object = {
 Object.defineProperty(NewExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1571,7 +1571,7 @@ const ObjectExpressionPrototype: object = {
 	type: 'ObjectExpression',
 	get properties() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1579,7 +1579,7 @@ const ObjectExpressionPrototype: object = {
 Object.defineProperty(ObjectExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1588,7 +1588,7 @@ const ObjectPatternPrototype: object = {
 	type: 'ObjectPattern',
 	get properties() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1596,7 +1596,7 @@ const ObjectPatternPrototype: object = {
 Object.defineProperty(ObjectPatternPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1609,7 +1609,7 @@ const PrivateIdentifierPrototype: object = {
 Object.defineProperty(PrivateIdentifierPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1618,11 +1618,11 @@ const ProgramPrototype: object = {
 	type: 'Program',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	},
 	get invalidAnnotations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	},
 	sourceType: 'module'
@@ -1632,7 +1632,7 @@ const ProgramPrototype: object = {
 Object.defineProperty(ProgramPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1646,11 +1646,11 @@ const PropertyPrototype: object = {
 			? node.value.type === 'AssignmentPattern'
 				? node.value.left
 				: node.value
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1658,7 +1658,7 @@ const PropertyPrototype: object = {
 Object.defineProperty(PropertyPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1667,17 +1667,17 @@ const PropertyDefinitionPrototype: object = {
 	type: 'PropertyDefinition',
 	get decorators() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	},
 	get key() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	},
 	get value() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
+		return buffer[getPosition(this) + 7] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
+			: convertNode(buffer[getPosition(this) + 7], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1685,7 +1685,7 @@ const PropertyDefinitionPrototype: object = {
 Object.defineProperty(PropertyDefinitionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1694,7 +1694,7 @@ const RestElementPrototype: object = {
 	type: 'RestElement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1702,7 +1702,7 @@ const RestElementPrototype: object = {
 Object.defineProperty(RestElementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1711,9 +1711,9 @@ const ReturnStatementPrototype: object = {
 	type: 'ReturnStatement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1721,7 +1721,7 @@ const ReturnStatementPrototype: object = {
 Object.defineProperty(ReturnStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1730,7 +1730,7 @@ const SequenceExpressionPrototype: object = {
 	type: 'SequenceExpression',
 	get expressions() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1738,7 +1738,7 @@ const SequenceExpressionPrototype: object = {
 Object.defineProperty(SequenceExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1747,7 +1747,7 @@ const SpreadElementPrototype: object = {
 	type: 'SpreadElement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1755,7 +1755,7 @@ const SpreadElementPrototype: object = {
 Object.defineProperty(SpreadElementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1764,7 +1764,7 @@ const StaticBlockPrototype: object = {
 	type: 'StaticBlock',
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1772,7 +1772,7 @@ const StaticBlockPrototype: object = {
 Object.defineProperty(StaticBlockPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1785,7 +1785,7 @@ const SuperPrototype: object = {
 Object.defineProperty(SuperPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1794,13 +1794,13 @@ const SwitchCasePrototype: object = {
 	type: 'SwitchCase',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 3] === 0
+		return buffer[getPosition(this) + 4] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 3], buffer);
+			: convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get consequent() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1808,7 +1808,7 @@ const SwitchCasePrototype: object = {
 Object.defineProperty(SwitchCasePrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1817,11 +1817,11 @@ const SwitchStatementPrototype: object = {
 	type: 'SwitchStatement',
 	get discriminant() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get cases() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1829,7 +1829,7 @@ const SwitchStatementPrototype: object = {
 Object.defineProperty(SwitchStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1838,11 +1838,11 @@ const TaggedTemplateExpressionPrototype: object = {
 	type: 'TaggedTemplateExpression',
 	get tag() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get quasi() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1850,7 +1850,7 @@ const TaggedTemplateExpressionPrototype: object = {
 Object.defineProperty(TaggedTemplateExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1861,8 +1861,8 @@ const TemplateElementPrototype: object = {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		const position = getPosition(this);
 		const cooked =
-			buffer[position + 4] === 0 ? undefined : buffer.convertString(buffer[position + 4]);
-		const raw = buffer.convertString(buffer[position + 5]);
+			buffer[position + 5] === 0 ? undefined : buffer.convertString(buffer[position + 5]);
+		const raw = buffer.convertString(buffer[position + 6]);
 		return getNodeValue(this as ast.AstNode, 'value', () => ({ cooked, raw }));
 	}
 };
@@ -1871,7 +1871,7 @@ const TemplateElementPrototype: object = {
 Object.defineProperty(TemplateElementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1880,11 +1880,11 @@ const TemplateLiteralPrototype: object = {
 	type: 'TemplateLiteral',
 	get quasis() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 3], buffer);
+		return convertNodeList(buffer[getPosition(this) + 4], buffer);
 	},
 	get expressions() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1892,7 +1892,7 @@ const TemplateLiteralPrototype: object = {
 Object.defineProperty(TemplateLiteralPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1905,7 +1905,7 @@ const ThisExpressionPrototype: object = {
 Object.defineProperty(ThisExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1914,7 +1914,7 @@ const ThrowStatementPrototype: object = {
 	type: 'ThrowStatement',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1922,7 +1922,7 @@ const ThrowStatementPrototype: object = {
 Object.defineProperty(ThrowStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1931,19 +1931,19 @@ const TryStatementPrototype: object = {
 	type: 'TryStatement',
 	get block() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get handler() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get finalizer() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
 		return buffer[getPosition(this) + 5] === 0
 			? null
 			: convertNode(buffer[getPosition(this) + 5], buffer);
+	},
+	get finalizer() {
+		const buffer = (this as any)[BUFFER] as AstBuffer;
+		return buffer[getPosition(this) + 6] === 0
+			? null
+			: convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1951,7 +1951,7 @@ const TryStatementPrototype: object = {
 Object.defineProperty(TryStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1960,7 +1960,7 @@ const UnaryExpressionPrototype: object = {
 	type: 'UnaryExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	},
 	prefix: true
 };
@@ -1969,7 +1969,7 @@ const UnaryExpressionPrototype: object = {
 Object.defineProperty(UnaryExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1978,7 +1978,7 @@ const UpdateExpressionPrototype: object = {
 	type: 'UpdateExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+		return convertNode(buffer[getPosition(this) + 6], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -1986,7 +1986,7 @@ const UpdateExpressionPrototype: object = {
 Object.defineProperty(UpdateExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -1995,7 +1995,7 @@ const VariableDeclarationPrototype: object = {
 	type: 'VariableDeclaration',
 	get declarations() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+		return convertNodeList(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -2003,7 +2003,7 @@ const VariableDeclarationPrototype: object = {
 Object.defineProperty(VariableDeclarationPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -2012,13 +2012,13 @@ const VariableDeclaratorPrototype: object = {
 	type: 'VariableDeclarator',
 	get id() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get init() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
+		return buffer[getPosition(this) + 5] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -2026,7 +2026,7 @@ const VariableDeclaratorPrototype: object = {
 Object.defineProperty(VariableDeclaratorPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -2035,11 +2035,11 @@ const WhileStatementPrototype: object = {
 	type: 'WhileStatement',
 	get test() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 3], buffer);
+		return convertNode(buffer[getPosition(this) + 4], buffer);
 	},
 	get body() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+		return convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -2047,7 +2047,7 @@ const WhileStatementPrototype: object = {
 Object.defineProperty(WhileStatementPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -2056,9 +2056,9 @@ const YieldExpressionPrototype: object = {
 	type: 'YieldExpression',
 	get argument() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
+		return buffer[getPosition(this) + 5] === 0
 			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+			: convertNode(buffer[getPosition(this) + 5], buffer);
 	}
 };
 /* The parent must not be enumerable as that would make for..in based
@@ -2066,7 +2066,7 @@ const YieldExpressionPrototype: object = {
 Object.defineProperty(YieldExpressionPrototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
+		const parentPosition = buffer[getPosition(this) + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 });
@@ -2182,8 +2182,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createParseError(
@@ -2194,8 +2194,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createArrayExpression(
@@ -2206,8 +2206,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createArrayPattern(
@@ -2218,8 +2218,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createArrowFunctionExpression(
@@ -2230,9 +2230,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.async = (flags & 1) === 1;
 		node.expression = (flags & 2) === 2;
 		node.generator = (flags & 4) === 4;
@@ -2246,9 +2246,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.operator = FIXED_STRINGS[buffer[position + 4]];
 		return node;
 	},
 	function createAssignmentPattern(
@@ -2259,8 +2259,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createAwaitExpression(
@@ -2271,8 +2271,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createBinaryExpression(
@@ -2283,9 +2283,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.operator = FIXED_STRINGS[buffer[position + 4]];
 		return node;
 	},
 	function createBlockStatement(
@@ -2296,8 +2296,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createBreakStatement(
@@ -2308,8 +2308,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createCallExpression(
@@ -2320,9 +2320,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.optional = (flags & 1) === 1;
 		return node;
 	},
@@ -2334,8 +2334,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createChainExpression(
@@ -2346,8 +2346,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createClassBody(
@@ -2358,8 +2358,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createClassDeclaration(
@@ -2370,8 +2370,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createClassExpression(
@@ -2382,8 +2382,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createConditionalExpression(
@@ -2394,8 +2394,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createContinueStatement(
@@ -2406,8 +2406,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createDebuggerStatement(
@@ -2418,8 +2418,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createDecorator(
@@ -2430,8 +2430,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createDirective(
@@ -2442,8 +2442,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createDoWhileStatement(
@@ -2454,8 +2454,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createEmptyStatement(
@@ -2466,8 +2466,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createExportAllDeclaration(
@@ -2478,8 +2478,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createExportDefaultDeclaration(
@@ -2490,8 +2490,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createExportNamedDeclaration(
@@ -2502,8 +2502,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createExportSpecifier(
@@ -2514,8 +2514,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createExpressionStatement(
@@ -2526,8 +2526,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createForInStatement(
@@ -2538,8 +2538,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createForOfStatement(
@@ -2550,9 +2550,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.await = (flags & 1) === 1;
 		return node;
 	},
@@ -2564,8 +2564,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createFunctionDeclaration(
@@ -2576,9 +2576,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
 		return node;
@@ -2591,9 +2591,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
 		return node;
@@ -2606,9 +2606,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.name = buffer.convertString(buffer[position + 3]);
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.name = buffer.convertString(buffer[position + 4]);
 		return node;
 	},
 	function createIfStatement(
@@ -2619,8 +2619,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createImportAttribute(
@@ -2631,8 +2631,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createImportDeclaration(
@@ -2643,9 +2643,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.phase = buffer[position + 6] === 0 ? undefined : FIXED_STRINGS[buffer[position + 6]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.phase = buffer[position + 7] === 0 ? undefined : FIXED_STRINGS[buffer[position + 7]];
 		return node;
 	},
 	function createImportDefaultSpecifier(
@@ -2656,8 +2656,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createImportExpression(
@@ -2668,9 +2668,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.phase = buffer[position + 5] === 0 ? undefined : FIXED_STRINGS[buffer[position + 5]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.phase = buffer[position + 6] === 0 ? undefined : FIXED_STRINGS[buffer[position + 6]];
 		return node;
 	},
 	function createImportNamespaceSpecifier(
@@ -2681,8 +2681,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createImportSpecifier(
@@ -2693,8 +2693,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXAttribute(
@@ -2705,8 +2705,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXClosingElement(
@@ -2717,8 +2717,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXClosingFragment(
@@ -2729,8 +2729,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXElement(
@@ -2741,8 +2741,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXEmptyExpression(
@@ -2753,8 +2753,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXExpressionContainer(
@@ -2765,8 +2765,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXFragment(
@@ -2777,8 +2777,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXIdentifier(
@@ -2789,9 +2789,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.name = buffer.convertString(buffer[position + 3]);
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.name = buffer.convertString(buffer[position + 4]);
 		return node;
 	},
 	function createJSXMemberExpression(
@@ -2802,8 +2802,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXNamespacedName(
@@ -2814,8 +2814,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXOpeningElement(
@@ -2826,9 +2826,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.selfClosing = (flags & 1) === 1;
 		return node;
 	},
@@ -2840,8 +2840,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXSpreadAttribute(
@@ -2852,8 +2852,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXSpreadChild(
@@ -2864,8 +2864,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createJSXText(
@@ -2876,8 +2876,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLabeledStatement(
@@ -2888,8 +2888,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLiteralBigInt(
@@ -2900,8 +2900,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLiteralBoolean(
@@ -2912,9 +2912,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.value = (flags & 1) === 1;
 		return node;
 	},
@@ -2926,8 +2926,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLiteralNumber(
@@ -2938,8 +2938,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLiteralRegExp(
@@ -2950,8 +2950,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLiteralString(
@@ -2962,8 +2962,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createLogicalExpression(
@@ -2974,9 +2974,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.operator = FIXED_STRINGS[buffer[position + 4]];
 		return node;
 	},
 	function createMemberExpression(
@@ -2987,9 +2987,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.computed = (flags & 1) === 1;
 		node.optional = (flags & 2) === 2;
 		return node;
@@ -3002,8 +3002,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createMethodDefinition(
@@ -3014,12 +3014,12 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.static = (flags & 1) === 1;
 		node.computed = (flags & 2) === 2;
-		node.kind = FIXED_STRINGS[buffer[position + 7]];
+		node.kind = FIXED_STRINGS[buffer[position + 8]];
 		return node;
 	},
 	function createNewExpression(
@@ -3030,8 +3030,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createObjectExpression(
@@ -3042,8 +3042,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createObjectPattern(
@@ -3054,8 +3054,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createPrivateIdentifier(
@@ -3066,9 +3066,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.name = buffer.convertString(buffer[position + 3]);
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.name = buffer.convertString(buffer[position + 4]);
 		return node;
 	},
 	function createProgram(
@@ -3079,8 +3079,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createProperty(
@@ -3091,13 +3091,13 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.method = (flags & 1) === 1;
 		node.shorthand = (flags & 2) === 2;
 		node.computed = (flags & 4) === 4;
-		node.kind = FIXED_STRINGS[buffer[position + 6]];
+		node.kind = FIXED_STRINGS[buffer[position + 7]];
 		return node;
 	},
 	function createPropertyDefinition(
@@ -3108,9 +3108,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.static = (flags & 1) === 1;
 		node.computed = (flags & 2) === 2;
 		return node;
@@ -3123,8 +3123,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createReturnStatement(
@@ -3135,8 +3135,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createSequenceExpression(
@@ -3147,8 +3147,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createSpreadElement(
@@ -3159,8 +3159,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createStaticBlock(
@@ -3171,8 +3171,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createSuper(
@@ -3183,8 +3183,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createSwitchCase(
@@ -3195,8 +3195,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createSwitchStatement(
@@ -3207,8 +3207,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createTaggedTemplateExpression(
@@ -3219,8 +3219,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createTemplateElement(
@@ -3231,9 +3231,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.tail = (flags & 1) === 1;
 		return node;
 	},
@@ -3245,8 +3245,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createThisExpression(
@@ -3257,8 +3257,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createThrowStatement(
@@ -3269,8 +3269,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createTryStatement(
@@ -3281,8 +3281,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createUnaryExpression(
@@ -3293,9 +3293,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.operator = FIXED_STRINGS[buffer[position + 3]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.operator = FIXED_STRINGS[buffer[position + 4]];
 		return node;
 	},
 	function createUpdateExpression(
@@ -3306,11 +3306,11 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.prefix = (flags & 1) === 1;
-		node.operator = FIXED_STRINGS[buffer[position + 4]];
+		node.operator = FIXED_STRINGS[buffer[position + 5]];
 		return node;
 	},
 	function createVariableDeclaration(
@@ -3321,9 +3321,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		node.kind = FIXED_STRINGS[buffer[position + 3]];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		node.kind = FIXED_STRINGS[buffer[position + 4]];
 		return node;
 	},
 	function createVariableDeclarator(
@@ -3334,8 +3334,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createWhileStatement(
@@ -3346,8 +3346,8 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
 		return node;
 	},
 	function createYieldExpression(
@@ -3358,9 +3358,9 @@ const nodeFactories: ((
 		const node: any = Object.create(prototype);
 		node[POSITION] = position;
 		node[BUFFER] = buffer;
-		node.start = buffer[position + 1];
-		node.end = buffer[position + 2];
-		const flags = buffer[position + 3];
+		node.start = buffer[position + 2];
+		node.end = buffer[position + 3];
+		const flags = buffer[position + 4];
 		node.delegate = (flags & 1) === 1;
 		return node;
 	}

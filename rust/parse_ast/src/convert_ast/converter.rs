@@ -2,8 +2,11 @@ use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+  ENCODED_PARENT_BIAS, NODE_DATA_BYTES_AFTER_END, NODE_DATA_OFFSET, NODE_END_OFFSET,
+  NODE_PARENT_OFFSET, NODE_START_OFFSET, NODE_TYPE_OFFSET, TYPE_CLASS_EXPRESSION,
+  TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, WORD_SIZE,
 };
+
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
@@ -28,6 +31,15 @@ mod ast_macros;
 pub(crate) mod scope_constants;
 pub(crate) mod string_constants;
 mod utf16_positions;
+
+const _: () = {
+  assert!(NODE_TYPE_OFFSET == 0);
+  assert!(NODE_PARENT_OFFSET == NODE_TYPE_OFFSET + 1);
+  assert!(NODE_START_OFFSET == NODE_PARENT_OFFSET + 1);
+  assert!(NODE_END_OFFSET == NODE_START_OFFSET + 1);
+  assert!(NODE_DATA_OFFSET == NODE_END_OFFSET + 1);
+  assert!(NODE_DATA_BYTES_AFTER_END == (NODE_DATA_OFFSET - NODE_END_OFFSET) * WORD_SIZE);
+};
 
 pub(crate) struct WalkEntry {
   pub(crate) node_buffer_position: u32,
@@ -294,13 +306,15 @@ impl<'a> AstConverter<'a> {
   }
 
   // === helpers
-  fn add_type_and_parent(&mut self, node_type: &[u8; 4]) {
-    let node_position = (self.buffer.len() as u32) >> 2;
+  fn add_type_and_parent(&mut self, node_type: &[u8; 4]) -> u32 {
+    let node_position = (self.buffer.len() / WORD_SIZE) as u32;
     let parent_position = self
       .node_position_stack
       .last()
       .copied()
-      .map_or(0, |parent_position| parent_position + 1);
+      .map_or(0, |parent_position| {
+        parent_position + ENCODED_PARENT_BIAS as u32
+      });
     self.node_position_stack.push(node_position);
     // type
     self.buffer.extend_from_slice(node_type);
@@ -308,6 +322,7 @@ impl<'a> AstConverter<'a> {
     self
       .buffer
       .extend_from_slice(&parent_position.to_ne_bytes());
+    node_position
   }
 
   pub(crate) fn add_type_and_start(
@@ -317,7 +332,11 @@ impl<'a> AstConverter<'a> {
     reserved_bytes: usize,
     keep_annotations: bool,
   ) -> usize {
-    self.add_type_and_parent(node_type);
+    let node_position = self.add_type_and_parent(node_type) as usize;
+    debug_assert_eq!(
+      self.buffer.len(),
+      (node_position + NODE_START_OFFSET) * WORD_SIZE
+    );
     // start
     let start = self
       .index_converter
@@ -325,6 +344,7 @@ impl<'a> AstConverter<'a> {
     self.buffer.extend_from_slice(&start.to_ne_bytes());
     // end
     let end_position = self.buffer.len();
+    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
     // reserved bytes
     self.buffer.resize(end_position + reserved_bytes, 0);
     end_position
@@ -336,24 +356,30 @@ impl<'a> AstConverter<'a> {
     start: u32,
     reserved_bytes: usize,
   ) -> usize {
-    self.add_type_and_parent(node_type);
+    let node_position = self.add_type_and_parent(node_type) as usize;
+    debug_assert_eq!(
+      self.buffer.len(),
+      (node_position + NODE_START_OFFSET) * WORD_SIZE
+    );
     // start
     self
       .buffer
       .extend_from_slice(&self.index_converter.convert(start, false).to_ne_bytes());
     // end
     let end_position = self.buffer.len();
+    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
     // reserved bytes
     self.buffer.resize(end_position + reserved_bytes, 0);
     end_position
   }
 
   pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
-    self
+    let node_position = self
       .node_position_stack
       .pop()
-      .expect("Cannot end a node that was not started");
-    self.buffer[end_position..end_position + 4].copy_from_slice(
+      .expect("Cannot end a node that was not started") as usize;
+    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
+    self.buffer[end_position..end_position + WORD_SIZE].copy_from_slice(
       &self
         .index_converter
         .convert(span.hi.0 - 1, false)
@@ -362,11 +388,12 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn add_explicit_end(&mut self, end_position: usize, end: u32) {
-    self
+    let node_position = self
       .node_position_stack
       .pop()
-      .expect("Cannot end a node that was not started");
-    self.buffer[end_position..end_position + 4]
+      .expect("Cannot end a node that was not started") as usize;
+    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
+    self.buffer[end_position..end_position + WORD_SIZE]
       .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
@@ -508,28 +535,28 @@ impl<'a> AstConverter<'a> {
 
   /// Reparents the decorators of the current class, which were converted before the class header existed.
   pub(crate) fn reparent_decorators(&mut self, decorator_list_position: u32) {
-    let class_parent_position = self
+    let encoded_class_position = self
       .node_position_stack
       .last()
       .copied()
       .expect("Cannot reparent decorators without a class node")
-      + 1;
-    let list_start = decorator_list_position as usize * 4;
+      + ENCODED_PARENT_BIAS as u32;
+    let list_start = decorator_list_position as usize * WORD_SIZE;
     let decorator_count = u32::from_ne_bytes(
-      self.buffer[list_start..list_start + 4]
+      self.buffer[list_start..list_start + WORD_SIZE]
         .try_into()
         .expect("Decorator list is truncated"),
     );
     for index in 0..decorator_count as usize {
-      let reference_position = list_start + 4 + index * 4;
+      let reference_position = list_start + WORD_SIZE + index * WORD_SIZE;
       let decorator_position = u32::from_ne_bytes(
-        self.buffer[reference_position..reference_position + 4]
+        self.buffer[reference_position..reference_position + WORD_SIZE]
           .try_into()
           .expect("Decorator reference is truncated"),
       ) as usize;
-      let parent_word_position = decorator_position * 4 + 4;
-      self.buffer[parent_word_position..parent_word_position + 4]
-        .copy_from_slice(&class_parent_position.to_ne_bytes());
+      let parent_word_position = (decorator_position + NODE_PARENT_OFFSET) * WORD_SIZE;
+      self.buffer[parent_word_position..parent_word_position + WORD_SIZE]
+        .copy_from_slice(&encoded_class_position.to_ne_bytes());
     }
   }
 

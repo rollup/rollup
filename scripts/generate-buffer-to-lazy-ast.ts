@@ -1,6 +1,14 @@
 import { writeFile } from 'node:fs/promises';
 import type { AstNodeName, FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import {
+	ENCODED_PARENT_BIAS,
+	getFirstFieldWordOffset,
+	NODE_DATA_OFFSET,
+	NODE_END_OFFSET,
+	NODE_PARENT_OFFSET,
+	NODE_START_OFFSET
+} from './buffer-layout.ts';
 import { generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
@@ -19,8 +27,25 @@ const memoisedAdditionalFields = new Set([
 	'TemplateElement.value'
 ]);
 
+for (const [nodeName, fieldName] of Object.entries(eagerStringFields)) {
+	const node = astNodeNamesWithFieldOrder.find(({ name }) => name === nodeName)?.node;
+	if (!node?.fields?.some(field => field.name === fieldName && field.type === 'String')) {
+		throw new Error(
+			`The eager string field ${nodeName}.${fieldName} is not a String field of that node`
+		);
+	}
+}
+
+for (const field of memoisedAdditionalFields) {
+	const [nodeName, fieldName] = field.split('.');
+	const node = astNodeNamesWithFieldOrder.find(({ name }) => name === nodeName)?.node;
+	if (!node || !(fieldName in (node.additionalFields ?? {}))) {
+		throw new Error(`The memoised field ${field} is not an additional field of that node`);
+	}
+}
+
 function getOffset(node: NodeDescription): number {
-	return node.flags ? 4 : 3;
+	return getFirstFieldWordOffset(Boolean(node.flags));
 }
 
 function isEagerScalar(nodeName: AstNodeName, field: FieldDescription): boolean {
@@ -48,8 +73,10 @@ const prototypeDeclarations = astNodeNamesWithFieldOrder.map(({ name, fields, no
 Object.defineProperty(${name}Prototype, 'parent', {
 	get() {
 		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this)];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+		const parentPosition = buffer[getPosition(this) + ${NODE_PARENT_OFFSET}];
+		return parentPosition === 0
+			? null
+			: convertNode(parentPosition - ${ENCODED_PARENT_BIAS}, buffer);
 	}
 });`;
 });
@@ -58,7 +85,7 @@ const nodeFactories = astNodeNamesWithFieldOrder.map(({ name, fields, node }) =>
 	const offset = getOffset(node);
 	const assignments: string[] = [];
 	if (node.flags) {
-		assignments.push('const flags = buffer[position + 3];');
+		assignments.push(`const flags = buffer[position + ${NODE_DATA_OFFSET}];`);
 		for (const [index, flag] of node.flags.entries()) {
 			assignments.push(`node.${flag} = (flags & ${1 << index}) === ${1 << index};`);
 		}
@@ -74,8 +101,8 @@ const nodeFactories = astNodeNamesWithFieldOrder.map(({ name, fields, node }) =>
 	const node: any = Object.create(prototype);
 	node[POSITION] = position;
 	node[BUFFER] = buffer;
-	node.start = buffer[position + 1];
-	node.end = buffer[position + 2];
+	node.start = buffer[position + ${NODE_START_OFFSET}];
+	node.end = buffer[position + ${NODE_END_OFFSET}];
 	${assignments.length > 0 ? `${assignments.join('\n\t')}\n\t` : ''}return node;
 }`;
 });
@@ -169,7 +196,7 @@ function getBaseAssignment(
 	const flagIndex = node.flags?.indexOf(base) ?? -1;
 	if (flagIndex >= 0) {
 		const mask = 1 << flagIndex;
-		return `const ${base} = (buffer[position + 3] & ${mask}) === ${mask};`;
+		return `const ${base} = (buffer[position + ${NODE_DATA_OFFSET}] & ${mask}) === ${mask};`;
 	}
 	throw new Error(`Unknown base field "${base}"`);
 }
@@ -232,7 +259,7 @@ export function convertNode(position: number, buffer: AstBuffer): any {
 		console.trace();
 		throw new Error(\`Unknown node type: \${nodeType}\`);
 	}
-	const node = nodeFactories[nodeType](position + 1, buffer, prototype);
+	const node = nodeFactories[nodeType](position, buffer, prototype);
 	cache.set(position, node);
 	return node;
 }

@@ -3,6 +3,13 @@
 import { writeFile } from 'node:fs/promises';
 import type { AstNodeName, AstTypeName, FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import {
+	ENCODED_PARENT_BIAS,
+	NODE_DATA_OFFSET,
+	NODE_END_OFFSET,
+	NODE_PARENT_OFFSET,
+	NODE_START_OFFSET
+} from './buffer-layout.ts';
 import { generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
@@ -60,7 +67,7 @@ function getNodeSerializerBody({
 	node: { optionalFallback, serializeHiddenFields, shorthandKey }
 }: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
-	let nextPosition = 4; // 1 for type, 1 for parent, 2 for start and end
+	let nextPosition = NODE_DATA_OFFSET;
 	if (flags) {
 		const flagConverters = flags.map((flag, index) => `((node.${flag} as any) << ${index})`);
 		fieldSerializers.push(
@@ -73,7 +80,7 @@ function getNodeSerializerBody({
 		switch (field.type) {
 			case 'Node': {
 				const nodeTypeCast = field.allowNull ? ` as AstNode & { ${fieldName}: AstNode }` : '';
-				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition}, nodePosition + 1);`;
+				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition}, nodePosition + ${ENCODED_PARENT_BIAS});`;
 				if (field.allowNull) {
 					if (optionalFallback?.[fieldName]) {
 						fieldSerializer =
@@ -89,7 +96,7 @@ function getNodeSerializerBody({
 			}
 			case 'NodeList': {
 				fieldSerializers.push(
-					`buffer = serializeNodeList(${JSON.stringify(fieldName)}, node, buffer, nodePosition + ${nextPosition}, nodePosition + 1);`
+					`buffer = serializeNodeList(${JSON.stringify(fieldName)}, node, buffer, nodePosition + ${nextPosition}, nodePosition + ${ENCODED_PARENT_BIAS});`
 				);
 				break;
 			}
@@ -135,9 +142,9 @@ function getNodeSerializerBody({
 		  const nodePosition = buffer.position;
 		  buffer = buffer.reserve(${nextPosition});
 		  buffer[nodePosition] = ${index};
-		  buffer[nodePosition + 1] = encodedParent;
-		  buffer[nodePosition + 2] = node.start;
-		  buffer[nodePosition + 3] = node.end;
+		  buffer[nodePosition + ${NODE_PARENT_OFFSET}] = encodedParent;
+		  buffer[nodePosition + ${NODE_START_OFFSET}] = node.start;
+		  buffer[nodePosition + ${NODE_END_OFFSET}] = node.end;
 		  ${fieldSerializers.map(s => s + '\n').join('')}return buffer;
 		}`;
 }
