@@ -20,6 +20,14 @@ if (identifierNameFieldIndex < 0) {
 const identifierNameOffset =
 	getFirstFieldWordOffset(Boolean(identifier.node.flags)) + identifierNameFieldIndex;
 
+for (const { name, fields } of astNodeNamesWithFieldOrder) {
+	const floatIndex = fields.findIndex(field => field.type === 'Float');
+	if (floatIndex >= 0 && floatIndex !== fields.length - 1) {
+		// Floats occupy two words, but decoders derive later field offsets from the field index.
+		throw new Error(`The Float field ${name}.${fields[floatIndex].name} must be the last field`);
+	}
+}
+
 const bufferLayout = `${notEditFilesComment}
 export const IDENTIFIER_NAME_OFFSET = ${identifierNameOffset};
 `;
