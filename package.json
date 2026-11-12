@@ -115,7 +115,7 @@
   },
   "homepage": "https://rollupjs.org/",
   "optionalDependencies": {
-    "@napi-rs/lzma-linux-x64-gnu": "1.5.1",
+    "@napi-rs/lzma-linux-x64-gnu": "1.5.3",
     "fsevents": "~2.3.2"
   },
   "dependencies": {
@@ -195,7 +195,7 @@
     "pretty-bytes": "^7.2.0",
     "pretty-ms": "^9.3.1",
     "requirejs": "^2.3.8",
-    "rollup": "^4.67.4",
+    "rollup": "^4.68.2",
     "rollup-plugin-license": "^3.7.1",
     "semver": "^7.8.6",
     "shx": "^0.4.0",
@@ -206,17 +206,17 @@
     "terser": "^5.51.2",
     "tslib": "^2.9.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.1",
-    "vite": "^7.3.7",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^7.3.8",
     "vitepress": "^1.6.4",
-    "vue": "^3.5.44",
-    "vue-eslint-parser": "^10.4.1",
+    "vue": "^3.5.45",
+    "vue-eslint-parser": "^10.4.2",
     "vue-tsc": "^3.3.14",
     "wasm-pack": "^0.15.1",
     "yargs-parser": "^21.1.1"
   },
   "overrides": {
-    "axios": "^1.21.0",
+    "axios": "^1.21.1",
     "esbuild": ">0.24.2",
     "lodash-es": ">4.17.22",
     "path-scurry": {
