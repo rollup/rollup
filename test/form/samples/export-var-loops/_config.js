@@ -1,4 +1,4 @@
 module.exports = defineTest({
-	description: 'renders exported var declarations in loop bodies and heads',
+	description: 'renders exported var declarations in single-statement positions',
 	formats: ['amd', 'cjs', 'es', 'system']
 });

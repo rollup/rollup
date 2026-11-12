@@ -26,3 +26,10 @@ for (var first = 1, second = 2; first < 2; first++) {
 
 export var bodyA, bodyB;
 for (const value of [1]) var bodyA = value, bodyB = value;
+
+export var branchA, branchB;
+if (globalThis.condition) var branchA = 1, branchB = 2;
+
+export var alternateA, alternateB;
+if (globalThis.condition) {
+} else var alternateA = 3, alternateB = 4;

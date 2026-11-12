@@ -29,8 +29,18 @@ for (var first = 1, second = 2; first < 2; first++) {
 var bodyA, bodyB;
 for (const value of [1]) var bodyA = value, bodyB = value;
 
+var branchA, branchB;
+if (globalThis.condition) var branchA = 1, branchB = 2;
+
+var alternateA, alternateB;
+if (globalThis.condition) ; else var alternateA = 3, alternateB = 4;
+
+exports.alternateA = alternateA;
+exports.alternateB = alternateB;
 exports.bodyA = bodyA;
 exports.bodyB = bodyB;
+exports.branchA = branchA;
+exports.branchB = branchB;
 Object.defineProperty(exports, "first", {
 	configurable: true,
 	enumerable: true,

@@ -128,32 +128,22 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private isForStatementInit(): boolean {
-		const parent = this.parent;
-		return parent.type === NodeType.ForStatement && (parent as { init?: unknown }).init === this;
-	}
-
-	isInSingleStatementPosition(): boolean {
-		return this.isForStatementInit() || this.isBracelessLoopBody();
-	}
-
-	private isBracelessLoopBody(): boolean {
-		const parent = this.parent;
-		return (
-			(parent.type === NodeType.ForStatement ||
-				parent.type === NodeType.ForInStatement ||
-				parent.type === NodeType.ForOfStatement ||
-				parent.type === NodeType.WhileStatement ||
-				parent.type === NodeType.DoWhileStatement) &&
-			(parent as { body?: unknown }).body === this
-		);
-	}
-
 	private isForInOfHead(): boolean {
 		const parent = this.parent;
 		return (
 			(parent.type === NodeType.ForOfStatement || parent.type === NodeType.ForInStatement) &&
 			(parent as { left?: unknown }).left === this
+		);
+	}
+
+	isInSingleStatementPosition(): boolean {
+		const { type } = this.parent;
+		return !(
+			type === NodeType.Program ||
+			type === NodeType.BlockStatement ||
+			type === NodeType.StaticBlock ||
+			type === NodeType.SwitchCase ||
+			type === NodeType.ExportNamedDeclaration
 		);
 	}
 

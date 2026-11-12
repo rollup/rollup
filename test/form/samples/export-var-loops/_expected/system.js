@@ -32,6 +32,12 @@ System.register([], (function (exports) {
 			var bodyA, bodyB; exports({ bodyA: bodyA, bodyB: bodyB });
 			for (const value of [1]) var bodyA = exports("bodyA", value), bodyB = exports("bodyB", value);
 
+			var branchA, branchB; exports({ branchA: branchA, branchB: branchB });
+			if (globalThis.condition) var branchA = exports("branchA", 1), branchB = exports("branchB", 2);
+
+			var alternateA, alternateB; exports({ alternateA: alternateA, alternateB: alternateB });
+			if (globalThis.condition) ; else var alternateA = exports("alternateA", 3), alternateB = exports("alternateB", 4);
+
 		})
 	};
 }));
