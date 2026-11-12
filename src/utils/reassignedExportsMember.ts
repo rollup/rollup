@@ -8,3 +8,13 @@ export function isReassignedExportsMember(
 		variable.renderBaseName !== null && exportNamesByVariable.has(variable) && variable.isReassigned
 	);
 }
+
+export function isDeclaredWithoutBinding(
+	variable: Variable | null | undefined,
+	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+): boolean {
+	if (!variable) return false;
+	if (isReassignedExportsMember(variable, exportNamesByVariable)) return true;
+	const hoistedVariable = variable.getHoistedVariable();
+	return hoistedVariable !== undefined && hoistedVariable.renderBaseName !== null;
+}

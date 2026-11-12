@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
+import { isDeclaredWithoutBinding } from '../../utils/reassignedExportsMember';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -135,11 +135,12 @@ export default class VariableDeclaration extends NodeBase {
 		const declarator = this.declarations[0];
 		if (
 			declarator.id instanceof Identifier &&
-			isReassignedExportsMember(declarator.id.variable!, options.exportNamesByVariable)
+			isDeclaredWithoutBinding(declarator.id.variable, options.exportNamesByVariable)
 		) {
 			// `for (var name of xs)` declares `name`, but a reassigned export is
-			// rendered as `exports.name`. Keeping `var`, or synthesizing `= void 0`
-			// because the declarator has no initializer, is a syntax error.
+			// rendered as `exports.name`, and a catch parameter shadowing one must
+			// stay an assignment. Keeping `var`, or synthesizing `= void 0` because
+			// the declarator has no initializer, is a syntax error.
 			code.remove(this.start, declarator.id.start);
 			declarator.id.render(code, options);
 			return;
@@ -231,10 +232,17 @@ export default class VariableDeclaration extends NodeBase {
 			node.render(code, options);
 			leadingString = '';
 			nextSeparatorString = '';
+			const keepDeclaration =
+				omitTrailingSemicolon &&
+				this.declarations.length > 1 &&
+				node.id instanceof Identifier &&
+				node.id.variable?.getHoistedVariable() !== undefined &&
+				isDeclaredWithoutBinding(node.id.variable, options.exportNamesByVariable);
 			if (
 				!node.id.included ||
-				(node.id instanceof Identifier &&
-					isReassignedExportsMember(
+				(!keepDeclaration &&
+					node.id instanceof Identifier &&
+					isDeclaredWithoutBinding(
 						(node.id as IdentifierWithVariable).variable,
 						options.exportNamesByVariable
 					))
@@ -297,7 +305,12 @@ export default class VariableDeclaration extends NodeBase {
 		for (const declarator of this.declarations) {
 			if (!declarator.id.included) return false;
 			if (declarator.id.type === NodeType.Identifier) {
-				if (exportNamesByVariable.has(declarator.id.variable!)) return false;
+				if (
+					exportNamesByVariable.has(declarator.id.variable!) ||
+					isDeclaredWithoutBinding(declarator.id.variable, exportNamesByVariable)
+				) {
+					return false;
+				}
 			} else {
 				const exportedVariables: Variable[] = [];
 				declarator.id.addExportedVariables(exportedVariables, exportNamesByVariable);
