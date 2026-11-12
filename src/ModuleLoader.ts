@@ -706,9 +706,12 @@ export class ModuleLoader {
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
-				return error(logUnresolvedImport(source, importer));
+				return error(logUnresolvedImport(source, importer, attributes));
 			}
-			this.options.onLog(LOGLEVEL_WARN, logUnresolvedImportTreatedAsExternal(source, importer));
+			this.options.onLog(
+				LOGLEVEL_WARN,
+				logUnresolvedImportTreatedAsExternal(source, importer, attributes)
+			);
 			return {
 				attributes,
 				external: true,
@@ -719,7 +722,7 @@ export class ModuleLoader {
 				syntheticNamedExports: false
 			};
 		} else if (resolvedId.external && resolvedId.syntheticNamedExports) {
-			this.options.onLog(LOGLEVEL_WARN, logExternalSyntheticExports(source, importer));
+			this.options.onLog(LOGLEVEL_WARN, logExternalSyntheticExports(source, importer, attributes));
 		}
 		return resolvedId;
 	}
@@ -757,8 +760,8 @@ export class ModuleLoader {
 		if (resolveIdResult == null) {
 			return error(
 				implicitlyLoadedBeforeId === null
-					? logUnresolvedEntry(unresolvedId)
-					: logUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBeforeId)
+					? logUnresolvedEntry(unresolvedId, attributes)
+					: logUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBeforeId, attributes)
 			);
 		}
 		const isExternalModules = typeof resolveIdResult === 'object' && resolveIdResult.external;
@@ -766,9 +769,9 @@ export class ModuleLoader {
 			return error(
 				implicitlyLoadedBeforeId === null
 					? isExternalModules && isLoadForManualChunks
-						? logExternalModulesCannotBeIncludedInManualChunks(unresolvedId)
-						: logEntryCannotBeExternal(unresolvedId)
-					: logImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBeforeId)
+						? logExternalModulesCannotBeIncludedInManualChunks(unresolvedId, attributes)
+						: logEntryCannotBeExternal(unresolvedId, attributes)
+					: logImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBeforeId, attributes)
 			);
 		}
 		return this.fetchModule(
