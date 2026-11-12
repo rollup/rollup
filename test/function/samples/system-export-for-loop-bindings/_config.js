@@ -1,42 +1,25 @@
 const assert = require('node:assert/strict');
+const { getSystemExportRecorder } = require('../../../testHelpers.js');
 
-const exportedValues = new Map();
-let execute;
+const { context, execute, last } = getSystemExportRecorder();
 
 module.exports = defineTest({
 	description: 'updates system exports for bindings assigned in for-of and for-in heads',
 	options: { output: { format: 'system' } },
-	context: {
-		System: {
-			register(_dependencies, declaration) {
-				({ execute } = declaration(recordSystemExport));
-			}
-		}
-	},
+	context,
 	exports() {
 		execute();
-		assert.equal(exportedValues.get('current'), 'b');
-		assert.equal(exportedValues.get('key'), 'k');
-		assert.equal(exportedValues.get('first'), 'x');
-		assert.equal(exportedValues.get('second'), 'y');
-		assert.equal(exportedValues.get('prop'), 'p');
-		assert.equal(exportedValues.get('seen'), 'b');
-		assert.equal(exportedValues.get('joined'), 'ab');
-		assert.equal(exportedValues.get('inline'), 'q!');
-		assert.equal(exportedValues.get('shadowed'), 'outer');
-		assert.equal(exportedValues.get('shadowLog'), 'inner');
-		assert.equal(exportedValues.get('renamed'), 'z');
-		assert.equal(exportedValues.get('exportShadow'), 1);
+		assert.equal(last('current'), 'b');
+		assert.equal(last('key'), 'k');
+		assert.equal(last('first'), 'x');
+		assert.equal(last('second'), 'y');
+		assert.equal(last('prop'), 'p');
+		assert.equal(last('seen'), 'b');
+		assert.equal(last('joined'), 'ab');
+		assert.equal(last('inline'), 'q!');
+		assert.equal(last('shadowed'), 'outer');
+		assert.equal(last('shadowLog'), 'inner');
+		assert.equal(last('renamed'), 'z');
+		assert.equal(last('exportShadow'), 1);
 	}
 });
-
-function recordSystemExport(name, value) {
-	if (typeof name === 'object' && name !== null) {
-		for (const key of Object.keys(name)) {
-			exportedValues.set(key, name[key]);
-		}
-		return name;
-	}
-	exportedValues.set(name, value);
-	return value;
-}

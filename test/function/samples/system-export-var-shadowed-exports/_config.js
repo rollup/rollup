@@ -1,26 +1,15 @@
 const assert = require('node:assert/strict');
+const { getSystemExportRecorder } = require('../../../testHelpers.js');
 
-const exportedValues = new Map();
-let execute;
+const { context, execute, last } = getSystemExportRecorder();
 
 module.exports = defineTest({
 	description:
 		'renames a block binding that shadows exports when a var is hoisted through that block',
 	options: { output: { format: 'system' } },
-	context: {
-		System: {
-			register(_dependencies, declaration) {
-				({ execute } = declaration(recordSystemExport));
-			}
-		}
-	},
+	context,
 	exports() {
 		execute();
-		assert.equal(exportedValues.get('blockVar'), 1);
+		assert.equal(last('blockVar'), 1);
 	}
 });
-
-function recordSystemExport(name, value) {
-	exportedValues.set(name, value);
-	return value;
-}

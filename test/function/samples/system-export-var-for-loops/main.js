@@ -1,23 +1,23 @@
-export let trace = '';
+export const trace = [];
 
 export var working;
 for (working of ['a', 'b']) {
-	trace += 'W' + working;
+	trace.push(['working', working]);
 }
 
-export var notWorking1;
-for (var notWorking1 of ['a', 'b']) {
-	trace += '1' + notWorking1;
+export var exportedBeforeForOf;
+for (var exportedBeforeForOf of ['a', 'b']) {
+	trace.push(['exportedBeforeForOf', exportedBeforeForOf]);
 }
 
-export { notWorking2 };
-for (var notWorking2 of ['a', 'b']) {
-	trace += '2' + notWorking2;
+export { exportedSeparately };
+for (var exportedSeparately of ['a', 'b']) {
+	trace.push(['exportedSeparately', exportedSeparately]);
 }
 
 export var inVar;
 for (var inVar in { a: 1, b: 1 }) {
-	trace += 'I' + inVar;
+	trace.push(['inVar', inVar]);
 }
 
 export var patternFirst, patternSecond;
@@ -25,17 +25,25 @@ for (var [patternFirst, patternSecond] of [
 	['x', 'y'],
 	['u', 'v']
 ]) {
-	trace += patternFirst + patternSecond;
+	trace.push(['patternFirst', patternFirst], ['patternSecond', patternSecond]);
 }
 
 export var patternProp;
 for (var { patternProp } of [{ patternProp: 'p' }, { patternProp: 'q' }]) {
-	trace += patternProp;
+	trace.push(['patternProp', patternProp]);
+}
+
+export var arrayRest, objectRest;
+for (var [...arrayRest] of [[1, 2], [3]]) {
+	trace.push(['arrayRest', arrayRest]);
+}
+for (var { ...objectRest } of [{ x: 1 }, { y: 2 }]) {
+	trace.push(['objectRest', objectRest]);
 }
 
 export var withDefault;
 for (var { withDefault = 'fallback' } of [{}, { withDefault: 'set' }]) {
-	trace += withDefault;
+	trace.push(['withDefault', withDefault]);
 }
 
 export var emptyVar;
@@ -47,16 +55,14 @@ for (var inlineVar of ['q']) inlineVar += '!';
 export var shadowedVar;
 for (var shadowedVar of ['outer']) {
 	let shadowedVar = 'inner';
-	trace += shadowedVar;
+	trace.push(['shadowedVar', shadowedVar]);
 }
 
 export var renamedVar;
-const kept = [];
 for (var renamedVar of ['z']) {
 	let exports = 1;
-	kept.push(exports);
+	trace.push(['blockExports', exports]);
 }
-trace += kept[0];
 
 for (var notExported of ['nope']);
 
@@ -64,27 +70,27 @@ export var outerShadow;
 {
 	let exports = 1;
 	for (var outerShadow of ['a', 'b']) {
-		trace += 'S';
+		trace.push(['outerShadow', outerShadow]);
 	}
-	trace += exports;
+	trace.push(['outerShadowExports', exports]);
 }
 
 export var outerIn;
 {
 	let exports = 3;
 	for (var outerIn in { a: 1 }) {
-		trace += 'N';
+		trace.push(['outerIn', outerIn]);
 	}
-	trace += exports;
+	trace.push(['outerInExports', exports]);
 }
 
 export var patternOuterA, patternOuterB;
 {
 	let exports = 5;
 	for (var [patternOuterA, patternOuterB] of [['m', 'n']]) {
-		trace += 'P';
+		trace.push(['patternOuter', [patternOuterA, patternOuterB]]);
 	}
-	trace += exports;
+	trace.push(['patternOuterExports', exports]);
 }
 
 export var exports;
@@ -95,24 +101,22 @@ let seenRenamed = '';
 		seenRenamed += exports$1;
 	}
 }
-trace += seenRenamed;
+trace.push(['renamedExports', seenRenamed]);
 
 export var assignedOuter;
 {
 	let exports = 4;
 	for (assignedOuter of ['p', 'q']) {
-		trace += 'A';
+		trace.push(['assignedOuter', assignedOuter]);
 	}
-	trace += exports;
+	trace.push(['assignedOuterExports', exports]);
 }
 
 export var notInner = 'keep';
 function wrapLoop() {
-	let exports = 9;
 	for (var notInner of ['z']) {
-		trace += 'F';
+		trace.push(['notInner', notInner]);
 	}
-	trace += exports;
 }
 wrapLoop();
 
@@ -120,8 +124,8 @@ export var fromFunction;
 function assignOuter() {
 	let exports = 8;
 	for (fromFunction of ['m']) {
-		trace += 'G';
+		trace.push(['fromFunction', fromFunction]);
 	}
-	trace += exports;
+	trace.push(['fromFunctionExports', exports]);
 }
 assignOuter();

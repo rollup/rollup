@@ -1,38 +1,21 @@
 const assert = require('node:assert/strict');
+const { getSystemExportRecorder } = require('../../../testHelpers.js');
 
-const exportedValues = new Map();
-let execute;
+const { context, execute, last } = getSystemExportRecorder();
 
 module.exports = defineTest({
 	description:
 		'parenthesizes system export updates for destructuring assignments that start a statement',
 	options: { output: { format: 'system' } },
-	context: {
-		System: {
-			register(_dependencies, declaration) {
-				({ execute } = declaration(recordSystemExport));
-			}
-		}
-	},
+	context,
 	exports() {
 		execute();
-		assert.equal(exportedValues.get('count'), 1);
-		assert.equal(exportedValues.get('top'), 9);
-		assert.equal(exportedValues.get('name'), 'ok');
-		assert.equal(exportedValues.get('fromExpr'), 4);
-		assert.equal(exportedValues.get('seq'), 5);
-		assert.equal(exportedValues.get('paired'), 7);
-		assert.equal(exportedValues.get('pairedAlias'), 7);
+		assert.equal(last('count'), 1);
+		assert.equal(last('top'), 9);
+		assert.equal(last('name'), 'ok');
+		assert.equal(last('fromExpr'), 4);
+		assert.equal(last('seq'), 5);
+		assert.equal(last('paired'), 7);
+		assert.equal(last('pairedAlias'), 7);
 	}
 });
-
-function recordSystemExport(name, value) {
-	if (typeof name === 'object' && name !== null) {
-		for (const key of Object.keys(name)) {
-			exportedValues.set(key, name[key]);
-		}
-		return name;
-	}
-	exportedValues.set(name, value);
-	return value;
-}

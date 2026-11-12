@@ -1,27 +1,60 @@
 const assert = require('node:assert/strict');
+const { getSystemExportRecorder } = require('../../../testHelpers.js');
 
-const exportHistory = [];
-let execute;
+const { context, definedValues, execute, last } = getSystemExportRecorder();
 
 module.exports = defineTest({
 	description: 'updates system exports for var bindings in for-of and for-in heads',
 	options: { output: { format: 'system' } },
-	context: {
-		System: {
-			register(_dependencies, declaration) {
-				({ execute } = declaration(recordSystemExport));
-			}
-		}
-	},
+	context,
 	exports() {
 		execute();
-		assert.equal(last('trace'), 'WaWb1a1b2a2bIaIbxyuvpqfallbacksetinner1SS1N3P522AA4F9G8');
+		assert.deepEqual(last('trace'), [
+			['working', 'a'],
+			['working', 'b'],
+			['exportedBeforeForOf', 'a'],
+			['exportedBeforeForOf', 'b'],
+			['exportedSeparately', 'a'],
+			['exportedSeparately', 'b'],
+			['inVar', 'a'],
+			['inVar', 'b'],
+			['patternFirst', 'x'],
+			['patternSecond', 'y'],
+			['patternFirst', 'u'],
+			['patternSecond', 'v'],
+			['patternProp', 'p'],
+			['patternProp', 'q'],
+			['arrayRest', [1, 2]],
+			['arrayRest', [3]],
+			['objectRest', { x: 1 }],
+			['objectRest', { y: 2 }],
+			['withDefault', 'fallback'],
+			['withDefault', 'set'],
+			['shadowedVar', 'inner'],
+			['blockExports', 1],
+			['outerShadow', 'a'],
+			['outerShadow', 'b'],
+			['outerShadowExports', 1],
+			['outerIn', 'a'],
+			['outerInExports', 3],
+			['patternOuter', ['m', 'n']],
+			['patternOuterExports', 5],
+			['renamedExports', '22'],
+			['assignedOuter', 'p'],
+			['assignedOuter', 'q'],
+			['assignedOuterExports', 4],
+			['notInner', 'z'],
+			['fromFunction', 'm'],
+			['fromFunctionExports', 8]
+		]);
 		assert.deepEqual(definedValues('working'), ['a', 'b']);
-		assert.deepEqual(definedValues('notWorking1'), ['a', 'b']);
-		assert.deepEqual(definedValues('notWorking2'), ['a', 'b']);
+		assert.deepEqual(definedValues('exportedBeforeForOf'), ['a', 'b']);
+		assert.deepEqual(definedValues('exportedSeparately'), ['a', 'b']);
 		assert.deepEqual(definedValues('inVar'), ['a', 'b']);
 		assert.deepEqual(definedValues('patternFirst'), ['x', 'u']);
 		assert.deepEqual(definedValues('patternSecond'), ['y', 'v']);
+		assert.deepEqual(definedValues('arrayRest'), [[1, 2], [3]]);
+		assert.deepEqual(definedValues('objectRest'), [{ x: 1 }, { y: 2 }]);
 		assert.deepEqual(definedValues('patternProp'), ['p', 'q']);
 		assert.deepEqual(definedValues('withDefault'), ['fallback', 'set']);
 		assert.equal(last('emptyVar'), 'e');
@@ -39,28 +72,3 @@ module.exports = defineTest({
 		assert.equal(last('fromFunction'), 'm');
 	}
 });
-
-function recordSystemExport(name, value) {
-	if (typeof name === 'object' && name !== null) {
-		for (const key of Object.keys(name)) {
-			exportHistory.push([key, name[key]]);
-		}
-		return name;
-	}
-	exportHistory.push([name, value]);
-	return value;
-}
-
-function valuesOf(name) {
-	return exportHistory.filter(([key]) => key === name).map(([, value]) => value);
-}
-
-function definedValues(name) {
-	return valuesOf(name).filter(value => value !== undefined);
-}
-
-function last(name) {
-	const values = valuesOf(name);
-	assert.ok(values.length > 0, name);
-	return values[values.length - 1];
-}

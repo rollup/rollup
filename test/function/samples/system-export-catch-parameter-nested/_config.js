@@ -1,31 +1,14 @@
 const assert = require('node:assert/strict');
+const { getSystemExportRecorder } = require('../../../testHelpers.js');
 
-const exportedValues = new Map();
-let execute;
+const { context, execute, last } = getSystemExportRecorder();
 
 module.exports = defineTest({
 	description: 'assigns the outer catch parameter from a var declaration in a nested catch',
 	options: { output: { format: 'system' } },
-	context: {
-		System: {
-			register(_dependencies, declaration) {
-				({ execute } = declaration(recordSystemExport));
-			}
-		}
-	},
+	context,
 	exports() {
 		execute();
-		assert.equal(exportedValues.get('a'), 'outer');
+		assert.equal(last('a'), 'outer');
 	}
 });
-
-function recordSystemExport(name, value) {
-	if (typeof name === 'object' && name !== null) {
-		for (const key of Object.keys(name)) {
-			exportedValues.set(key, name[key]);
-		}
-		return name;
-	}
-	exportedValues.set(name, value);
-	return value;
-}

@@ -1,37 +1,16 @@
 const assert = require('node:assert/strict');
+const { getSystemExportRecorder } = require('../../../testHelpers.js');
 
-const exportHistory = [];
-let execute;
+const { context, execute, valuesOf } = getSystemExportRecorder();
 
 module.exports = defineTest({
 	description:
 		'exports only the non-catch declarations in mixed declarators that shadow an exported var',
 	options: { output: { format: 'system' } },
-	context: {
-		System: {
-			register(_dependencies, declaration) {
-				({ execute } = declaration(recordSystemExport));
-			}
-		}
-	},
+	context,
 	exports() {
 		execute();
 		assert.deepEqual(valuesOf('a'), ['outer']);
 		assert.deepEqual(valuesOf('b'), ['outer b', 2, 0]);
 	}
 });
-
-function recordSystemExport(name, value) {
-	if (typeof name === 'object' && name !== null) {
-		for (const key of Object.keys(name)) {
-			exportHistory.push([key, name[key]]);
-		}
-		return name;
-	}
-	exportHistory.push([name, value]);
-	return value;
-}
-
-function valuesOf(name) {
-	return exportHistory.filter(([key]) => key === name).map(([, value]) => value);
-}
