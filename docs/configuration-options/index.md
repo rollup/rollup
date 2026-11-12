@@ -1569,7 +1569,7 @@ manualChunks: {
 
 will merge the `get` module and the lodash modules only used by it into a manual chunk named `lodash`.
 
-As modules imported with import attributes are separate modules (see [Module identity](../plugin-development/index.md#module-identity)), plain ids only assign the module instance without attributes. To assign a module with import attributes, list it as an object `{ rawId, attributes }`, where `rawId` is resolved like the plain ids, or as the exact composite module id that encodes the attributes, e.g. taken from `moduleInfo.id`:
+As modules imported with import attributes are separate modules (see [Module identity](../plugin-development/index.md#module-identity)), plain ids are resolved without attributes, so they only assign the module without attributes unless a [`resolveId`](../plugin-development/index.md#resolveid) hook returns attributes for them. To assign a module with import attributes, list it as an object `{ rawId, attributes }`, where `rawId` is resolved like the plain ids, or as the exact composite id that encodes the attributes, e.g. taken from `moduleInfo.id`:
 
 ```javascript
 manualChunks: {
