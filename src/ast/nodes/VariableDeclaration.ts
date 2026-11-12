@@ -119,8 +119,34 @@ export default class VariableDeclaration extends NodeBase {
 				code.appendLeft(this.end, ';');
 			}
 		} else {
-			this.renderReplacedDeclarations(code, options, nodeRenderOptions.isNoStatement);
+			this.renderReplacedDeclarations(
+				code,
+				options,
+				nodeRenderOptions.isNoStatement,
+				this.isInSingleStatementPosition()
+			);
 		}
+	}
+
+	private isForStatementInit(): boolean {
+		const parent = this.parent;
+		return parent.type === NodeType.ForStatement && (parent as { init?: unknown }).init === this;
+	}
+
+	isInSingleStatementPosition(): boolean {
+		return this.isForStatementInit() || this.isBracelessLoopBody();
+	}
+
+	private isBracelessLoopBody(): boolean {
+		const parent = this.parent;
+		return (
+			(parent.type === NodeType.ForStatement ||
+				parent.type === NodeType.ForInStatement ||
+				parent.type === NodeType.ForOfStatement ||
+				parent.type === NodeType.WhileStatement ||
+				parent.type === NodeType.DoWhileStatement) &&
+			(parent as { body?: unknown }).body === this
+		);
 	}
 
 	private isForInOfHead(): boolean {
@@ -201,7 +227,8 @@ export default class VariableDeclaration extends NodeBase {
 	private renderReplacedDeclarations(
 		code: MagicString,
 		options: RenderOptions,
-		omitTrailingSemicolon = false
+		omitTrailingSemicolon = false,
+		singleStatement = false
 	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
@@ -215,44 +242,58 @@ export default class VariableDeclaration extends NodeBase {
 		code.remove(this.start, lastSeparatorPos);
 		let isInDeclaration = false;
 		let hasRenderedContent = false;
+		let lastRenderedContentEnd = renderedContentEnd;
 		let separatorString = '',
 			leadingString,
 			nextSeparatorString;
 		const aggregatedSystemExports: Variable[] = [];
-		const singleSystemExport = gatherSystemExportsAndGetSingleExport(
-			separatedNodes,
-			options,
-			aggregatedSystemExports
-		);
+		const singleSystemExport = singleStatement
+			? null
+			: gatherSystemExportsAndGetSingleExport(separatedNodes, options, aggregatedSystemExports);
+		const trailingSystemExports: Variable[] = [];
+		const {
+			exportNamesByVariable,
+			snippets: { _, getPropertyAccess }
+		} = options;
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
 				treeshakeNode(node, code, start, end);
 				continue;
 			}
 			node.render(code, options);
+			if (singleStatement && options.format === 'system') {
+				this.renderSingleStatementSystemExports(
+					node,
+					separator,
+					contentEnd,
+					code,
+					options,
+					trailingSystemExports
+				);
+			}
 			leadingString = '';
 			nextSeparatorString = '';
 			const keepDeclaration =
-				omitTrailingSemicolon &&
+				singleStatement &&
 				this.declarations.length > 1 &&
 				node.id instanceof Identifier &&
 				node.id.variable?.getHoistedVariable() !== undefined &&
-				isDeclaredWithoutBinding(node.id.variable, options.exportNamesByVariable);
+				isDeclaredWithoutBinding(node.id.variable, exportNamesByVariable);
 			if (
 				!node.id.included ||
 				(!keepDeclaration &&
 					node.id instanceof Identifier &&
 					isDeclaredWithoutBinding(
 						(node.id as IdentifierWithVariable).variable,
-						options.exportNamesByVariable
+						exportNamesByVariable
 					))
 			) {
 				if (hasRenderedContent) {
-					separatorString += ';';
+					separatorString += singleStatement ? ',' : ';';
 				}
 				isInDeclaration = false;
 			} else {
-				if (singleSystemExport && singleSystemExport === node.id.variable) {
+				if (!singleStatement && singleSystemExport && singleSystemExport === node.id.variable) {
 					const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
 					renderSystemExportExpression(
 						singleSystemExport,
@@ -266,7 +307,7 @@ export default class VariableDeclaration extends NodeBase {
 					separatorString += ',';
 				} else {
 					if (hasRenderedContent) {
-						separatorString += ';';
+						separatorString += singleStatement ? ',' : ';';
 					}
 					leadingString += `${this.kind} `;
 					isInDeclaration = true;
@@ -280,9 +321,20 @@ export default class VariableDeclaration extends NodeBase {
 			}
 			actualContentEnd = contentEnd;
 			renderedContentEnd = end;
+			lastRenderedContentEnd = separator === null ? contentEnd : separator;
 			hasRenderedContent = true;
 			lastSeparatorPos = separator!;
 			separatorString = nextSeparatorString;
+		}
+		if (trailingSystemExports.length > 0) {
+			const name = trailingSystemExports[0].getName(getPropertyAccess);
+			code.appendLeft(
+				lastRenderedContentEnd,
+				`,${_}${name}${_}=${_}(${getSystemExportStatement(
+					trailingSystemExports,
+					options
+				)},${_}${name})`
+			);
 		}
 		this.renderDeclarationEnd(
 			code,
@@ -290,10 +342,40 @@ export default class VariableDeclaration extends NodeBase {
 			lastSeparatorPos,
 			actualContentEnd!,
 			renderedContentEnd,
-			aggregatedSystemExports,
+			singleStatement ? [] : aggregatedSystemExports,
 			options,
 			omitTrailingSemicolon
 		);
+	}
+
+	private renderSingleStatementSystemExports(
+		node: VariableDeclarator,
+		separator: number | null,
+		contentEnd: number,
+		code: MagicString,
+		options: RenderOptions,
+		trailingSystemExports: Variable[]
+	): void {
+		const { exportNamesByVariable } = options;
+		if (node.id instanceof Identifier) {
+			const variable = node.id.variable!;
+			const exportNames = exportNamesByVariable.get(variable);
+			if (!node.init || !exportNames) return;
+			if (exportNames.length === 1) {
+				const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
+				renderSystemExportExpression(
+					variable,
+					findNonWhiteSpace(code.original, operatorPos + 1),
+					separator === null ? contentEnd : separator,
+					code,
+					options
+				);
+			} else {
+				trailingSystemExports.push(variable);
+			}
+		} else {
+			node.id.addExportedVariables(trailingSystemExports, exportNamesByVariable);
+		}
 	}
 
 	private areAllDeclarationsIncludedAndNotExported(

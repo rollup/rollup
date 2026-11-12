@@ -5,6 +5,8 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import Identifier from './ast/nodes/Identifier';
 import type ImportExpression from './ast/nodes/ImportExpression';
 import { formatsMaybeAccessDocumentCurrentScript } from './ast/nodes/MetaProperty';
+import VariableDeclaration from './ast/nodes/VariableDeclaration';
+import VariableDeclarator from './ast/nodes/VariableDeclarator';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import type ExternalVariable from './ast/variables/ExternalVariable';
@@ -979,7 +981,7 @@ export default class Chunk {
 					(variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1) ||
 					// Pattern bindings are plain locals; a trailing assignment
 					// would lose later reassignments.
-					(variable.isTargetOfAssignment && isDeclaredInDestructuringPattern(variable))
+					(variable.isTargetOfAssignment && cannotBeRenderedAsExportsMember(variable))
 			});
 		}
 		return exports;
@@ -1516,7 +1518,7 @@ export default class Chunk {
 				format !== 'system' &&
 				exportVariable.isReassigned &&
 				!exportVariable.isId &&
-				!isDeclaredInDestructuringPattern(exportVariable)
+				!cannotBeRenderedAsExportsMember(exportVariable)
 			) {
 				exportVariable.setRenderNames('exports', unescapeExportName(exportName));
 			} else if (exportVariable instanceof SyntheticNamedExportVariable) {
@@ -1636,6 +1638,13 @@ function getChunkNameFromModule(module: Module): string {
 	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
 }
 
+function cannotBeRenderedAsExportsMember(variable: Variable): boolean {
+	return (
+		isDeclaredInDestructuringPattern(variable) ||
+		isDeclaredInMultiDeclaratorSingleStatement(variable)
+	);
+}
+
 function isDeclaredInDestructuringPattern(variable: Variable): boolean {
 	return (
 		variable instanceof LocalVariable &&
@@ -1643,6 +1652,24 @@ function isDeclaredInDestructuringPattern(variable: Variable): boolean {
 			declaration =>
 				declaration instanceof Identifier && declaration.isDeclarationInDestructuringPattern()
 		)
+	);
+}
+
+function isDeclaredInMultiDeclaratorSingleStatement(variable: Variable): boolean {
+	return (
+		variable instanceof LocalVariable &&
+		variable.declarations.some(declaration => {
+			if (!(declaration instanceof Identifier)) return false;
+			const declarator = declaration.parent;
+			if (!(declarator instanceof VariableDeclarator) || declarator.id !== declaration)
+				return false;
+			const declarationNode = declarator.parent;
+			return (
+				declarationNode instanceof VariableDeclaration &&
+				declarationNode.declarations.length > 1 &&
+				declarationNode.isInSingleStatementPosition()
+			);
+		})
 	);
 }
 

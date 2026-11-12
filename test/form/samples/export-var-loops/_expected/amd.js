@@ -21,4 +21,21 @@ define(['exports'], (function (exports) { 'use strict';
 		// nothing
 	}
 
+	var first, second;
+	for (var first = 1, second = 2; first < 2; first++) {
+		// nothing
+	}
+
+	var bodyA, bodyB;
+	for (const value of [1]) var bodyA = value, bodyB = value;
+
+	exports.bodyA = bodyA;
+	exports.bodyB = bodyB;
+	Object.defineProperty(exports, "first", {
+		configurable: true,
+		enumerable: true,
+		get: function () { return first; }
+	});
+	exports.second = second;
+
 }));

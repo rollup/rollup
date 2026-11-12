@@ -24,6 +24,14 @@ System.register([], (function (exports) {
 				// nothing
 			}
 
+			var first, second; exports({ first: first, second: second });
+			for (var first = exports("first", 1), second = exports("second", 2); first < 2; (exports("first", first + 1), first++)) {
+				// nothing
+			}
+
+			var bodyA, bodyB; exports({ bodyA: bodyA, bodyB: bodyB });
+			for (const value of [1]) var bodyA = exports("bodyA", value), bodyB = exports("bodyB", value);
+
 		})
 	};
 }));
