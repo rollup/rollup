@@ -90,8 +90,7 @@ export default class CatchBodyScope extends ChildScope {
 					LocalVariable | undefined;
 				if (isSimpleCatchParameter(parameter)) return true;
 			}
-			if (!(scope.parent instanceof ChildScope)) break;
-			scope = scope.parent;
+			scope = scope.parent as ChildScope;
 		}
 		return false;
 	}

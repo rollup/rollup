@@ -132,10 +132,7 @@ function scopeShadowsExportedBindings(
 		referencedNames.add(variable.getName(getPropertyAccess));
 	}
 	for (const variable of scope.variables.values()) {
-		if (
-			(variable.included || variable.alwaysRendered) &&
-			referencedNames.has(variable.getName(getPropertyAccess))
-		) {
+		if (variable.included && referencedNames.has(variable.getName(getPropertyAccess))) {
 			return true;
 		}
 	}

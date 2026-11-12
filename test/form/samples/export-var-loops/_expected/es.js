@@ -27,6 +27,12 @@ for (var first = 1, second = 2; first < 2; first++) {
 var bodyA, bodyB;
 for (const value of [1]) var bodyA = value, bodyB = value;
 
+var sideEffectA;
+sideEffect(); var sideEffectA = 1;
+
+var emptyPatternA;
+if (globalThis.condition) var emptyPatternA = 1;
+
 var deadBranch;
 deadBranch = 1;
 var deadBranch; 
@@ -37,4 +43,4 @@ if (globalThis.condition) var branchA = 1, branchB = 2;
 var alternateA, alternateB;
 if (globalThis.condition) ; else var alternateA = 3, alternateB = 4;
 
-export { alternateA, alternateB, bodyA, bodyB, bodyIn, bodyVar, branchA, branchB, current, deadBranch, first, inKey, index, second };
+export { alternateA, alternateB, bodyA, bodyB, bodyIn, bodyVar, branchA, branchB, current, deadBranch, emptyPatternA, first, inKey, index, second, sideEffectA };

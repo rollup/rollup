@@ -1658,11 +1658,11 @@ function isDeclaredInDestructuringPattern(variable: Variable): boolean {
 function isDeclaredInMultiDeclaratorSingleStatement(variable: Variable): boolean {
 	return (
 		variable instanceof LocalVariable &&
-		variable.declarations.some(declaration => {
-			if (!(declaration instanceof Identifier)) return false;
+		(variable.declarations as Identifier[]).some(declaration => {
 			const declarator = declaration.parent;
-			if (!(declarator instanceof VariableDeclarator) || declarator.id !== declaration)
+			if (!(declarator instanceof VariableDeclarator) || declarator.id !== declaration) {
 				return false;
+			}
 			const declarationNode = declarator.parent;
 			return (
 				declarationNode instanceof VariableDeclaration &&

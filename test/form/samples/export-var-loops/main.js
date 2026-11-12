@@ -27,6 +27,12 @@ for (var first = 1, second = 2; first < 2; first++) {
 export var bodyA, bodyB;
 for (const value of [1]) var bodyA = value, bodyB = value;
 
+export var sideEffectA;
+var unusedSideEffect = sideEffect(), sideEffectA = 1;
+
+export var emptyPatternA;
+if (globalThis.condition) var {} = {}, emptyPatternA = 1;
+
 export var deadBranch;
 deadBranch = 1;
 if (false) var deadBranch = 2;
