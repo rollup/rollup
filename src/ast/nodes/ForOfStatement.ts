@@ -17,7 +17,7 @@ import {
 	type StatementNode
 } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
-import VariableDeclaration from './VariableDeclaration';
+import type VariableDeclaration from './VariableDeclaration';
 
 export default class ForOfStatement extends StatementBase {
 	declare body: StatementNode;
@@ -61,9 +61,6 @@ export default class ForOfStatement extends StatementBase {
 		super.initialise();
 		if (this.await) markTopLevelAwait(this);
 		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
-		if (this.left instanceof VariableDeclaration) {
-			this.left.markForHeadBindingsAccessedFrom(this.scope);
-		}
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

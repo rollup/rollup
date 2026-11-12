@@ -14,16 +14,13 @@ import {
 } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
-import type ChildScope from '../scopes/ChildScope';
 import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
-import AssignmentPattern from './AssignmentPattern';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import RestElement from './RestElement';
 import type { InclusionOptions } from './shared/Expression';
 import {
 	doNotDeoptimize,
@@ -31,7 +28,6 @@ import {
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
 import type { VariableDeclarationKind } from './shared/VariableKinds';
 import type VariableDeclarator from './VariableDeclarator';
 
@@ -49,17 +45,6 @@ export default class VariableDeclaration extends NodeBase {
 		if (this.kind !== 'var') return;
 		for (const declarator of this.declarations) {
 			declarator.id.addExportedVariables(variables, exportNamesByVariable);
-		}
-	}
-
-	// A for-in/of head is a declaration, so ancestor scopes never see a reference.
-	// System output still reads the binding via `exports(...)`.
-	markForHeadBindingsAccessedFrom(scope: ChildScope): void {
-		if (this.kind !== 'var') return;
-		for (const declarator of this.declarations) {
-			visitDeclaredPattern(declarator.id, variable => {
-				scope.propagateAccessedVariable(variable);
-			});
 		}
 	}
 
@@ -352,28 +337,6 @@ function gatherSystemExportsAndGetSingleExport(
 		}
 	}
 	return singleSystemExport;
-}
-
-function visitDeclaredPattern(pattern: PatternNode, visit: (variable: Variable) => void): void {
-	if (pattern instanceof Identifier) {
-		if (pattern.variable) visit(pattern.variable);
-	} else if (pattern instanceof AssignmentPattern) {
-		visitDeclaredPattern(pattern.left, visit);
-	} else if (pattern instanceof RestElement) {
-		visitDeclaredPattern(pattern.argument, visit);
-	} else if (pattern instanceof ArrayPattern) {
-		for (const element of pattern.elements) {
-			if (element) visitDeclaredPattern(element, visit);
-		}
-	} else if (pattern instanceof ObjectPattern) {
-		for (const property of pattern.properties) {
-			if (property.type === NodeType.Property) {
-				visitDeclaredPattern(property.value as PatternNode, visit);
-			} else {
-				visitDeclaredPattern(property.argument, visit);
-			}
-		}
-	}
 }
 
 VariableDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
