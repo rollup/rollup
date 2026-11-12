@@ -49,12 +49,18 @@ export default class CatchBodyScope extends ChildScope {
 			const existingVariable =
 				this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable | undefined);
 			if (existingVariable) {
-				if (
-					existingVariable.kind === 'var' ||
-					(existingVariable.kind === 'parameter' && existingVariable !== parameter)
-				) {
+				if (existingVariable.kind === 'var') {
 					existingVariable.addDeclaration(identifier, init);
 					return existingVariable;
+				}
+				if (existingVariable.kind === 'parameter' && existingVariable !== parameter) {
+					return this.parent.parent.addDeclaration(
+						identifier,
+						context,
+						init,
+						destructuredInitPath,
+						kind
+					);
 				}
 				return context.error(logRedeclarationError(name), identifier.start);
 			}

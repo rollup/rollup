@@ -263,21 +263,13 @@ export default class VariableDeclaration extends NodeBase {
 			}
 			leadingString = '';
 			nextSeparatorString = '';
-			const keepDeclaration =
-				singleStatement &&
-				this.declarations.length > 1 &&
+			const rendersAsAssignment =
 				node.id instanceof Identifier &&
-				node.id.variable?.getHoistedVariable() !== undefined &&
-				isDeclaredWithoutBinding(node.id.variable, exportNamesByVariable);
-			if (
-				!node.id.included ||
-				(!keepDeclaration &&
-					node.id instanceof Identifier &&
-					isDeclaredWithoutBinding(
-						(node.id as IdentifierWithVariable).variable,
-						exportNamesByVariable
-					))
-			) {
+				isDeclaredWithoutBinding(
+					(node.id as IdentifierWithVariable).variable,
+					exportNamesByVariable
+				);
+			if (!node.id.included || rendersAsAssignment) {
 				if (hasRenderedContent) {
 					separatorString += singleStatement ? ',' : ';';
 				}
