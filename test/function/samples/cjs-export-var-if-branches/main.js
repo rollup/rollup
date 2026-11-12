@@ -26,6 +26,32 @@ if (globalThis.condition) var noInitA, noInitB = 6;
 assert.equal(noInitA, undefined);
 assert.equal(noInitB, 6);
 
+export var deadBranch = 0;
+deadBranch = 1;
+if (false) var deadBranch = 2;
+assert.equal(deadBranch, 1);
+
+if (false) var plainDead = 2;
+assert.equal(plainDead, undefined);
+
+if (false) var multiDead = 1;
+if (false) var multiDead = 2;
+assert.equal(multiDead, undefined);
+
+function readMultiDead() {
+	if (false) var localDead = 1;
+	if (false) var localDead = 2;
+	return localDead;
+}
+assert.equal(readMultiDead(), undefined);
+
+try {
+	throw 0;
+} catch (catchDead) {
+	if (false) var catchDead = 1;
+}
+assert.equal(catchDead, undefined);
+
 globalThis.effect = () => {};
 export var labelA, labelB;
 {

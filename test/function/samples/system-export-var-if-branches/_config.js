@@ -19,5 +19,6 @@ module.exports = defineTest({
 		assert.deepEqual(valuesOf('noInitB'), [undefined, 6]);
 		assert.deepEqual(valuesOf('labelA'), [undefined, 1]);
 		assert.deepEqual(valuesOf('labelB'), [undefined, 2]);
+		assert.deepEqual(valuesOf('deadBranch'), [0, 1]);
 	}
 });

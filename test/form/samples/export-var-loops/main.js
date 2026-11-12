@@ -27,6 +27,12 @@ for (var first = 1, second = 2; first < 2; first++) {
 export var bodyA, bodyB;
 for (const value of [1]) var bodyA = value, bodyB = value;
 
+export var deadBranch;
+deadBranch = 1;
+if (false) var deadBranch = 2;
+
+if (false) var plainDead = 2;
+
 export var branchA, branchB;
 if (globalThis.condition) var branchA = 1, branchB = 2;
 

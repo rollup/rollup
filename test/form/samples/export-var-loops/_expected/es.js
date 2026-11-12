@@ -27,10 +27,14 @@ for (var first = 1, second = 2; first < 2; first++) {
 var bodyA, bodyB;
 for (const value of [1]) var bodyA = value, bodyB = value;
 
+var deadBranch;
+deadBranch = 1;
+var deadBranch; 
+
 var branchA, branchB;
 if (globalThis.condition) var branchA = 1, branchB = 2;
 
 var alternateA, alternateB;
 if (globalThis.condition) ; else var alternateA = 3, alternateB = 4;
 
-export { alternateA, alternateB, bodyA, bodyB, bodyIn, bodyVar, branchA, branchB, current, first, inKey, index, second };
+export { alternateA, alternateB, bodyA, bodyB, bodyIn, bodyVar, branchA, branchB, current, deadBranch, first, inKey, index, second };

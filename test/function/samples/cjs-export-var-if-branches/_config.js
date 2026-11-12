@@ -13,5 +13,6 @@ module.exports = defineTest({
 		assert.equal(exports.noInitB, 6);
 		assert.equal(exports.labelA, 1);
 		assert.equal(exports.labelB, 2);
+		assert.equal(exports.deadBranch, 1);
 	}
 });
