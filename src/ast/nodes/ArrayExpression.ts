@@ -4,6 +4,7 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import {
 	type EntityPathTracker,
 	type ObjectPath,
+	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger
 } from '../utils/PathTracker';
@@ -33,7 +34,12 @@ export default class ArrayExpression extends NodeBase {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		this.getObjectEntity().deoptimizePath(path);
+		const objectEntity = this.getObjectEntity();
+		objectEntity.deoptimizePath(path);
+		// Writing the length can remove elements or add holes
+		if (path.length === 1 && path[0] === 'length') {
+			objectEntity.deoptimizePath(UNKNOWN_INTEGER_PATH);
+		}
 	}
 
 	getLiteralValueAtPath(
