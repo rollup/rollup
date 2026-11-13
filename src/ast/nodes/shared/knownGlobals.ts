@@ -157,6 +157,21 @@ const O_RETURNING_ARG_VALUES: GlobalDescription = {
 	[ValueProperties]: returningArgumentValues(IMPURE)
 };
 
+/* Array.from RETURNS THE VALUES OF THE ITERABLE OR WHATEVER THE MAPPER RETURNS */
+const ARRAY_FROM: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: {
+		...IMPURE,
+		deoptimizeArgumentsOnCall({ args: [, iterable, mapper, thisArgument] }: NodeInteractionCalled) {
+			iterable?.deoptimizePath(UNKNOWN_VALUES_PATH);
+			// The mapper is called by the global, so its return value and its
+			// parameters, as well as the this argument, are no longer tracked
+			mapper?.deoptimizePath(UNKNOWN_PATH);
+			thisArgument?.deoptimizePath(UNKNOWN_PATH);
+		}
+	}
+};
+
 /* PURE FUNCTION THAT RETURNS ITS ARGUMENTS */
 const PF_RETURNING_ARGS: GlobalDescription = {
 	__proto__: null,
@@ -270,7 +285,7 @@ const knownGlobals: GlobalDescription = {
 	Array: {
 		__proto__: null,
 		[ValueProperties]: returningArguments(IMPURE),
-		from: O_RETURNING_ARG_VALUES,
+		from: ARRAY_FROM,
 		isArray: PF,
 		of: PF_RETURNING_ARGS,
 		prototype: O

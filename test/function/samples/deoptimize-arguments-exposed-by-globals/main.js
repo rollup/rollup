@@ -20,6 +20,28 @@ const viaArrayFrom = { mutated: false };
 Array.from([viaArrayFrom])[0].mutated = true;
 assert.strictEqual(viaArrayFrom.mutated ? 'mutated' : 'unchanged', 'mutated', 'Array.from');
 
+const viaArrayFromMapper = { mutated: false };
+Array.from([0], () => viaArrayFromMapper)[0].mutated = true;
+assert.strictEqual(
+	viaArrayFromMapper.mutated ? 'mutated' : 'unchanged',
+	'mutated',
+	'Array.from mapper'
+);
+
+const viaArrayFromThis = { mutated: false };
+Array.from(
+	[0],
+	function () {
+		return this;
+	},
+	viaArrayFromThis
+)[0].mutated = true;
+assert.strictEqual(
+	viaArrayFromThis.mutated ? 'mutated' : 'unchanged',
+	'mutated',
+	'Array.from thisArg'
+);
+
 const viaValues = { mutated: false };
 Object.values({ viaValues })[0].mutated = true;
 assert.strictEqual(viaValues.mutated ? 'mutated' : 'unchanged', 'mutated', 'Object.values');
