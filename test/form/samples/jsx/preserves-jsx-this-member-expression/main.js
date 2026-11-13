@@ -4,4 +4,13 @@ export class Component {
 	}
 }
 
+const config = {
+	ui: { Comp: 'used', Other: 'dropped' },
+	get view() {
+		return <this.ui.Comp />;
+	}
+};
+
+export const view = config.view;
+
 export const render = () => <this.Comp />;

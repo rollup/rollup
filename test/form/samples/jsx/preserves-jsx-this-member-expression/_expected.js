@@ -4,6 +4,15 @@ class Component {
 	}
 }
 
+const config = {
+	ui: { Comp: 'used'},
+	get view() {
+		return <this.ui.Comp />;
+	}
+};
+
+const view = config.view;
+
 const render = () => <undefined.Comp />;
 
-export { Component, render };
+export { Component, render, view };

@@ -1,15 +1,13 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
-import { LOGLEVEL_WARN } from '../../utils/logging';
-import { logThisIsUndefined } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
-import ModuleScope from '../scopes/ModuleScope';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type JSXMemberExpression from './JSXMemberExpression';
 import type * as NodeType from './NodeType';
 import IdentifierBase from './shared/IdentifierBase';
+import { getTopLevelThisAlias, includeThisPathInObjectLiteral } from './ThisExpression';
 
 const enum IdentifierType {
 	Reference,
@@ -30,7 +28,7 @@ export default class JSXIdentifier extends IdentifierBase {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 			if (this.name === 'this') {
-				this.initialiseThisAlias();
+				this.thisAlias = getTopLevelThisAlias(this.scope, this.start);
 			}
 		} else if (type === IdentifierType.NativeElementName) {
 			this.isNativeElement = true;
@@ -58,6 +56,9 @@ export default class JSXIdentifier extends IdentifierBase {
 		} else if (path.length > 0) {
 			this.variable?.includePath(path, context);
 		}
+		if (this.name === 'this' && this.variable) {
+			includeThisPathInObjectLiteral(this.scope, this.variable, path, context);
+		}
 	}
 
 	render(
@@ -81,15 +82,6 @@ export default class JSXIdentifier extends IdentifierBase {
 			(this.scope.context.options.jsx as NormalizedJsxOptions).mode !== 'preserve'
 		) {
 			code.update(this.start, this.end, JSON.stringify(this.name));
-		}
-	}
-
-	private initialiseThisAlias(): void {
-		if (this.scope.findLexicalBoundary() instanceof ModuleScope) {
-			this.thisAlias = this.scope.context.moduleContext;
-			if (this.thisAlias === 'undefined') {
-				this.scope.context.log(LOGLEVEL_WARN, logThisIsUndefined(), this.start);
-			}
 		}
 	}
 
