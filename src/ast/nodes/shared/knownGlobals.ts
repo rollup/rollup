@@ -19,6 +19,7 @@ import {
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
 	UNKNOWN_PATH,
+	UnknownKey,
 	UnknownWellKnown
 } from '../../utils/PathTracker';
 import ArrayExpression from '../ArrayExpression';
@@ -64,6 +65,33 @@ const IMPURE: ValueDescription = {
 	hasEffectsWhenCalled: returnTrue
 };
 
+// For functions that return their arguments, the arguments can be mutated via
+// the return value
+const deoptimizeArguments = ({ args }: NodeInteractionCalled) => {
+	for (let index = 1; index < args.length; index++) {
+		args[index]?.deoptimizePath(UNKNOWN_PATH);
+	}
+};
+
+// For functions that return values stored in their arguments (but not the
+// arguments themselves), those values can be mutated via the return value
+const UNKNOWN_VALUES_PATH: ObjectPath = [UnknownKey, UnknownKey];
+const deoptimizeArgumentValues = ({ args }: NodeInteractionCalled) => {
+	for (let index = 1; index < args.length; index++) {
+		args[index]?.deoptimizePath(UNKNOWN_VALUES_PATH);
+	}
+};
+
+const returningArguments = (description: ValueDescription): ValueDescription => ({
+	...description,
+	deoptimizeArgumentsOnCall: deoptimizeArguments
+});
+
+const returningArgumentValues = (description: ValueDescription): ValueDescription => ({
+	...description,
+	deoptimizeArgumentsOnCall: deoptimizeArgumentValues
+});
+
 const PURE_WITH_ARRAY: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getUnknownValue,
@@ -87,8 +115,9 @@ const PURE_WITH_ARRAY_OR_LENGTH: ValueDescription = {
 	}
 };
 
+// Used for Object.entries and Object.values, which return the property values
 const GETTER_ACCESS: ValueDescription = {
-	deoptimizeArgumentsOnCall: doNothing,
+	deoptimizeArgumentsOnCall: deoptimizeArgumentValues,
 	getLiteralValue: getUnknownValue,
 	hasEffectsWhenCalled({ args }, context) {
 		const [_thisArgument, firstArgument] = args;
@@ -116,6 +145,30 @@ const PF: GlobalDescription = {
 	[ValueProperties]: PURE
 };
 
+/* OBJECT THAT RETURNS ITS ARGUMENTS WHEN CALLED */
+const O_RETURNING_ARGS: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: returningArguments(IMPURE)
+};
+
+/* OBJECT THAT RETURNS VALUES STORED IN ITS ARGUMENTS WHEN CALLED */
+const O_RETURNING_ARG_VALUES: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: returningArgumentValues(IMPURE)
+};
+
+/* PURE FUNCTION THAT RETURNS ITS ARGUMENTS */
+const PF_RETURNING_ARGS: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: returningArguments(PURE)
+};
+
+/* PURE FUNCTION THAT RETURNS VALUES STORED IN ITS ARGUMENTS */
+const PF_RETURNING_ARG_VALUES: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: returningArgumentValues(PURE)
+};
+
 /* PURE FUNCTION IF FIRST ARG DOES NOT CONTAIN A GETTER */
 const PF_NO_GETTER: GlobalDescription = {
 	__proto__: null,
@@ -123,11 +176,18 @@ const PF_NO_GETTER: GlobalDescription = {
 };
 
 /* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
+// For defineProperty and defineProperties, the values of the property
+// descriptors also become reachable via the first argument
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: {
-		deoptimizeArgumentsOnCall({ args: [, firstArgument] }: NodeInteractionCalled) {
+		deoptimizeArgumentsOnCall({
+			args: [, firstArgument, ...otherArguments]
+		}: NodeInteractionCalled) {
 			firstArgument?.deoptimizePath(UNKNOWN_PATH);
+			for (const argument of otherArguments) {
+				argument.deoptimizePath(UNKNOWN_VALUES_PATH);
+			}
 		},
 		getLiteralValue: getUnknownValue,
 		hasEffectsWhenCalled({ args }, context) {
@@ -163,6 +223,20 @@ const PC_WITH_ARRAY = {
 	prototype: O
 };
 
+/* PURE CONSTRUCTOR WITH ARRAY WHOSE INSTANCES EXPOSE THE VALUES OF THE ARRAY */
+const PC_WITH_ARRAY_RETURNING_ARG_VALUES = {
+	__proto__: null,
+	[ValueProperties]: returningArgumentValues(PURE_WITH_ARRAY),
+	prototype: O
+};
+
+/* PURE CONSTRUCTOR WHOSE INSTANCES EXPOSE VALUES STORED IN ITS ARGUMENTS */
+const PC_RETURNING_ARG_VALUES: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: returningArgumentValues(PURE),
+	prototype: O
+};
+
 const ARRAY_TYPE: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE_WITH_ARRAY_OR_LENGTH,
@@ -195,10 +269,10 @@ const knownGlobals: GlobalDescription = {
 	[ValueProperties]: IMPURE,
 	Array: {
 		__proto__: null,
-		[ValueProperties]: IMPURE,
-		from: O,
+		[ValueProperties]: returningArguments(IMPURE),
+		from: O_RETURNING_ARG_VALUES,
 		isArray: PF,
-		of: PF,
+		of: PF_RETURNING_ARGS,
 		prototype: O
 	},
 	ArrayBuffer: {
@@ -207,7 +281,7 @@ const knownGlobals: GlobalDescription = {
 		isView: PF,
 		prototype: O
 	},
-	AggregateError: PC_WITH_ARRAY,
+	AggregateError: PC_WITH_ARRAY_RETURNING_ARG_VALUES,
 	Atomics: O,
 	BigInt: C,
 	BigInt64Array: C,
@@ -227,10 +301,10 @@ const knownGlobals: GlobalDescription = {
 	decodeURIComponent: PF,
 	encodeURI: PF,
 	encodeURIComponent: PF,
-	Error: PC,
+	Error: PC_RETURNING_ARG_VALUES,
 	escape: PF,
 	eval: O,
-	EvalError: PC,
+	EvalError: PC_RETURNING_ARG_VALUES,
 	FinalizationRegistry: C,
 	Float32Array: ARRAY_TYPE,
 	Float64Array: ARRAY_TYPE,
@@ -244,7 +318,7 @@ const knownGlobals: GlobalDescription = {
 	isNaN: PF,
 	isPrototypeOf: O,
 	JSON: O,
-	Map: PC_WITH_ARRAY,
+	Map: PC_WITH_ARRAY_RETURNING_ARG_VALUES,
 	Math: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
@@ -298,16 +372,16 @@ const knownGlobals: GlobalDescription = {
 	},
 	Object: {
 		__proto__: null,
-		[ValueProperties]: PURE,
-		create: PF,
+		[ValueProperties]: returningArguments(PURE),
+		create: PF_RETURNING_ARG_VALUES,
 		// Technically those can throw in certain situations, but we ignore this as
 		// code that relies on this will hopefully wrap this in a try-catch, which
 		// deoptimizes everything anyway
 		defineProperty: MUTATES_ARG_WITHOUT_ACCESSOR,
 		defineProperties: MUTATES_ARG_WITHOUT_ACCESSOR,
 		freeze: MUTATES_ARG_WITHOUT_ACCESSOR,
-		getOwnPropertyDescriptor: PF,
-		getOwnPropertyDescriptors: PF,
+		getOwnPropertyDescriptor: PF_RETURNING_ARG_VALUES,
+		getOwnPropertyDescriptors: PF_RETURNING_ARG_VALUES,
 		getOwnPropertyNames: PF,
 		getOwnPropertySymbols: PF,
 		getPrototypeOf: PF,
@@ -317,7 +391,7 @@ const knownGlobals: GlobalDescription = {
 		isFrozen: PF,
 		isSealed: PF,
 		keys: PF,
-		fromEntries: O,
+		fromEntries: O_RETURNING_ARG_VALUES,
 		entries: PF_NO_GETTER,
 		values: PF_NO_GETTER,
 		prototype: O
@@ -327,13 +401,13 @@ const knownGlobals: GlobalDescription = {
 	Promise: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
-		all: O,
-		allSettled: O,
-		any: O,
+		all: O_RETURNING_ARG_VALUES,
+		allSettled: O_RETURNING_ARG_VALUES,
+		any: O_RETURNING_ARG_VALUES,
 		prototype: O,
-		race: O,
-		reject: O,
-		resolve: O
+		race: O_RETURNING_ARG_VALUES,
+		reject: O_RETURNING_ARGS,
+		resolve: O_RETURNING_ARGS
 	},
 	propertyIsEnumerable: O,
 	Proxy: {
@@ -363,11 +437,11 @@ const knownGlobals: GlobalDescription = {
 			hasEffectsWhenCalled: returnTrue
 		}
 	},
-	RangeError: PC,
-	ReferenceError: PC,
+	RangeError: PC_RETURNING_ARG_VALUES,
+	ReferenceError: PC_RETURNING_ARG_VALUES,
 	Reflect: O,
 	RegExp: PC,
-	Set: PC_WITH_ARRAY,
+	Set: PC_WITH_ARRAY_RETURNING_ARG_VALUES,
 	SharedArrayBuffer: C,
 	String: {
 		__proto__: null,
@@ -388,10 +462,10 @@ const knownGlobals: GlobalDescription = {
 		hasInstance: getWellKnownSymbol(SymbolHasInstance),
 		toStringTag: getWellKnownSymbol(SymbolToStringTag)
 	},
-	SyntaxError: PC,
+	SyntaxError: PC_RETURNING_ARG_VALUES,
 	toLocaleString: O,
 	toString: O,
-	TypeError: PC,
+	TypeError: PC_RETURNING_ARG_VALUES,
 	Uint16Array: ARRAY_TYPE,
 	Uint32Array: ARRAY_TYPE,
 	Uint8Array: ARRAY_TYPE,
@@ -399,10 +473,14 @@ const knownGlobals: GlobalDescription = {
 	// Technically, this is a global, but it needs special handling
 	// undefined: ?,
 	unescape: PF,
-	URIError: PC,
+	URIError: PC_RETURNING_ARG_VALUES,
 	valueOf: O,
-	WeakMap: PC_WITH_ARRAY,
-	WeakRef: C,
+	WeakMap: PC_WITH_ARRAY_RETURNING_ARG_VALUES,
+	WeakRef: {
+		__proto__: null,
+		[ValueProperties]: returningArguments(IMPURE),
+		prototype: O
+	},
 	WeakSet: PC_WITH_ARRAY,
 
 	// Additional globals shared by Node and Browser that are not strictly part of the language
