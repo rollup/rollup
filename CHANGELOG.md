@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.68.3
+
+_2026-11-13_
+
+### Bug Fixes
+
+- Fix generated code in non-ESM formats for assignments and exported declarations in loops and single-statement bodies (#6651)
+- Ensure rollup does not make assumptions about the contents of an array where the length has been reassigned (#6655)
+
+### Pull Requests
+
+- [#6651](https://github.com/rollup/rollup/pull/6651): Fix system format updates for destructuring and for-loop assignments (@rome-xi, @lukastaegert)
+- [#6655](https://github.com/rollup/rollup/pull/6655): Deoptimize array elements when the length is assigned (@waw666waw666, @lukastaegert)
+- [#6657](https://github.com/rollup/rollup/pull/6657): docs: remove the dead repl.it reproduction option from the bug report template (@abd1rahmane, @lukastaegert)
+- [#6658](https://github.com/rollup/rollup/pull/6658): Update minor/patch updates (@renovate[bot])
+- [#6659](https://github.com/rollup/rollup/pull/6659): Lock file maintenance (@renovate[bot])
+- [#6660](https://github.com/rollup/rollup/pull/6660): Lock file maintenance (@renovate[bot])
+- [#6662](https://github.com/rollup/rollup/pull/6662): Update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6663](https://github.com/rollup/rollup/pull/6663): Lock file maintenance (@renovate[bot])
+
 ## 4.68.2
 
 _2026-11-09_
