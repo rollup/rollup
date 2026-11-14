@@ -43,8 +43,8 @@ import type {
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
-	ResolvedId,
 	ResolvedIdMap,
+	ResolvedImport,
 	RollupError,
 	RollupLog
 } from './rollup/types';
@@ -85,7 +85,8 @@ import { generateIdByRawIdAndAttributes } from './utils/moduleId';
 import { deserializeLazyAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
-	getAttributesFromImportExportDeclaration
+	getAttributesFromImportExportDeclaration,
+	getAttributesFromImportExpression
 } from './utils/parseImportAttributes';
 import { basename, extname } from './utils/path';
 import type { PureFunctions } from './utils/pureFunctions';
@@ -154,6 +155,7 @@ export interface AstContext {
 
 export interface DynamicImport {
 	argument: string | ast.Expression;
+	attributes: Record<string, string>;
 	id: string | null;
 	node: ImportExpression;
 }
@@ -328,8 +330,12 @@ export default class Module {
 			code: null,
 			get dynamicallyImportedIdResolutions() {
 				return dynamicImports
-					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
-					.filter(Boolean) as ResolvedId[];
+					.map(
+						({ argument, attributes }) =>
+							typeof argument === 'string' &&
+							module.resolvedIds[generateIdByRawIdAndAttributes(argument, attributes)]
+					)
+					.filter((resolution): resolution is ResolvedImport => !!resolution);
 			},
 			get dynamicallyImportedIds() {
 				// We cannot use this.dynamicDependencies because this is needed before
@@ -1084,7 +1090,12 @@ export default class Module {
 		} else if (argument.type === NodeType.Literal && typeof argument.value === 'string') {
 			argument = argument.value!;
 		}
-		this.dynamicImports.push({ argument, id: null, node });
+		this.dynamicImports.push({
+			argument,
+			attributes: getAttributesFromImportExpression(node),
+			id: null,
+			node
+		});
 	}
 
 	private assertUniqueExportName(name: string, nodeStart: number) {
@@ -1219,8 +1230,8 @@ export default class Module {
 	}
 
 	private addImportSource(importSource: string): void {
-		if (importSource && !this.sourcesWithAttributesList.has(importSource)) {
-			this.sourcesWithAttributesList.set(importSource, [EMPTY_OBJECT]);
+		if (importSource) {
+			this.addSourceWithAttributes(importSource, EMPTY_OBJECT);
 		}
 	}
 
@@ -1296,21 +1307,28 @@ export default class Module {
 		source: string,
 		declaration: ImportDeclaration | ExportNamedDeclaration | ExportAllDeclaration
 	) {
-		const parsedAttributes = getAttributesFromImportExportDeclaration(declaration.attributes);
+		this.addSourceWithAttributes(
+			source,
+			getAttributesFromImportExportDeclaration(declaration.attributes)
+		);
+		if ((declaration as ImportDeclaration).phase === 'source') {
+			this.sourcePhaseSources.add(source);
+		}
+	}
+
+	private addSourceWithAttributes(source: string, attributes: Record<string, string>): void {
 		const existingAttributesList = this.sourcesWithAttributesList.get(source);
 		if (existingAttributesList) {
 			if (
 				!existingAttributesList.some(
-					attributes => !doAttributesDiffer(attributes, parsedAttributes)
+					existingAttributes =>
+						existingAttributes === attributes || !doAttributesDiffer(existingAttributes, attributes)
 				)
 			) {
-				existingAttributesList.push(parsedAttributes);
+				existingAttributesList.push(attributes);
 			}
 		} else {
-			this.sourcesWithAttributesList.set(source, [parsedAttributes]);
-		}
-		if ((declaration as ImportDeclaration).phase === 'source') {
-			this.sourcePhaseSources.add(source);
+			this.sourcesWithAttributesList.set(source, [attributes]);
 		}
 	}
 

@@ -31,6 +31,7 @@ import {
 	logNoAssetSourceSet,
 	warnDeprecation
 } from './logs';
+import { normalizeModuleIdAndAttributes } from './moduleId';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
@@ -425,6 +426,10 @@ export class FileEmitter {
 				)
 			);
 		}
+		const { attributes, rawId } = normalizeModuleIdAndAttributes(
+			emittedChunk.id,
+			emittedChunk.attributes as EmittedChunk['attributes']
+		);
 		const consumedChunk: ConsumedChunk = {
 			fileName: emittedChunk.fileName,
 			module: null,
@@ -433,7 +438,7 @@ export class FileEmitter {
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
-			.emitChunk(emittedChunk as unknown as EmittedChunk)
+			.emitChunk({ ...(emittedChunk as unknown as EmittedChunk), attributes, id: rawId })
 			.then(module => (consumedChunk.module = module))
 			.catch(() => {
 				// Avoid unhandled Promise rejection as the error will be thrown later

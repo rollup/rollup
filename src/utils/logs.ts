@@ -35,6 +35,12 @@ import {
 	URL_TREESHAKE_PURE
 } from './urls';
 
+function getImportAttributesSuffix(attributes?: Record<string, string> | null): string {
+	return attributes && Object.keys(attributes).length > 0
+		? ` with import attributes ${JSON.stringify(attributes)}`
+		: '';
+}
+
 export function error(base: Error | RollupLog): never {
 	throw base instanceof Error ? base : getRollupError(base);
 }
@@ -135,6 +141,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CIRCULAR_CHUNK = 'CIRCULAR_CHUNK',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CONFLICTING_MODULE_ATTRIBUTES = 'CONFLICTING_MODULE_ATTRIBUTES',
 	CONST_REASSIGN = 'CONST_REASSIGN',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
@@ -388,6 +395,19 @@ export function logCircularReexport(exportName: string, exporter: string): Rollu
 	};
 }
 
+export function logConflictingModuleAttributes(
+	rawId: string,
+	idAttributes: Record<string, string>,
+	attributes: Record<string, string>
+): RollupLog {
+	return {
+		code: CONFLICTING_MODULE_ATTRIBUTES,
+		message: `Cannot use the import attributes ${JSON.stringify(attributes)} for "${relativeId(
+			rawId
+		)}" as its module id already encodes the import attributes ${JSON.stringify(idAttributes)}.`
+	};
+}
+
 export function logCyclicCrossChunkReexport(
 	exportName: string,
 	exporter: string,
@@ -485,13 +505,17 @@ export function logEval(id: string): RollupLog {
 	};
 }
 
-export function logExternalSyntheticExports(id: string, importer: string): RollupLog {
+export function logExternalSyntheticExports(
+	id: string,
+	importer: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: EXTERNAL_SYNTHETIC_EXPORTS,
 		exporter: id,
-		message: `External "${id}" cannot have "syntheticNamedExports" enabled (imported by "${relativeId(
-			importer
-		)}").`
+		message: `External "${id}"${getImportAttributesSuffix(
+			attributes
+		)} cannot have "syntheticNamedExports" enabled (imported by "${relativeId(importer)}").`
 	};
 }
 
@@ -816,13 +840,14 @@ export function logMissingGlobalName(externalId: string, guess: string): RollupL
 
 export function logImplicitDependantCannotBeExternal(
 	unresolvedId: string,
-	implicitlyLoadedBefore: string
+	implicitlyLoadedBefore: string,
+	attributes: Record<string, string>
 ): RollupLog {
 	return {
 		code: MISSING_IMPLICIT_DEPENDANT,
 		message: `Module "${relativeId(
 			unresolvedId
-		)}" that should be implicitly loaded before "${relativeId(
+		)}"${getImportAttributesSuffix(attributes)} that should be implicitly loaded before "${relativeId(
 			implicitlyLoadedBefore
 		)}" cannot be external.`
 	};
@@ -830,13 +855,14 @@ export function logImplicitDependantCannotBeExternal(
 
 export function logUnresolvedImplicitDependant(
 	unresolvedId: string,
-	implicitlyLoadedBefore: string
+	implicitlyLoadedBefore: string,
+	attributes: Record<string, string>
 ): RollupLog {
 	return {
 		code: MISSING_IMPLICIT_DEPENDANT,
 		message: `Module "${relativeId(
 			unresolvedId
-		)}" that should be implicitly loaded before "${relativeId(
+		)}"${getImportAttributesSuffix(attributes)} that should be implicitly loaded before "${relativeId(
 			implicitlyLoadedBefore
 		)}" could not be resolved.`
 	};
@@ -1175,17 +1201,27 @@ export function logUnknownOption(
 	};
 }
 
-export function logEntryCannotBeExternal(unresolvedId: string): RollupLog {
+export function logEntryCannotBeExternal(
+	unresolvedId: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
-		message: `Entry module "${relativeId(unresolvedId)}" cannot be external.`
+		message: `Entry module "${relativeId(
+			unresolvedId
+		)}"${getImportAttributesSuffix(attributes)} cannot be external.`
 	};
 }
 
-export function logExternalModulesCannotBeIncludedInManualChunks(source: string): RollupLog {
+export function logExternalModulesCannotBeIncludedInManualChunks(
+	source: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS,
-		message: `"${source}" cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
+		message: `"${source}"${getImportAttributesSuffix(
+			attributes
+		)} cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
 	};
 }
 
@@ -1196,30 +1232,43 @@ export function logExternalModulesCannotBeTransformedToModules(source: string): 
 	};
 }
 
-export function logUnresolvedEntry(unresolvedId: string): RollupLog {
+export function logUnresolvedEntry(
+	unresolvedId: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
-		message: `Could not resolve entry module "${relativeId(unresolvedId)}".`
+		message: `Could not resolve entry module "${relativeId(
+			unresolvedId
+		)}"${getImportAttributesSuffix(attributes)}.`
 	};
 }
 
-export function logUnresolvedImport(source: string, importer: string): RollupLog {
+export function logUnresolvedImport(
+	source: string,
+	importer: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_IMPORT,
 		exporter: source,
 		id: importer,
-		message: `Could not resolve "${source}" from "${relativeId(importer)}"`
+		message: `Could not resolve "${source}"${getImportAttributesSuffix(attributes)} from "${relativeId(importer)}"`
 	};
 }
 
-export function logUnresolvedImportTreatedAsExternal(source: string, importer: string): RollupLog {
+export function logUnresolvedImportTreatedAsExternal(
+	source: string,
+	importer: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_IMPORT,
 		exporter: source,
 		id: importer,
-		message: `"${source}" is imported by "${relativeId(
-			importer
-		)}", but could not be resolved – treating it as an external dependency.`,
+		message: `"${source}"${getImportAttributesSuffix(
+			attributes
+		)} is imported by "${relativeId(importer)}", but could not be resolved – treating it as an external dependency.`,
 		url: getRollupUrl(URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY)
 	};
 }

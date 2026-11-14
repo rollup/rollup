@@ -15,16 +15,6 @@
       "madeAt": 1794590124275,
       "expiresAt": 1797182098011
     },
-    "1244623|@eslint/config-array>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
-    },
-    "1244623|@eslint/js>eslint>@eslint/config-array>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
-    },
     "1244623|@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/typescript-estree>minimatch": {
       "decision": "ignore",
       "madeAt": 1794512381699,
@@ -34,16 +24,6 @@
       "decision": "ignore",
       "madeAt": 1794590117956,
       "expiresAt": 1797182098011
-    },
-    "1244623|eslint-plugin-unicorn>eslint>@eslint/config-array>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
-    },
-    "1244623|eslint>@eslint/config-array>minimatch": {
-      "decision": "ignore",
-      "madeAt": 1793942979020,
-      "expiresAt": 1797000000000
     },
     "1244623|mocha>glob>minimatch": {
       "decision": "ignore",

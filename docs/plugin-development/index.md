@@ -601,28 +601,43 @@ function injectPolyfillPlugin() {
 				// mess up relative external import generation. Also
 				// keeping the name and just adding a "?query" to the end
 				// ensures that preserveModules will generate the original
-				// entry name for this entry.
-				return `${resolution.id}${PROXY_SUFFIX}`;
+				// entry name for this entry. We also give the proxy the
+				// attributes of the resolved entry so that the load hook
+				// can forward them to identify the entry module.
+				return {
+					attributes: resolution.attributes,
+					id: `${resolution.id}${PROXY_SUFFIX}`
+				};
 			}
 			return null;
 		},
-		load(id) {
+		load(id, { attributes, rawId }) {
 			if (id === POLYFILL_ID) {
 				// Replace with actual polyfill
 				return "console.log('polyfill');";
 			}
-			if (id.endsWith(PROXY_SUFFIX)) {
-				const entryId = id.slice(0, -PROXY_SUFFIX.length);
+			// The id of a proxy for an entry with import attributes also
+			// encodes those attributes, so we match on the raw id
+			if (rawId.endsWith(PROXY_SUFFIX)) {
+				const entryId = rawId.slice(0, -PROXY_SUFFIX.length);
 				// We know ModuleInfo.hasDefaultExport is reliable because
 				// we awaited this.load in resolveId
-				const { hasDefaultExport } = this.getModuleInfo(entryId);
+				const { hasDefaultExport } = this.getModuleInfo({
+					attributes,
+					rawId: entryId
+				});
+				// The proxy has the same import attributes as the entry,
+				// which we need to forward to identify the entry module
+				const entryIdWithAttributes = `${JSON.stringify(
+					entryId
+				)} with ${JSON.stringify(attributes)}`;
 				let code =
 					`import ${JSON.stringify(POLYFILL_ID)};` +
-					`export * from ${JSON.stringify(entryId)};`;
+					`export * from ${entryIdWithAttributes};`;
 				// Namespace reexports do not reexport default, so we need
 				// special handling here
 				if (hasDefaultExport) {
-					code += `export { default } from ${JSON.stringify(entryId)};`;
+					code += `export { default } from ${entryIdWithAttributes};`;
 				}
 				return code;
 			}
@@ -1487,7 +1502,7 @@ The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can b
 - chunk file names that do not contain a hash are available as soon as chunks are created after the `renderStart` hook.
 - if a chunk file name would contain a hash, using `getFileName` in any hook before [`generateBundle`](#generatebundle) will return a name containing a placeholder instead of the actual name. If you use this file name or parts of it in a chunk you transform in [`renderChunk`](#renderchunk), Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
 
-If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. The `attributes` property is used as the entry module's import attributes. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. The `importer` can be either a module id string or an object with `rawId` and `attributes` to identify a module that was imported with attributes. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](../configuration-options/index.md#preserveentrysignatures) for this particular chunk.
+If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. The `attributes` property is used as the entry module's import attributes. If the `id` is a composite id like `moduleInfo.id` (see [Module identity](#module-identity)), its raw id is resolved with the attributes it encodes; in that case, `attributes` must either be omitted or specify the same attributes, otherwise Rollup throws a `CONFLICTING_MODULE_ATTRIBUTES` error. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. The `importer` can be either a module id string or an object with `rawId` and `attributes` to identify a module that was imported with attributes. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](../configuration-options/index.md#preserveentrysignatures) for this particular chunk.
 
 This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) name pattern will be used.
 
@@ -1696,7 +1711,7 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 
 ```typescript
 type UniqueModuleId =
-	string | { rawId: string; attributes: Record<string, string> };
+	string | { rawId: string; attributes?: Record<string, string> };
 
 interface ModuleInfo {
 	id: string; // the id of the module, for convenience
@@ -1709,12 +1724,12 @@ interface ModuleInfo {
 	isExternal: boolean; // for external modules that are referenced but not included in the graph
 	isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
 	importedIds: string[]; // the module ids statically imported by this module
-	importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
+	importedIdResolutions: ResolvedImport[]; // how statically imported ids were resolved, for use with this.load
 	importers: string[]; // the ids of all modules that statically import this module
 	exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
 	exports: string[] | null; // all exported variables, `null` if external
 	dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
-	dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
+	dynamicallyImportedIdResolutions: ResolvedImport[]; // how ids imported via dynamic import() were resolved
 	dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
 	implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
 	implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
@@ -1724,7 +1739,7 @@ interface ModuleInfo {
 }
 
 interface ResolvedId {
-	id: string; // the id of the imported module
+	id: string; // the resolved id of the imported module without import attributes
 	external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
 	attributes: { [key: string]: string }; // import attributes for this import
 	meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
@@ -1732,9 +1747,16 @@ interface ResolvedId {
 	resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
 	syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 }
+
+interface ResolvedImport extends ResolvedId {
+	id: string; // the module id of the imported module, which also encodes its import attributes
+	rawId: string; // the resolved id of the imported module without import attributes
+}
 ```
 
 Returns additional information about the module in question. See [Working with ASTs](#working-with-asts) for important details about the `ast` property.
+
+The `id` of a `ResolvedImport` is the module id of the imported module, which also encodes its import attributes (see [Module identity](#module-identity)) and matches the entries of `importedIds` and `dynamicallyImportedIds`, while its `rawId` is the resolved id without import attributes. In contrast, the `id` of the `ResolvedId` returned by [`this.resolve`](#this-resolve) does not contain import attributes. Like the result of `this.resolve`, a `ResolvedImport` that is not external can be passed directly to [`this.load`](#this-load). If you want to return such a resolution from a [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) hook, however, use `{ ...resolution, id: resolution.rawId }` as Rollup would otherwise encode the attributes a second time.
 
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](#buildend) hook:
 
@@ -1778,6 +1800,7 @@ If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to
 ```typescript
 type Load = (options: {
 	id: UniqueModuleId;
+	attributes?: Record<string, string> | null;
 	resolveDependencies?: boolean;
 	meta?: CustomPluginOptions | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
@@ -1789,7 +1812,9 @@ The `UniqueModuleId` type is defined in [`this.getModuleInfo`](#this-getmodulein
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. The id can either be a string or a `{ rawId, attributes }` object if you need to identify a module that uses import attributes. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
-This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#this-resolve) to this function as long as it is neither `null` nor external.
+Alternatively, you can provide the import attributes via the `attributes` option, which are then combined with the id. If the id already specifies attributes, i.e. it is a composite id like `moduleInfo.id` (see [Module identity](#module-identity)) or an object with an `attributes` property, the `attributes` option needs to specify the same attributes, otherwise Rollup throws a `CONFLICTING_MODULE_ATTRIBUTES` error. Here, an empty object explicitly means "no import attributes" on both sides, while `null` or omitting the option uses the attributes of the id.
+
+This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#this-resolve), including its `attributes`, to this function as long as it is neither `null` nor external.
 
 The returned Promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the Promise returned by `this.load` wait until all dependency ids have been resolved.
 
@@ -1802,7 +1827,7 @@ Note that with regard to the `meta`, `moduleSideEffects` and `syntheticNamedExpo
 export default function addProxyPlugin() {
 	return {
 		async resolveId(source, importer, options) {
-			if (importer?.endsWith('?proxy')) {
+			if (options.importerRawId?.endsWith('?proxy')) {
 				// Do not proxy ids used in proxies
 				return null;
 			}
@@ -1814,26 +1839,39 @@ export default function addProxyPlugin() {
 				// we pass on the entire resolution information
 				const moduleInfo = await this.load(resolution);
 				if (moduleInfo.code.includes('/* use proxy */')) {
-					return `${resolution.id}?proxy`;
+					// The proxy gets the attributes of the proxied module
+					// so that it can forward them
+					return {
+						attributes: resolution.attributes,
+						id: `${resolution.id}?proxy`
+					};
 				}
 			}
 			// As we already fully resolved the module, there is no reason
 			// to resolve it again
 			return resolution;
 		},
-		load(id) {
-			if (id.endsWith('?proxy')) {
-				const importee = id.slice(0, -'?proxy'.length);
+		load(id, { attributes, rawId }) {
+			// The id of a proxy for a module with import attributes also
+			// encodes those attributes, so we match on the raw id
+			if (rawId.endsWith('?proxy')) {
+				const importee = rawId.slice(0, -'?proxy'.length);
+				// The proxy has the same import attributes as the proxied
+				// module, which we need to forward to identify the module
+				const importeeWithAttributes = `${JSON.stringify(
+					importee
+				)} with ${JSON.stringify(attributes)}`;
 				// Note that namespace reexports do not reexport default
 				// exports
-				let code = `console.log('proxy for ${importee}'); export * from ${JSON.stringify(
-					importee
-				)};`;
+				let code = `console.log('proxy for ${importee}'); export * from ${importeeWithAttributes};`;
 				// We know that while resolving the proxy, importee was
 				// already fully loaded and parsed, so we can rely on
 				// hasDefaultExport
-				if (this.getModuleInfo(importee).hasDefaultExport) {
-					code += `export { default } from ${JSON.stringify(importee)};`;
+				if (
+					this.getModuleInfo({ attributes, rawId: importee })
+						.hasDefaultExport
+				) {
+					code += `export { default } from ${importeeWithAttributes};`;
 				}
 				return code;
 			}
@@ -1860,11 +1898,13 @@ const DYNAMIC_IMPORT_PROXY_PREFIX = '\0dynamic-import:';
 export default function dynamicChunkLogsPlugin() {
 	return {
 		name: 'dynamic-chunk-logs',
-		async resolveDynamicImport(specifier, importer) {
+		async resolveDynamicImport(specifier, importer, { attributes }) {
 			// Ignore non-static targets
 			if (!(typeof specifier === 'string')) return;
 			// Get the id and initial meta information of the import target
-			const resolved = await this.resolve(specifier, importer);
+			const resolved = await this.resolve(specifier, importer, {
+				attributes
+			});
 			// Ignore external targets. Explicit externals have the
 			// "external" property while unresolved imports are "null".
 			if (resolved && !resolved.external) {
@@ -1877,45 +1917,57 @@ export default function dynamicChunkLogsPlugin() {
 				// later use "this.load" again in the load hook with just
 				// the module id.
 				this.load(resolved);
-				return `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`;
+				// The proxy gets the attributes of the proxied module so
+				// that it can forward them
+				return {
+					attributes: resolved.attributes,
+					id: `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`
+				};
 			}
 		},
-		async load(id) {
-			// Ignore all files except our dynamic import proxies
-			if (!id.startsWith('\0dynamic-import:')) return null;
-			const actualId = id.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+		async load(id, { attributes, rawId }) {
+			// Ignore all files except our dynamic import proxies. As the
+			// proxy has the same import attributes as the proxied module,
+			// we match on the raw id and forward the attributes.
+			if (!rawId.startsWith(DYNAMIC_IMPORT_PROXY_PREFIX)) return null;
+			const actualId = rawId.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+			const actualIdWithAttributes = `${JSON.stringify(
+				actualId
+			)} with ${JSON.stringify(attributes)}`;
 			// To allow loading modules in parallel while keeping
 			// complexity low, we do not directly await each "this.load"
 			// call but put their promises into an array where we await
 			// them via an async for loop.
 			const moduleInfoPromises = [
-				this.load({ id: actualId, resolveDependencies: true })
+				this.load({ attributes, id: actualId, resolveDependencies: true })
 			];
-			// We track each loaded dependency here so that we do not load
-			// a file twice and also do  not get stuck when there are
-			// circular dependencies.
-			const dependencies = new Set([actualId]);
+			// We track the ids of all loaded modules here so that we do
+			// not get stuck when there are circular dependencies. Module
+			// ids also encode import attributes so that importing the
+			// same file with different attributes is tracked separately.
+			const dependencies = new Set();
 			// "importedIdResolutions" tracks the objects created by
 			// resolveId hooks. We are using those instead of "importedIds"
 			// so that again, important meta information is not lost.
-			for await (const { importedIdResolutions } of moduleInfoPromises) {
-				for (const resolved of importedIdResolutions) {
-					if (!dependencies.has(resolved.id)) {
-						dependencies.add(resolved.id);
-						moduleInfoPromises.push(
-							this.load({ ...resolved, resolveDependencies: true })
-						);
-					}
+			for await (const moduleInfo of moduleInfoPromises) {
+				if (dependencies.has(moduleInfo.id)) continue;
+				dependencies.add(moduleInfo.id);
+				for (const resolved of moduleInfo.importedIdResolutions) {
+					moduleInfoPromises.push(
+						this.load({ ...resolved, resolveDependencies: true })
+					);
 				}
 			}
 			// We log all modules in a dynamic chunk when it is loaded.
 			let code = `console.log([${[...dependencies]
 				.map(JSON.stringify)
-				.join(', ')}]); export * from ${JSON.stringify(actualId)};`;
+				.join(', ')}]); export * from ${actualIdWithAttributes};`;
 			// Namespace reexports do not reexport default exports, which
 			// is why we reexport it manually if it exists
-			if (this.getModuleInfo(actualId).hasDefaultExport) {
-				code += `export { default } from ${JSON.stringify(actualId)};`;
+			if (
+				this.getModuleInfo({ attributes, rawId: actualId }).hasDefaultExport
+			) {
+				code += `export { default } from ${actualIdWithAttributes};`;
 			}
 			return code;
 		}
@@ -2471,15 +2523,15 @@ Import attributes are part of a module's identity. If the same resolved raw id i
 
 Internally, Rollup tracks three different identifiers for each module:
 
-- **`rawId`**: the resolved module id without import attributes, returned by [`resolveId`](#resolveid) and corresponding to the file or virtual module on disk. It is what [`load`](#load) uses to read from the file system, what Rollup adds to its watch list, and what is exposed as [`moduleInfo.rawId`](#this-getmoduleinfo) and `RenderedModule.rawId` (the values of `modules` on the output chunk, see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)). Function-form [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) receive the `rawId` together with the `attributes` so they can key on either. For modules without import attributes, `rawId` and `id` (below) are identical.
+- **`rawId`**: the resolved module id without import attributes, returned by [`resolveId`](#resolveid) and corresponding to the file or virtual module on disk. It is what [`load`](#load) uses to read from the file system, what Rollup adds to its watch list, and what is exposed as [`moduleInfo.rawId`](#this-getmoduleinfo), the `rawId` of the entries of `importedIdResolutions` / `dynamicallyImportedIdResolutions` and `RenderedModule.rawId` (the values of `modules` on the output chunk, see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)). Function-form [`external`](../configuration-options/index.md#external), [`output.globals`](../configuration-options/index.md#output-globals), and [`output.paths`](../configuration-options/index.md#output-paths) receive the `rawId` together with the `attributes` so they can key on either. For modules without import attributes, `rawId` and `id` (below) are identical.
 - **`attributes`**: the import attributes (`Record<string, string>`) that were applied to this module, where an empty object means "no import attributes". Exposed on [`moduleInfo.attributes`](#this-getmoduleinfo), `RenderedModule.attributes`, and `facadeModuleAttributes` on the `PreRenderedChunk` / `RenderedChunk` types (see [`generateBundle`](#generatebundle) and [`renderChunk`](#renderchunk)).
-- **`id`**: the composite module identifier Rollup uses internally, derived from `rawId` and `attributes` as described above, so importing the same `rawId` with different `attributes` yields different `id` values and thus different modules. It appears in [`moduleInfo.id`](#this-getmoduleinfo), `moduleInfo.importers` and `moduleInfo.dynamicImporters`, `importedIds` / `dynamicallyImportedIds`, `moduleIds` on the output chunk (see [`generateBundle`](#generatebundle)), and in error and warning messages. It is also what the `importer` parameter of the [`resolveId`](#resolveid) and [`resolveDynamicImport`](#resolvedynamicimport) hooks receives for modules that were themselves imported with attributes.
+- **`id`**: the composite module identifier (also called composite id) Rollup uses internally, derived from `rawId` and `attributes` as described above, so importing the same `rawId` with different `attributes` yields different `id` values and thus different modules. It appears in [`moduleInfo.id`](#this-getmoduleinfo), `moduleInfo.importers` and `moduleInfo.dynamicImporters`, `importedIds` / `dynamicallyImportedIds` as well as the `id` of the entries of `importedIdResolutions` / `dynamicallyImportedIdResolutions`, `moduleIds` on the output chunk (see [`generateBundle`](#generatebundle)), and in error and warning messages. It is also what the `importer` parameter of the [`resolveId`](#resolveid) and [`resolveDynamicImport`](#resolvedynamicimport) hooks receives for modules that were themselves imported with attributes.
 
 Because the `importer` parameter may contain the `?attributes=` suffix, plugins that compare, parse, or pattern-match the importer should prefer the `importerRawId` option (which is always the id without attributes) when they need the underlying file or virtual id. Use `importerAttributes` to get the importing module's own import attributes.
 
 ::: warning Do not use `?attributes=` in your own module ids
 
-Since Rollup encodes import attributes as a single `attributes` query parameter, module ids you produce in a plugin (e.g. virtual modules returned from [`resolveId`](#resolveid), or ids passed to [`this.load`](#this-load) / [`this.emitFile`](#this-emitfile)) must not contain an `attributes=`, `?attributes=`, or `&attributes=` segment. Such ids would be mistaken for a composite id and Rollup would try to split off the attributes, producing unexpected `rawId` values. If you need to attach plugin-specific metadata to an id, use a different query parameter name (e.g. `?my-plugin=...`) or a different encoding. :::
+Module ids that your plugin creates itself, e.g. for virtual modules returned from [`resolveId`](#resolveid), must not contain an `attributes` search parameter (use a different name such as `?my-plugin=...` for plugin-specific metadata), as Rollup would mistake them for composite ids. This does not apply to ids that Rollup produced, such as `moduleInfo.id`, which can be passed as they are to e.g. [`this.load`](#this-load) or [`this.emitFile`](#this-emitfile). :::
 
 ### Accessing import attributes in plugins
 
