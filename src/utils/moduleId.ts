@@ -1,4 +1,5 @@
 import type { UniqueModuleId } from '../rollup/types';
+import { error, logConflictingModuleAttributes } from './logs';
 
 export interface NormalizedModuleId {
 	id: string;
@@ -41,6 +42,24 @@ export function normalizeModuleIdToObject(moduleId: UniqueModuleId): NormalizedM
 	}
 	const { rawId, attributes } = getRawIdAndAttributes(moduleId);
 	return { attributes, id: moduleId, rawId };
+}
+
+export function normalizeModuleIdAndAttributes(
+	moduleId: UniqueModuleId,
+	attributes: Record<string, string> | null | undefined
+): Omit<NormalizedModuleId, 'id'> {
+	const normalizedModuleId = normalizeModuleIdToObject(moduleId);
+	if (!attributes) {
+		return normalizedModuleId;
+	}
+	const { attributes: idAttributes, id, rawId } = normalizedModuleId;
+	if (!idAttributes) {
+		return { attributes, rawId };
+	}
+	if (id !== generateIdByRawIdAndAttributes(rawId, attributes)) {
+		return error(logConflictingModuleAttributes(rawId, idAttributes, attributes));
+	}
+	return normalizedModuleId;
 }
 
 function getRawIdAndAttributes(id: string): Omit<NormalizedModuleId, 'id'> {
