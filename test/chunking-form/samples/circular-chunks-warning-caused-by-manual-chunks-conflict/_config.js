@@ -11,8 +11,8 @@ module.exports = defineTest({
 	expectedWarnings: ['CIRCULAR_CHUNK'],
 	logs: new Array(4).fill(null).map(() => ({
 		code: 'CIRCULAR_CHUNK',
-		ids: ['b', 'ac', 'b'],
+		ids: ['ac', 'b', 'ac'],
 		level: 'warn',
-		message: 'Circular chunk: b -> ac -> b. Please adjust the manual chunk logic for these chunks.'
+		message: 'Circular chunk: ac -> b -> ac. Please adjust the manual chunk logic for these chunks.'
 	}))
 });

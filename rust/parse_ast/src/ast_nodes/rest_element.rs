@@ -1,12 +1,14 @@
 use swc_ecma_ast::RestPat;
 
 use crate::convert_ast::converter::ast_constants::{
-  REST_ELEMENT_ARGUMENT_OFFSET, REST_ELEMENT_RESERVED_BYTES, TYPE_REST_ELEMENT,
+  NODE_TYPE_ID_REST_ELEMENT, REST_ELEMENT_ARGUMENT_OFFSET, REST_ELEMENT_RESERVED_BYTES,
+  TYPE_REST_ELEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_rest_element(&mut self, rest_pattern: &RestPat) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_REST_ELEMENT>();
     let end_position = self.add_type_and_start(
       &TYPE_REST_ELEMENT,
       &rest_pattern.dot3_token,
@@ -18,5 +20,6 @@ impl AstConverter<'_> {
     self.convert_pattern(&rest_pattern.arg);
     // end
     self.add_end(end_position, &rest_pattern.span);
+    self.on_node_exit(walk_entry);
   }
 }

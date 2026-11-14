@@ -6,6 +6,7 @@ const ID_DEB = path.join(__dirname, 'deb.js');
 
 module.exports = defineTest({
 	description: 'supports using a function that returns a pattern for FileNames',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: ['main.js'],
@@ -28,7 +29,9 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						exports: [],
+						facadeModuleAttributes: {},
 						facadeModuleId: ID_MAIN,
+						facadeModuleRawId: ID_MAIN,
 						isDynamicEntry: false,
 						isEntry: true,
 						isImplicitEntry: false,
@@ -41,16 +44,13 @@ module.exports = defineTest({
 				return `entry-[name]-[hash]-[format].js`;
 			},
 			assetFileNames: fileInfo => {
-				const originalFileName = fileInfo.originalFileName;
-				const originalFileNames = ['deb.js', 'main.js'];
-				assert.ok(originalFileNames.includes(originalFileName), 'original file name');
+				assert.strictEqual(fileInfo.name, 'deb.js.txt');
+				assert.strictEqual(fileInfo.originalFileName, 'deb.js');
 				assert.deepStrictEqual(
 					fileInfo,
 					{
-						name: `${originalFileName}.txt`,
 						names: ['deb.js.txt', 'main.js.txt'],
-						originalFileName,
-						originalFileNames,
+						originalFileNames: ['deb.js', 'main.js'],
 						source: 'hello world',
 						type: 'asset'
 					},
@@ -63,7 +63,9 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						exports: ['default'],
+						facadeModuleAttributes: {},
 						facadeModuleId: ID_DEB,
+						facadeModuleRawId: ID_DEB,
 						isDynamicEntry: true,
 						isEntry: false,
 						isImplicitEntry: false,

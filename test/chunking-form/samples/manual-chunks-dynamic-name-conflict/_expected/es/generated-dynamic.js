@@ -1,20 +1,3 @@
-console.log('dynamic2');
-
-const DYNAMIC_A = 'DYNAMIC_A';
-const DYNAMIC_B = 'DYNAMIC_B';
-
-var dynamic2 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	DYNAMIC_A: DYNAMIC_A,
-	DYNAMIC_B: DYNAMIC_B
-});
+export { DYNAMIC_B as DYNAMIC_A, DYNAMIC_A as DYNAMIC_B } from './generated-dynamic2.js';
 
 console.log('dynamic1');
-
-var dynamic1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	DYNAMIC_A: DYNAMIC_B,
-	DYNAMIC_B: DYNAMIC_A
-});
-
-export { dynamic1 as a, dynamic2 as d };

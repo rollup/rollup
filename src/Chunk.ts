@@ -59,6 +59,7 @@ import {
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
+	logAmbiguousGlobalName,
 	logCyclicCrossChunkReexport,
 	logEmptyChunk,
 	logMissingGlobalName,
@@ -67,7 +68,6 @@ import {
 } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
-import { getAttributesFromImportExpression } from './utils/parseImportAttributes';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
 import type { PluginDriver } from './utils/PluginDriver';
 import { getAliasName, getDynamicAliasName, getImportPath } from './utils/relativeId';
@@ -104,7 +104,7 @@ export type ResolvedDynamicImport = (
 	| { chunk: Chunk; externalChunk: null; facadeChunk: Chunk | undefined; resolution: Module }
 	| { chunk: null; externalChunk: ExternalChunk; facadeChunk: null; resolution: ExternalModule }
 	| { chunk: null; externalChunk: null; facadeChunk: null; resolution: string | null }
-) & { node: ImportExpression };
+) & { attributes: Record<string, string>; node: ImportExpression };
 
 export interface ChunkDependency {
 	attributes: string | null;
@@ -172,10 +172,16 @@ function getGlobalName(
 	chunk: ExternalChunk,
 	globals: GlobalsOption,
 	hasExports: boolean,
+	boundVariantsByRawId: Map<string, number>,
 	log: LogHandler
 ): string | undefined {
-	const globalName = typeof globals === 'function' ? globals(chunk.id) : globals[chunk.id];
+	const { attributes, rawId } = chunk.moduleInfo;
+	const globalName =
+		typeof globals === 'function' ? globals(rawId, { attributes }) : globals[rawId];
 	if (globalName) {
+		if (hasExports && typeof globals === 'object') {
+			warnIfAmbiguousGlobalName(rawId, globalName, boundVariantsByRawId, log);
+		}
 		return globalName;
 	}
 
@@ -183,6 +189,19 @@ function getGlobalName(
 		log(LOGLEVEL_WARN, logMissingGlobalName(chunk.id, chunk.variableName));
 		return chunk.variableName;
 	}
+}
+
+function warnIfAmbiguousGlobalName(
+	rawId: string,
+	globalName: string,
+	boundVariantsByRawId: Map<string, number>,
+	log: LogHandler
+): void {
+	const boundVariants = boundVariantsByRawId.get(rawId) ?? 0;
+	if (boundVariants === 1) {
+		log(LOGLEVEL_WARN, logAmbiguousGlobalName(rawId, globalName));
+	}
+	boundVariantsByRawId.set(rawId, boundVariants + 1);
 }
 
 export default class Chunk {
@@ -1060,7 +1079,7 @@ export default class Chunk {
 	private getDynamicImportStringAndAttributes(
 		resolution: ExternalModule | string | null,
 		fileName: string,
-		node: ImportExpression
+		dynamicImportAttributes: Record<string, string>
 	): [importPath: string, attributes: string | null | true] {
 		const { externalImportAttributes } = this.outputOptions;
 		const keepExternalImportAttributes =
@@ -1075,11 +1094,10 @@ export default class Chunk {
 		}
 		let attributes: string | true | null = null;
 		if (keepExternalImportAttributes) {
-			const attributesFromImportAttributes = getAttributesFromImportExpression(node);
 			attributes =
-				attributesFromImportAttributes === EMPTY_OBJECT
+				dynamicImportAttributes === EMPTY_OBJECT
 					? true
-					: formatAttributes(attributesFromImportAttributes, this.snippets);
+					: formatAttributes(dynamicImportAttributes, this.snippets);
 		}
 		return [resolution || '', attributes];
 	}
@@ -1136,7 +1154,7 @@ export default class Chunk {
 		}
 		const includedDynamicImports: ResolvedDynamicImport[] = [];
 		for (const module of this.orderedModules) {
-			for (const { node } of module.dynamicImports) {
+			for (const { attributes, node } of module.dynamicImports) {
 				if (!node.included) {
 					continue;
 				}
@@ -1144,6 +1162,7 @@ export default class Chunk {
 				includedDynamicImports.push(
 					resolution instanceof Module
 						? {
+								attributes,
 								chunk: this.chunkByModule.get(resolution)!,
 								externalChunk: null,
 								facadeChunk: this.facadeChunkByModule.get(resolution),
@@ -1152,13 +1171,21 @@ export default class Chunk {
 							}
 						: resolution instanceof ExternalModule
 							? {
+									attributes,
 									chunk: null,
 									externalChunk: this.externalChunkByModule.get(resolution)!,
 									facadeChunk: null,
 									node,
 									resolution
 								}
-							: { chunk: null, externalChunk: null, facadeChunk: null, node, resolution }
+							: {
+									attributes,
+									chunk: null,
+									externalChunk: null,
+									facadeChunk: null,
+									node,
+									resolution
+								}
 				);
 			}
 		}
@@ -1172,7 +1199,9 @@ export default class Chunk {
 		const { dynamicEntryModules, facadeModule, implicitEntryModules, orderedModules } = this;
 		return (this.preRenderedChunkInfo = {
 			exports: this.getExportNames(),
+			facadeModuleAttributes: facadeModule ? facadeModule.info.attributes : {},
 			facadeModuleId: facadeModule && facadeModule.id,
+			facadeModuleRawId: facadeModule ? facadeModule.info.rawId : null,
 			isDynamicEntry: dynamicEntryModules.length > 0,
 			isEntry: !!facadeModule?.info.isEntry,
 			isImplicitEntry: implicitEntryModules.length > 0,
@@ -1277,6 +1306,10 @@ export default class Chunk {
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ChunkDependency>();
 		const fileName = this.getFileName();
+		const boundVariantsByRawId =
+			this.outputOptions.format === 'iife' || this.outputOptions.format === 'umd'
+				? new Map<string, number>()
+				: undefined;
 		for (const dependency of this.dependencies) {
 			const imports = importSpecifiers.get(dependency) || null;
 			const reexports = reexportSpecifiers.get(dependency) || null;
@@ -1294,40 +1327,52 @@ export default class Chunk {
 				// side effect import, see https://github.com/rollup/rollup/issues/6111
 				continue;
 			}
-			const namedExportsMode =
-				dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
-			const importPath = dependency.getImportPath(fileName);
-			// Separate source-phase imports from regular imports
-			const sourcePhaseImport = imports?.find(index => index.phase === 'source');
-			const instanceImports = imports?.filter(index => index.phase !== 'source') ?? null;
-
-			renderedDependencies.set(dependency, {
-				attributes:
-					dependency instanceof ExternalChunk
-						? dependency.getImportAttributes(this.snippets)
-						: null,
-				defaultVariableName: dependency.defaultVariableName,
-				globalName:
-					dependency instanceof ExternalChunk &&
-					(this.outputOptions.format === 'umd' || this.outputOptions.format === 'iife') &&
-					getGlobalName(
-						dependency,
-						this.outputOptions.globals,
-						(imports || reexports) !== null,
-						this.inputOptions.onLog
-					),
-				importPath,
-				imports: instanceImports && instanceImports.length > 0 ? instanceImports : null,
-				isChunk: dependency instanceof Chunk,
-				name: dependency.variableName,
-				namedExportsMode,
-				namespaceVariableName: dependency.namespaceVariableName,
-				reexports,
-				sourcePhaseImport: sourcePhaseImport?.local
-			});
+			renderedDependencies.set(
+				dependency,
+				this.getRenderedDependency(dependency, imports, reexports, fileName, boundVariantsByRawId)
+			);
 		}
 
 		return (this.renderedDependencies = renderedDependencies);
+	}
+
+	private getRenderedDependency(
+		dependency: Chunk | ExternalChunk,
+		imports: ImportSpecifier[] | null,
+		reexports: ReexportSpecifier[] | null,
+		fileName: string,
+		boundVariantsByRawId: Map<string, number> | undefined
+	): ChunkDependency {
+		const namedExportsMode =
+			dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
+		const importPath = dependency.getImportPath(fileName);
+		// Separate source-phase imports from regular imports
+		const sourcePhaseImport = imports?.find(index => index.phase === 'source');
+		const instanceImports = imports?.filter(index => index.phase !== 'source') ?? null;
+
+		return {
+			attributes:
+				dependency instanceof ExternalChunk ? dependency.getImportAttributes(this.snippets) : null,
+			defaultVariableName: dependency.defaultVariableName,
+			globalName:
+				boundVariantsByRawId &&
+				dependency instanceof ExternalChunk &&
+				getGlobalName(
+					dependency,
+					this.outputOptions.globals,
+					(imports || reexports) !== null,
+					boundVariantsByRawId,
+					this.inputOptions.onLog
+				),
+			importPath,
+			imports: instanceImports && instanceImports.length > 0 ? instanceImports : null,
+			isChunk: dependency instanceof Chunk,
+			name: dependency.variableName,
+			namedExportsMode,
+			namespaceVariableName: dependency.namespaceVariableName,
+			reexports,
+			sourcePhaseImport: sourcePhaseImport?.local
+		};
 	}
 
 	private inlineChunkDependencies(chunk: Chunk): void {
@@ -1425,10 +1470,12 @@ export default class Chunk {
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			renderedModules[module.id] = {
+				attributes: module.info.attributes,
 				get code() {
 					return source?.toString() ?? null;
 				},
 				originalLength: module.originalCode.length,
+				rawId: module.info.rawId,
 				removedExports,
 				renderedExports,
 				renderedLength
@@ -1470,11 +1517,11 @@ export default class Chunk {
 					);
 				}
 			} else {
-				const { node, resolution } = resolvedDynamicImport;
-				const [resolutionString, attributes] = this.getDynamicImportStringAndAttributes(
+				const { attributes, node, resolution } = resolvedDynamicImport;
+				const [resolutionString, renderedAttributes] = this.getDynamicImportStringAndAttributes(
 					resolution,
 					fileName,
-					node
+					attributes
 				);
 				node.setExternalResolution(
 					'external',
@@ -1484,7 +1531,7 @@ export default class Chunk {
 					accessedGlobalsByScope,
 					resolutionString,
 					false,
-					attributes,
+					renderedAttributes,
 					this,
 					null
 				);

@@ -68,6 +68,7 @@ module.exports = defineTest({
 									id: ID_DEP,
 									meta: {},
 									moduleSideEffects: true,
+									rawId: ID_DEP,
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -78,6 +79,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: false,
 							meta: {},
+							rawId: ID_MAIN,
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -132,6 +134,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: ID_DEP,
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						}

@@ -4,7 +4,7 @@ use swc_ecma_ast::{ExportAll, ModuleExportName, ObjectLit, Str};
 use crate::convert_ast::converter::ast_constants::{
   EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET, EXPORT_ALL_DECLARATION_EXPORTED_OFFSET,
   EXPORT_ALL_DECLARATION_RESERVED_BYTES, EXPORT_ALL_DECLARATION_SOURCE_OFFSET,
-  TYPE_EXPORT_ALL_DECLARATION,
+  NODE_TYPE_ID_EXPORT_ALL_DECLARATION, TYPE_EXPORT_ALL_DECLARATION,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -16,6 +16,7 @@ impl AstConverter<'_> {
     attributes: &Option<Box<ObjectLit>>,
     exported: Option<&ModuleExportName>,
   ) {
+    let walk_entry = self.on_node_enter::<NODE_TYPE_ID_EXPORT_ALL_DECLARATION>();
     let end_position = self.add_type_and_start(
       &TYPE_EXPORT_ALL_DECLARATION,
       span,
@@ -37,6 +38,7 @@ impl AstConverter<'_> {
     );
     // end
     self.add_end(end_position, span);
+    self.on_node_exit(walk_entry);
   }
 
   pub(crate) fn convert_export_all(&mut self, export_all: &ExportAll) {

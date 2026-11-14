@@ -1,4 +1,4 @@
-console.log('dep');
+import './main2.js';
 
 console.log('main');
 
