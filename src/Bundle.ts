@@ -8,7 +8,8 @@ import type {
 	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputBundle
+	OutputBundle,
+	UniqueModuleId
 } from './rollup/types';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
@@ -113,7 +114,7 @@ export default class Bundle {
 	}
 
 	private async addManualChunks(
-		manualChunks: Record<string, readonly string[]>
+		manualChunks: Record<string, readonly UniqueModuleId[]>
 	): Promise<Map<Module, string>> {
 		const manualChunkAliasByEntry = new Map<Module, string>();
 		const chunkEntries = await Promise.all(

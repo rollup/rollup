@@ -68,7 +68,6 @@ import {
 } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
-import { getAttributesFromImportExpression } from './utils/parseImportAttributes';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
 import type { PluginDriver } from './utils/PluginDriver';
 import { getAliasName, getDynamicAliasName, getImportPath } from './utils/relativeId';
@@ -105,7 +104,7 @@ export type ResolvedDynamicImport = (
 	| { chunk: Chunk; externalChunk: null; facadeChunk: Chunk | undefined; resolution: Module }
 	| { chunk: null; externalChunk: ExternalChunk; facadeChunk: null; resolution: ExternalModule }
 	| { chunk: null; externalChunk: null; facadeChunk: null; resolution: string | null }
-) & { node: ImportExpression };
+) & { attributes: Record<string, string>; node: ImportExpression };
 
 export interface ChunkDependency {
 	attributes: string | null;
@@ -1080,7 +1079,7 @@ export default class Chunk {
 	private getDynamicImportStringAndAttributes(
 		resolution: ExternalModule | string | null,
 		fileName: string,
-		node: ImportExpression
+		dynamicImportAttributes: Record<string, string>
 	): [importPath: string, attributes: string | null | true] {
 		const { externalImportAttributes } = this.outputOptions;
 		const keepExternalImportAttributes =
@@ -1095,11 +1094,10 @@ export default class Chunk {
 		}
 		let attributes: string | true | null = null;
 		if (keepExternalImportAttributes) {
-			const attributesFromImportAttributes = getAttributesFromImportExpression(node);
 			attributes =
-				attributesFromImportAttributes === EMPTY_OBJECT
+				dynamicImportAttributes === EMPTY_OBJECT
 					? true
-					: formatAttributes(attributesFromImportAttributes, this.snippets);
+					: formatAttributes(dynamicImportAttributes, this.snippets);
 		}
 		return [resolution || '', attributes];
 	}
@@ -1156,7 +1154,7 @@ export default class Chunk {
 		}
 		const includedDynamicImports: ResolvedDynamicImport[] = [];
 		for (const module of this.orderedModules) {
-			for (const { node } of module.dynamicImports) {
+			for (const { attributes, node } of module.dynamicImports) {
 				if (!node.included) {
 					continue;
 				}
@@ -1164,6 +1162,7 @@ export default class Chunk {
 				includedDynamicImports.push(
 					resolution instanceof Module
 						? {
+								attributes,
 								chunk: this.chunkByModule.get(resolution)!,
 								externalChunk: null,
 								facadeChunk: this.facadeChunkByModule.get(resolution),
@@ -1172,13 +1171,21 @@ export default class Chunk {
 							}
 						: resolution instanceof ExternalModule
 							? {
+									attributes,
 									chunk: null,
 									externalChunk: this.externalChunkByModule.get(resolution)!,
 									facadeChunk: null,
 									node,
 									resolution
 								}
-							: { chunk: null, externalChunk: null, facadeChunk: null, node, resolution }
+							: {
+									attributes,
+									chunk: null,
+									externalChunk: null,
+									facadeChunk: null,
+									node,
+									resolution
+								}
 				);
 			}
 		}
@@ -1510,11 +1517,11 @@ export default class Chunk {
 					);
 				}
 			} else {
-				const { node, resolution } = resolvedDynamicImport;
-				const [resolutionString, attributes] = this.getDynamicImportStringAndAttributes(
+				const { attributes, node, resolution } = resolvedDynamicImport;
+				const [resolutionString, renderedAttributes] = this.getDynamicImportStringAndAttributes(
 					resolution,
 					fileName,
-					node
+					attributes
 				);
 				node.setExternalResolution(
 					'external',
@@ -1524,7 +1531,7 @@ export default class Chunk {
 					accessedGlobalsByScope,
 					resolutionString,
 					false,
-					attributes,
+					renderedAttributes,
 					this,
 					null
 				);
