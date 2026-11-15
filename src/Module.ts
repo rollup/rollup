@@ -157,8 +157,8 @@ export interface AstContext {
 
 export interface DynamicImport {
 	argument: string | AstNode;
-	id: string | null;
 	node: ImportExpression;
+	resolution: ResolvedId | null;
 }
 
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
@@ -329,13 +329,15 @@ export default class Module {
 			code: null,
 			get dynamicallyImportedIdResolutions() {
 				return dynamicImports
-					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
-					.filter(Boolean) as ResolvedId[];
+					.map(({ resolution }) => resolution)
+					.filter((resolution): resolution is ResolvedId => resolution !== null);
 			},
 			get dynamicallyImportedIds() {
 				// We cannot use this.dynamicDependencies because this is needed before
 				// dynamicDependencies are populated
-				return dynamicImports.map(({ id }) => id).filter((id): id is string => id != null);
+				return dynamicImports
+					.map(({ resolution }) => resolution?.id)
+					.filter((id): id is string => id != null);
 			},
 			get dynamicImporters() {
 				return dynamicImporters.sort();
@@ -1099,7 +1101,7 @@ export default class Module {
 		) {
 			argument = (argument as LiteralStringNode).value!;
 		}
-		this.dynamicImports.push({ argument, id: null, node });
+		this.dynamicImports.push({ argument, node, resolution: null });
 	}
 
 	private assertUniqueExportName(name: string, nodeStart: number) {
