@@ -61,8 +61,10 @@ const REPLAYING_CHANGE_THROTTLE = `  if (event === EV_CHANGE) {
     // unwatch() marks the path as ignored synchronously and add() clears the
     // mark synchronously, so a file that is unwatched and re-added, which
     // Rollup does on every change on Linux, is still considered watched while
-    // the asynchronous re-registration is in progress.
-    const isUnwatched = () => this._ignoredPaths.has(sysPath.resolve(fullPath));
+    // the asynchronous re-registration is in progress. Both store paths with
+    // forward slashes, also on Windows.
+    const isUnwatched = () =>
+      this._ignoredPaths.has(normalizePathToUnix(sysPath.resolve(fullPath)));
     const isEmptyFile = (stats) => Boolean(stats && stats.isFile() && stats.size === 0);
     const throttler = this._throttle(EV_CHANGE, path, 50, (suppressedCount) => {
       const pending = this._pendingChanges.get(path);
