@@ -185,14 +185,16 @@ export function getChunkAssignments(
 		awaitedDynamicImportsByEntry
 	} = analyzeModuleGraph(entries, manualChunkModules, manualChunkModulesByModule);
 
+	const isolatedChunks: ChunkDefinitions = [];
 	// Each chunk is identified by its position in this array
 	const chunkAtoms = getChunksWithSameDependentEntries(
 		getModulesWithDependentEntriesAndHandleTLACycles(
 			dependentEntriesByModule,
 			manualChunkModulesByModule,
-			chunkDefinitions
+			isolatedChunks
 		)
 	);
+	chunkDefinitions.push(...isolatedChunks);
 	const manualChunkAtoms = getManualChunkAtoms(manualChunkModules, dependentEntriesByModule);
 	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(
 		entriesAndManualChunksCount,
@@ -227,6 +229,7 @@ export function getChunkAssignments(
 			alreadyLoadedAtomsByEntry,
 			allEntriesAndManualChunks,
 			awaitedDynamicImportsByEntry,
+			isolatedChunks,
 			minChunkSize
 		);
 
@@ -710,6 +713,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	alreadyLoadedAtomsByEntry: bigint[],
 	allEntriesAndManualChunks: readonly Module[][],
 	awaitedDynamicImportsByEntry: readonly ReadonlySet<number>[],
+	isolatedChunks: ChunkDefinitions,
 	minChunkSize: number
 ) {
 	const chunksBySignature: Record<string, ChunkDescription> = Object.create(null);
@@ -772,8 +776,26 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 		atomMask <<= 1n;
 	}
 	const chunks = Object.values(chunksBySignature);
+	const graphChunks = [...chunks];
+	// Isolated awaited targets participate in cycle checks, but are never merged.
+	for (const { modules } of isolatedChunks) {
+		const chunk: ChunkDescription = {
+			awaitedDependencies: new Set(),
+			awaitingChunks: new Set(),
+			containedAtoms: 0n,
+			correlatedAtoms: 0n,
+			dependencies: new Set(),
+			dependentChunks: new Set(),
+			dependentEntries: new Set(),
+			modules,
+			pure: false,
+			size: 0
+		};
+		graphChunks.push(chunk);
+		for (const module of modules) chunkByModule.set(module, chunk);
+	}
 	sideEffectAtoms |= addChunkDependenciesAndGetExternalSideEffectAtoms(
-		chunks,
+		graphChunks,
 		chunkByModule,
 		manualChunkAtomByModule,
 		atomMask
@@ -796,7 +818,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	}
 	// A shared module can await a dynamic import without being an entry itself.
 	// Visit the included static dependencies once per chunk, not once per module.
-	for (const chunk of chunks) {
+	for (const chunk of graphChunks) {
 		const dependencies = new Set(chunk.modules.filter(module => module.hasTopLevelAwait()));
 		for (const dependency of dependencies) {
 			for (const importedModule of dependency.getDependenciesToBeIncluded()) {
