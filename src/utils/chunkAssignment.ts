@@ -794,6 +794,26 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			}
 		}
 	}
+	// A shared module can await a dynamic import without being an entry itself.
+	// Visit the included static dependencies once per chunk, not once per module.
+	for (const chunk of chunks) {
+		const dependencies = new Set(chunk.modules.filter(module => module.hasTopLevelAwait()));
+		for (const dependency of dependencies) {
+			for (const importedModule of dependency.getDependenciesToBeIncluded()) {
+				if (!(importedModule instanceof ExternalModule)) dependencies.add(importedModule);
+			}
+			for (const { node } of dependency.dynamicImports) {
+				const importedChunk =
+					node.included && node.resolution instanceof Module
+						? chunkByModule.get(node.resolution)
+						: undefined;
+				if (importedChunk && importedChunk !== chunk) {
+					chunk.awaitedDependencies.add(importedChunk);
+					importedChunk.awaitingChunks.add(chunk);
+				}
+			}
+		}
+	}
 	return { chunks, sideEffectAtoms, sizeByAtom };
 }
 
