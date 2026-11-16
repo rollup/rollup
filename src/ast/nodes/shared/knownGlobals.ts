@@ -162,12 +162,16 @@ const ARRAY_FROM: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: {
 		...IMPURE,
-		deoptimizeArgumentsOnCall({ args: [, iterable, mapper, thisArgument] }: NodeInteractionCalled) {
+		deoptimizeArgumentsOnCall({ args: [, iterable, ...otherArguments] }: NodeInteractionCalled) {
 			iterable?.deoptimizePath(UNKNOWN_VALUES_PATH);
 			// The mapper is called by the global, so its return value and its
-			// parameters, as well as the this argument, are no longer tracked
-			mapper?.deoptimizePath(UNKNOWN_PATH);
-			thisArgument?.deoptimizePath(UNKNOWN_PATH);
+			// parameters, as well as the this argument, are no longer tracked.
+			// As spread arguments mean that the mapper and this argument do not
+			// necessarily have a fixed position, we deoptimize all remaining
+			// arguments.
+			for (const argument of otherArguments) {
+				argument.deoptimizePath(UNKNOWN_PATH);
+			}
 		}
 	}
 };

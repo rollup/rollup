@@ -42,6 +42,15 @@ assert.strictEqual(
 	'Array.from thisArg'
 );
 
+// Spread arguments do not map to fixed parameter positions
+const viaArrayFromSpreadMapper = { mutated: false };
+Array.from(...[], ...[], [0], () => viaArrayFromSpreadMapper)[0].mutated = true;
+assert.strictEqual(
+	viaArrayFromSpreadMapper.mutated ? 'mutated' : 'unchanged',
+	'mutated',
+	'Array.from mapper after spread'
+);
+
 const viaValues = { mutated: false };
 Object.values({ viaValues })[0].mutated = true;
 assert.strictEqual(viaValues.mutated ? 'mutated' : 'unchanged', 'mutated', 'Object.values');
