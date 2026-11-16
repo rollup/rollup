@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.68.4
+
+_2026-11-16_
+
+### Bug Fixes
+
+- Ensure that mutations of arguments to certain global methods are respected in analysis (#6661)
+- Ensure dynamic imports resolution via plugin is handled equivalently to regular dynamic imports (#6665)
+
+### Pull Requests
+
+- [#6661](https://github.com/rollup/rollup/pull/6661): Deoptimize arguments that known globals expose via their return value (@waw666waw666)
+- [#6665](https://github.com/rollup/rollup/pull/6665): Fix resolution info for dynamic imports resolved by plugins (@TrickyPi, @lukastaegert)
+- [#6666](https://github.com/rollup/rollup/pull/6666): Document base URL caveats for emitted file URLs (@lukastaegert)
+
 ## 4.68.3
 
 _2026-11-13_
