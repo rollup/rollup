@@ -7,6 +7,7 @@ import { EMPTY_PATH } from '../utils/PathTracker';
 import type JSXMemberExpression from './JSXMemberExpression';
 import type * as NodeType from './NodeType';
 import IdentifierBase from './shared/IdentifierBase';
+import { getTopLevelThisAlias, includeThisPathInObjectLiteral } from './ThisExpression';
 
 const enum IdentifierType {
 	Reference,
@@ -19,12 +20,16 @@ export default class JSXIdentifier extends IdentifierBase {
 	declare name: string;
 
 	private isNativeElement = false;
+	private thisAlias: string | null = null;
 
 	bind(): void {
 		const type = this.getType();
 		if (type === IdentifierType.Reference) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
+			if (this.name === 'this') {
+				this.thisAlias = getTopLevelThisAlias(this.scope, this.start);
+			}
 		} else if (type === IdentifierType.NativeElementName) {
 			this.isNativeElement = true;
 		}
@@ -51,6 +56,9 @@ export default class JSXIdentifier extends IdentifierBase {
 		} else if (path.length > 0) {
 			this.variable?.includePath(path, context);
 		}
+		if (this.name === 'this' && this.variable) {
+			includeThisPathInObjectLiteral(this.scope, this.variable, path, context);
+		}
 	}
 
 	render(
@@ -58,7 +66,10 @@ export default class JSXIdentifier extends IdentifierBase {
 		{ snippets: { getPropertyAccess }, useOriginalName }: RenderOptions
 	): void {
 		if (this.variable) {
-			const name = this.variable.getName(getPropertyAccess, useOriginalName);
+			const name =
+				this.name === 'this'
+					? (this.thisAlias ?? this.name)
+					: this.variable.getName(getPropertyAccess, useOriginalName);
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
