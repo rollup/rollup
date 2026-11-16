@@ -42,7 +42,7 @@ export default class LabeledStatement extends StatementBase {
 		if (!this.included) this.includeNode(context);
 		const { brokenFlow, includedLabels } = context;
 		context.includedLabels = new Set<string>();
-		this.body.include(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
 			this.label.include(context, includeChildrenRecursively);
 			context.includedLabels.delete(this.label.name);

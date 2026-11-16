@@ -59,15 +59,12 @@ export default class ChildScope extends Scope {
 		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
-			if (variable.included) {
-				usedNames.add(variable.getBaseVariableName());
-				// In system format, exported variables are assigned via `exports(name, value)`.
-				// Any scope that references such a variable must treat `exports` as used so
-				// that a nested binding of the same name does not shadow the system wrapper's
-				// `exports` argument.
-				if (format === 'system' && exportNamesByVariable.has(variable)) {
-					usedNames.add('exports');
-				}
+			this.addUsedOutsideVariableName(variable, usedNames, format, exportNamesByVariable);
+		}
+		// Hoisted declarations render their binding here without referencing it.
+		if (this.hoistedVariables) {
+			for (const variable of this.hoistedVariables.values()) {
+				this.addUsedOutsideVariableName(variable, usedNames, format, exportNamesByVariable);
 			}
 		}
 		const accessedGlobals = accessedGlobalsByScope.get(this);
@@ -103,6 +100,22 @@ export default class ChildScope extends Scope {
 		}
 		for (const scope of this.children) {
 			scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
+		}
+	}
+
+	private addUsedOutsideVariableName(
+		variable: Variable,
+		usedNames: Set<string>,
+		format: InternalModuleFormat,
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+	): void {
+		if (!variable.included) return;
+		usedNames.add(variable.getBaseVariableName());
+		// In system format, exported variables are assigned via `exports(name, value)`.
+		// Any scope that renders such a variable must treat `exports` as used so that a
+		// nested binding of the same name does not shadow the wrapper's `exports` argument.
+		if (format === 'system' && exportNamesByVariable.has(variable)) {
+			usedNames.add('exports');
 		}
 	}
 

@@ -162,7 +162,7 @@ export default class AssignmentExpression extends NodeBase {
 						systemPatternExports,
 						start,
 						end,
-						renderedSurroundingElement === NodeType.ExpressionStatement,
+						systemExportIifeStartsStatement(parent, renderedSurroundingElement, start),
 						code,
 						options
 					);
@@ -186,4 +186,17 @@ export default class AssignmentExpression extends NodeBase {
 		this.left.deoptimizeAssignment(EMPTY_PATH, this.right);
 		this.scope.context.requestTreeshakingPass();
 	}
+}
+
+// `function () {}()` is a function declaration at the first token of a statement.
+// `({ name } = obj)` already starts at `(`, so the inserted function stays an expression.
+function systemExportIifeStartsStatement(
+	parent: { start?: number; type?: string },
+	renderedSurroundingElement: string | undefined,
+	expressionStart: number
+): boolean {
+	return (
+		renderedSurroundingElement === NodeType.ExpressionStatement ||
+		(parent.type === NodeType.ExpressionStatement && parent.start === expressionStart)
+	);
 }

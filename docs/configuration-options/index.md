@@ -382,6 +382,8 @@ Specifies the format of the generated bundle. One of the following:
 - `umd` – Universal Module Definition, works as `amd`, `cjs` and `iife` all in one
 - `system` – Native format of the SystemJS loader (alias: `systemjs`)
 
+In browsers, all formats except ES modules and SystemJS resolve `import.meta.url` and emitted file URLs via the current script or the document base URL, so they depend on the document base URL. See [File URLs](../plugin-development/index.md#file-urls) for the resulting caveats.
+
 ### output.globals
 
 |  |  |

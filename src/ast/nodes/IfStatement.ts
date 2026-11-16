@@ -5,6 +5,7 @@ import { type HasEffectsContext, type InclusionContext } from '../ExecutionConte
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
+import type Variable from '../variables/Variable';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -177,7 +178,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			...new Set(
 				hoistedDeclarations.map(identifier => {
 					const variable = identifier.variable!;
-					return variable.included ? variable.getName(getPropertyAccess) : '';
+					return this.shouldHoistVariable(variable) ? variable.getName(getPropertyAccess) : '';
 				})
 			)
 		]
@@ -191,6 +192,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				code.appendLeft(this.end, ` }`);
 			}
 		}
+	}
+
+	private shouldHoistVariable(variable: Variable): boolean {
+		return (
+			variable.included &&
+			variable.renderBaseName === null &&
+			variable.getHoistedVariable()?.renderBaseName == null
+		);
 	}
 
 	private shouldKeepAlternateBranch() {
