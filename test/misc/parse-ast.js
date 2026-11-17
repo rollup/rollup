@@ -423,3 +423,24 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(otherParent, declarator.init);
 	});
 });
+
+describe('lazy AST node identity and shape', () => {
+	it('spreads only the own AST fields of a node', () => {
+		const ast = parseLazyAst('const x = foo;\nconst y = bar;');
+		const identifier = ast.body[0].declarations[0].init;
+		const declarator = ast.body[1].declarations[0];
+		assert.deepStrictEqual({ ...identifier }, { end: 13, name: 'foo', start: 10 });
+		assert.deepStrictEqual({ ...declarator }, { end: 28, start: 21 });
+	});
+
+	it('shares one prototype per node type across parses', () => {
+		const firstIdentifier = parseLazyAst('foo;').body[0].expression;
+		const secondIdentifier = parseLazyAst('bar;').body[0].expression;
+		assert.notStrictEqual(firstIdentifier, secondIdentifier);
+		assert.strictEqual(
+			Object.getPrototypeOf(firstIdentifier),
+			Object.getPrototypeOf(secondIdentifier)
+		);
+		assert.deepStrictEqual(Object.getOwnPropertyNames(firstIdentifier), ['start', 'end', 'name']);
+	});
+});

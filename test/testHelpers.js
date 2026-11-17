@@ -641,11 +641,13 @@ function assertAstValueEqual(actual, expected, path) {
 	}
 	if (expected !== null && typeof expected === 'object') {
 		assert.ok(actual !== null && typeof actual === 'object', `${path} should be an object`);
+		const enumerableKeys = getEnumerableKeys(actual);
 		for (const key of Object.keys(expected)) {
 			if (key === 'parent' || expected[key] === undefined) continue;
+			assert.ok(enumerableKeys.has(key), `${path}.${key} should be enumerable`);
 			assertAstValueEqual(actual[key], expected[key], `${path}.${key}`);
 		}
-		for (const key of getEnumerableKeys(actual)) {
+		for (const key of enumerableKeys) {
 			if (key === 'parent' || actual[key] === undefined) continue;
 			assert.ok(expected[key] !== undefined, `${path} has unexpected property "${key}"`);
 		}

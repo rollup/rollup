@@ -55,57 +55,95 @@ function isEagerScalar(nodeName: AstNodeName, field: FieldDescription): boolean 
 	);
 }
 
-const prototypeDeclarations = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
+interface NodeClass {
+	className: string;
+	code: string;
+	nodeType: number;
+}
+
+const nodeClasses = astNodeNamesWithFieldOrder.map(
+	({ name, fields, node }, nodeType): NodeClass => {
+		const className = `Lazy${name}`;
+		return { className, code: getNodeClass(className, name, fields, node), nodeType };
+	}
+);
+
+function getNodeClass(
+	className: string,
+	name: AstNodeName,
+	fields: FieldDescription[],
+	node: NodeDescription
+): string {
 	const offset = getOffset(node);
-	const getters: string[] = [
-		`type: '${node.astType || name}'`,
-		...fields
-			.map((field, index) => getFieldGetter(name, field, node, index + offset))
-			.filter((getter): getter is string => !!getter),
-		...getAdditionalFieldGetters(name, node, fields),
-		...Object.entries(node.fixed || {}).map(([key, value]) => `${key}: ${value}`)
+	const declarations = [
+		`declare type: '${node.astType || name}';`,
+		'declare start: number;',
+		'declare end: number;',
+		...Object.entries(node.fixed || {}).map(([key, value]) => `declare ${key}: ${value};`)
 	];
-	return `const ${name}Prototype: object = {
-	${getters.join(',\n\t')}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(${name}Prototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + ${NODE_PARENT_OFFSET}];
+	const constructorBody = [
+		'this.#position = position;',
+		'this.#buffer = buffer;',
+		`this.start = buffer[position + ${NODE_START_OFFSET}];`,
+		`this.end = buffer[position + ${NODE_END_OFFSET}];`
+	];
+	if (node.flags) {
+		constructorBody.push(`const flags = buffer[position + ${NODE_DATA_OFFSET}];`);
+		for (const [index, flag] of node.flags.entries()) {
+			const mask = 1 << index;
+			declarations.push(`declare ${flag}: boolean;`);
+			constructorBody.push(`this.${flag} = (flags & ${mask}) === ${mask};`);
+		}
+	}
+	const lazyFields: string[] = [];
+	const getters: string[] = [];
+	for (const [index, field] of fields.entries()) {
+		if (isEagerScalar(name, field)) {
+			declarations.push(`declare ${field.name}: ast.Lazy${name}['${field.name}'];`);
+			constructorBody.push(
+				`this.${field.name} = ${getEagerScalarExpression(name, field, node, `position + ${index + offset}`)};`
+			);
+			continue;
+		}
+		const getter = getFieldGetter(name, field, node, index + offset);
+		if (getter) {
+			lazyFields.push(field.name);
+			getters.push(getter);
+		}
+	}
+	for (const { code, fieldName } of getAdditionalFieldGetters(name, node, fields)) {
+		lazyFields.push(fieldName);
+		getters.push(code);
+	}
+	const fixedProperties = Object.entries({
+		...node.fixed,
+		type: `'${node.astType || name}'`
+	})
+		.sort(([key1], [key2]) => key1.localeCompare(key2))
+		.map(([key, value]) => `${key}: ${value}`)
+		.join(',\n\t');
+	return `class ${className} {
+	#position: number;
+	#buffer: AstBuffer;
+	${declarations.join('\n\t')}
+
+	constructor(position: number, buffer: AstBuffer) {
+		${constructorBody.join('\n\t\t')}
+	}
+${getters.length > 0 ? `\n\t${getters.join('\n\n\t')}\n` : ''}
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + ${NODE_PARENT_OFFSET}];
 		return parentPosition === 0
 			? null
 			: convertNode(parentPosition - ${ENCODED_PARENT_BIAS}, buffer);
 	}
-});`;
+}
+setFixedProperties(${className}.prototype, {
+	${fixedProperties}
 });
-
-const nodeFactories = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
-	const offset = getOffset(node);
-	const assignments: string[] = [];
-	if (node.flags) {
-		assignments.push(`const flags = buffer[position + ${NODE_DATA_OFFSET}];`);
-		for (const [index, flag] of node.flags.entries()) {
-			assignments.push(`node.${flag} = (flags & ${1 << index}) === ${1 << index};`);
-		}
-	}
-	for (const [index, field] of fields.entries()) {
-		if (isEagerScalar(name, field)) {
-			assignments.push(
-				`node.${field.name} = ${getFieldExpression(field, node, index + offset, 'position')};`
-			);
-		}
-	}
-	return `function create${name}(position: number, buffer: AstBuffer, prototype: object): ast.LazyNode<ast.${name}> {
-	const node: any = Object.create(prototype);
-	node[POSITION] = position;
-	node[BUFFER] = buffer;
-	node.start = buffer[position + ${NODE_START_OFFSET}];
-	node.end = buffer[position + ${NODE_END_OFFSET}];
-	${assignments.length > 0 ? `${assignments.join('\n\t')}\n\t` : ''}return node;
-}`;
-});
+${lazyFields.length > 0 ? `makeLazyFieldsEnumerable(${className}.prototype, [${lazyFields.map(fieldName => `'${fieldName}'`).join(', ')}]);` : ''}`;
+}
 
 function getFieldGetter(
 	nodeName: AstNodeName,
@@ -120,45 +158,76 @@ function getFieldGetter(
 	) {
 		return '';
 	}
+	const returnType = `ast.Lazy${nodeName}['${field.name}']`;
+	const fallback = node.optionalFallback?.[field.name];
+	if (field.type === 'Node' && field.allowNull && fallback) {
+		if (node.shorthandKey && field.name === 'key') {
+			return `get ${field.name}(): ${returnType} {
+		const buffer = this.#buffer;
+		return this.shorthand
+			? this.value.type === 'AssignmentPattern'
+				? this.value.left as ${returnType}
+				: this.value as ${returnType}
+			: convertNode(buffer[this.#position + ${offset}], buffer);
+	}`;
+		}
+		return `get ${field.name}(): ${returnType} {
+		const buffer = this.#buffer;
+		const ${field.name}Position = buffer[this.#position + ${offset}];
+		return ${field.name}Position === 0
+			? this.${fallback}
+			: convertNode(${field.name}Position, buffer);
+	}`;
+	}
 	if (field.type === 'Annotations') {
-		return `get ${field.name}() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + ${offset}], buffer);
+		return `get ${field.name}(): ${returnType} {
+		const buffer = this.#buffer;
+		const position = this.#position + ${offset};
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
 	}`;
 	}
 	if (field.type === 'String' && field.optional) {
-		return `get ${field.name}() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this) + ${offset};
+		return `get ${field.name}(): ${returnType} {
+		const buffer = this.#buffer;
+		const position = this.#position + ${offset};
 		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
 	}`;
 	}
-	const expression = getFieldExpression(field, node, offset, 'getPosition(this)');
-	return `get ${field.name}() {
-		${expression.includes('node.') ? 'const node = this as any;\n\t\t' : ''}const buffer = (this as any)[BUFFER] as AstBuffer;
-		return ${expression};
+	return `get ${field.name}(): ${returnType} {
+		const buffer = this.#buffer;
+		const position = this.#position + ${offset};
+		return ${getFieldExpression(nodeName, field, node, 'position')};
 	}`;
 }
 
-function getFieldExpression(
+function getEagerScalarExpression(
+	nodeName: AstNodeName,
 	field: FieldDescription,
 	node: NodeDescription,
-	offset: number,
 	positionExpression: string
 ): string {
-	const position = `${positionExpression} + ${offset}`;
-	const dataPosition = `buffer[${position}]`;
+	const expression = getFieldExpression(nodeName, field, node, positionExpression);
+	return field.type === 'FixedString'
+		? `${expression} as ast.Lazy${nodeName}['${field.name}']`
+		: expression;
+}
+
+function getFieldExpression(
+	nodeName: AstNodeName,
+	field: FieldDescription,
+	node: NodeDescription,
+	positionExpression: string
+): string {
+	const dataPosition = `buffer[${positionExpression}]`;
 	switch (field.type) {
 		case 'Node': {
+			if (node.optionalFallback?.[field.name]) {
+				throw new Error(
+					`The fallback field ${nodeName}.${field.name} must be generated in getFieldGetter`
+				);
+			}
 			if (field.allowNull) {
-				const fallback = node.optionalFallback?.[field.name];
-				if (fallback) {
-					if (node.shorthandKey && field.name === 'key') {
-						return `node.shorthand ? (node.value.type === 'AssignmentPattern' ? node.value.left : node.value) : convertNode(${dataPosition}, buffer)`;
-					}
-					return `${dataPosition} === 0 ? node.${fallback} : convertNode(${dataPosition}, buffer)`;
-				}
 				return `${dataPosition} === 0 ? null : convertNode(${dataPosition}, buffer)`;
 			}
 			return `convertNode(${dataPosition}, buffer)`;
@@ -176,7 +245,7 @@ function getFieldExpression(
 			return field.optional ? `${dataPosition} === 0 ? undefined : ${stringValue}` : stringValue;
 		}
 		case 'Float': {
-			return `buffer.convertFloat64(${position})`;
+			return `buffer.convertFloat64(${positionExpression})`;
 		}
 		default: {
 			throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
@@ -185,13 +254,21 @@ function getFieldExpression(
 }
 
 function getBaseAssignment(
+	nodeName: AstNodeName,
 	base: string,
 	node: NodeDescription,
 	fields: FieldDescription[]
 ): string {
 	const fieldIndex = fields.findIndex(field => field.name === base);
 	if (fieldIndex >= 0) {
-		return `const ${base} = ${getFieldExpression(fields[fieldIndex], node, fieldIndex + getOffset(node), 'position')};`;
+		const offset = fieldIndex + getOffset(node);
+		const expression = getFieldExpression(
+			nodeName,
+			fields[fieldIndex],
+			node,
+			`position + ${offset}`
+		);
+		return `const ${base} = ${expression};`;
 	}
 	const flagIndex = node.flags?.indexOf(base) ?? -1;
 	if (flagIndex >= 0) {
@@ -205,18 +282,36 @@ function getAdditionalFieldGetters(
 	nodeName: AstNodeName,
 	node: NodeDescription,
 	fields: FieldDescription[]
-): string[] {
-	const bases = node.baseForAdditionalFields || [];
-	const baseAssignments = bases.map(base => getBaseAssignment(base, node, fields)).join('\n\t\t');
-	return Object.entries(node.additionalFields || {}).map(([key, { value }]) => {
-		const returnExpression = memoisedAdditionalFields.has(`${nodeName}.${key}`)
-			? `getNodeValue(this as ast.AstNode, '${key}', () => (${value}))`
+): { code: string; fieldName: string }[] {
+	const baseAssignments = (node.baseForAdditionalFields || [])
+		.map(base => getBaseAssignment(nodeName, base, node, fields))
+		.join('\n\t\t');
+	return Object.entries(node.additionalFields || {}).map(([fieldName, { value }]) => {
+		const returnExpression = memoisedAdditionalFields.has(`${nodeName}.${fieldName}`)
+			? `getNodeValue(this, '${fieldName}', () => (${value}))`
 			: value;
-		return `get ${key}() {
-		${bases.length > 0 ? `const buffer = (this as any)[BUFFER] as AstBuffer;\n\t\tconst position = getPosition(this);\n\t\t${baseAssignments}\n\t\t` : ''}return ${returnExpression};
-	}`;
+		const lintSuppression = isLiteralExpression(value)
+			? '// eslint-disable-next-line @typescript-eslint/class-literal-property-style -- constant fields must stay getters to not become own properties\n\t\t'
+			: '';
+		return {
+			code: `${lintSuppression}get ${fieldName}(): ast.Lazy${nodeName}['${fieldName}'] {
+		${baseAssignments.length === 0 ? '' : `const buffer = this.#buffer;\n\t\tconst position = this.#position;\n\t\t${baseAssignments}\n\t\t`}return ${returnExpression};
+	}`,
+			fieldName
+		};
 	});
 }
+
+function isLiteralExpression(value: string): boolean {
+	return value === 'false' || value === 'null' || value === 'true';
+}
+
+const nodeSwitch = nodeClasses
+	.map(
+		({ className, nodeType }) =>
+			`case ${nodeType}:\n\t\t\treturn new ${className}(position, buffer);`
+	)
+	.join('\n\t\t');
 
 const bufferToJsAst = `${notEditFilesComment}
 import { PanicError, ParseError } from '../ast/nodes/NodeType';
@@ -227,15 +322,27 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-/* eslint-disable sort-keys */
-const POSITION: unique symbol = Symbol('rollup.ast.position');
-const BUFFER: unique symbol = Symbol('rollup.ast.buffer');
-
-function getPosition(node: unknown): number {
-	return (node as { [POSITION]: number })[POSITION];
+function setFixedProperties(prototype: object, values: Record<string, unknown>): void {
+	for (const [key, value] of Object.entries(values)) {
+		Object.defineProperty(prototype, key, {
+			configurable: true,
+			enumerable: true,
+			value,
+			writable: true
+		});
+	}
 }
 
-function getNodeValue<T>(node: ast.AstNode, key: string, createValue: () => T): T {
+/* Class getters are not enumerable, so only AST fields are made enumerable;
+   the parent must stay hidden as for..in based walkers like estree-walker
+   would otherwise traverse it into cycles. */
+function makeLazyFieldsEnumerable(prototype: object, keys: readonly string[]): void {
+	for (const key of keys) {
+		Object.defineProperty(prototype, key, { enumerable: true });
+	}
+}
+
+function getNodeValue<T>(node: object, key: string, createValue: () => T): T {
 	const value = createValue();
 	Object.defineProperty(node, key, {
 		configurable: true,
@@ -252,16 +359,21 @@ export function convertNode(position: number, buffer: AstBuffer): any {
 	if (cachedNode !== undefined) {
 		return cachedNode;
 	}
-	const nodeType = buffer[position];
-	const prototype = nodePrototypes[nodeType];
-	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
-	if (!prototype) {
-		console.trace();
-		throw new Error(\`Unknown node type: \${nodeType}\`);
-	}
-	const node = nodeFactories[nodeType](position, buffer, prototype);
+	const node = createNode(position, buffer);
 	cache.set(position, node);
 	return node;
+}
+
+/* Kept apart from convertNode so that convertNode stays small enough to be inlined into getters. */
+function createNode(position: number, buffer: AstBuffer): ast.LazyNode<ast.AstNode> {
+	switch (buffer[position]) {
+		${nodeSwitch}
+		default: {
+			/* istanbul ignore next: This should never be executed but is a safeguard against faulty buffers */
+			console.trace();
+			throw new Error(\`Unknown node type: \${buffer[position]}\`);
+		}
+	}
 }
 
 function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
@@ -299,19 +411,7 @@ export const deserializeLazyAstBuffer = (
 	}
 };
 
-${prototypeDeclarations.join('\n\n')}
-
-const nodePrototypes: object[] = [
-	${astNodeNamesWithFieldOrder.map(({ name }) => `${name}Prototype`).join(',\n\t')}
-];
-
-const nodeFactories: ((
-	position: number,
-	buffer: AstBuffer,
-	prototype: object
-) => ast.LazyNode<ast.AstNode>)[] = [
-	${nodeFactories.join(',\n')}
-];
+${nodeClasses.map(({ code }) => code).join('\n\n')}
 `;
 
 await writeFile(bufferToJsAstFile, bufferToJsAst);

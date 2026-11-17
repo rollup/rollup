@@ -9,15 +9,27 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-/* eslint-disable sort-keys */
-const POSITION: unique symbol = Symbol('rollup.ast.position');
-const BUFFER: unique symbol = Symbol('rollup.ast.buffer');
-
-function getPosition(node: unknown): number {
-	return (node as { [POSITION]: number })[POSITION];
+function setFixedProperties(prototype: object, values: Record<string, unknown>): void {
+	for (const [key, value] of Object.entries(values)) {
+		Object.defineProperty(prototype, key, {
+			configurable: true,
+			enumerable: true,
+			value,
+			writable: true
+		});
+	}
 }
 
-function getNodeValue<T>(node: ast.AstNode, key: string, createValue: () => T): T {
+/* Class getters are not enumerable, so only AST fields are made enumerable;
+   the parent must stay hidden as for..in based walkers like estree-walker
+   would otherwise traverse it into cycles. */
+function makeLazyFieldsEnumerable(prototype: object, keys: readonly string[]): void {
+	for (const key of keys) {
+		Object.defineProperty(prototype, key, { enumerable: true });
+	}
+}
+
+function getNodeValue<T>(node: object, key: string, createValue: () => T): T {
 	const value = createValue();
 	Object.defineProperty(node, key, {
 		configurable: true,
@@ -34,16 +46,210 @@ export function convertNode(position: number, buffer: AstBuffer): any {
 	if (cachedNode !== undefined) {
 		return cachedNode;
 	}
-	const nodeType = buffer[position];
-	const prototype = nodePrototypes[nodeType];
-	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
-	if (!prototype) {
-		console.trace();
-		throw new Error(`Unknown node type: ${nodeType}`);
-	}
-	const node = nodeFactories[nodeType](position, buffer, prototype);
+	const node = createNode(position, buffer);
 	cache.set(position, node);
 	return node;
+}
+
+/* Kept apart from convertNode so that convertNode stays small enough to be inlined into getters. */
+function createNode(position: number, buffer: AstBuffer): ast.LazyNode<ast.AstNode> {
+	switch (buffer[position]) {
+		case 0:
+			return new LazyPanicError(position, buffer);
+		case 1:
+			return new LazyParseError(position, buffer);
+		case 2:
+			return new LazyArrayExpression(position, buffer);
+		case 3:
+			return new LazyArrayPattern(position, buffer);
+		case 4:
+			return new LazyArrowFunctionExpression(position, buffer);
+		case 5:
+			return new LazyAssignmentExpression(position, buffer);
+		case 6:
+			return new LazyAssignmentPattern(position, buffer);
+		case 7:
+			return new LazyAwaitExpression(position, buffer);
+		case 8:
+			return new LazyBinaryExpression(position, buffer);
+		case 9:
+			return new LazyBlockStatement(position, buffer);
+		case 10:
+			return new LazyBreakStatement(position, buffer);
+		case 11:
+			return new LazyCallExpression(position, buffer);
+		case 12:
+			return new LazyCatchClause(position, buffer);
+		case 13:
+			return new LazyChainExpression(position, buffer);
+		case 14:
+			return new LazyClassBody(position, buffer);
+		case 15:
+			return new LazyClassDeclaration(position, buffer);
+		case 16:
+			return new LazyClassExpression(position, buffer);
+		case 17:
+			return new LazyConditionalExpression(position, buffer);
+		case 18:
+			return new LazyContinueStatement(position, buffer);
+		case 19:
+			return new LazyDebuggerStatement(position, buffer);
+		case 20:
+			return new LazyDecorator(position, buffer);
+		case 21:
+			return new LazyDirective(position, buffer);
+		case 22:
+			return new LazyDoWhileStatement(position, buffer);
+		case 23:
+			return new LazyEmptyStatement(position, buffer);
+		case 24:
+			return new LazyExportAllDeclaration(position, buffer);
+		case 25:
+			return new LazyExportDefaultDeclaration(position, buffer);
+		case 26:
+			return new LazyExportNamedDeclaration(position, buffer);
+		case 27:
+			return new LazyExportSpecifier(position, buffer);
+		case 28:
+			return new LazyExpressionStatement(position, buffer);
+		case 29:
+			return new LazyForInStatement(position, buffer);
+		case 30:
+			return new LazyForOfStatement(position, buffer);
+		case 31:
+			return new LazyForStatement(position, buffer);
+		case 32:
+			return new LazyFunctionDeclaration(position, buffer);
+		case 33:
+			return new LazyFunctionExpression(position, buffer);
+		case 34:
+			return new LazyIdentifier(position, buffer);
+		case 35:
+			return new LazyIfStatement(position, buffer);
+		case 36:
+			return new LazyImportAttribute(position, buffer);
+		case 37:
+			return new LazyImportDeclaration(position, buffer);
+		case 38:
+			return new LazyImportDefaultSpecifier(position, buffer);
+		case 39:
+			return new LazyImportExpression(position, buffer);
+		case 40:
+			return new LazyImportNamespaceSpecifier(position, buffer);
+		case 41:
+			return new LazyImportSpecifier(position, buffer);
+		case 42:
+			return new LazyJSXAttribute(position, buffer);
+		case 43:
+			return new LazyJSXClosingElement(position, buffer);
+		case 44:
+			return new LazyJSXClosingFragment(position, buffer);
+		case 45:
+			return new LazyJSXElement(position, buffer);
+		case 46:
+			return new LazyJSXEmptyExpression(position, buffer);
+		case 47:
+			return new LazyJSXExpressionContainer(position, buffer);
+		case 48:
+			return new LazyJSXFragment(position, buffer);
+		case 49:
+			return new LazyJSXIdentifier(position, buffer);
+		case 50:
+			return new LazyJSXMemberExpression(position, buffer);
+		case 51:
+			return new LazyJSXNamespacedName(position, buffer);
+		case 52:
+			return new LazyJSXOpeningElement(position, buffer);
+		case 53:
+			return new LazyJSXOpeningFragment(position, buffer);
+		case 54:
+			return new LazyJSXSpreadAttribute(position, buffer);
+		case 55:
+			return new LazyJSXSpreadChild(position, buffer);
+		case 56:
+			return new LazyJSXText(position, buffer);
+		case 57:
+			return new LazyLabeledStatement(position, buffer);
+		case 58:
+			return new LazyLiteralBigInt(position, buffer);
+		case 59:
+			return new LazyLiteralBoolean(position, buffer);
+		case 60:
+			return new LazyLiteralNull(position, buffer);
+		case 61:
+			return new LazyLiteralNumber(position, buffer);
+		case 62:
+			return new LazyLiteralRegExp(position, buffer);
+		case 63:
+			return new LazyLiteralString(position, buffer);
+		case 64:
+			return new LazyLogicalExpression(position, buffer);
+		case 65:
+			return new LazyMemberExpression(position, buffer);
+		case 66:
+			return new LazyMetaProperty(position, buffer);
+		case 67:
+			return new LazyMethodDefinition(position, buffer);
+		case 68:
+			return new LazyNewExpression(position, buffer);
+		case 69:
+			return new LazyObjectExpression(position, buffer);
+		case 70:
+			return new LazyObjectPattern(position, buffer);
+		case 71:
+			return new LazyPrivateIdentifier(position, buffer);
+		case 72:
+			return new LazyProgram(position, buffer);
+		case 73:
+			return new LazyProperty(position, buffer);
+		case 74:
+			return new LazyPropertyDefinition(position, buffer);
+		case 75:
+			return new LazyRestElement(position, buffer);
+		case 76:
+			return new LazyReturnStatement(position, buffer);
+		case 77:
+			return new LazySequenceExpression(position, buffer);
+		case 78:
+			return new LazySpreadElement(position, buffer);
+		case 79:
+			return new LazyStaticBlock(position, buffer);
+		case 80:
+			return new LazySuper(position, buffer);
+		case 81:
+			return new LazySwitchCase(position, buffer);
+		case 82:
+			return new LazySwitchStatement(position, buffer);
+		case 83:
+			return new LazyTaggedTemplateExpression(position, buffer);
+		case 84:
+			return new LazyTemplateElement(position, buffer);
+		case 85:
+			return new LazyTemplateLiteral(position, buffer);
+		case 86:
+			return new LazyThisExpression(position, buffer);
+		case 87:
+			return new LazyThrowStatement(position, buffer);
+		case 88:
+			return new LazyTryStatement(position, buffer);
+		case 89:
+			return new LazyUnaryExpression(position, buffer);
+		case 90:
+			return new LazyUpdateExpression(position, buffer);
+		case 91:
+			return new LazyVariableDeclaration(position, buffer);
+		case 92:
+			return new LazyVariableDeclarator(position, buffer);
+		case 93:
+			return new LazyWhileStatement(position, buffer);
+		case 94:
+			return new LazyYieldExpression(position, buffer);
+		default: {
+			/* istanbul ignore next: This should never be executed but is a safeguard against faulty buffers */
+			console.trace();
+			throw new Error(`Unknown node type: ${buffer[position]}`);
+		}
+	}
 }
 
 function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
@@ -81,3287 +287,3507 @@ export const deserializeLazyAstBuffer = (
 	}
 };
 
-const PanicErrorPrototype: object = {
-	type: 'PanicError',
-	get message() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
+class LazyPanicError {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'PanicError';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(PanicErrorPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get message(): ast.LazyPanicError['message'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyPanicError.prototype, {
+	type: 'PanicError'
 });
+makeLazyFieldsEnumerable(LazyPanicError.prototype, ['message']);
 
-const ParseErrorPrototype: object = {
-	type: 'ParseError',
-	get message() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
+class LazyParseError {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ParseError';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ParseErrorPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get message(): ast.LazyParseError['message'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyParseError.prototype, {
+	type: 'ParseError'
 });
+makeLazyFieldsEnumerable(LazyParseError.prototype, ['message']);
 
-const ArrayExpressionPrototype: object = {
-	type: 'ArrayExpression',
-	get elements() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyArrayExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ArrayExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ArrayExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get elements(): ast.LazyArrayExpression['elements'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyArrayExpression.prototype, {
+	type: 'ArrayExpression'
 });
+makeLazyFieldsEnumerable(LazyArrayExpression.prototype, ['elements']);
 
-const ArrayPatternPrototype: object = {
-	type: 'ArrayPattern',
-	get elements() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyArrayPattern {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ArrayPattern';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ArrayPatternPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get elements(): ast.LazyArrayPattern['elements'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyArrayPattern.prototype, {
+	type: 'ArrayPattern'
 });
+makeLazyFieldsEnumerable(LazyArrayPattern.prototype, ['elements']);
 
-const ArrowFunctionExpressionPrototype: object = {
-	type: 'ArrowFunctionExpression',
-	get annotations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
+class LazyArrowFunctionExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ArrowFunctionExpression';
+	declare start: number;
+	declare end: number;
+	declare id: null;
+	declare async: boolean;
+	declare expression: boolean;
+	declare generator: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.async = (flags & 1) === 1;
+		this.expression = (flags & 2) === 2;
+		this.generator = (flags & 4) === 4;
+	}
+
+	get annotations(): ast.LazyArrowFunctionExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
-	},
-	get params() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
-	},
-	id: null
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ArrowFunctionExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+	}
+
+	get params(): ast.LazyArrowFunctionExpression['params'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyArrowFunctionExpression['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyArrowFunctionExpression.prototype, {
+	id: null,
+	type: 'ArrowFunctionExpression'
 });
+makeLazyFieldsEnumerable(LazyArrowFunctionExpression.prototype, ['annotations', 'params', 'body']);
 
-const AssignmentExpressionPrototype: object = {
-	type: 'AssignmentExpression',
-	get left() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get right() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyAssignmentExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'AssignmentExpression';
+	declare start: number;
+	declare end: number;
+	declare operator: ast.LazyAssignmentExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyAssignmentExpression['operator'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(AssignmentExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get left(): ast.LazyAssignmentExpression['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyAssignmentExpression['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyAssignmentExpression.prototype, {
+	type: 'AssignmentExpression'
 });
+makeLazyFieldsEnumerable(LazyAssignmentExpression.prototype, ['left', 'right']);
 
-const AssignmentPatternPrototype: object = {
-	type: 'AssignmentPattern',
-	get left() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get right() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyAssignmentPattern {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'AssignmentPattern';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(AssignmentPatternPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get left(): ast.LazyAssignmentPattern['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyAssignmentPattern['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyAssignmentPattern.prototype, {
+	type: 'AssignmentPattern'
 });
+makeLazyFieldsEnumerable(LazyAssignmentPattern.prototype, ['left', 'right']);
 
-const AwaitExpressionPrototype: object = {
-	type: 'AwaitExpression',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyAwaitExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'AwaitExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(AwaitExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyAwaitExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyAwaitExpression.prototype, {
+	type: 'AwaitExpression'
 });
+makeLazyFieldsEnumerable(LazyAwaitExpression.prototype, ['argument']);
 
-const BinaryExpressionPrototype: object = {
-	type: 'BinaryExpression',
-	get left() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get right() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyBinaryExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'BinaryExpression';
+	declare start: number;
+	declare end: number;
+	declare operator: ast.LazyBinaryExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyBinaryExpression['operator'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(BinaryExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get left(): ast.LazyBinaryExpression['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyBinaryExpression['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyBinaryExpression.prototype, {
+	type: 'BinaryExpression'
 });
+makeLazyFieldsEnumerable(LazyBinaryExpression.prototype, ['left', 'right']);
 
-const BlockStatementPrototype: object = {
-	type: 'BlockStatement',
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyBlockStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'BlockStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(BlockStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get body(): ast.LazyBlockStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyBlockStatement.prototype, {
+	type: 'BlockStatement'
 });
+makeLazyFieldsEnumerable(LazyBlockStatement.prototype, ['body']);
 
-const BreakStatementPrototype: object = {
-	type: 'BreakStatement',
-	get label() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyBreakStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'BreakStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(BreakStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get label(): ast.LazyBreakStatement['label'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyBreakStatement.prototype, {
+	type: 'BreakStatement'
 });
+makeLazyFieldsEnumerable(LazyBreakStatement.prototype, ['label']);
 
-const CallExpressionPrototype: object = {
-	type: 'CallExpression',
-	get annotations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
+class LazyCallExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'CallExpression';
+	declare start: number;
+	declare end: number;
+	declare optional: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.optional = (flags & 1) === 1;
+	}
+
+	get annotations(): ast.LazyCallExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
-	},
-	get callee() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get arguments() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 7], buffer);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(CallExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get callee(): ast.LazyCallExpression['callee'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get arguments(): ast.LazyCallExpression['arguments'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyCallExpression.prototype, {
+	type: 'CallExpression'
 });
+makeLazyFieldsEnumerable(LazyCallExpression.prototype, ['annotations', 'callee', 'arguments']);
 
-const CatchClausePrototype: object = {
-	type: 'CatchClause',
-	get param() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyCatchClause {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'CatchClause';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(CatchClausePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get param(): ast.LazyCatchClause['param'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyCatchClause['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyCatchClause.prototype, {
+	type: 'CatchClause'
 });
+makeLazyFieldsEnumerable(LazyCatchClause.prototype, ['param', 'body']);
 
-const ChainExpressionPrototype: object = {
-	type: 'ChainExpression',
-	get expression() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyChainExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ChainExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ChainExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get expression(): ast.LazyChainExpression['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyChainExpression.prototype, {
+	type: 'ChainExpression'
 });
+makeLazyFieldsEnumerable(LazyChainExpression.prototype, ['expression']);
 
-const ClassBodyPrototype: object = {
-	type: 'ClassBody',
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyClassBody {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ClassBody';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ClassBodyPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get body(): ast.LazyClassBody['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyClassBody.prototype, {
+	type: 'ClassBody'
 });
+makeLazyFieldsEnumerable(LazyClassBody.prototype, ['body']);
 
-const ClassDeclarationPrototype: object = {
-	type: 'ClassDeclaration',
-	get decorators() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
-	},
-	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get superClass() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyClassDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ClassDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ClassDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get decorators(): ast.LazyClassDeclaration['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get id(): ast.LazyClassDeclaration['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get superClass(): ast.LazyClassDeclaration['superClass'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyClassDeclaration['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyClassDeclaration.prototype, {
+	type: 'ClassDeclaration'
 });
+makeLazyFieldsEnumerable(LazyClassDeclaration.prototype, [
+	'decorators',
+	'id',
+	'superClass',
+	'body'
+]);
 
-const ClassExpressionPrototype: object = {
-	type: 'ClassExpression',
-	get decorators() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
-	},
-	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get superClass() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyClassExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ClassExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ClassExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get decorators(): ast.LazyClassExpression['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get id(): ast.LazyClassExpression['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get superClass(): ast.LazyClassExpression['superClass'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyClassExpression['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyClassExpression.prototype, {
+	type: 'ClassExpression'
 });
+makeLazyFieldsEnumerable(LazyClassExpression.prototype, ['decorators', 'id', 'superClass', 'body']);
 
-const ConditionalExpressionPrototype: object = {
-	type: 'ConditionalExpression',
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get consequent() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get alternate() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyConditionalExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ConditionalExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ConditionalExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get test(): ast.LazyConditionalExpression['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get consequent(): ast.LazyConditionalExpression['consequent'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get alternate(): ast.LazyConditionalExpression['alternate'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyConditionalExpression.prototype, {
+	type: 'ConditionalExpression'
 });
+makeLazyFieldsEnumerable(LazyConditionalExpression.prototype, ['test', 'consequent', 'alternate']);
 
-const ContinueStatementPrototype: object = {
-	type: 'ContinueStatement',
-	get label() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyContinueStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ContinueStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ContinueStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get label(): ast.LazyContinueStatement['label'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyContinueStatement.prototype, {
+	type: 'ContinueStatement'
 });
+makeLazyFieldsEnumerable(LazyContinueStatement.prototype, ['label']);
 
-const DebuggerStatementPrototype: object = {
+class LazyDebuggerStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'DebuggerStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyDebuggerStatement.prototype, {
 	type: 'DebuggerStatement'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(DebuggerStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const DecoratorPrototype: object = {
-	type: 'Decorator',
-	get expression() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyDecorator {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Decorator';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(DecoratorPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get expression(): ast.LazyDecorator['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyDecorator.prototype, {
+	type: 'Decorator'
 });
+makeLazyFieldsEnumerable(LazyDecorator.prototype, ['expression']);
 
-const DirectivePrototype: object = {
-	type: 'ExpressionStatement',
-	get directive() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
-	},
-	get expression() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyDirective {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExpressionStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(DirectivePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get directive(): ast.LazyDirective['directive'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get expression(): ast.LazyDirective['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyDirective.prototype, {
+	type: 'ExpressionStatement'
 });
+makeLazyFieldsEnumerable(LazyDirective.prototype, ['directive', 'expression']);
 
-const DoWhileStatementPrototype: object = {
-	type: 'DoWhileStatement',
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyDoWhileStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'DoWhileStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(DoWhileStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get body(): ast.LazyDoWhileStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get test(): ast.LazyDoWhileStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyDoWhileStatement.prototype, {
+	type: 'DoWhileStatement'
 });
+makeLazyFieldsEnumerable(LazyDoWhileStatement.prototype, ['body', 'test']);
 
-const EmptyStatementPrototype: object = {
+class LazyEmptyStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'EmptyStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyEmptyStatement.prototype, {
 	type: 'EmptyStatement'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(EmptyStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const ExportAllDeclarationPrototype: object = {
-	type: 'ExportAllDeclaration',
-	get exported() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get source() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get attributes() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+class LazyExportAllDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportAllDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ExportAllDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get exported(): ast.LazyExportAllDeclaration['exported'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get source(): ast.LazyExportAllDeclaration['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyExportAllDeclaration['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyExportAllDeclaration.prototype, {
+	type: 'ExportAllDeclaration'
 });
+makeLazyFieldsEnumerable(LazyExportAllDeclaration.prototype, ['exported', 'source', 'attributes']);
 
-const ExportDefaultDeclarationPrototype: object = {
-	type: 'ExportDefaultDeclaration',
-	get declaration() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyExportDefaultDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportDefaultDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ExportDefaultDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get declaration(): ast.LazyExportDefaultDeclaration['declaration'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyExportDefaultDeclaration.prototype, {
+	type: 'ExportDefaultDeclaration'
 });
+makeLazyFieldsEnumerable(LazyExportDefaultDeclaration.prototype, ['declaration']);
 
-const ExportNamedDeclarationPrototype: object = {
-	type: 'ExportNamedDeclaration',
-	get specifiers() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
-	},
-	get source() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get attributes() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
-	},
-	get declaration() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 7] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyExportNamedDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportNamedDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ExportNamedDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get specifiers(): ast.LazyExportNamedDeclaration['specifiers'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get source(): ast.LazyExportNamedDeclaration['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyExportNamedDeclaration['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get declaration(): ast.LazyExportNamedDeclaration['declaration'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyExportNamedDeclaration.prototype, {
+	type: 'ExportNamedDeclaration'
 });
+makeLazyFieldsEnumerable(LazyExportNamedDeclaration.prototype, [
+	'specifiers',
+	'source',
+	'attributes',
+	'declaration'
+]);
 
-const ExportSpecifierPrototype: object = {
-	type: 'ExportSpecifier',
-	get local() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get exported() {
-		const node = this as any;
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? node.local
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyExportSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ExportSpecifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get local(): ast.LazyExportSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get exported(): ast.LazyExportSpecifier['exported'] {
+		const buffer = this.#buffer;
+		const exportedPosition = buffer[this.#position + 5];
+		return exportedPosition === 0 ? this.local : convertNode(exportedPosition, buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyExportSpecifier.prototype, {
+	type: 'ExportSpecifier'
 });
+makeLazyFieldsEnumerable(LazyExportSpecifier.prototype, ['local', 'exported']);
 
-const ExpressionStatementPrototype: object = {
-	type: 'ExpressionStatement',
-	get expression() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyExpressionStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExpressionStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ExpressionStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get expression(): ast.LazyExpressionStatement['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyExpressionStatement.prototype, {
+	type: 'ExpressionStatement'
 });
+makeLazyFieldsEnumerable(LazyExpressionStatement.prototype, ['expression']);
 
-const ForInStatementPrototype: object = {
-	type: 'ForInStatement',
-	get left() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get right() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyForInStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ForInStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ForInStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get left(): ast.LazyForInStatement['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyForInStatement['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyForInStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyForInStatement.prototype, {
+	type: 'ForInStatement'
 });
+makeLazyFieldsEnumerable(LazyForInStatement.prototype, ['left', 'right', 'body']);
 
-const ForOfStatementPrototype: object = {
-	type: 'ForOfStatement',
-	get left() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get right() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyForOfStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ForOfStatement';
+	declare start: number;
+	declare end: number;
+	declare await: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.await = (flags & 1) === 1;
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ForOfStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get left(): ast.LazyForOfStatement['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyForOfStatement['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyForOfStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyForOfStatement.prototype, {
+	type: 'ForOfStatement'
 });
+makeLazyFieldsEnumerable(LazyForOfStatement.prototype, ['left', 'right', 'body']);
 
-const ForStatementPrototype: object = {
-	type: 'ForStatement',
-	get init() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get update() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyForStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ForStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ForStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get init(): ast.LazyForStatement['init'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get test(): ast.LazyForStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get update(): ast.LazyForStatement['update'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyForStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyForStatement.prototype, {
+	type: 'ForStatement'
 });
+makeLazyFieldsEnumerable(LazyForStatement.prototype, ['init', 'test', 'update', 'body']);
 
-const FunctionDeclarationPrototype: object = {
-	type: 'FunctionDeclaration',
-	get annotations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
+class LazyFunctionDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'FunctionDeclaration';
+	declare start: number;
+	declare end: number;
+	declare expression: false;
+	declare async: boolean;
+	declare generator: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.async = (flags & 1) === 1;
+		this.generator = (flags & 2) === 2;
+	}
+
+	get annotations(): ast.LazyFunctionDeclaration['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
-	},
-	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get params() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 7], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 8], buffer);
-	},
-	expression: false
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(FunctionDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+	}
+
+	get id(): ast.LazyFunctionDeclaration['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get params(): ast.LazyFunctionDeclaration['params'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyFunctionDeclaration['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 8;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyFunctionDeclaration.prototype, {
+	expression: false,
+	type: 'FunctionDeclaration'
 });
+makeLazyFieldsEnumerable(LazyFunctionDeclaration.prototype, [
+	'annotations',
+	'id',
+	'params',
+	'body'
+]);
 
-const FunctionExpressionPrototype: object = {
-	type: 'FunctionExpression',
-	get annotations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
+class LazyFunctionExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'FunctionExpression';
+	declare start: number;
+	declare end: number;
+	declare expression: false;
+	declare async: boolean;
+	declare generator: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.async = (flags & 1) === 1;
+		this.generator = (flags & 2) === 2;
+	}
+
+	get annotations(): ast.LazyFunctionExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
-	},
-	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get params() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 7], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 8], buffer);
-	},
-	expression: false
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(FunctionExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+	}
+
+	get id(): ast.LazyFunctionExpression['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get params(): ast.LazyFunctionExpression['params'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyFunctionExpression['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 8;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyFunctionExpression.prototype, {
+	expression: false,
+	type: 'FunctionExpression'
 });
+makeLazyFieldsEnumerable(LazyFunctionExpression.prototype, ['annotations', 'id', 'params', 'body']);
 
-const IdentifierPrototype: object = {
+class LazyIdentifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Identifier';
+	declare start: number;
+	declare end: number;
+	declare name: ast.LazyIdentifier['name'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.name = buffer.convertString(buffer[position + 4]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyIdentifier.prototype, {
 	type: 'Identifier'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(IdentifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const IfStatementPrototype: object = {
-	type: 'IfStatement',
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get consequent() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get alternate() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyIfStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'IfStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(IfStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get test(): ast.LazyIfStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get consequent(): ast.LazyIfStatement['consequent'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get alternate(): ast.LazyIfStatement['alternate'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyIfStatement.prototype, {
+	type: 'IfStatement'
 });
+makeLazyFieldsEnumerable(LazyIfStatement.prototype, ['test', 'consequent', 'alternate']);
 
-const ImportAttributePrototype: object = {
-	type: 'ImportAttribute',
-	get key() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyImportAttribute {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportAttribute';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ImportAttributePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get key(): ast.LazyImportAttribute['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyImportAttribute['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyImportAttribute.prototype, {
+	type: 'ImportAttribute'
 });
+makeLazyFieldsEnumerable(LazyImportAttribute.prototype, ['key', 'value']);
 
-const ImportDeclarationPrototype: object = {
-	type: 'ImportDeclaration',
-	get specifiers() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
-	},
-	get source() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get attributes() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+class LazyImportDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportDeclaration';
+	declare start: number;
+	declare end: number;
+	declare phase: ast.LazyImportDeclaration['phase'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.phase =
+			buffer[position + 7] === 0
+				? undefined
+				: (FIXED_STRINGS[buffer[position + 7]] as ast.LazyImportDeclaration['phase']);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ImportDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get specifiers(): ast.LazyImportDeclaration['specifiers'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get source(): ast.LazyImportDeclaration['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyImportDeclaration['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyImportDeclaration.prototype, {
+	type: 'ImportDeclaration'
 });
+makeLazyFieldsEnumerable(LazyImportDeclaration.prototype, ['specifiers', 'source', 'attributes']);
 
-const ImportDefaultSpecifierPrototype: object = {
-	type: 'ImportDefaultSpecifier',
-	get local() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyImportDefaultSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportDefaultSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ImportDefaultSpecifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get local(): ast.LazyImportDefaultSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyImportDefaultSpecifier.prototype, {
+	type: 'ImportDefaultSpecifier'
 });
+makeLazyFieldsEnumerable(LazyImportDefaultSpecifier.prototype, ['local']);
 
-const ImportExpressionPrototype: object = {
-	type: 'ImportExpression',
-	get source() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get options() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyImportExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportExpression';
+	declare start: number;
+	declare end: number;
+	declare phase: ast.LazyImportExpression['phase'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.phase =
+			buffer[position + 6] === 0
+				? undefined
+				: (FIXED_STRINGS[buffer[position + 6]] as ast.LazyImportExpression['phase']);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ImportExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get source(): ast.LazyImportExpression['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get options(): ast.LazyImportExpression['options'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyImportExpression.prototype, {
+	type: 'ImportExpression'
 });
+makeLazyFieldsEnumerable(LazyImportExpression.prototype, ['source', 'options']);
 
-const ImportNamespaceSpecifierPrototype: object = {
-	type: 'ImportNamespaceSpecifier',
-	get local() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyImportNamespaceSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportNamespaceSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ImportNamespaceSpecifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get local(): ast.LazyImportNamespaceSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyImportNamespaceSpecifier.prototype, {
+	type: 'ImportNamespaceSpecifier'
 });
+makeLazyFieldsEnumerable(LazyImportNamespaceSpecifier.prototype, ['local']);
 
-const ImportSpecifierPrototype: object = {
-	type: 'ImportSpecifier',
-	get imported() {
-		const node = this as any;
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? node.local
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get local() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyImportSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ImportSpecifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get imported(): ast.LazyImportSpecifier['imported'] {
+		const buffer = this.#buffer;
+		const importedPosition = buffer[this.#position + 4];
+		return importedPosition === 0 ? this.local : convertNode(importedPosition, buffer);
+	}
+
+	get local(): ast.LazyImportSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyImportSpecifier.prototype, {
+	type: 'ImportSpecifier'
 });
+makeLazyFieldsEnumerable(LazyImportSpecifier.prototype, ['imported', 'local']);
 
-const JSXAttributePrototype: object = {
-	type: 'JSXAttribute',
-	get name() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyJSXAttribute {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXAttribute';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXAttributePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get name(): ast.LazyJSXAttribute['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyJSXAttribute['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXAttribute.prototype, {
+	type: 'JSXAttribute'
 });
+makeLazyFieldsEnumerable(LazyJSXAttribute.prototype, ['name', 'value']);
 
-const JSXClosingElementPrototype: object = {
-	type: 'JSXClosingElement',
-	get name() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyJSXClosingElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXClosingElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXClosingElementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get name(): ast.LazyJSXClosingElement['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXClosingElement.prototype, {
+	type: 'JSXClosingElement'
 });
+makeLazyFieldsEnumerable(LazyJSXClosingElement.prototype, ['name']);
 
-const JSXClosingFragmentPrototype: object = {
+class LazyJSXClosingFragment {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXClosingFragment';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyJSXClosingFragment.prototype, {
 	type: 'JSXClosingFragment'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXClosingFragmentPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const JSXElementPrototype: object = {
-	type: 'JSXElement',
-	get openingElement() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get children() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
-	},
-	get closingElement() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyJSXElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXElementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get openingElement(): ast.LazyJSXElement['openingElement'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get children(): ast.LazyJSXElement['children'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get closingElement(): ast.LazyJSXElement['closingElement'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXElement.prototype, {
+	type: 'JSXElement'
 });
+makeLazyFieldsEnumerable(LazyJSXElement.prototype, [
+	'openingElement',
+	'children',
+	'closingElement'
+]);
 
-const JSXEmptyExpressionPrototype: object = {
+class LazyJSXEmptyExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXEmptyExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyJSXEmptyExpression.prototype, {
 	type: 'JSXEmptyExpression'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXEmptyExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const JSXExpressionContainerPrototype: object = {
-	type: 'JSXExpressionContainer',
-	get expression() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyJSXExpressionContainer {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXExpressionContainer';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXExpressionContainerPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get expression(): ast.LazyJSXExpressionContainer['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXExpressionContainer.prototype, {
+	type: 'JSXExpressionContainer'
 });
+makeLazyFieldsEnumerable(LazyJSXExpressionContainer.prototype, ['expression']);
 
-const JSXFragmentPrototype: object = {
-	type: 'JSXFragment',
-	get openingFragment() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get children() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
-	},
-	get closingFragment() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyJSXFragment {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXFragment';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXFragmentPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get openingFragment(): ast.LazyJSXFragment['openingFragment'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get children(): ast.LazyJSXFragment['children'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get closingFragment(): ast.LazyJSXFragment['closingFragment'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXFragment.prototype, {
+	type: 'JSXFragment'
 });
+makeLazyFieldsEnumerable(LazyJSXFragment.prototype, [
+	'openingFragment',
+	'children',
+	'closingFragment'
+]);
 
-const JSXIdentifierPrototype: object = {
+class LazyJSXIdentifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXIdentifier';
+	declare start: number;
+	declare end: number;
+	declare name: ast.LazyJSXIdentifier['name'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.name = buffer.convertString(buffer[position + 4]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyJSXIdentifier.prototype, {
 	type: 'JSXIdentifier'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXIdentifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const JSXMemberExpressionPrototype: object = {
-	type: 'JSXMemberExpression',
-	get object() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get property() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyJSXMemberExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXMemberExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXMemberExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get object(): ast.LazyJSXMemberExpression['object'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get property(): ast.LazyJSXMemberExpression['property'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXMemberExpression.prototype, {
+	type: 'JSXMemberExpression'
 });
+makeLazyFieldsEnumerable(LazyJSXMemberExpression.prototype, ['object', 'property']);
 
-const JSXNamespacedNamePrototype: object = {
-	type: 'JSXNamespacedName',
-	get namespace() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get name() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyJSXNamespacedName {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXNamespacedName';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXNamespacedNamePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get namespace(): ast.LazyJSXNamespacedName['namespace'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get name(): ast.LazyJSXNamespacedName['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXNamespacedName.prototype, {
+	type: 'JSXNamespacedName'
 });
+makeLazyFieldsEnumerable(LazyJSXNamespacedName.prototype, ['namespace', 'name']);
 
-const JSXOpeningElementPrototype: object = {
-	type: 'JSXOpeningElement',
-	get name() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get attributes() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
+class LazyJSXOpeningElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXOpeningElement';
+	declare start: number;
+	declare end: number;
+	declare selfClosing: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.selfClosing = (flags & 1) === 1;
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXOpeningElementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get name(): ast.LazyJSXOpeningElement['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyJSXOpeningElement['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXOpeningElement.prototype, {
+	type: 'JSXOpeningElement'
 });
+makeLazyFieldsEnumerable(LazyJSXOpeningElement.prototype, ['name', 'attributes']);
 
-const JSXOpeningFragmentPrototype: object = {
-	type: 'JSXOpeningFragment',
-	get attributes() {
+class LazyJSXOpeningFragment {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXOpeningFragment';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get attributes(): ast.LazyJSXOpeningFragment['attributes'] {
 		return [];
-	},
-	get selfClosing() {
+	}
+
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style -- constant fields must stay getters to not become own properties
+	get selfClosing(): ast.LazyJSXOpeningFragment['selfClosing'] {
 		return false;
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXOpeningFragmentPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXOpeningFragment.prototype, {
+	type: 'JSXOpeningFragment'
 });
+makeLazyFieldsEnumerable(LazyJSXOpeningFragment.prototype, ['attributes', 'selfClosing']);
 
-const JSXSpreadAttributePrototype: object = {
-	type: 'JSXSpreadAttribute',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyJSXSpreadAttribute {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXSpreadAttribute';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXSpreadAttributePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyJSXSpreadAttribute['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXSpreadAttribute.prototype, {
+	type: 'JSXSpreadAttribute'
 });
+makeLazyFieldsEnumerable(LazyJSXSpreadAttribute.prototype, ['argument']);
 
-const JSXSpreadChildPrototype: object = {
-	type: 'JSXSpreadChild',
-	get expression() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyJSXSpreadChild {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXSpreadChild';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXSpreadChildPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get expression(): ast.LazyJSXSpreadChild['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXSpreadChild.prototype, {
+	type: 'JSXSpreadChild'
 });
+makeLazyFieldsEnumerable(LazyJSXSpreadChild.prototype, ['expression']);
 
-const JSXTextPrototype: object = {
-	type: 'JSXText',
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
-	},
-	get raw() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 5]);
+class LazyJSXText {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXText';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(JSXTextPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get value(): ast.LazyJSXText['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get raw(): ast.LazyJSXText['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyJSXText.prototype, {
+	type: 'JSXText'
 });
+makeLazyFieldsEnumerable(LazyJSXText.prototype, ['value', 'raw']);
 
-const LabeledStatementPrototype: object = {
-	type: 'LabeledStatement',
-	get label() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyLabeledStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'LabeledStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LabeledStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get label(): ast.LazyLabeledStatement['label'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyLabeledStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLabeledStatement.prototype, {
+	type: 'LabeledStatement'
 });
+makeLazyFieldsEnumerable(LazyLabeledStatement.prototype, ['label', 'body']);
 
-const LiteralBigIntPrototype: object = {
-	type: 'Literal',
-	get bigint() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
-	},
-	get raw() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 5]);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this);
+class LazyLiteralBigInt {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get bigint(): ast.LazyLiteralBigInt['bigint'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get raw(): ast.LazyLiteralBigInt['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get value(): ast.LazyLiteralBigInt['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
 		const bigint = buffer.convertString(buffer[position + 4]);
 		return BigInt(bigint);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LiteralBigIntPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLiteralBigInt.prototype, {
+	type: 'Literal'
 });
+makeLazyFieldsEnumerable(LazyLiteralBigInt.prototype, ['bigint', 'raw', 'value']);
 
-const LiteralBooleanPrototype: object = {
-	type: 'Literal',
-	get raw() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this);
+class LazyLiteralBoolean {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+	declare value: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.value = (flags & 1) === 1;
+	}
+
+	get raw(): ast.LazyLiteralBoolean['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
 		const value = (buffer[position + 4] & 1) === 1;
 		return value ? 'true' : 'false';
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LiteralBooleanPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLiteralBoolean.prototype, {
+	type: 'Literal'
 });
+makeLazyFieldsEnumerable(LazyLiteralBoolean.prototype, ['raw']);
 
-const LiteralNullPrototype: object = {
-	type: 'Literal',
-	get value() {
+class LazyLiteralNull {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+	declare raw: 'null';
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style -- constant fields must stay getters to not become own properties
+	get value(): ast.LazyLiteralNull['value'] {
 		return null;
-	},
-	raw: 'null'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LiteralNullPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLiteralNull.prototype, {
+	raw: 'null',
+	type: 'Literal'
 });
+makeLazyFieldsEnumerable(LazyLiteralNull.prototype, ['value']);
 
-const LiteralNumberPrototype: object = {
-	type: 'Literal',
-	get raw() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this) + 4;
+class LazyLiteralNumber {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get raw(): ast.LazyLiteralNumber['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
 		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertFloat64(getPosition(this) + 5);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LiteralNumberPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get value(): ast.LazyLiteralNumber['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer.convertFloat64(position);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLiteralNumber.prototype, {
+	type: 'Literal'
 });
+makeLazyFieldsEnumerable(LazyLiteralNumber.prototype, ['raw', 'value']);
 
-const LiteralRegExpPrototype: object = {
-	type: 'Literal',
-	get raw() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this);
+class LazyLiteralRegExp {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get raw(): ast.LazyLiteralRegExp['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
 		const flags = buffer.convertString(buffer[position + 4]);
 		const pattern = buffer.convertString(buffer[position + 5]);
 		return `/${pattern}/${flags}`;
-	},
-	get regex() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this);
-		const flags = buffer.convertString(buffer[position + 4]);
-		const pattern = buffer.convertString(buffer[position + 5]);
-		return getNodeValue(this as ast.AstNode, 'regex', () => ({ flags, pattern }));
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this);
-		const flags = buffer.convertString(buffer[position + 4]);
-		const pattern = buffer.convertString(buffer[position + 5]);
-		return getNodeValue(this as ast.AstNode, 'value', () => new RegExp(pattern, flags));
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LiteralRegExpPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get regex(): ast.LazyLiteralRegExp['regex'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const flags = buffer.convertString(buffer[position + 4]);
+		const pattern = buffer.convertString(buffer[position + 5]);
+		return getNodeValue(this, 'regex', () => ({ flags, pattern }));
+	}
+
+	get value(): ast.LazyLiteralRegExp['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const flags = buffer.convertString(buffer[position + 4]);
+		const pattern = buffer.convertString(buffer[position + 5]);
+		return getNodeValue(this, 'value', () => new RegExp(pattern, flags));
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLiteralRegExp.prototype, {
+	type: 'Literal'
 });
+makeLazyFieldsEnumerable(LazyLiteralRegExp.prototype, ['raw', 'regex', 'value']);
 
-const LiteralStringPrototype: object = {
-	type: 'Literal',
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer.convertString(buffer[getPosition(this) + 4]);
-	},
-	get raw() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this) + 5;
+class LazyLiteralString {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get value(): ast.LazyLiteralString['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer.convertString(buffer[position]);
+	}
+
+	get raw(): ast.LazyLiteralString['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
 		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LiteralStringPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLiteralString.prototype, {
+	type: 'Literal'
 });
+makeLazyFieldsEnumerable(LazyLiteralString.prototype, ['value', 'raw']);
 
-const LogicalExpressionPrototype: object = {
-	type: 'LogicalExpression',
-	get left() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get right() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyLogicalExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'LogicalExpression';
+	declare start: number;
+	declare end: number;
+	declare operator: ast.LazyLogicalExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyLogicalExpression['operator'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(LogicalExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get left(): ast.LazyLogicalExpression['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyLogicalExpression['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyLogicalExpression.prototype, {
+	type: 'LogicalExpression'
 });
+makeLazyFieldsEnumerable(LazyLogicalExpression.prototype, ['left', 'right']);
 
-const MemberExpressionPrototype: object = {
-	type: 'MemberExpression',
-	get object() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get property() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyMemberExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'MemberExpression';
+	declare start: number;
+	declare end: number;
+	declare computed: boolean;
+	declare optional: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.computed = (flags & 1) === 1;
+		this.optional = (flags & 2) === 2;
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(MemberExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get object(): ast.LazyMemberExpression['object'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get property(): ast.LazyMemberExpression['property'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyMemberExpression.prototype, {
+	type: 'MemberExpression'
 });
+makeLazyFieldsEnumerable(LazyMemberExpression.prototype, ['object', 'property']);
 
-const MetaPropertyPrototype: object = {
-	type: 'MetaProperty',
-	get meta() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get property() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyMetaProperty {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'MetaProperty';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(MetaPropertyPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get meta(): ast.LazyMetaProperty['meta'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get property(): ast.LazyMetaProperty['property'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyMetaProperty.prototype, {
+	type: 'MetaProperty'
 });
+makeLazyFieldsEnumerable(LazyMetaProperty.prototype, ['meta', 'property']);
 
-const MethodDefinitionPrototype: object = {
-	type: 'MethodDefinition',
-	get decorators() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
-	},
-	get key() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyMethodDefinition {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'MethodDefinition';
+	declare start: number;
+	declare end: number;
+	declare static: boolean;
+	declare computed: boolean;
+	declare kind: ast.LazyMethodDefinition['kind'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.static = (flags & 1) === 1;
+		this.computed = (flags & 2) === 2;
+		this.kind = FIXED_STRINGS[buffer[position + 8]] as ast.LazyMethodDefinition['kind'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(MethodDefinitionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get decorators(): ast.LazyMethodDefinition['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get key(): ast.LazyMethodDefinition['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyMethodDefinition['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyMethodDefinition.prototype, {
+	type: 'MethodDefinition'
 });
+makeLazyFieldsEnumerable(LazyMethodDefinition.prototype, ['decorators', 'key', 'value']);
 
-const NewExpressionPrototype: object = {
-	type: 'NewExpression',
-	get annotations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 4], buffer);
+class LazyNewExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'NewExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get annotations(): ast.LazyNewExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
-	},
-	get callee() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get arguments() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 6], buffer);
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(NewExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get callee(): ast.LazyNewExpression['callee'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get arguments(): ast.LazyNewExpression['arguments'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyNewExpression.prototype, {
+	type: 'NewExpression'
 });
+makeLazyFieldsEnumerable(LazyNewExpression.prototype, ['annotations', 'callee', 'arguments']);
 
-const ObjectExpressionPrototype: object = {
-	type: 'ObjectExpression',
-	get properties() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyObjectExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ObjectExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ObjectExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get properties(): ast.LazyObjectExpression['properties'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyObjectExpression.prototype, {
+	type: 'ObjectExpression'
 });
+makeLazyFieldsEnumerable(LazyObjectExpression.prototype, ['properties']);
 
-const ObjectPatternPrototype: object = {
-	type: 'ObjectPattern',
-	get properties() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyObjectPattern {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ObjectPattern';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ObjectPatternPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get properties(): ast.LazyObjectPattern['properties'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyObjectPattern.prototype, {
+	type: 'ObjectPattern'
 });
+makeLazyFieldsEnumerable(LazyObjectPattern.prototype, ['properties']);
 
-const PrivateIdentifierPrototype: object = {
+class LazyPrivateIdentifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'PrivateIdentifier';
+	declare start: number;
+	declare end: number;
+	declare name: ast.LazyPrivateIdentifier['name'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.name = buffer.convertString(buffer[position + 4]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyPrivateIdentifier.prototype, {
 	type: 'PrivateIdentifier'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(PrivateIdentifierPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const ProgramPrototype: object = {
-	type: 'Program',
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
-	},
-	get invalidAnnotations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const annotations = convertAnnotations(buffer[getPosition(this) + 5], buffer);
+class LazyProgram {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Program';
+	declare start: number;
+	declare end: number;
+	declare sourceType: 'module';
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get body(): ast.LazyProgram['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get invalidAnnotations(): ast.LazyProgram['invalidAnnotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
 		return annotations.length > 0 ? annotations : undefined;
-	},
-	sourceType: 'module'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ProgramPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyProgram.prototype, {
+	sourceType: 'module',
+	type: 'Program'
 });
+makeLazyFieldsEnumerable(LazyProgram.prototype, ['body', 'invalidAnnotations']);
 
-const PropertyPrototype: object = {
-	type: 'Property',
-	get key() {
-		const node = this as any;
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return node.shorthand
-			? node.value.type === 'AssignmentPattern'
-				? node.value.left
-				: node.value
-			: convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyProperty {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Property';
+	declare start: number;
+	declare end: number;
+	declare method: boolean;
+	declare shorthand: boolean;
+	declare computed: boolean;
+	declare kind: ast.LazyProperty['kind'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.method = (flags & 1) === 1;
+		this.shorthand = (flags & 2) === 2;
+		this.computed = (flags & 4) === 4;
+		this.kind = FIXED_STRINGS[buffer[position + 7]] as ast.LazyProperty['kind'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(PropertyPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get key(): ast.LazyProperty['key'] {
+		const buffer = this.#buffer;
+		return this.shorthand
+			? this.value.type === 'AssignmentPattern'
+				? (this.value.left as ast.LazyProperty['key'])
+				: (this.value as ast.LazyProperty['key'])
+			: convertNode(buffer[this.#position + 5], buffer);
+	}
+
+	get value(): ast.LazyProperty['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyProperty.prototype, {
+	type: 'Property'
 });
+makeLazyFieldsEnumerable(LazyProperty.prototype, ['key', 'value']);
 
-const PropertyDefinitionPrototype: object = {
-	type: 'PropertyDefinition',
-	get decorators() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
-	},
-	get key() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
-	},
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 7] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 7], buffer);
+class LazyPropertyDefinition {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'PropertyDefinition';
+	declare start: number;
+	declare end: number;
+	declare static: boolean;
+	declare computed: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.static = (flags & 1) === 1;
+		this.computed = (flags & 2) === 2;
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(PropertyDefinitionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get decorators(): ast.LazyPropertyDefinition['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get key(): ast.LazyPropertyDefinition['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyPropertyDefinition['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyPropertyDefinition.prototype, {
+	type: 'PropertyDefinition'
 });
+makeLazyFieldsEnumerable(LazyPropertyDefinition.prototype, ['decorators', 'key', 'value']);
 
-const RestElementPrototype: object = {
-	type: 'RestElement',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyRestElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'RestElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(RestElementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyRestElement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyRestElement.prototype, {
+	type: 'RestElement'
 });
+makeLazyFieldsEnumerable(LazyRestElement.prototype, ['argument']);
 
-const ReturnStatementPrototype: object = {
-	type: 'ReturnStatement',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyReturnStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ReturnStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ReturnStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyReturnStatement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyReturnStatement.prototype, {
+	type: 'ReturnStatement'
 });
+makeLazyFieldsEnumerable(LazyReturnStatement.prototype, ['argument']);
 
-const SequenceExpressionPrototype: object = {
-	type: 'SequenceExpression',
-	get expressions() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazySequenceExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SequenceExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(SequenceExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get expressions(): ast.LazySequenceExpression['expressions'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazySequenceExpression.prototype, {
+	type: 'SequenceExpression'
 });
+makeLazyFieldsEnumerable(LazySequenceExpression.prototype, ['expressions']);
 
-const SpreadElementPrototype: object = {
-	type: 'SpreadElement',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazySpreadElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SpreadElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(SpreadElementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazySpreadElement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazySpreadElement.prototype, {
+	type: 'SpreadElement'
 });
+makeLazyFieldsEnumerable(LazySpreadElement.prototype, ['argument']);
 
-const StaticBlockPrototype: object = {
-	type: 'StaticBlock',
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
+class LazyStaticBlock {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'StaticBlock';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(StaticBlockPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get body(): ast.LazyStaticBlock['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyStaticBlock.prototype, {
+	type: 'StaticBlock'
 });
+makeLazyFieldsEnumerable(LazyStaticBlock.prototype, ['body']);
 
-const SuperPrototype: object = {
+class LazySuper {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Super';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazySuper.prototype, {
 	type: 'Super'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(SuperPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const SwitchCasePrototype: object = {
-	type: 'SwitchCase',
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 4] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get consequent() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+class LazySwitchCase {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SwitchCase';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(SwitchCasePrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get test(): ast.LazySwitchCase['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get consequent(): ast.LazySwitchCase['consequent'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazySwitchCase.prototype, {
+	type: 'SwitchCase'
 });
+makeLazyFieldsEnumerable(LazySwitchCase.prototype, ['test', 'consequent']);
 
-const SwitchStatementPrototype: object = {
-	type: 'SwitchStatement',
-	get discriminant() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get cases() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+class LazySwitchStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SwitchStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(SwitchStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get discriminant(): ast.LazySwitchStatement['discriminant'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get cases(): ast.LazySwitchStatement['cases'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazySwitchStatement.prototype, {
+	type: 'SwitchStatement'
 });
+makeLazyFieldsEnumerable(LazySwitchStatement.prototype, ['discriminant', 'cases']);
 
-const TaggedTemplateExpressionPrototype: object = {
-	type: 'TaggedTemplateExpression',
-	get tag() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get quasi() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyTaggedTemplateExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TaggedTemplateExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(TaggedTemplateExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get tag(): ast.LazyTaggedTemplateExpression['tag'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get quasi(): ast.LazyTaggedTemplateExpression['quasi'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyTaggedTemplateExpression.prototype, {
+	type: 'TaggedTemplateExpression'
 });
+makeLazyFieldsEnumerable(LazyTaggedTemplateExpression.prototype, ['tag', 'quasi']);
 
-const TemplateElementPrototype: object = {
-	type: 'TemplateElement',
-	get value() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const position = getPosition(this);
+class LazyTemplateElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TemplateElement';
+	declare start: number;
+	declare end: number;
+	declare tail: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.tail = (flags & 1) === 1;
+	}
+
+	get value(): ast.LazyTemplateElement['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
 		const cooked =
 			buffer[position + 5] === 0 ? undefined : buffer.convertString(buffer[position + 5]);
 		const raw = buffer.convertString(buffer[position + 6]);
-		return getNodeValue(this as ast.AstNode, 'value', () => ({ cooked, raw }));
+		return getNodeValue(this, 'value', () => ({ cooked, raw }));
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(TemplateElementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyTemplateElement.prototype, {
+	type: 'TemplateElement'
 });
+makeLazyFieldsEnumerable(LazyTemplateElement.prototype, ['value']);
 
-const TemplateLiteralPrototype: object = {
-	type: 'TemplateLiteral',
-	get quasis() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 4], buffer);
-	},
-	get expressions() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+class LazyTemplateLiteral {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TemplateLiteral';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(TemplateLiteralPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get quasis(): ast.LazyTemplateLiteral['quasis'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get expressions(): ast.LazyTemplateLiteral['expressions'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyTemplateLiteral.prototype, {
+	type: 'TemplateLiteral'
 });
+makeLazyFieldsEnumerable(LazyTemplateLiteral.prototype, ['quasis', 'expressions']);
 
-const ThisExpressionPrototype: object = {
+class LazyThisExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ThisExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+setFixedProperties(LazyThisExpression.prototype, {
 	type: 'ThisExpression'
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ThisExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
-		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
-	}
 });
 
-const ThrowStatementPrototype: object = {
-	type: 'ThrowStatement',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
+class LazyThrowStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ThrowStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(ThrowStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyThrowStatement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyThrowStatement.prototype, {
+	type: 'ThrowStatement'
 });
+makeLazyFieldsEnumerable(LazyThrowStatement.prototype, ['argument']);
 
-const TryStatementPrototype: object = {
-	type: 'TryStatement',
-	get block() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get handler() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	get finalizer() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 6] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyTryStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TryStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(TryStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get block(): ast.LazyTryStatement['block'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get handler(): ast.LazyTryStatement['handler'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get finalizer(): ast.LazyTryStatement['finalizer'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyTryStatement.prototype, {
+	type: 'TryStatement'
 });
+makeLazyFieldsEnumerable(LazyTryStatement.prototype, ['block', 'handler', 'finalizer']);
 
-const UnaryExpressionPrototype: object = {
-	type: 'UnaryExpression',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
-	},
-	prefix: true
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(UnaryExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+class LazyUnaryExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'UnaryExpression';
+	declare start: number;
+	declare end: number;
+	declare prefix: true;
+	declare operator: ast.LazyUnaryExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyUnaryExpression['operator'];
+	}
+
+	get argument(): ast.LazyUnaryExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyUnaryExpression.prototype, {
+	prefix: true,
+	type: 'UnaryExpression'
 });
+makeLazyFieldsEnumerable(LazyUnaryExpression.prototype, ['argument']);
 
-const UpdateExpressionPrototype: object = {
-	type: 'UpdateExpression',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 6], buffer);
+class LazyUpdateExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'UpdateExpression';
+	declare start: number;
+	declare end: number;
+	declare prefix: boolean;
+	declare operator: ast.LazyUpdateExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.prefix = (flags & 1) === 1;
+		this.operator = FIXED_STRINGS[buffer[position + 5]] as ast.LazyUpdateExpression['operator'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(UpdateExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyUpdateExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyUpdateExpression.prototype, {
+	type: 'UpdateExpression'
 });
+makeLazyFieldsEnumerable(LazyUpdateExpression.prototype, ['argument']);
 
-const VariableDeclarationPrototype: object = {
-	type: 'VariableDeclaration',
-	get declarations() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNodeList(buffer[getPosition(this) + 5], buffer);
+class LazyVariableDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'VariableDeclaration';
+	declare start: number;
+	declare end: number;
+	declare kind: ast.LazyVariableDeclaration['kind'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.kind = FIXED_STRINGS[buffer[position + 4]] as ast.LazyVariableDeclaration['kind'];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(VariableDeclarationPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get declarations(): ast.LazyVariableDeclaration['declarations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyVariableDeclaration.prototype, {
+	type: 'VariableDeclaration'
 });
+makeLazyFieldsEnumerable(LazyVariableDeclaration.prototype, ['declarations']);
 
-const VariableDeclaratorPrototype: object = {
-	type: 'VariableDeclarator',
-	get id() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get init() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyVariableDeclarator {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'VariableDeclarator';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(VariableDeclaratorPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get id(): ast.LazyVariableDeclarator['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get init(): ast.LazyVariableDeclarator['init'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyVariableDeclarator.prototype, {
+	type: 'VariableDeclarator'
 });
+makeLazyFieldsEnumerable(LazyVariableDeclarator.prototype, ['id', 'init']);
 
-const WhileStatementPrototype: object = {
-	type: 'WhileStatement',
-	get test() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 4], buffer);
-	},
-	get body() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyWhileStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'WhileStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(WhileStatementPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get test(): ast.LazyWhileStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyWhileStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyWhileStatement.prototype, {
+	type: 'WhileStatement'
 });
+makeLazyFieldsEnumerable(LazyWhileStatement.prototype, ['test', 'body']);
 
-const YieldExpressionPrototype: object = {
-	type: 'YieldExpression',
-	get argument() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		return buffer[getPosition(this) + 5] === 0
-			? null
-			: convertNode(buffer[getPosition(this) + 5], buffer);
+class LazyYieldExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'YieldExpression';
+	declare start: number;
+	declare end: number;
+	declare delegate: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.delegate = (flags & 1) === 1;
 	}
-};
-/* The parent must not be enumerable as that would make for..in based
-   walkers like estree-walker traverse it into cycles. */
-Object.defineProperty(YieldExpressionPrototype, 'parent', {
-	get() {
-		const buffer = (this as any)[BUFFER] as AstBuffer;
-		const parentPosition = buffer[getPosition(this) + 1];
+
+	get argument(): ast.LazyYieldExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
+}
+setFixedProperties(LazyYieldExpression.prototype, {
+	type: 'YieldExpression'
 });
-
-const nodePrototypes: object[] = [
-	PanicErrorPrototype,
-	ParseErrorPrototype,
-	ArrayExpressionPrototype,
-	ArrayPatternPrototype,
-	ArrowFunctionExpressionPrototype,
-	AssignmentExpressionPrototype,
-	AssignmentPatternPrototype,
-	AwaitExpressionPrototype,
-	BinaryExpressionPrototype,
-	BlockStatementPrototype,
-	BreakStatementPrototype,
-	CallExpressionPrototype,
-	CatchClausePrototype,
-	ChainExpressionPrototype,
-	ClassBodyPrototype,
-	ClassDeclarationPrototype,
-	ClassExpressionPrototype,
-	ConditionalExpressionPrototype,
-	ContinueStatementPrototype,
-	DebuggerStatementPrototype,
-	DecoratorPrototype,
-	DirectivePrototype,
-	DoWhileStatementPrototype,
-	EmptyStatementPrototype,
-	ExportAllDeclarationPrototype,
-	ExportDefaultDeclarationPrototype,
-	ExportNamedDeclarationPrototype,
-	ExportSpecifierPrototype,
-	ExpressionStatementPrototype,
-	ForInStatementPrototype,
-	ForOfStatementPrototype,
-	ForStatementPrototype,
-	FunctionDeclarationPrototype,
-	FunctionExpressionPrototype,
-	IdentifierPrototype,
-	IfStatementPrototype,
-	ImportAttributePrototype,
-	ImportDeclarationPrototype,
-	ImportDefaultSpecifierPrototype,
-	ImportExpressionPrototype,
-	ImportNamespaceSpecifierPrototype,
-	ImportSpecifierPrototype,
-	JSXAttributePrototype,
-	JSXClosingElementPrototype,
-	JSXClosingFragmentPrototype,
-	JSXElementPrototype,
-	JSXEmptyExpressionPrototype,
-	JSXExpressionContainerPrototype,
-	JSXFragmentPrototype,
-	JSXIdentifierPrototype,
-	JSXMemberExpressionPrototype,
-	JSXNamespacedNamePrototype,
-	JSXOpeningElementPrototype,
-	JSXOpeningFragmentPrototype,
-	JSXSpreadAttributePrototype,
-	JSXSpreadChildPrototype,
-	JSXTextPrototype,
-	LabeledStatementPrototype,
-	LiteralBigIntPrototype,
-	LiteralBooleanPrototype,
-	LiteralNullPrototype,
-	LiteralNumberPrototype,
-	LiteralRegExpPrototype,
-	LiteralStringPrototype,
-	LogicalExpressionPrototype,
-	MemberExpressionPrototype,
-	MetaPropertyPrototype,
-	MethodDefinitionPrototype,
-	NewExpressionPrototype,
-	ObjectExpressionPrototype,
-	ObjectPatternPrototype,
-	PrivateIdentifierPrototype,
-	ProgramPrototype,
-	PropertyPrototype,
-	PropertyDefinitionPrototype,
-	RestElementPrototype,
-	ReturnStatementPrototype,
-	SequenceExpressionPrototype,
-	SpreadElementPrototype,
-	StaticBlockPrototype,
-	SuperPrototype,
-	SwitchCasePrototype,
-	SwitchStatementPrototype,
-	TaggedTemplateExpressionPrototype,
-	TemplateElementPrototype,
-	TemplateLiteralPrototype,
-	ThisExpressionPrototype,
-	ThrowStatementPrototype,
-	TryStatementPrototype,
-	UnaryExpressionPrototype,
-	UpdateExpressionPrototype,
-	VariableDeclarationPrototype,
-	VariableDeclaratorPrototype,
-	WhileStatementPrototype,
-	YieldExpressionPrototype
-];
-
-const nodeFactories: ((
-	position: number,
-	buffer: AstBuffer,
-	prototype: object
-) => ast.LazyNode<ast.AstNode>)[] = [
-	function createPanicError(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.PanicError> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createParseError(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ParseError> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createArrayExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ArrayExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createArrayPattern(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ArrayPattern> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createArrowFunctionExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ArrowFunctionExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.async = (flags & 1) === 1;
-		node.expression = (flags & 2) === 2;
-		node.generator = (flags & 4) === 4;
-		return node;
-	},
-	function createAssignmentExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.AssignmentExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.operator = FIXED_STRINGS[buffer[position + 4]];
-		return node;
-	},
-	function createAssignmentPattern(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.AssignmentPattern> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createAwaitExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.AwaitExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createBinaryExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.BinaryExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.operator = FIXED_STRINGS[buffer[position + 4]];
-		return node;
-	},
-	function createBlockStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.BlockStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createBreakStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.BreakStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createCallExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.CallExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.optional = (flags & 1) === 1;
-		return node;
-	},
-	function createCatchClause(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.CatchClause> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createChainExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ChainExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createClassBody(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ClassBody> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createClassDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ClassDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createClassExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ClassExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createConditionalExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ConditionalExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createContinueStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ContinueStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createDebuggerStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.DebuggerStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createDecorator(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.Decorator> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createDirective(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.Directive> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createDoWhileStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.DoWhileStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createEmptyStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.EmptyStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createExportAllDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ExportAllDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createExportDefaultDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ExportDefaultDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createExportNamedDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ExportNamedDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createExportSpecifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ExportSpecifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createExpressionStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ExpressionStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createForInStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ForInStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createForOfStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ForOfStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.await = (flags & 1) === 1;
-		return node;
-	},
-	function createForStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ForStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createFunctionDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.FunctionDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.async = (flags & 1) === 1;
-		node.generator = (flags & 2) === 2;
-		return node;
-	},
-	function createFunctionExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.FunctionExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.async = (flags & 1) === 1;
-		node.generator = (flags & 2) === 2;
-		return node;
-	},
-	function createIdentifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.Identifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.name = buffer.convertString(buffer[position + 4]);
-		return node;
-	},
-	function createIfStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.IfStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createImportAttribute(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ImportAttribute> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createImportDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ImportDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.phase = buffer[position + 7] === 0 ? undefined : FIXED_STRINGS[buffer[position + 7]];
-		return node;
-	},
-	function createImportDefaultSpecifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ImportDefaultSpecifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createImportExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ImportExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.phase = buffer[position + 6] === 0 ? undefined : FIXED_STRINGS[buffer[position + 6]];
-		return node;
-	},
-	function createImportNamespaceSpecifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ImportNamespaceSpecifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createImportSpecifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ImportSpecifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXAttribute(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXAttribute> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXClosingElement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXClosingElement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXClosingFragment(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXClosingFragment> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXElement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXElement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXEmptyExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXEmptyExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXExpressionContainer(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXExpressionContainer> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXFragment(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXFragment> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXIdentifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXIdentifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.name = buffer.convertString(buffer[position + 4]);
-		return node;
-	},
-	function createJSXMemberExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXMemberExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXNamespacedName(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXNamespacedName> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXOpeningElement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXOpeningElement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.selfClosing = (flags & 1) === 1;
-		return node;
-	},
-	function createJSXOpeningFragment(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXOpeningFragment> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXSpreadAttribute(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXSpreadAttribute> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXSpreadChild(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXSpreadChild> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createJSXText(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.JSXText> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLabeledStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LabeledStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLiteralBigInt(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LiteralBigInt> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLiteralBoolean(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LiteralBoolean> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.value = (flags & 1) === 1;
-		return node;
-	},
-	function createLiteralNull(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LiteralNull> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLiteralNumber(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LiteralNumber> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLiteralRegExp(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LiteralRegExp> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLiteralString(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LiteralString> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createLogicalExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.LogicalExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.operator = FIXED_STRINGS[buffer[position + 4]];
-		return node;
-	},
-	function createMemberExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.MemberExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.computed = (flags & 1) === 1;
-		node.optional = (flags & 2) === 2;
-		return node;
-	},
-	function createMetaProperty(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.MetaProperty> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createMethodDefinition(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.MethodDefinition> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.static = (flags & 1) === 1;
-		node.computed = (flags & 2) === 2;
-		node.kind = FIXED_STRINGS[buffer[position + 8]];
-		return node;
-	},
-	function createNewExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.NewExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createObjectExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ObjectExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createObjectPattern(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ObjectPattern> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createPrivateIdentifier(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.PrivateIdentifier> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.name = buffer.convertString(buffer[position + 4]);
-		return node;
-	},
-	function createProgram(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.Program> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createProperty(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.Property> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.method = (flags & 1) === 1;
-		node.shorthand = (flags & 2) === 2;
-		node.computed = (flags & 4) === 4;
-		node.kind = FIXED_STRINGS[buffer[position + 7]];
-		return node;
-	},
-	function createPropertyDefinition(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.PropertyDefinition> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.static = (flags & 1) === 1;
-		node.computed = (flags & 2) === 2;
-		return node;
-	},
-	function createRestElement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.RestElement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createReturnStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ReturnStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createSequenceExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.SequenceExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createSpreadElement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.SpreadElement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createStaticBlock(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.StaticBlock> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createSuper(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.Super> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createSwitchCase(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.SwitchCase> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createSwitchStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.SwitchStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createTaggedTemplateExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.TaggedTemplateExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createTemplateElement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.TemplateElement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.tail = (flags & 1) === 1;
-		return node;
-	},
-	function createTemplateLiteral(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.TemplateLiteral> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createThisExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ThisExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createThrowStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.ThrowStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createTryStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.TryStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createUnaryExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.UnaryExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.operator = FIXED_STRINGS[buffer[position + 4]];
-		return node;
-	},
-	function createUpdateExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.UpdateExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.prefix = (flags & 1) === 1;
-		node.operator = FIXED_STRINGS[buffer[position + 5]];
-		return node;
-	},
-	function createVariableDeclaration(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.VariableDeclaration> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		node.kind = FIXED_STRINGS[buffer[position + 4]];
-		return node;
-	},
-	function createVariableDeclarator(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.VariableDeclarator> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createWhileStatement(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.WhileStatement> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		return node;
-	},
-	function createYieldExpression(
-		position: number,
-		buffer: AstBuffer,
-		prototype: object
-	): ast.LazyNode<ast.YieldExpression> {
-		const node: any = Object.create(prototype);
-		node[POSITION] = position;
-		node[BUFFER] = buffer;
-		node.start = buffer[position + 2];
-		node.end = buffer[position + 3];
-		const flags = buffer[position + 4];
-		node.delegate = (flags & 1) === 1;
-		return node;
-	}
-];
+makeLazyFieldsEnumerable(LazyYieldExpression.prototype, ['argument']);
