@@ -21,15 +21,12 @@ const getLazyNodeTypeReference = (nodeType: string) =>
 
 function getFieldType(
 	field: FieldDescription,
-	node: NodeDescription,
 	getNodeTypeReference: (nodeType: string) => string
 ): string {
 	switch (field.type) {
 		case 'Node': {
 			const baseType = field.nodeTypes.map(getNodeTypeReference).join(' | ');
-			return field.allowNull && !node.optionalFallback?.[field.name]
-				? `${baseType} | null`
-				: baseType;
+			return field.allowNull ? `${baseType} | null` : baseType;
 		}
 		case 'NodeList': {
 			const baseTypes: string[] = field.nodeTypes.map(getNodeTypeReference);
@@ -87,7 +84,7 @@ function getNodeFields(
 		.filter(field => !node.serializeHiddenFields?.[field.name])
 		.map(
 			field =>
-				`${field.name}${isOptional(field) ? '?' : ''}: ${getFieldType(field, node, getNodeTypeReference)};`
+				`${field.name}${isOptional(field) ? '?' : ''}: ${getFieldType(field, getNodeTypeReference)};`
 		);
 	const additionalFields = Object.entries(node.additionalFields || {}).map(
 		([name, { type }]) => `${name}: ${type};`

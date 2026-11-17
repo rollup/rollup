@@ -93,6 +93,9 @@ module.exports = defineTest({
 			// object keys or the initializer.
 			['key', 1443, false],
 			['binding', 1448, true],
+			// a shorthand property has separate nodes for key and value, both
+			// with the same range
+			['untouched', 1457, true],
 			['untouched', 1457, true],
 			['rest', 1471, true],
 			['source', 1480, false],
@@ -104,6 +107,7 @@ module.exports = defineTest({
 			// a destructuring assignment (not a declaration) does not record
 			// bindings.
 			['assigned', 1607, false],
+			['assigned', 1607, false],
 			['source', 1620, false],
 			['assigned', 1629, false],
 			// switch discriminant is evaluated in the surrounding scope; the
@@ -113,11 +117,17 @@ module.exports = defineTest({
 			['caseLocal', 1809, true],
 			['caseLocal', 1826, true],
 			// export specifiers are references, not declarations, but the names
-			// resolve to their module-scope declarations.
+			// resolve to their module-scope declarations. Without an alias,
+			// local and exported name are separate nodes with the same range.
+			['Declaration', 1849, true],
 			['Declaration', 1849, true],
 			['expression', 1862, true],
+			['expression', 1862, true],
+			['fnExpression', 1874, true],
 			['fnExpression', 1874, true],
 			['hoistingHost', 1888, true],
+			['hoistingHost', 1888, true],
+			['outer', 1902, true],
 			['outer', 1902, true]
 		]);
 	}

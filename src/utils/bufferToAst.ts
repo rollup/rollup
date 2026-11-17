@@ -285,14 +285,12 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 		};
 	},
 	function exportSpecifier(position, buffer): ast.ExportSpecifier {
-		const local = convertNode(buffer[position + 4], buffer);
-		const exportedPosition = buffer[position + 5];
 		return {
 			type: 'ExportSpecifier',
 			start: buffer[position + 2],
 			end: buffer[position + 3],
-			local,
-			exported: exportedPosition === 0 ? local : convertNode(exportedPosition, buffer)
+			local: convertNode(buffer[position + 4], buffer),
+			exported: convertNode(buffer[position + 5], buffer)
 		};
 	},
 	function expressionStatement(position, buffer): ast.ExpressionStatement {
@@ -448,14 +446,12 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 		};
 	},
 	function importSpecifier(position, buffer): ast.ImportSpecifier {
-		const importedPosition = buffer[position + 4];
-		const local = convertNode(buffer[position + 5], buffer);
 		return {
 			type: 'ImportSpecifier',
 			start: buffer[position + 2],
 			end: buffer[position + 3],
-			imported: importedPosition === 0 ? local : convertNode(importedPosition, buffer),
-			local
+			imported: convertNode(buffer[position + 4], buffer),
+			local: convertNode(buffer[position + 5], buffer)
 		};
 	},
 	function jsxAttribute(position, buffer): ast.JSXAttribute {
@@ -756,8 +752,6 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 	},
 	function property(position, buffer): ast.Property {
 		const flags = buffer[position + 4];
-		const keyPosition = buffer[position + 5];
-		const value = convertNode(buffer[position + 6], buffer);
 		return {
 			type: 'Property',
 			start: buffer[position + 2],
@@ -765,13 +759,8 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] =
 			method: (flags & 1) === 1,
 			shorthand: (flags & 2) === 2,
 			computed: (flags & 4) === 4,
-			key:
-				(flags & 2) === 2
-					? (value as ast.AssignmentPattern).type === 'AssignmentPattern'
-						? (value as ast.AssignmentPattern).left
-						: value
-					: convertNode(keyPosition, buffer),
-			value,
+			key: convertNode(buffer[position + 5], buffer),
+			value: convertNode(buffer[position + 6], buffer),
 			kind: FIXED_STRINGS[buffer[position + 7]] as ast.Property['kind']
 		};
 	},

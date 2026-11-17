@@ -1311,8 +1311,8 @@ class LazyExportSpecifier {
 
 	get exported(): ast.LazyExportSpecifier['exported'] {
 		const buffer = this.#buffer;
-		const exportedPosition = buffer[this.#position + 5];
-		return exportedPosition === 0 ? this.local : convertNode(exportedPosition, buffer);
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
 	}
 
 	get parent() {
@@ -1888,8 +1888,8 @@ class LazyImportSpecifier {
 
 	get imported(): ast.LazyImportSpecifier['imported'] {
 		const buffer = this.#buffer;
-		const importedPosition = buffer[this.#position + 4];
-		return importedPosition === 0 ? this.local : convertNode(importedPosition, buffer);
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
 	}
 
 	get local(): ast.LazyImportSpecifier['local'] {
@@ -3059,11 +3059,8 @@ class LazyProperty {
 
 	get key(): ast.LazyProperty['key'] {
 		const buffer = this.#buffer;
-		return this.shorthand
-			? this.value.type === 'AssignmentPattern'
-				? (this.value.left as ast.LazyProperty['key'])
-				: (this.value as ast.LazyProperty['key'])
-			: convertNode(buffer[this.#position + 5], buffer);
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
 	}
 
 	get value(): ast.LazyProperty['value'] {

@@ -2,12 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import type { FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
 import { NODE_DATA_OFFSET, NODE_END_OFFSET, NODE_START_OFFSET } from './buffer-layout.ts';
-import {
-	firstLettersLowercase,
-	generateNotEditFilesComment,
-	getShorthandKeyUnwrapExpression,
-	lintTsFile
-} from './helpers.ts';
+import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -46,23 +41,6 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	}
 	for (const [fieldName, { value: fieldValue }] of Object.entries(node.additionalFields || {})) {
 		definitions.push(`node.${fieldName} = ${fieldValue};\n`);
-	}
-	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
-		needsScope = true;
-		if (fieldName === node.shorthandKey) {
-			definitions.push(
-				`node.${fieldName} = ${getShorthandKeyUnwrapExpression({
-					cast: 'ast.AssignmentPattern',
-					castTarget: 'value',
-					flagCondition: 'node.shorthand',
-					value: `node.${fallbackName}`
-				})} : convertNode(node, scope, ${fieldName}Position, buffer);\n`
-			);
-			continue;
-		}
-		definitions.push(
-			`node.${fieldName} = ${fieldName}Position === 0 ? node.${fallbackName} : convertNode(node, scope, ${fieldName}Position, buffer);\n`
-		);
 	}
 	if (needsScope) {
 		definitions.unshift('const {scope} = node;');
@@ -110,18 +88,15 @@ function getFieldDefinition(
 	switch (field.type) {
 		case 'Node': {
 			if (field.allowNull) {
-				let definition = `const ${field.name}Position = ${dataStart};`;
-				let needsScope = false;
-				if (!node.optionalFallback?.[field.name]) {
-					needsScope = true;
-					let additionalDefinition = `\n${assignmentLeftHand}${field.name}Position === 0 ? null : convertNode(node, ${scope}, ${field.name}Position, buffer)`;
-					if (node.postProcessFields?.[field.name]) {
-						const [variableName, postProcess] = node.postProcessFields[field.name];
-						additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
-					}
-					definition += additionalDefinition;
+				let additionalDefinition = `\n${assignmentLeftHand}${field.name}Position === 0 ? null : convertNode(node, ${scope}, ${field.name}Position, buffer)`;
+				if (node.postProcessFields?.[field.name]) {
+					const [variableName, postProcess] = node.postProcessFields[field.name];
+					additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
 				}
-				return { definition, needsScope };
+				return {
+					definition: `const ${field.name}Position = ${dataStart};${additionalDefinition}`,
+					needsScope: true
+				};
 			}
 			return {
 				definition: `${assignmentLeftHand}convertNode(node, ${scope}, ${dataStart}, buffer);`,

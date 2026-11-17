@@ -114,33 +114,113 @@ describe('parseAst', () => {
 		});
 	});
 
-	it('uses the same reference for key and value of a shorthand property', async () => {
+	it('uses separate nodes with the same range for the key and value of a shorthand property', async () => {
 		const { key, value } = parseAst('({ foo });').body[0].expression.properties[0];
-		assert.ok(key === value);
+		assert.ok(key !== value);
+		assert.strictEqual(key.type, 'Identifier');
+		assert.strictEqual(key.start, value.start);
+		assert.strictEqual(key.end, value.end);
 	});
 
-	it('resolves shorthand keys of assignments to the left side of the value', async () => {
+	it('keeps the key of a shorthand property with a default separate from the value', async () => {
 		const property = parseAst('const { x = 1 } = obj;').body[0].declarations[0].id.properties[0];
-		assert.strictEqual(property.key, property.value.left);
+		assert.ok(property.key !== property.value.left);
 		assert.strictEqual(property.key.type, 'Identifier');
+		assert.strictEqual(property.key.start, property.value.left.start);
+		assert.strictEqual(property.key.end, property.value.left.end);
 	});
 
-	it('uses different references for aliased specifiers and properties', async () => {
-		const [shorthandProperty] = parseAst('({ foo: foo });').body[0].expression.properties;
-		assert.ok(shorthandProperty.key !== shorthandProperty.value);
-		const [importedSpecifier, aliasedSpecifier] = parseAst('import { x, y as z } from "m";').body[0]
-			.specifiers;
-		assert.ok(importedSpecifier.imported === importedSpecifier.local);
+	it('links the key of a shorthand property with a default to the property', async () => {
+		const visitedProperties = [];
+		await parseAndWalk('const { x = 1 } = obj;', {
+			Property(property) {
+				visitedProperties.push(property);
+			}
+		});
+		assert.strictEqual(visitedProperties.length, 1);
+		const [property] = visitedProperties;
+		assert.strictEqual(property.key.parent, property);
+		assert.strictEqual(property.value.left.parent.type, 'AssignmentPattern');
+	});
+
+	it('uses separate nodes for specifiers whose local and exported names coincide', async () => {
+		const [importedSpecifier] = parseAst('import { x } from "m";').body[0].specifiers;
+		assert.ok(importedSpecifier.imported !== importedSpecifier.local);
+		assert.strictEqual(importedSpecifier.imported.start, importedSpecifier.local.start);
+		assert.strictEqual(importedSpecifier.imported.end, importedSpecifier.local.end);
+		const [exportedSpecifier] = parseAst('const x = 1; export { x };').body[1].specifiers;
+		assert.ok(exportedSpecifier.exported !== exportedSpecifier.local);
+		assert.strictEqual(exportedSpecifier.exported.start, exportedSpecifier.local.start);
+		assert.strictEqual(exportedSpecifier.exported.end, exportedSpecifier.local.end);
+		const [aliasedSpecifier] = parseAst('import { x as z } from "m";').body[0].specifiers;
 		assert.ok(aliasedSpecifier.imported !== aliasedSpecifier.local);
-		const [exportedSpecifier, aliasedExportSpecifier] = parseAst(
-			'const x = 1, y = 2; export { x, y as z };'
-		).body[1].specifiers;
-		assert.ok(exportedSpecifier.exported === exportedSpecifier.local);
-		assert.ok(aliasedExportSpecifier.exported !== aliasedExportSpecifier.local);
+		assert.notStrictEqual(aliasedSpecifier.imported.start, aliasedSpecifier.local.start);
 		const [sameNameSpecifier] = parseAst('import { x as x } from "m";').body[0].specifiers;
 		assert.ok(sameNameSpecifier.imported !== sameNameSpecifier.local);
+		assert.notStrictEqual(sameNameSpecifier.imported.start, sameNameSpecifier.local.start);
 		const [sameNameExport] = parseAst('const x = 1; export { x as x };').body[1].specifiers;
 		assert.ok(sameNameExport.exported !== sameNameExport.local);
+		assert.notStrictEqual(sameNameExport.exported.start, sameNameExport.local.start);
+	});
+
+	it('keeps the exported name of a string literal re-export separate from the local name', async () => {
+		const [specifier] = parseAst('export { "a b" } from "m";').body[0].specifiers;
+		assert.notStrictEqual(specifier.exported, specifier.local);
+		assert.strictEqual(specifier.exported.type, 'Literal');
+		assert.strictEqual(specifier.exported.start, specifier.local.start);
+		assert.strictEqual(specifier.exported.end, specifier.local.end);
+	});
+
+	it('links shorthand keys in parameter patterns to their property', async () => {
+		const [parameter] = parseLazyAst('function f({ a = 1 }) {}').body[0].params;
+		const [property] = parameter.properties;
+		assert.notStrictEqual(property.key, property.value.left);
+		assert.strictEqual(property.key.parent.type, 'Property');
+		assert.strictEqual(property.value.left.parent.type, 'AssignmentPattern');
+	});
+
+	it('derives UTF-16 positions of duplicated nodes in sources with surrogate pairs', async () => {
+		const source = "'😀'; const { x = 1 } = obj; export { obj };";
+		const ast = parseAst(source);
+		const keyPosition = source.indexOf('x');
+		const property = ast.body[1].declarations[0].id.properties[0];
+		assert.strictEqual(property.key.start, keyPosition);
+		assert.strictEqual(property.key.end, keyPosition + 1);
+		assert.strictEqual(property.value.left.start, keyPosition);
+		assert.strictEqual(property.value.left.end, keyPosition + 1);
+		const [specifier] = ast.body[2].specifiers;
+		const exportedPosition = source.lastIndexOf('obj');
+		assert.notStrictEqual(specifier.exported, specifier.local);
+		assert.strictEqual(specifier.exported.start, exportedPosition);
+		assert.strictEqual(specifier.exported.end, exportedPosition + 3);
+		assert.strictEqual(specifier.local.start, exportedPosition);
+		assert.strictEqual(specifier.local.end, exportedPosition + 3);
+	});
+
+	it('derives UTF-16 positions of duplicated nodes that contain multi-byte characters', async () => {
+		const [specifier] = parseAst('export { "😀" } from "m";').body[0].specifiers;
+		assert.notStrictEqual(specifier.exported, specifier.local);
+		assert.strictEqual(specifier.exported.start, 9);
+		assert.strictEqual(specifier.exported.end, 13);
+		assert.strictEqual(specifier.local.start, 9);
+		assert.strictEqual(specifier.local.end, 13);
+		const [property] = parseAst('const { ä = 1 } = o;').body[0].declarations[0].id.properties;
+		assert.notStrictEqual(property.key, property.value.left);
+		assert.strictEqual(property.key.start, 8);
+		assert.strictEqual(property.key.end, 9);
+		assert.strictEqual(property.value.left.start, 8);
+		assert.strictEqual(property.value.left.end, 9);
+	});
+
+	it('derives positions of long shorthand keys', async () => {
+		const name = 'a'.repeat(300);
+		const source = `const { ${name} = 1 } = obj;`;
+		const [property] = parseAst(source).body[0].declarations[0].id.properties;
+		assert.notStrictEqual(property.key, property.value.left);
+		assert.strictEqual(property.key.start, source.indexOf(name));
+		assert.strictEqual(property.key.end, source.indexOf(name) + name.length);
+		assert.strictEqual(property.value.left.start, source.indexOf(name));
+		assert.strictEqual(property.value.left.end, source.indexOf(name) + name.length);
 	});
 
 	it('does not add parents to nodes of eager ASTs', async () => {
@@ -158,6 +238,30 @@ describe('parseAst', () => {
 		assert.strictEqual(deserialized.body[0].parent, deserialized);
 		assert.strictEqual(deserialized.body[0].declarations[0].parent, deserialized.body[0]);
 		assert.ok(deserializeAst(serializeAst(parseAst('const x = foo;'))));
+	});
+
+	it('keeps shorthand keys and unaliased specifiers as separate nodes when serializing and deserializing', async () => {
+		const deserialized = deserializeLazyAst(
+			serializeAst(parseAst('const { x = 1, y } = obj; import { z } from "m"; export { y };'))
+		);
+		const [assignmentProperty, shorthandProperty] =
+			deserialized.body[0].declarations[0].id.properties;
+		assert.notStrictEqual(assignmentProperty.key, assignmentProperty.value.left);
+		assert.strictEqual(assignmentProperty.key.start, assignmentProperty.value.left.start);
+		assert.strictEqual(assignmentProperty.key.end, assignmentProperty.value.left.end);
+		assert.strictEqual(assignmentProperty.key.parent, assignmentProperty);
+		assert.strictEqual(assignmentProperty.value.left.parent, assignmentProperty.value);
+		assert.notStrictEqual(shorthandProperty.key, shorthandProperty.value);
+		assert.strictEqual(shorthandProperty.key.start, shorthandProperty.value.start);
+		assert.strictEqual(shorthandProperty.key.parent, shorthandProperty);
+		const [importSpecifier] = deserialized.body[1].specifiers;
+		assert.notStrictEqual(importSpecifier.imported, importSpecifier.local);
+		assert.strictEqual(importSpecifier.imported.start, importSpecifier.local.start);
+		assert.strictEqual(importSpecifier.imported.parent, importSpecifier);
+		const [exportSpecifier] = deserialized.body[2].specifiers;
+		assert.notStrictEqual(exportSpecifier.exported, exportSpecifier.local);
+		assert.strictEqual(exportSpecifier.exported.start, exportSpecifier.local.start);
+		assert.strictEqual(exportSpecifier.exported.parent, exportSpecifier);
 	});
 
 	it('can deserialize AST buffers that are views at a non-zero byte offset', async () => {
@@ -262,12 +366,12 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(property.parent.parent, ast.body[0].declarations[0]);
 	});
 
-	it('links shorthand keys of assignments to the assignment pattern', () => {
+	it('links shorthand keys of assignments to their property', () => {
 		const property =
 			parseLazyAst('const { x = 1 } = obj;').body[0].declarations[0].id.properties[0];
-		assert.strictEqual(property.key, property.value.left);
-		assert.strictEqual(property.key.parent, property.value);
-		assert.strictEqual(property.key.parent.type, 'AssignmentPattern');
+		assert.notStrictEqual(property.key, property.value.left);
+		assert.strictEqual(property.key.parent, property);
+		assert.strictEqual(property.value.left.parent, property.value);
 	});
 
 	it('links decorators of exported classes to the class and the class to the export', () => {

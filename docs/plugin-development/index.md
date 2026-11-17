@@ -2446,7 +2446,7 @@ Lazy properties are not own properties, so `Object.keys`, spread and `JSON.strin
 
 Nodes of a lazy AST have a `parent` property that points to the containing node. This includes nodes passed to a [`parseAndWalk`](#this-parseandwalk) visitor.
 
-Each node has exactly one parent. For default destructuring like `const { x = 1 } = obj`, `key` and `value.left` are the same `Identifier` whose `parent` is the `AssignmentPattern` rather than the `Property`.
+Each node has exactly one parent. Shorthand property keys and unaliased import and export specifier names are separate nodes with the same range as their counterpart, so a shorthand key's `parent` is its `Property` and a specifier name's `parent` is its specifier.
 
 ### Accessing ASTs from Module Info
 

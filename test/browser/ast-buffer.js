@@ -75,7 +75,10 @@ describe('ast buffer', () => {
 			'Object',
 			'freeze',
 			'value',
+			'value',
 			'string',
+			'string',
+			'regexp',
 			'regexp'
 		]);
 	});

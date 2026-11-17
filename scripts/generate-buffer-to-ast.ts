@@ -7,12 +7,7 @@ import {
 	NODE_END_OFFSET,
 	NODE_START_OFFSET
 } from './buffer-layout.ts';
-import {
-	firstLettersLowercase,
-	generateNotEditFilesComment,
-	getShorthandKeyUnwrapExpression,
-	lintTsFile
-} from './helpers.ts';
+import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -33,7 +28,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 		definitions.push(getFieldDefinition(field, index + offset));
 		if (isHoistedField(field.name, node)) {
 			definitions.push(
-				`const ${field.name} = ${getFieldPropertyBase(field, name, node, index + offset)};`
+				`const ${field.name} = ${getFieldPropertyBase(field, name, index + offset)};`
 			);
 		}
 	}
@@ -58,10 +53,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 });
 
 function isHoistedField(name: string, node: NodeDescription): boolean | undefined {
-	return (
-		node.baseForAdditionalFields?.includes(name) ||
-		(node.optionalFallback && Object.values(node.optionalFallback).includes(name))
-	);
+	return node.baseForAdditionalFields?.includes(name);
 }
 
 function getFieldDefinition(field: FieldDescription, offset: number): string {
@@ -109,35 +101,17 @@ function getFieldProperty(
 			return `...(${field.name}.length > 0 ? { ${field.name} } : {})`;
 		}
 		default: {
-			return `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`;
+			return `${field.name}: ${getFieldPropertyBase(field, nodeName, offset)}`;
 		}
 	}
 }
 
-function getFieldPropertyBase(
-	field: FieldDescription,
-	nodeName: string,
-	node: NodeDescription,
-	offset: number
-): string {
+function getFieldPropertyBase(field: FieldDescription, nodeName: string, offset: number): string {
 	const position = `position + ${offset}`;
 	const dataStart = `buffer[${position}]`;
 	switch (field.type) {
 		case 'Node': {
 			if (field.allowNull) {
-				const fallback = node.optionalFallback?.[field.name];
-				if (fallback) {
-					if (field.name === node.shorthandKey) {
-						const shorthandMask = 1 << node.flags!.indexOf('shorthand');
-						return `${getShorthandKeyUnwrapExpression({
-							cast: 'ast.AssignmentPattern',
-							castTarget: 'value',
-							flagCondition: `(flags & ${shorthandMask}) === ${shorthandMask}`,
-							value: fallback
-						})} : convertNode(${field.name}Position, buffer)`;
-					}
-					return `${field.name}Position === 0 ? ${fallback} : convertNode(${field.name}Position, buffer)`;
-				}
 				return `${field.name}Position === 0 ? null : convertNode(${field.name}Position, buffer)`;
 			}
 			return `convertNode(${dataStart}, buffer)`;

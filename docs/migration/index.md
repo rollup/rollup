@@ -137,8 +137,6 @@ function isIdentifier(node: ast.AstNode): node is ast.Identifier {
 
 If you need to inspect all nodes of given types, use the [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) plugin context method or the `parseAndWalk` helper from `rollup/parseAst` instead; they only create objects for visited nodes. With `collectScopes: true`, visitor handlers receive a scope that can replace `attachScopes` from `@rollup/pluginutils`; see [Scope collection](../plugin-development/index.md#scope-collection). These nodes will also contain `parent` links for exploring the AST upwards.
 
-Eager ASTs from `this.parse` and `parseAst` will now reuse the same node object for shorthand properties and for import or export specifiers without an alias, such as `import { x }`; `import { x as x }` still creates two separate identifiers. Code that relied on these being separate objects should compare `start`/`end` instead.
-
 ### Stop returning ASTs from `load` and `transform`
 
 ASTs returned from [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) are now serialized into a binary buffer before Rollup uses them. This has a performance cost and should be avoided where possible.

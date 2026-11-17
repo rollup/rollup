@@ -512,16 +512,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	ExportSpecifier: {
 		fields: [
 			{ name: 'local', nodeTypes: ['Identifier', 'LiteralString'], type: 'Node' },
-			{
-				allowNull: true,
-				name: 'exported',
-				nodeTypes: ['Identifier', 'LiteralString'],
-				type: 'Node'
-			}
-		],
-		optionalFallback: {
-			exported: 'local'
-		}
+			{ name: 'exported', nodeTypes: ['Identifier', 'LiteralString'], type: 'Node' }
+		]
 	},
 	ExpressionStatement: {
 		fields: [{ name: 'expression', nodeTypes: ['Expression'], type: 'Node' }]
@@ -653,12 +645,9 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	ImportSpecifier: {
 		fields: [
-			{ allowNull: true, name: 'imported', nodeTypes: ['Identifier', 'Literal'], type: 'Node' },
+			{ name: 'imported', nodeTypes: ['Identifier', 'Literal'], type: 'Node' },
 			{ name: 'local', nodeTypes: ['Identifier'], type: 'Node' }
-		],
-		optionalFallback: {
-			imported: 'local'
-		}
+		]
 	},
 	JSXAttribute: {
 		fields: [
@@ -883,12 +872,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	Property: {
 		fields: [
-			{
-				allowNull: true,
-				name: 'key',
-				nodeTypes: ['Expression'],
-				type: 'Node'
-			},
+			{ name: 'key', nodeTypes: ['Expression'], type: 'Node' },
 			{
 				name: 'value',
 				nodeTypes: ['Expression', 'DestructuringPattern'],
@@ -897,10 +881,6 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ name: 'kind', type: 'FixedString', values: ['init', 'get', 'set'] }
 		],
 		flags: ['method', 'shorthand', 'computed'],
-		optionalFallback: {
-			key: 'value'
-		},
-		shorthandKey: 'key',
 		useMacro: false
 	},
 	PropertyDefinition: {
@@ -1103,11 +1083,9 @@ export interface NodeDescription {
 	additionalFields?: Record<string, { value: string; type: string }>; // Derived fields can be specified as arbitrary strings here
 	baseForAdditionalFields?: string[]; // Fields needed to define additional fields
 	serializeHiddenFields?: Record<string, string>; // How to serialize fields that are part of the buffer but are not part of the JS AST, usually together with additionalFields
-	optionalFallback?: Record<string, string>; // If an optional variable should not have "null" as fallback, but the value of another field,
 	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
 	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
 	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position. $typeFoo is replaced with the numeric code for Foo
-	shorthandKey?: string; // The field of a shorthand node that is derived from the value instead of the buffer
 	useMacro?: boolean; // Generate a Rust macro instead of separate constants
 }
 
@@ -1149,12 +1127,6 @@ for (const { name, fields } of astNodeNamesWithFieldOrder) {
 	if (floatIndex >= 0 && floatIndex !== fields.length - 1) {
 		// Floats occupy two words, but decoders derive later field offsets from the field index.
 		throw new Error(`The Float field ${name}.${fields[floatIndex].name} must be the last field`);
-	}
-}
-
-for (const { name, node } of astNodeNamesWithFieldOrder) {
-	if (node.shorthandKey && !node.flags?.includes('shorthand')) {
-		throw new Error(`The node ${name} declares a shorthand key but no shorthand flag`);
 	}
 }
 

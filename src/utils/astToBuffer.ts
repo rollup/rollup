@@ -408,14 +408,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 2] = node.start;
 		buffer[nodePosition + 3] = node.end;
 		buffer = serializeNode('local', node, buffer, nodePosition + 4, nodePosition + 1);
-		if (node.exported.end != node.local.end)
-			buffer = serializeNode(
-				'exported',
-				node as AstNode & { exported: AstNode },
-				buffer,
-				nodePosition + 5,
-				nodePosition + 1
-			);
+		buffer = serializeNode('exported', node, buffer, nodePosition + 5, nodePosition + 1);
 		return buffer;
 	},
 	ExpressionStatement: serializeExpressionStatementNode,
@@ -623,14 +616,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 1] = encodedParent;
 		buffer[nodePosition + 2] = node.start;
 		buffer[nodePosition + 3] = node.end;
-		if (node.imported.end != node.local.end)
-			buffer = serializeNode(
-				'imported',
-				node as AstNode & { imported: AstNode },
-				buffer,
-				nodePosition + 4,
-				nodePosition + 1
-			);
+		buffer = serializeNode('imported', node, buffer, nodePosition + 4, nodePosition + 1);
 		buffer = serializeNode('local', node, buffer, nodePosition + 5, nodePosition + 1);
 		return buffer;
 	},
@@ -948,14 +934,7 @@ const nodeSerializers: NodeSerializers = {
 		buffer[nodePosition + 3] = node.end;
 		buffer[nodePosition + 4] =
 			((node.method as any) << 0) | ((node.shorthand as any) << 1) | ((node.computed as any) << 2);
-		if (!node.shorthand)
-			buffer = serializeNode(
-				'key',
-				node as AstNode & { key: AstNode },
-				buffer,
-				nodePosition + 5,
-				nodePosition + 1
-			);
+		buffer = serializeNode('key', node, buffer, nodePosition + 5, nodePosition + 1);
 		buffer = serializeNode('value', node, buffer, nodePosition + 6, nodePosition + 1);
 		buffer[nodePosition + 7] = FIXED_STRING_INDICES[node.kind];
 		return buffer;

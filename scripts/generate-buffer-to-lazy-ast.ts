@@ -9,11 +9,7 @@ import {
 	NODE_PARENT_OFFSET,
 	NODE_START_OFFSET
 } from './buffer-layout.ts';
-import {
-	generateNotEditFilesComment,
-	getShorthandKeyUnwrapExpression,
-	lintTsFile
-} from './helpers.ts';
+import { generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -121,7 +117,7 @@ function getNodeClass(
 		if (isEagerScalar(name, field)) {
 			declarations.push(`declare ${field.name}: ast.Lazy${name}['${field.name}'];`);
 			constructorBody.push(
-				`this.${field.name} = ${getEagerScalarExpression(name, field, node, `position + ${index + offset}`)};`
+				`this.${field.name} = ${getEagerScalarExpression(name, field, `position + ${index + offset}`)};`
 			);
 			continue;
 		}
@@ -179,27 +175,6 @@ function getFieldGetter(
 		return '';
 	}
 	const returnType = `ast.Lazy${nodeName}['${field.name}']`;
-	const fallback = node.optionalFallback?.[field.name];
-	if (field.type === 'Node' && field.allowNull && fallback) {
-		if (field.name === node.shorthandKey) {
-			return `get ${field.name}(): ${returnType} {
-		const buffer = this.#buffer;
-		return ${getShorthandKeyUnwrapExpression({
-			cast: returnType,
-			castTarget: 'result',
-			flagCondition: 'this.shorthand',
-			value: `this.${fallback}`
-		})} : convertNode(buffer[this.#position + ${offset}], buffer);
-	}`;
-		}
-		return `get ${field.name}(): ${returnType} {
-		const buffer = this.#buffer;
-		const ${field.name}Position = buffer[this.#position + ${offset}];
-		return ${field.name}Position === 0
-			? this.${fallback}
-			: convertNode(${field.name}Position, buffer);
-	}`;
-	}
 	if (field.type === 'Annotations') {
 		return `get ${field.name}(): ${returnType} {
 		const buffer = this.#buffer;
@@ -211,36 +186,25 @@ function getFieldGetter(
 	return `get ${field.name}(): ${returnType} {
 		const buffer = this.#buffer;
 		const position = this.#position + ${offset};
-		return ${getFieldExpression(nodeName, field, node, 'position')};
+		return ${getFieldExpression(field, 'position')};
 	}`;
 }
 
 function getEagerScalarExpression(
 	nodeName: AstNodeName,
 	field: FieldDescription,
-	node: NodeDescription,
 	positionExpression: string
 ): string {
 	if (field.type === 'String') {
 		return `buffer.convertString(buffer[${positionExpression}])`;
 	}
-	return `${getFieldExpression(nodeName, field, node, positionExpression)} as ast.Lazy${nodeName}['${field.name}']`;
+	return `${getFieldExpression(field, positionExpression)} as ast.Lazy${nodeName}['${field.name}']`;
 }
 
-function getFieldExpression(
-	nodeName: AstNodeName,
-	field: FieldDescription,
-	node: NodeDescription,
-	positionExpression: string
-): string {
+function getFieldExpression(field: FieldDescription, positionExpression: string): string {
 	const dataPosition = `buffer[${positionExpression}]`;
 	switch (field.type) {
 		case 'Node': {
-			if (node.optionalFallback?.[field.name]) {
-				throw new Error(
-					`The fallback field ${nodeName}.${field.name} must be generated in getFieldGetter`
-				);
-			}
 			if (field.allowNull) {
 				return `${dataPosition} === 0 ? null : convertNode(${dataPosition}, buffer)`;
 			}
@@ -267,7 +231,6 @@ function getFieldExpression(
 }
 
 function getBaseAssignment(
-	nodeName: AstNodeName,
 	base: string,
 	node: NodeDescription,
 	fields: FieldDescription[]
@@ -275,12 +238,7 @@ function getBaseAssignment(
 	const fieldIndex = fields.findIndex(field => field.name === base);
 	if (fieldIndex >= 0) {
 		const offset = fieldIndex + getOffset(node);
-		const expression = getFieldExpression(
-			nodeName,
-			fields[fieldIndex],
-			node,
-			`position + ${offset}`
-		);
+		const expression = getFieldExpression(fields[fieldIndex], `position + ${offset}`);
 		return `const ${base} = ${expression};`;
 	}
 	const flagIndex = node.flags?.indexOf(base) ?? -1;
@@ -297,7 +255,7 @@ function getAdditionalFieldGetters(
 	fields: FieldDescription[]
 ): { code: string; fieldName: string }[] {
 	const baseAssignments = (node.baseForAdditionalFields || [])
-		.map(base => getBaseAssignment(nodeName, base, node, fields))
+		.map(base => getBaseAssignment(base, node, fields))
 		.join('\n\t\t');
 	return Object.entries(node.additionalFields || {}).map(([fieldName, { value }]) => {
 		const returnExpression = memoisedAdditionalFields.has(`${nodeName}.${fieldName}`)
