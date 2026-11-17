@@ -258,3 +258,17 @@ const _walkHandler: rollup.ParseAndWalkHandler<rollup.ast.VariableDeclarator> = 
 	const _idType: string = node.id.type;
 	api.parseChildren();
 };
+
+const _arrayExpression: rollup.ast.LazyNode<rollup.ast.ArrayExpression> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.ArrayExpression>;
+const _arrayElements: readonly (rollup.ast.LazyNode<
+	rollup.ast.Expression | rollup.ast.SpreadElement
+> | null)[] = _arrayExpression.elements;
+
+const _templateElement: rollup.ast.LazyNode<rollup.ast.TemplateElement> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.TemplateElement>;
+const _templateParent: rollup.ast.LazyNode<rollup.ast.TemplateLiteral> | null =
+	_templateElement.parent;
+
+// @ts-expect-error ClassBody cannot contain an Identifier
+const _identifierInClassBody = _lazyIdentifier.parent?.type === 'ClassBody';

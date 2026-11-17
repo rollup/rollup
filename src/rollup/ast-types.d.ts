@@ -2331,23 +2331,838 @@ interface ParentMap {
  */
 export type ParentOf<T extends AstNode> = ParentMap[Extract<T['type'], keyof ParentMap>];
 
-type LazyValue<Value> = Value extends AstNode
-	? LazyNode<Value>
-	: Value extends readonly (infer Element)[]
-		? [Element] extends [never]
-			? Value
-			: readonly LazyValue<Element>[]
-		: Value;
+export interface LazyPanicError extends BaseNode {
+	type: 'PanicError';
+	message: string;
+	parent: null;
+}
+
+export interface LazyParseError extends BaseNode {
+	type: 'ParseError';
+	message: string;
+	parent: null;
+}
+
+export interface LazyArrayExpression extends BaseNode {
+	type: 'ArrayExpression';
+	elements: readonly (LazyNode<Expression> | LazySpreadElement | null)[];
+	parent: LazyNode<ParentOf<ArrayExpression>> | null;
+}
+
+export interface LazyArrayPattern extends BaseNode {
+	type: 'ArrayPattern';
+	elements: readonly (LazyNode<DestructuringPattern> | null)[];
+	parent: LazyNode<ParentOf<ArrayPattern>> | null;
+}
+
+export interface LazyArrowFunctionExpression extends BaseNode {
+	type: 'ArrowFunctionExpression';
+	annotations?: readonly Annotation[];
+	params: readonly LazyNode<Parameter>[];
+	body: LazyBlockStatement | LazyNode<Expression>;
+	id: null;
+	async: boolean;
+	expression: boolean;
+	generator: boolean;
+	parent: LazyNode<ParentOf<ArrowFunctionExpression>> | null;
+}
+
+export interface LazyAssignmentExpression extends BaseNode {
+	type: 'AssignmentExpression';
+	operator:
+		| '='
+		| '+='
+		| '-='
+		| '*='
+		| '/='
+		| '%='
+		| '**='
+		| '<<='
+		| '>>='
+		| '>>>='
+		| '|='
+		| '^='
+		| '&='
+		| '||='
+		| '&&='
+		| '??=';
+	left: LazyNode<DestructuringPattern>;
+	right: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<AssignmentExpression>> | null;
+}
+
+export interface LazyAssignmentPattern extends BaseNode {
+	type: 'AssignmentPattern';
+	left: LazyNode<BindingPattern>;
+	right: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<AssignmentPattern>> | null;
+}
+
+export interface LazyAwaitExpression extends BaseNode {
+	type: 'AwaitExpression';
+	argument: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<AwaitExpression>> | null;
+}
+
+export interface LazyBinaryExpression extends BaseNode {
+	type: 'BinaryExpression';
+	operator:
+		| '=='
+		| '!='
+		| '==='
+		| '!=='
+		| '<'
+		| '<='
+		| '>'
+		| '>='
+		| '<<'
+		| '>>'
+		| '>>>'
+		| '+'
+		| '-'
+		| '*'
+		| '/'
+		| '%'
+		| '**'
+		| '^'
+		| '&'
+		| '|'
+		| 'in'
+		| 'instanceof';
+	left: LazyNode<Expression> | LazyPrivateIdentifier;
+	right: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<BinaryExpression>> | null;
+}
+
+export interface LazyBlockStatement extends BaseNode {
+	type: 'BlockStatement';
+	body: readonly (LazyDirective | LazyNode<Statement>)[];
+	parent: LazyNode<ParentOf<BlockStatement>> | null;
+}
+
+export interface LazyBreakStatement extends BaseNode {
+	type: 'BreakStatement';
+	label: LazyIdentifier | null;
+	parent: LazyNode<ParentOf<BreakStatement>> | null;
+}
+
+export interface LazyCallExpression extends BaseNode {
+	type: 'CallExpression';
+	annotations?: readonly Annotation[];
+	callee: LazyNode<Expression> | LazySuper;
+	arguments: readonly (LazyNode<Expression> | LazySpreadElement)[];
+	optional: boolean;
+	parent: LazyNode<ParentOf<CallExpression>> | null;
+}
+
+export interface LazyCatchClause extends BaseNode {
+	type: 'CatchClause';
+	param: LazyNode<BindingPattern> | null;
+	body: LazyBlockStatement;
+	parent: LazyNode<ParentOf<CatchClause>> | null;
+}
+
+export interface LazyChainExpression extends BaseNode {
+	type: 'ChainExpression';
+	expression: LazyCallExpression | LazyMemberExpression;
+	parent: LazyNode<ParentOf<ChainExpression>> | null;
+}
+
+export interface LazyClassBody extends BaseNode {
+	type: 'ClassBody';
+	body: readonly (LazyMethodDefinition | LazyPropertyDefinition | LazyStaticBlock)[];
+	parent: LazyNode<ParentOf<ClassBody>> | null;
+}
+
+export interface LazyClassDeclaration extends BaseNode {
+	type: 'ClassDeclaration';
+	decorators: readonly LazyDecorator[];
+	id: LazyIdentifier | null;
+	superClass: LazyNode<Expression> | null;
+	body: LazyClassBody;
+	parent: LazyNode<ParentOf<ClassDeclaration>> | null;
+}
+
+export interface LazyClassExpression extends BaseNode {
+	type: 'ClassExpression';
+	decorators: readonly LazyDecorator[];
+	id: LazyIdentifier | null;
+	superClass: LazyNode<Expression> | null;
+	body: LazyClassBody;
+	parent: LazyNode<ParentOf<ClassExpression>> | null;
+}
+
+export interface LazyConditionalExpression extends BaseNode {
+	type: 'ConditionalExpression';
+	test: LazyNode<Expression>;
+	consequent: LazyNode<Expression>;
+	alternate: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<ConditionalExpression>> | null;
+}
+
+export interface LazyContinueStatement extends BaseNode {
+	type: 'ContinueStatement';
+	label: LazyIdentifier | null;
+	parent: LazyNode<ParentOf<ContinueStatement>> | null;
+}
+
+export interface LazyDebuggerStatement extends BaseNode {
+	type: 'DebuggerStatement';
+	parent: LazyNode<ParentOf<DebuggerStatement>> | null;
+}
+
+export interface LazyDecorator extends BaseNode {
+	type: 'Decorator';
+	expression: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<Decorator>> | null;
+}
+
+export interface LazyDirective extends BaseNode {
+	type: 'ExpressionStatement';
+	directive: string;
+	expression: LazyLiteralString;
+	parent: LazyNode<ParentOf<Directive>> | null;
+}
+
+export interface LazyDoWhileStatement extends BaseNode {
+	type: 'DoWhileStatement';
+	body: LazyNode<Statement>;
+	test: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<DoWhileStatement>> | null;
+}
+
+export interface LazyEmptyStatement extends BaseNode {
+	type: 'EmptyStatement';
+	parent: LazyNode<ParentOf<EmptyStatement>> | null;
+}
+
+export interface LazyExportAllDeclaration extends BaseNode {
+	type: 'ExportAllDeclaration';
+	exported: LazyIdentifier | null;
+	source: LazyLiteralString;
+	attributes: readonly LazyImportAttribute[];
+	parent: LazyNode<ParentOf<ExportAllDeclaration>> | null;
+}
+
+export interface LazyExportDefaultDeclaration extends BaseNode {
+	type: 'ExportDefaultDeclaration';
+	declaration: LazyFunctionDeclaration | LazyClassDeclaration | LazyNode<Expression>;
+	parent: LazyNode<ParentOf<ExportDefaultDeclaration>> | null;
+}
+
+export interface LazyExportNamedDeclaration extends BaseNode {
+	type: 'ExportNamedDeclaration';
+	specifiers: readonly LazyExportSpecifier[];
+	source: LazyNode<Literal> | null;
+	attributes: readonly LazyImportAttribute[];
+	declaration: LazyFunctionDeclaration | LazyVariableDeclaration | LazyClassDeclaration | null;
+	parent: LazyNode<ParentOf<ExportNamedDeclaration>> | null;
+}
+
+export interface LazyExportSpecifier extends BaseNode {
+	type: 'ExportSpecifier';
+	local: LazyIdentifier | LazyLiteralString;
+	exported: LazyIdentifier | LazyLiteralString;
+	parent: LazyNode<ParentOf<ExportSpecifier>> | null;
+}
+
+export interface LazyExpressionStatement extends BaseNode {
+	type: 'ExpressionStatement';
+	expression: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<ExpressionStatement>> | null;
+}
+
+export interface LazyForInStatement extends BaseNode {
+	type: 'ForInStatement';
+	left: LazyVariableDeclaration | LazyNode<DestructuringPattern>;
+	right: LazyNode<Expression>;
+	body: LazyNode<Statement>;
+	parent: LazyNode<ParentOf<ForInStatement>> | null;
+}
+
+export interface LazyForOfStatement extends BaseNode {
+	type: 'ForOfStatement';
+	left: LazyVariableDeclaration | LazyNode<DestructuringPattern>;
+	right: LazyNode<Expression>;
+	body: LazyNode<Statement>;
+	await: boolean;
+	parent: LazyNode<ParentOf<ForOfStatement>> | null;
+}
+
+export interface LazyForStatement extends BaseNode {
+	type: 'ForStatement';
+	init: LazyNode<Expression> | LazyVariableDeclaration | null;
+	test: LazyNode<Expression> | null;
+	update: LazyNode<Expression> | null;
+	body: LazyNode<Statement>;
+	parent: LazyNode<ParentOf<ForStatement>> | null;
+}
+
+export interface LazyFunctionDeclaration extends BaseNode {
+	type: 'FunctionDeclaration';
+	annotations?: readonly Annotation[];
+	id: LazyIdentifier | null;
+	params: readonly LazyNode<Parameter>[];
+	body: LazyBlockStatement;
+	expression: false;
+	async: boolean;
+	generator: boolean;
+	parent: LazyNode<ParentOf<FunctionDeclaration>> | null;
+}
+
+export interface LazyFunctionExpression extends BaseNode {
+	type: 'FunctionExpression';
+	annotations?: readonly Annotation[];
+	id: LazyIdentifier | null;
+	params: readonly LazyNode<Parameter>[];
+	body: LazyBlockStatement;
+	expression: false;
+	async: boolean;
+	generator: boolean;
+	parent: LazyNode<ParentOf<FunctionExpression>> | null;
+}
+
+export interface LazyIdentifier extends BaseNode {
+	type: 'Identifier';
+	name: string;
+	parent: LazyNode<ParentOf<Identifier>> | null;
+}
+
+export interface LazyIfStatement extends BaseNode {
+	type: 'IfStatement';
+	test: LazyNode<Expression>;
+	consequent: LazyNode<Statement>;
+	alternate: LazyNode<Statement> | null;
+	parent: LazyNode<ParentOf<IfStatement>> | null;
+}
+
+export interface LazyImportAttribute extends BaseNode {
+	type: 'ImportAttribute';
+	key: LazyIdentifier | LazyNode<Literal>;
+	value: LazyNode<Literal>;
+	parent: LazyNode<ParentOf<ImportAttribute>> | null;
+}
+
+export interface LazyImportDeclaration extends BaseNode {
+	type: 'ImportDeclaration';
+	specifiers: readonly (
+		LazyImportDefaultSpecifier | LazyImportNamespaceSpecifier | LazyImportSpecifier
+	)[];
+	source: LazyLiteralString;
+	attributes: readonly LazyImportAttribute[];
+	phase?: 'source' | 'defer';
+	parent: LazyNode<ParentOf<ImportDeclaration>> | null;
+}
+
+export interface LazyImportDefaultSpecifier extends BaseNode {
+	type: 'ImportDefaultSpecifier';
+	local: LazyIdentifier;
+	parent: LazyNode<ParentOf<ImportDefaultSpecifier>> | null;
+}
+
+export interface LazyImportExpression extends BaseNode {
+	type: 'ImportExpression';
+	source: LazyNode<Expression>;
+	options: LazyNode<Expression> | null;
+	phase?: 'source' | 'defer';
+	parent: LazyNode<ParentOf<ImportExpression>> | null;
+}
+
+export interface LazyImportNamespaceSpecifier extends BaseNode {
+	type: 'ImportNamespaceSpecifier';
+	local: LazyIdentifier;
+	parent: LazyNode<ParentOf<ImportNamespaceSpecifier>> | null;
+}
+
+export interface LazyImportSpecifier extends BaseNode {
+	type: 'ImportSpecifier';
+	imported: LazyIdentifier | LazyNode<Literal>;
+	local: LazyIdentifier;
+	parent: LazyNode<ParentOf<ImportSpecifier>> | null;
+}
+
+export interface LazyJSXAttribute extends BaseNode {
+	type: 'JSXAttribute';
+	name: LazyJSXIdentifier | LazyJSXNamespacedName;
+	value:
+		| LazyJSXElement
+		| LazyJSXFragment
+		| LazyJSXExpressionContainer
+		| LazyJSXSpreadChild
+		| LazyNode<Literal>
+		| null;
+	parent: LazyNode<ParentOf<JSXAttribute>> | null;
+}
+
+export interface LazyJSXClosingElement extends BaseNode {
+	type: 'JSXClosingElement';
+	name: LazyNode<JSXTagNameExpression>;
+	parent: LazyNode<ParentOf<JSXClosingElement>> | null;
+}
+
+export interface LazyJSXClosingFragment extends BaseNode {
+	type: 'JSXClosingFragment';
+	parent: LazyNode<ParentOf<JSXClosingFragment>> | null;
+}
+
+export interface LazyJSXElement extends BaseNode {
+	type: 'JSXElement';
+	openingElement: LazyJSXOpeningElement;
+	children: readonly LazyNode<JSXChild>[];
+	closingElement: LazyJSXClosingElement | null;
+	parent: LazyNode<ParentOf<JSXElement>> | null;
+}
+
+export interface LazyJSXEmptyExpression extends BaseNode {
+	type: 'JSXEmptyExpression';
+	parent: LazyNode<ParentOf<JSXEmptyExpression>> | null;
+}
+
+export interface LazyJSXExpressionContainer extends BaseNode {
+	type: 'JSXExpressionContainer';
+	expression: LazyNode<Expression> | LazyJSXEmptyExpression;
+	parent: LazyNode<ParentOf<JSXExpressionContainer>> | null;
+}
+
+export interface LazyJSXFragment extends BaseNode {
+	type: 'JSXFragment';
+	openingFragment: LazyJSXOpeningFragment;
+	children: readonly LazyNode<JSXChild>[];
+	closingFragment: LazyJSXClosingFragment;
+	parent: LazyNode<ParentOf<JSXFragment>> | null;
+}
+
+export interface LazyJSXIdentifier extends BaseNode {
+	type: 'JSXIdentifier';
+	name: string;
+	parent: LazyNode<ParentOf<JSXIdentifier>> | null;
+}
+
+export interface LazyJSXMemberExpression extends BaseNode {
+	type: 'JSXMemberExpression';
+	object: LazyNode<JSXTagNameExpression>;
+	property: LazyJSXIdentifier;
+	parent: LazyNode<ParentOf<JSXMemberExpression>> | null;
+}
+
+export interface LazyJSXNamespacedName extends BaseNode {
+	type: 'JSXNamespacedName';
+	namespace: LazyJSXIdentifier;
+	name: LazyJSXIdentifier;
+	parent: LazyNode<ParentOf<JSXNamespacedName>> | null;
+}
+
+export interface LazyJSXOpeningElement extends BaseNode {
+	type: 'JSXOpeningElement';
+	name: LazyNode<JSXTagNameExpression>;
+	attributes: readonly (LazyJSXAttribute | LazyJSXSpreadAttribute)[];
+	selfClosing: boolean;
+	parent: LazyNode<ParentOf<JSXOpeningElement>> | null;
+}
+
+export interface LazyJSXOpeningFragment extends BaseNode {
+	type: 'JSXOpeningFragment';
+	attributes: never[];
+	selfClosing: false;
+	parent: LazyNode<ParentOf<JSXOpeningFragment>> | null;
+}
+
+export interface LazyJSXSpreadAttribute extends BaseNode {
+	type: 'JSXSpreadAttribute';
+	argument: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<JSXSpreadAttribute>> | null;
+}
+
+export interface LazyJSXSpreadChild extends BaseNode {
+	type: 'JSXSpreadChild';
+	expression: LazyNode<Expression> | LazyJSXEmptyExpression;
+	parent: LazyNode<ParentOf<JSXSpreadChild>> | null;
+}
+
+export interface LazyJSXText extends BaseNode {
+	type: 'JSXText';
+	value: string;
+	raw: string;
+	parent: LazyNode<ParentOf<JSXText>> | null;
+}
+
+export interface LazyLabeledStatement extends BaseNode {
+	type: 'LabeledStatement';
+	label: LazyIdentifier;
+	body: LazyNode<Statement>;
+	parent: LazyNode<ParentOf<LabeledStatement>> | null;
+}
+
+export interface LazyLiteralBigInt extends BaseNode {
+	type: 'Literal';
+	bigint: string;
+	raw: string;
+	value: bigint;
+	parent: LazyNode<ParentOf<LiteralBigInt>> | null;
+}
+
+export interface LazyLiteralBoolean extends BaseNode {
+	type: 'Literal';
+	raw: string;
+	value: boolean;
+	parent: LazyNode<ParentOf<LiteralBoolean>> | null;
+}
+
+export interface LazyLiteralNull extends BaseNode {
+	type: 'Literal';
+	value: null;
+	raw: 'null';
+	parent: LazyNode<ParentOf<LiteralNull>> | null;
+}
+
+export interface LazyLiteralNumber extends BaseNode {
+	type: 'Literal';
+	raw?: string;
+	value: number;
+	parent: LazyNode<ParentOf<LiteralNumber>> | null;
+}
+
+export interface LazyLiteralRegExp extends BaseNode {
+	type: 'Literal';
+	raw: string;
+	regex: { flags: string; pattern: string };
+	value: RegExp;
+	parent: LazyNode<ParentOf<LiteralRegExp>> | null;
+}
+
+export interface LazyLiteralString extends BaseNode {
+	type: 'Literal';
+	value: string;
+	raw?: string;
+	parent: LazyNode<ParentOf<LiteralString>> | null;
+}
+
+export interface LazyLogicalExpression extends BaseNode {
+	type: 'LogicalExpression';
+	operator: '||' | '&&' | '??';
+	left: LazyNode<Expression> | LazyPrivateIdentifier;
+	right: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<LogicalExpression>> | null;
+}
+
+export interface LazyMemberExpression extends BaseNode {
+	type: 'MemberExpression';
+	object: LazyNode<Expression> | LazySuper;
+	property: LazyNode<Expression> | LazyPrivateIdentifier;
+	computed: boolean;
+	optional: boolean;
+	parent: LazyNode<ParentOf<MemberExpression>> | null;
+}
+
+export interface LazyMetaProperty extends BaseNode {
+	type: 'MetaProperty';
+	meta: LazyIdentifier;
+	property: LazyIdentifier;
+	parent: LazyNode<ParentOf<MetaProperty>> | null;
+}
+
+export interface LazyMethodDefinition extends BaseNode {
+	type: 'MethodDefinition';
+	decorators: readonly LazyDecorator[];
+	key: LazyNode<Expression> | LazyPrivateIdentifier;
+	value: LazyFunctionExpression;
+	kind: 'constructor' | 'method' | 'get' | 'set';
+	static: boolean;
+	computed: boolean;
+	parent: LazyNode<ParentOf<MethodDefinition>> | null;
+}
+
+export interface LazyNewExpression extends BaseNode {
+	type: 'NewExpression';
+	annotations?: readonly Annotation[];
+	callee: LazyNode<Expression>;
+	arguments: readonly (LazyNode<Expression> | LazySpreadElement)[];
+	parent: LazyNode<ParentOf<NewExpression>> | null;
+}
+
+export interface LazyObjectExpression extends BaseNode {
+	type: 'ObjectExpression';
+	properties: readonly (LazyProperty | LazySpreadElement)[];
+	parent: LazyNode<ParentOf<ObjectExpression>> | null;
+}
+
+export interface LazyObjectPattern extends BaseNode {
+	type: 'ObjectPattern';
+	properties: readonly (LazyProperty | LazyRestElement)[];
+	parent: LazyNode<ParentOf<ObjectPattern>> | null;
+}
+
+export interface LazyPrivateIdentifier extends BaseNode {
+	type: 'PrivateIdentifier';
+	name: string;
+	parent: LazyNode<ParentOf<PrivateIdentifier>> | null;
+}
+
+export interface LazyProgram extends BaseNode {
+	type: 'Program';
+	body: readonly (LazyNode<Statement> | LazyDirective | LazyNode<ModuleDeclaration>)[];
+	invalidAnnotations?: readonly Annotation[];
+	sourceType: 'module';
+	parent: null;
+}
+
+export interface LazyProperty extends BaseNode {
+	type: 'Property';
+	key: LazyNode<Expression>;
+	value: LazyNode<Expression> | LazyNode<DestructuringPattern>;
+	kind: 'init' | 'get' | 'set';
+	method: boolean;
+	shorthand: boolean;
+	computed: boolean;
+	parent: LazyNode<ParentOf<Property>> | null;
+}
+
+export interface LazyPropertyDefinition extends BaseNode {
+	type: 'PropertyDefinition';
+	decorators: readonly LazyDecorator[];
+	key: LazyNode<Expression> | LazyPrivateIdentifier;
+	value: LazyNode<Expression> | null;
+	static: boolean;
+	computed: boolean;
+	parent: LazyNode<ParentOf<PropertyDefinition>> | null;
+}
+
+export interface LazyRestElement extends BaseNode {
+	type: 'RestElement';
+	argument: LazyNode<DestructuringPattern>;
+	parent: LazyNode<ParentOf<RestElement>> | null;
+}
+
+export interface LazyReturnStatement extends BaseNode {
+	type: 'ReturnStatement';
+	argument: LazyNode<Expression> | null;
+	parent: LazyNode<ParentOf<ReturnStatement>> | null;
+}
+
+export interface LazySequenceExpression extends BaseNode {
+	type: 'SequenceExpression';
+	expressions: readonly LazyNode<Expression>[];
+	parent: LazyNode<ParentOf<SequenceExpression>> | null;
+}
+
+export interface LazySpreadElement extends BaseNode {
+	type: 'SpreadElement';
+	argument: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<SpreadElement>> | null;
+}
+
+export interface LazyStaticBlock extends BaseNode {
+	type: 'StaticBlock';
+	body: readonly LazyNode<Statement>[];
+	parent: LazyNode<ParentOf<StaticBlock>> | null;
+}
+
+export interface LazySuper extends BaseNode {
+	type: 'Super';
+	parent: LazyNode<ParentOf<Super>> | null;
+}
+
+export interface LazySwitchCase extends BaseNode {
+	type: 'SwitchCase';
+	test: LazyNode<Expression> | null;
+	consequent: readonly LazyNode<Statement>[];
+	parent: LazyNode<ParentOf<SwitchCase>> | null;
+}
+
+export interface LazySwitchStatement extends BaseNode {
+	type: 'SwitchStatement';
+	discriminant: LazyNode<Expression>;
+	cases: readonly LazySwitchCase[];
+	parent: LazyNode<ParentOf<SwitchStatement>> | null;
+}
+
+export interface LazyTaggedTemplateExpression extends BaseNode {
+	type: 'TaggedTemplateExpression';
+	tag: LazyNode<Expression>;
+	quasi: LazyTemplateLiteral;
+	parent: LazyNode<ParentOf<TaggedTemplateExpression>> | null;
+}
+
+export interface LazyTemplateElement extends BaseNode {
+	type: 'TemplateElement';
+	value: { cooked?: string; raw: string };
+	tail: boolean;
+	parent: LazyNode<ParentOf<TemplateElement>> | null;
+}
+
+export interface LazyTemplateLiteral extends BaseNode {
+	type: 'TemplateLiteral';
+	quasis: readonly LazyTemplateElement[];
+	expressions: readonly LazyNode<Expression>[];
+	parent: LazyNode<ParentOf<TemplateLiteral>> | null;
+}
+
+export interface LazyThisExpression extends BaseNode {
+	type: 'ThisExpression';
+	parent: LazyNode<ParentOf<ThisExpression>> | null;
+}
+
+export interface LazyThrowStatement extends BaseNode {
+	type: 'ThrowStatement';
+	argument: LazyNode<Expression>;
+	parent: LazyNode<ParentOf<ThrowStatement>> | null;
+}
+
+export interface LazyTryStatement extends BaseNode {
+	type: 'TryStatement';
+	block: LazyBlockStatement;
+	handler: LazyCatchClause | null;
+	finalizer: LazyBlockStatement | null;
+	parent: LazyNode<ParentOf<TryStatement>> | null;
+}
+
+export interface LazyUnaryExpression extends BaseNode {
+	type: 'UnaryExpression';
+	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
+	argument: LazyNode<Expression>;
+	prefix: true;
+	parent: LazyNode<ParentOf<UnaryExpression>> | null;
+}
+
+export interface LazyUpdateExpression extends BaseNode {
+	type: 'UpdateExpression';
+	operator: '++' | '--';
+	argument: LazyNode<Expression>;
+	prefix: boolean;
+	parent: LazyNode<ParentOf<UpdateExpression>> | null;
+}
+
+export interface LazyVariableDeclaration extends BaseNode {
+	type: 'VariableDeclaration';
+	kind: 'var' | 'let' | 'const' | 'using' | 'await using';
+	declarations: readonly LazyVariableDeclarator[];
+	parent: LazyNode<ParentOf<VariableDeclaration>> | null;
+}
+
+export interface LazyVariableDeclarator extends BaseNode {
+	type: 'VariableDeclarator';
+	id: LazyNode<BindingPattern>;
+	init: LazyNode<Expression> | null;
+	parent: LazyNode<ParentOf<VariableDeclarator>> | null;
+}
+
+export interface LazyWhileStatement extends BaseNode {
+	type: 'WhileStatement';
+	test: LazyNode<Expression>;
+	body: LazyNode<Statement>;
+	parent: LazyNode<ParentOf<WhileStatement>> | null;
+}
+
+export interface LazyYieldExpression extends BaseNode {
+	type: 'YieldExpression';
+	argument: LazyNode<Expression> | null;
+	delegate: boolean;
+	parent: LazyNode<ParentOf<YieldExpression>> | null;
+}
+
+interface LazyNodeMap {
+	PanicError: LazyPanicError;
+	ParseError: LazyParseError;
+	ArrayExpression: LazyArrayExpression;
+	ArrayPattern: LazyArrayPattern;
+	ArrowFunctionExpression: LazyArrowFunctionExpression;
+	AssignmentExpression: LazyAssignmentExpression;
+	AssignmentPattern: LazyAssignmentPattern;
+	AwaitExpression: LazyAwaitExpression;
+	BinaryExpression: LazyBinaryExpression;
+	BlockStatement: LazyBlockStatement;
+	BreakStatement: LazyBreakStatement;
+	CallExpression: LazyCallExpression;
+	CatchClause: LazyCatchClause;
+	ChainExpression: LazyChainExpression;
+	ClassBody: LazyClassBody;
+	ClassDeclaration: LazyClassDeclaration;
+	ClassExpression: LazyClassExpression;
+	ConditionalExpression: LazyConditionalExpression;
+	ContinueStatement: LazyContinueStatement;
+	DebuggerStatement: LazyDebuggerStatement;
+	Decorator: LazyDecorator;
+	ExpressionStatement: LazyDirective | LazyExpressionStatement;
+	DoWhileStatement: LazyDoWhileStatement;
+	EmptyStatement: LazyEmptyStatement;
+	ExportAllDeclaration: LazyExportAllDeclaration;
+	ExportDefaultDeclaration: LazyExportDefaultDeclaration;
+	ExportNamedDeclaration: LazyExportNamedDeclaration;
+	ExportSpecifier: LazyExportSpecifier;
+	ForInStatement: LazyForInStatement;
+	ForOfStatement: LazyForOfStatement;
+	ForStatement: LazyForStatement;
+	FunctionDeclaration: LazyFunctionDeclaration;
+	FunctionExpression: LazyFunctionExpression;
+	Identifier: LazyIdentifier;
+	IfStatement: LazyIfStatement;
+	ImportAttribute: LazyImportAttribute;
+	ImportDeclaration: LazyImportDeclaration;
+	ImportDefaultSpecifier: LazyImportDefaultSpecifier;
+	ImportExpression: LazyImportExpression;
+	ImportNamespaceSpecifier: LazyImportNamespaceSpecifier;
+	ImportSpecifier: LazyImportSpecifier;
+	JSXAttribute: LazyJSXAttribute;
+	JSXClosingElement: LazyJSXClosingElement;
+	JSXClosingFragment: LazyJSXClosingFragment;
+	JSXElement: LazyJSXElement;
+	JSXEmptyExpression: LazyJSXEmptyExpression;
+	JSXExpressionContainer: LazyJSXExpressionContainer;
+	JSXFragment: LazyJSXFragment;
+	JSXIdentifier: LazyJSXIdentifier;
+	JSXMemberExpression: LazyJSXMemberExpression;
+	JSXNamespacedName: LazyJSXNamespacedName;
+	JSXOpeningElement: LazyJSXOpeningElement;
+	JSXOpeningFragment: LazyJSXOpeningFragment;
+	JSXSpreadAttribute: LazyJSXSpreadAttribute;
+	JSXSpreadChild: LazyJSXSpreadChild;
+	JSXText: LazyJSXText;
+	LabeledStatement: LazyLabeledStatement;
+	Literal:
+		| LazyLiteralBigInt
+		| LazyLiteralBoolean
+		| LazyLiteralNull
+		| LazyLiteralNumber
+		| LazyLiteralRegExp
+		| LazyLiteralString;
+	LogicalExpression: LazyLogicalExpression;
+	MemberExpression: LazyMemberExpression;
+	MetaProperty: LazyMetaProperty;
+	MethodDefinition: LazyMethodDefinition;
+	NewExpression: LazyNewExpression;
+	ObjectExpression: LazyObjectExpression;
+	ObjectPattern: LazyObjectPattern;
+	PrivateIdentifier: LazyPrivateIdentifier;
+	Program: LazyProgram;
+	Property: LazyProperty;
+	PropertyDefinition: LazyPropertyDefinition;
+	RestElement: LazyRestElement;
+	ReturnStatement: LazyReturnStatement;
+	SequenceExpression: LazySequenceExpression;
+	SpreadElement: LazySpreadElement;
+	StaticBlock: LazyStaticBlock;
+	Super: LazySuper;
+	SwitchCase: LazySwitchCase;
+	SwitchStatement: LazySwitchStatement;
+	TaggedTemplateExpression: LazyTaggedTemplateExpression;
+	TemplateElement: LazyTemplateElement;
+	TemplateLiteral: LazyTemplateLiteral;
+	ThisExpression: LazyThisExpression;
+	ThrowStatement: LazyThrowStatement;
+	TryStatement: LazyTryStatement;
+	UnaryExpression: LazyUnaryExpression;
+	UpdateExpression: LazyUpdateExpression;
+	VariableDeclaration: LazyVariableDeclaration;
+	VariableDeclarator: LazyVariableDeclarator;
+	WhileStatement: LazyWhileStatement;
+	YieldExpression: LazyYieldExpression;
+}
 
 /**
  * A lazy AST node with a required parent link. Root nodes have `parent === null`.
  */
 export type LazyNode<T extends AstNode = AstNode> = T extends AstNode
-	? {
-			[K in keyof T]: LazyValue<T[K]>;
-		} & {
-			parent: LazyNode<ParentOf<T>> | null;
-		}
+	? LazyNodeMap[Extract<T['type'], keyof LazyNodeMap>]
 	: never;
 
 export interface AstNodeTypeMap {

@@ -2479,7 +2479,7 @@ function examplePlugin() {
 
 ### Known AST nodes and TypeScript support
 
-When using TypeScript, all Rollup ASTs will be fully typed. Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. Lazy ASTs are typed as `ast.LazyNode<T>`, and `ast.ParentOf<T>` is the union of node types that can contain a `T`. See [src/rollup/ast-types.d.ts](https://github.com/rollup/rollup/blob/main/src/rollup/ast-types.d.ts) for a full list of all node types and interfaces currently supported by Rollup.
+When using TypeScript, all Rollup ASTs will be fully typed. Valid node types are any [ESTree-compatible](https://github.com/estree/estree) AST node types known to Rollup. Lazy ASTs are typed as `ast.LazyNode<T>`, and `ast.ParentOf<T>` is the union of node types that can contain a `T`. Each node type also has a named lazy interface such as `ast.LazyIdentifier`, which is what emitted declaration files refer to. See [src/rollup/ast-types.d.ts](https://github.com/rollup/rollup/blob/main/src/rollup/ast-types.d.ts) for a full list of all node types and interfaces currently supported by Rollup.
 
 ### Returning ASTs from Hooks
 
