@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.68.5
+
+_2026-11-17_
+
+### Bug Fixes
+
+- Improve handling of repeated file updates in watch mode for Linux and Windows (#6637)
+- Properly handle `this` in JSX member expressions (#6654)
+
+### Pull Requests
+
+- [#6637](https://github.com/rollup/rollup/pull/6637): Rebuild with the latest content when a watched file changes in quick succession (@privatenumber, @lukastaegert)
+- [#6654](https://github.com/rollup/rollup/pull/6654): Keep `this` in JSX member expressions (@luantaraschi, @lukastaegert)
+- [#6667](https://github.com/rollup/rollup/pull/6667): Migrate Renovate config (@renovate[bot])
+
 ## 4.68.4
 
 _2026-11-16_
