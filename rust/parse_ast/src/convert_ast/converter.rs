@@ -325,10 +325,10 @@ impl<'a> AstConverter<'a> {
     node_position
   }
 
-  pub(crate) fn add_type_and_start(
+  fn add_type_and_utf8_start(
     &mut self,
     node_type: &[u8; 4],
-    span: &Span,
+    utf8_start: u32,
     reserved_bytes: usize,
     keep_annotations: bool,
   ) -> usize {
@@ -338,16 +338,23 @@ impl<'a> AstConverter<'a> {
       (node_position + NODE_START_OFFSET) * WORD_SIZE
     );
     // start
-    let start = self
-      .index_converter
-      .convert(span.lo.0 - 1, keep_annotations);
+    let start = self.index_converter.convert(utf8_start, keep_annotations);
     self.buffer.extend_from_slice(&start.to_ne_bytes());
     // end
     let end_position = self.buffer.len();
-    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
     // reserved bytes
     self.buffer.resize(end_position + reserved_bytes, 0);
     end_position
+  }
+
+  pub(crate) fn add_type_and_start(
+    &mut self,
+    node_type: &[u8; 4],
+    span: &Span,
+    reserved_bytes: usize,
+    keep_annotations: bool,
+  ) -> usize {
+    self.add_type_and_utf8_start(node_type, span.lo.0 - 1, reserved_bytes, keep_annotations)
   }
 
   pub(crate) fn add_type_and_explicit_start(
@@ -356,35 +363,11 @@ impl<'a> AstConverter<'a> {
     start: u32,
     reserved_bytes: usize,
   ) -> usize {
-    let node_position = self.add_type_and_parent(node_type) as usize;
-    debug_assert_eq!(
-      self.buffer.len(),
-      (node_position + NODE_START_OFFSET) * WORD_SIZE
-    );
-    // start
-    self
-      .buffer
-      .extend_from_slice(&self.index_converter.convert(start, false).to_ne_bytes());
-    // end
-    let end_position = self.buffer.len();
-    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
-    // reserved bytes
-    self.buffer.resize(end_position + reserved_bytes, 0);
-    end_position
+    self.add_type_and_utf8_start(node_type, start, reserved_bytes, false)
   }
 
   pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
-    let node_position = self
-      .node_position_stack
-      .pop()
-      .expect("Cannot end a node that was not started") as usize;
-    debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
-    self.buffer[end_position..end_position + WORD_SIZE].copy_from_slice(
-      &self
-        .index_converter
-        .convert(span.hi.0 - 1, false)
-        .to_ne_bytes(),
-    );
+    self.add_explicit_end(end_position, span.hi.0 - 1);
   }
 
   pub(crate) fn add_explicit_end(&mut self, end_position: usize, end: u32) {
