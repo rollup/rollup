@@ -5,7 +5,7 @@ use crate::convert_ast::converter::ast_constants::{
   EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET, EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET,
   EXPORT_NAMED_DECLARATION_RESERVED_BYTES, EXPORT_NAMED_DECLARATION_SOURCE_OFFSET,
   EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET, NODE_TYPE_ID_EXPORT_NAMED_DECLARATION,
-  TYPE_EXPORT_NAMED_DECLARATION,
+  TYPE_EXPORT_NAMED_DECLARATION, WORD_SIZE,
 };
 
 use crate::convert_ast::converter::{get_outside_class_span_decorators_info, AstConverter};
@@ -39,7 +39,7 @@ impl AstConverter<'_> {
         &mut outside_class_span_decorators_insert_position,
       );
       if let Some(module_item_insert_position) = module_item_insert_position {
-        *module_item_insert_position = (self.buffer.len() as u32) >> 2;
+        *module_item_insert_position = (self.buffer.len() / WORD_SIZE) as u32;
       }
     }
 

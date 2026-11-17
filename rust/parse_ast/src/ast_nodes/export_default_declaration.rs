@@ -4,7 +4,7 @@ use swc_ecma_ast::{ClassExpr, DefaultDecl, ExportDefaultDecl, ExportDefaultExpr,
 use crate::convert_ast::converter::ast_constants::{
   EXPORT_DEFAULT_DECLARATION_DECLARATION_OFFSET, EXPORT_DEFAULT_DECLARATION_RESERVED_BYTES,
   NODE_TYPE_ID_EXPORT_DEFAULT_DECLARATION, TYPE_CLASS_DECLARATION, TYPE_EXPORT_DEFAULT_DECLARATION,
-  TYPE_FUNCTION_DECLARATION,
+  TYPE_FUNCTION_DECLARATION, WORD_SIZE,
 };
 
 use crate::convert_ast::converter::{get_outside_class_span_decorators_info, AstConverter};
@@ -34,7 +34,7 @@ impl AstConverter<'_> {
         outside_class_span_decorators,
         &mut outside_class_span_decorators_insert_position,
       );
-      *module_item_insert_position = (self.buffer.len() as u32) >> 2;
+      *module_item_insert_position = (self.buffer.len() / WORD_SIZE) as u32;
     }
 
     let walk_entry = self.on_node_enter::<NODE_TYPE_ID_EXPORT_DEFAULT_DECLARATION>();

@@ -1,13 +1,12 @@
 import { writeFile } from 'node:fs/promises';
 import { SCOPE_NODE_FIELDS } from './ast-types.ts';
+import { WORD_SIZE } from './buffer-layout.ts';
 import {
 	generateNotEditFilesComment,
 	lintRustFile,
 	lintTsFile,
 	toScreamingSnakeCase
 } from './helpers.ts';
-
-const BYTES_PER_U32 = 4;
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -25,7 +24,7 @@ const fields = SCOPE_NODE_FIELDS.map((field, index) => ({
 }));
 
 const rustConstants = `${notEditFilesComment}
-${fields.map(f => `pub const ${f.constantName}: usize = ${f.index * BYTES_PER_U32};`).join('\n')}
+${fields.map(f => `pub const ${f.constantName}: usize = ${f.index * WORD_SIZE};`).join('\n')}
 `;
 
 const tsConstants = `${notEditFilesComment}

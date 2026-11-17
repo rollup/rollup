@@ -111,10 +111,10 @@ impl<'a> AstConverter<'a> {
     );
 
     if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
-      let walking_info_offset = (self.buffer.len() as u32) >> 2;
+      let walking_info_offset = (self.buffer.len() / WORD_SIZE) as u32;
 
       // Write the offset at the beginning of the buffer (native endian)
-      self.buffer[0..4].copy_from_slice(&walking_info_offset.to_ne_bytes());
+      self.buffer[0..WORD_SIZE].copy_from_slice(&walking_info_offset.to_ne_bytes());
 
       // Append walking entries: [node_position(4), skip_to_index(4), scope_position(4)] for each entry
       for entry in &self.walking_entries {
@@ -154,7 +154,7 @@ impl<'a> AstConverter<'a> {
       if (bitset[(NODE_TYPE / 64) as usize] & (1u64 << (NODE_TYPE % 64))) != 0 {
         let entry_index = self.walking_entries.len();
         self.walking_entries.push(WalkEntry {
-          node_buffer_position: (self.buffer.len() as u32) >> 2,
+          node_buffer_position: (self.buffer.len() / WORD_SIZE) as u32,
           skip_to_index: 0, // Will be updated in on_node_exit
           scope_position: 0,
         });
@@ -213,7 +213,7 @@ impl<'a> AstConverter<'a> {
 
     // declarationCount
     self.buffer[scope_node_start + SCOPE_DECLARATION_COUNT_OFFSET
-      ..scope_node_start + SCOPE_DECLARATION_COUNT_OFFSET + 4]
+      ..scope_node_start + SCOPE_DECLARATION_COUNT_OFFSET + WORD_SIZE]
       .copy_from_slice(&(record.declarations.len() as u32).to_ne_bytes());
 
     // declaration[0..n] — buffer positions of Identifier nodes
@@ -221,9 +221,9 @@ impl<'a> AstConverter<'a> {
       self.buffer.extend_from_slice(&declaration.to_ne_bytes());
     }
 
-    let scope_node_position = (scope_node_start as u32) >> 2;
+    let scope_node_position = (scope_node_start / WORD_SIZE) as u32;
 
-    self.buffer[record.scope_offset_position..record.scope_offset_position + 4]
+    self.buffer[record.scope_offset_position..record.scope_offset_position + WORD_SIZE]
       .copy_from_slice(&scope_node_position.to_ne_bytes());
 
     for &walking_entry_index in &record.walking_entry_indices {
@@ -231,7 +231,7 @@ impl<'a> AstConverter<'a> {
     }
 
     for child_ref_position in record.parent_scope_ref_positions {
-      self.buffer[child_ref_position..child_ref_position + 4]
+      self.buffer[child_ref_position..child_ref_position + WORD_SIZE]
         .copy_from_slice(&scope_node_position.to_ne_bytes());
     }
 
@@ -360,24 +360,24 @@ impl<'a> AstConverter<'a> {
   pub(crate) fn add_type_and_explicit_start(
     &mut self,
     node_type: &[u8; 4],
-    start: u32,
+    utf8_start: u32,
     reserved_bytes: usize,
   ) -> usize {
-    self.add_type_and_utf8_start(node_type, start, reserved_bytes, false)
+    self.add_type_and_utf8_start(node_type, utf8_start, reserved_bytes, false)
   }
 
   pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
     self.add_explicit_end(end_position, span.hi.0 - 1);
   }
 
-  pub(crate) fn add_explicit_end(&mut self, end_position: usize, end: u32) {
+  pub(crate) fn add_explicit_end(&mut self, end_position: usize, utf8_end: u32) {
     let node_position = self
       .node_position_stack
       .pop()
       .expect("Cannot end a node that was not started") as usize;
     debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
     self.buffer[end_position..end_position + WORD_SIZE]
-      .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
+      .copy_from_slice(&self.index_converter.convert(utf8_end, false).to_ne_bytes());
   }
 
   pub(crate) fn convert_item_list<T, F>(
@@ -440,20 +440,20 @@ impl<'a> AstConverter<'a> {
     // make room for the reference positions of the items
     self
       .buffer
-      .resize(self.buffer.len() + item_list.len() * 4, 0);
+      .resize(self.buffer.len() + item_list.len() * WORD_SIZE, 0);
 
     for item in item_list {
-      let mut insert_position = self.buffer.len() as u32 >> 2;
+      let mut insert_position = (self.buffer.len() / WORD_SIZE) as u32;
       let (should_update_reference_position, explicit_insert_position) =
         convert_item(self, item, state.as_deref_mut());
       if should_update_reference_position {
         if let Some(explicit_insert_position) = explicit_insert_position {
           insert_position = explicit_insert_position;
         }
-        self.buffer[reference_position..reference_position + 4]
+        self.buffer[reference_position..reference_position + WORD_SIZE]
           .copy_from_slice(&insert_position.to_ne_bytes());
       }
-      reference_position += 4;
+      reference_position += WORD_SIZE;
     }
   }
 
@@ -464,8 +464,8 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn update_reference_position(&mut self, reference_position: usize) {
-    let insert_position = (self.buffer.len() as u32) >> 2;
-    self.buffer[reference_position..reference_position + 4]
+    let insert_position = (self.buffer.len() / WORD_SIZE) as u32;
+    self.buffer[reference_position..reference_position + WORD_SIZE]
       .copy_from_slice(&insert_position.to_ne_bytes());
   }
 
@@ -503,7 +503,7 @@ impl<'a> AstConverter<'a> {
     outside_class_span_decorators_insert_position: &mut Option<u32>,
   ) {
     if let Some(outside_class_span_decorators) = outside_class_span_decorators {
-      *outside_class_span_decorators_insert_position = Some((self.buffer.len() as u32) >> 2);
+      *outside_class_span_decorators_insert_position = Some((self.buffer.len() / WORD_SIZE) as u32);
       self.convert_item_list_internal(
         outside_class_span_decorators,
         None,
@@ -1126,18 +1126,18 @@ pub(crate) fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   #[cfg(target_endian = "big")]
   let start = buffer.len();
   buffer.extend_from_slice(string.as_bytes());
-  buffer.resize((buffer.len() + 3) & !3, 0);
+  buffer.resize(buffer.len().next_multiple_of(WORD_SIZE), 0);
   // On big-endian hosts, the bytes within each word are reversed so that the
   // word values match the little-endian packing of the JS readers.
   #[cfg(target_endian = "big")]
-  for word in buffer[start..].chunks_exact_mut(4) {
+  for word in buffer[start..].chunks_exact_mut(WORD_SIZE) {
     word.reverse();
   }
 }
 
 pub(crate) fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
-  let insert_position = (buffer.len() as u32) >> 2;
-  buffer[reference_position..reference_position + 4]
+  let insert_position = (buffer.len() / WORD_SIZE) as u32;
+  buffer[reference_position..reference_position + WORD_SIZE]
     .copy_from_slice(&insert_position.to_ne_bytes());
 }
 
