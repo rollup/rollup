@@ -15,7 +15,9 @@ const sources = {
 	jsxMember: () => '<' + 'a.'.repeat(depth) + 'b/>',
 	member: () => 'a' + '.b'.repeat(depth),
 	mixedOptional: () => 'f' + '?.()'.repeat(depth),
+	objectProperty: () => 'x=' + '{a:'.repeat(depth) + '0' + '}'.repeat(depth),
 	optionalMember: () => 'a' + '?.b'.repeat(depth),
+	oversizedChain: () => 'a' + '.b'.repeat(depth),
 	parentheses: () => '('.repeat(depth) + '0' + ')'.repeat(depth),
 	recoveredError: () => 'export {}; class A { constructor() {} constructor() {} } a' + '.b'.repeat(depth),
 	unary: () => '!'.repeat(depth) + 'a'
@@ -92,6 +94,7 @@ describe('deeply nested expressions', () => {
 			'jsxMember',
 			'member',
 			'mixedOptional',
+			'objectProperty',
 			'optionalMember',
 			'parentheses'
 		]) {
@@ -143,5 +146,15 @@ describe('deeply nested expressions', () => {
 
 	it('fails with a catchable error for deeply nested unary expressions', () => {
 		assertNestingError(runInChildProcess('parseAst', 'unary', 15000));
+	});
+
+	it('fails with a catchable error for deeply nested object property values', () => {
+		assertNestingError(runInChildProcess('parseAst', 'objectProperty', 3000));
+	});
+
+	it('fails with a catchable error for inputs too large to free their rejected tree', () => {
+		const result = runInChildProcess('parseAst', 'oversizedChain', 2200000);
+		assert.strictEqual(result.result, 'caught');
+		assert.strictEqual(result.code, 'PARSE_ERROR');
 	});
 });
