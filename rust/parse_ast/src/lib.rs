@@ -1,3 +1,5 @@
+use std::any::Any;
+use std::mem::ManuallyDrop;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
 use anyhow::anyhow;
@@ -12,7 +14,9 @@ use swc_ecma_parser::{EsSyntax, Lexer, Parser, Syntax};
 
 use convert_ast::converter::{AstConverter, NestingError};
 use error_emit::{get_nesting_error_buffer, try_with_handler};
-use nesting_limit::{GuardedTokens, NestingGuard, DEPTH_LIMIT_MESSAGE, STACK_EXHAUSTED_MESSAGE};
+use nesting_limit::{
+  free_syntax_tree, GuardedTokens, NestingGuard, DEPTH_LIMIT_MESSAGE, STACK_EXHAUSTED_MESSAGE,
+};
 
 use crate::ast_nodes::panic_error::get_panic_error_buffer;
 use crate::convert_ast::annotations::SequentialComments;
@@ -47,55 +51,77 @@ pub fn parse_ast(
   let filename = FileName::Anon;
   let file = cm.new_source_file(filename.into(), code);
   let code_reference = file.src.clone();
+  let code_length = code_reference.len();
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let nesting_guard = NestingGuard::new();
-    let result = catch_unwind(AssertUnwindSafe(|| {
-      let parse_result = try_with_handler(&code_reference, swap_byte_order, |handler| {
+    let parse_result = catch_unwind(AssertUnwindSafe(|| {
+      try_with_handler(&code_reference, swap_byte_order, |handler| {
         parse_program(&file, handler, target, syntax, &comments, &nesting_guard)
-      });
-      match (parse_result, nesting_guard.exceeded_position()) {
-        (_, Some(position)) => get_nesting_error_buffer(
-          &code_reference,
-          position,
-          STACK_EXHAUSTED_MESSAGE,
-          swap_byte_order,
-        ),
-        (Err(buffer), None) => buffer,
-        (Ok(program), None) => {
-          let annotations = comments.take_annotations();
-          let converter = AstConverter::new(&code_reference, &annotations, swap_byte_order);
-          match converter.convert_ast_to_buffer(&program) {
-            Ok(buffer) => buffer,
-            Err(nesting_error) => {
-              // Dropping a deeply nested syntax tree recurses as well and would exhaust the
-              // stack after the conversion was rejected.
-              std::mem::forget(program);
-              let (position, message) = match nesting_error {
-                NestingError::DepthLimit { utf_8_position } => {
-                  (utf_8_position, DEPTH_LIMIT_MESSAGE)
-                }
-                NestingError::StackExhausted { utf_8_position } => {
-                  (utf_8_position, STACK_EXHAUSTED_MESSAGE)
-                }
-              };
-              get_nesting_error_buffer(&code_reference, position, message, swap_byte_order)
-            }
-          }
+      })
+    }));
+    let program = match parse_result {
+      Err(panic_error) => {
+        return get_panic_error_buffer(&panic_message(&*panic_error), swap_byte_order)
+      }
+      Ok(Err(buffer)) => {
+        return match nesting_guard.exceeded_position() {
+          Some(position) => get_nesting_error_buffer(
+            &code_reference,
+            position,
+            STACK_EXHAUSTED_MESSAGE,
+            swap_byte_order,
+          ),
+          None => buffer,
         }
       }
-    }));
-    result.unwrap_or_else(|err| {
-      let msg = if let Some(msg) = err.downcast_ref::<&str>() {
-        msg
-      } else if let Some(msg) = err.downcast_ref::<String>() {
-        msg
-      } else {
-        "Unknown rust panic message"
-      };
-      get_panic_error_buffer(msg, swap_byte_order)
-    })
+      Ok(Ok(program)) => program,
+    };
+    if let Some(position) = nesting_guard.exceeded_position() {
+      free_syntax_tree(program, code_length, nesting_guard.stack_budget());
+      return get_nesting_error_buffer(
+        &code_reference,
+        position,
+        STACK_EXHAUSTED_MESSAGE,
+        swap_byte_order,
+      );
+    }
+    match catch_unwind(AssertUnwindSafe(|| {
+      let annotations = comments.take_annotations();
+      let converter = AstConverter::new(&code_reference, &annotations, swap_byte_order);
+      converter.convert_ast_to_buffer(&program)
+    })) {
+      // A converted tree is never nested deeper than the converter limit, so it can be dropped.
+      Ok(Ok(buffer)) => {
+        drop(ManuallyDrop::into_inner(program));
+        buffer
+      }
+      Ok(Err(nesting_error)) => {
+        free_syntax_tree(program, code_length, nesting_guard.stack_budget());
+        let (position, message) = match nesting_error {
+          NestingError::DepthLimit { utf_8_position } => (utf_8_position, DEPTH_LIMIT_MESSAGE),
+          NestingError::StackExhausted { utf_8_position } => {
+            (utf_8_position, STACK_EXHAUSTED_MESSAGE)
+          }
+        };
+        get_nesting_error_buffer(&code_reference, position, message, swap_byte_order)
+      }
+      Err(panic_error) => {
+        free_syntax_tree(program, code_length, nesting_guard.stack_budget());
+        get_panic_error_buffer(&panic_message(&*panic_error), swap_byte_order)
+      }
+    }
   })
+}
+
+fn panic_message(panic_error: &(dyn Any + Send)) -> String {
+  if let Some(message) = panic_error.downcast_ref::<&str>() {
+    (*message).to_owned()
+  } else if let Some(message) = panic_error.downcast_ref::<String>() {
+    message.clone()
+  } else {
+    "Unknown rust panic message".to_owned()
+  }
 }
 
 fn parse_program(
@@ -105,10 +131,10 @@ fn parse_program(
   syntax: Syntax,
   comments: &dyn Comments,
   nesting_guard: &NestingGuard,
-) -> anyhow::Result<Program> {
+) -> anyhow::Result<ManuallyDrop<Program>> {
   let lexer = Lexer::new(syntax, target, SourceFileInput::from(file), Some(comments));
   let mut parser = Parser::new_from(GuardedTokens::new(lexer, nesting_guard.clone()));
-  let program_result = parser.parse_program();
+  let program_result = parser.parse_program().map(ManuallyDrop::new);
   let recovered_errors: Vec<ParserError> = parser.take_errors();
   let has_recovered_errors = !recovered_errors.is_empty();
   for error in recovered_errors {
@@ -119,6 +145,7 @@ fn parse_program(
     anyhow!("Syntax Error")
   })?;
   if has_recovered_errors {
+    free_syntax_tree(program, file.src.len(), nesting_guard.stack_budget());
     return Err(anyhow!("Syntax Error"));
   }
   Ok(program)

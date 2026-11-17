@@ -24,7 +24,8 @@
 ## Parser And Converter Guards
 
 - `parse_ast` drives SWC through `GuardedTokens` instead of `swc_compiler_base::parse_js` so that deeply nested input fails with a `ParseError` instead of terminating the process — do not switch back to `parse_js`
-- Every new recursive cycle in the converter must route through `enter_nesting` (see `convert_expression`, `convert_statement`, `convert_pattern`, `convert_jsx_element_child`, `convert_jsx_object`); iteratively parsed constructs like JSX member expressions otherwise bypass both the token-based stack guard and the depth limit
+- Every new recursive cycle in the converter must route through `enter_nesting` (see `convert_expression`, `convert_statement`, `convert_pattern`, `convert_jsx_element_child`, `convert_jsx_object`, `convert_jsx_attribute_value` and `convert_chain_element`, which covers the member, call and optional chain cycles); iteratively parsed constructs like JSX member expressions otherwise bypass both the token-based stack guard and the depth limit
+- Syntax trees are freed with `free_syntax_tree` rather than dropped, because their destructors recurse once per nesting level; only trees with a converted counterpart are known to be shallow enough to drop directly
 
 ## Bindings Sync
 

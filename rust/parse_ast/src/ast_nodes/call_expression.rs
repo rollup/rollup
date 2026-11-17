@@ -43,18 +43,7 @@ impl AstConverter<'_> {
     // callee
     self.update_reference_position(end_position + CALL_EXPRESSION_CALLEE_OFFSET);
     match callee {
-      StoredCallee::Expression(Expr::OptChain(optional_chain_expression)) => {
-        self.store_chain_expression(optional_chain_expression, is_chained);
-      }
-      StoredCallee::Expression(Expr::Call(call_expression)) => {
-        self.convert_call_expression(call_expression, false, is_chained);
-      }
-      StoredCallee::Expression(Expr::Member(member_expression)) => {
-        self.convert_member_expression(member_expression, false, is_chained);
-      }
-      StoredCallee::Expression(callee_expression) => {
-        self.convert_expression(callee_expression);
-      }
+      StoredCallee::Expression(expression) => self.convert_chain_element(expression, is_chained),
       StoredCallee::Super(callee_super) => self.store_super_element(callee_super),
     }
     // arguments

@@ -1,5 +1,7 @@
 use std::cell::Cell;
 use std::hint::black_box;
+use std::mem::ManuallyDrop;
+use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::rc::Rc;
 
 use swc_common::{BytePos, Span};
@@ -31,15 +33,24 @@ pub(crate) struct NestingGuard(Rc<GuardState>);
 
 struct GuardState {
   stack_limit_position: usize,
+  stack_budget: usize,
   exceeded_position: Cell<Option<u32>>,
 }
 
 impl NestingGuard {
   pub(crate) fn new() -> Self {
+    let stack_limit_position = stack_limit_position();
     Self(Rc::new(GuardState {
-      stack_limit_position: stack_limit_position(),
+      stack_limit_position,
+      stack_budget: current_stack_position().saturating_sub(stack_limit_position),
       exceeded_position: Cell::new(None),
     }))
+  }
+
+  /// The stack the parser may use before the guard trips, which bounds how deeply it can nest
+  /// recursively.
+  pub(crate) fn stack_budget(&self) -> usize {
+    self.0.stack_budget
   }
 
   pub(crate) fn exceeded_position(&self) -> Option<u32> {
@@ -83,6 +94,41 @@ pub(crate) fn stack_limit_position() -> usize {
     return stack_bottom + STACK_RESERVE;
   }
   current_stack_position.saturating_sub(STACK_BUDGET_WITHOUT_STACK_INFORMATION)
+}
+
+/// Syntax trees are recursive, so freeing them recurses once per nesting level. Two bounds cover
+/// that: recursively parsed nesting fits into the stack budget the parser was allowed to use, and
+/// iteratively parsed chains need at least two source bytes per level. Trees whose stack estimate
+/// exceeds `MAX_STACK_SIZE`, and all trees on targets without `stacker`, are intentionally leaked.
+pub(crate) fn free_syntax_tree<T>(
+  tree: ManuallyDrop<T>,
+  code_length: usize,
+  parser_stack_budget: usize,
+) {
+  #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "arm")))]
+  {
+    const STACK_BYTES_PER_SOURCE_BYTE: usize = 256;
+    const MAX_STACK_SIZE: usize = 1024 * 1024 * 1024;
+    let stack_size = code_length
+      .checked_mul(STACK_BYTES_PER_SOURCE_BYTE)
+      .and_then(|size| size.checked_add(parser_stack_budget))
+      .filter(|&size| size <= MAX_STACK_SIZE);
+    if let Some(stack_size) = stack_size {
+      // Keeping the tree inside `ManuallyDrop` until the code runs on the new stack turns a
+      // failed allocation into a leak instead of a crash, and panicking here must not cross the
+      // napi boundary.
+      let _ = catch_unwind(AssertUnwindSafe(move || {
+        stacker::grow(stack_size, move || drop(ManuallyDrop::into_inner(tree)));
+      }));
+    }
+  }
+  #[cfg(any(target_arch = "wasm32", target_arch = "arm"))]
+  {
+    // Growing the stack is not available here, so the tree is intentionally leaked instead of
+    // risking a stack overflow while freeing it.
+    let _ = (code_length, parser_stack_budget);
+    std::mem::forget(tree);
+  }
 }
 
 fn eof_token_at(position: BytePos) -> TokenAndSpan {

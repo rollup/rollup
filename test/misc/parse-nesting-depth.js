@@ -9,12 +9,19 @@ const path = require('node:path');
 const [mode, shape, depthArgument, rollupDirectory] = process.argv.slice(1);
 const depth = Number(depthArgument);
 const sources = {
+	call: () => 'f' + '()'.repeat(depth),
 	chain: () => Array.from({ length: depth }, () => 'a').join(' || '),
+	jsxAttribute: () => '<a b='.repeat(depth) + '<a/>' + '/>'.repeat(depth),
 	jsxMember: () => '<' + 'a.'.repeat(depth) + 'b/>',
-	parentheses: () => '('.repeat(depth) + '0' + ')'.repeat(depth)
+	member: () => 'a' + '.b'.repeat(depth),
+	mixedOptional: () => 'f' + '?.()'.repeat(depth),
+	optionalMember: () => 'a' + '?.b'.repeat(depth),
+	parentheses: () => '('.repeat(depth) + '0' + ')'.repeat(depth),
+	recoveredError: () => 'export {}; class A { constructor() {} constructor() {} } a' + '.b'.repeat(depth),
+	unary: () => '!'.repeat(depth) + 'a'
 };
 const source = sources[shape]();
-const parseOptions = shape === 'jsxMember' ? { jsx: true } : {};
+const parseOptions = shape.startsWith('jsx') ? { jsx: true } : {};
 const { parseAst, parseAstAsync } = require(path.join(rollupDirectory, 'dist/parseAst.js'));
 const { rollup } = require(path.join(rollupDirectory, 'dist/rollup.js'));
 
@@ -78,9 +85,22 @@ function assertNestingError(result) {
 
 describe('deeply nested expressions', () => {
 	it('can still parse nesting below the depth limit', () => {
-		assert.deepStrictEqual(runInChildProcess('parseAst', 'parentheses', 100), { result: 'parsed' });
-		assert.deepStrictEqual(runInChildProcess('parseAst', 'chain', 100), { result: 'parsed' });
-		assert.deepStrictEqual(runInChildProcess('parseAst', 'jsxMember', 100), { result: 'parsed' });
+		for (const shape of [
+			'call',
+			'chain',
+			'jsxAttribute',
+			'jsxMember',
+			'member',
+			'mixedOptional',
+			'optionalMember',
+			'parentheses'
+		]) {
+			assert.deepStrictEqual(
+				runInChildProcess('parseAst', shape, 100),
+				{ result: 'parsed' },
+				shape
+			);
+		}
 	});
 
 	for (const mode of ['parseAst', 'parseAstAsync', 'rollup']) {
@@ -102,5 +122,26 @@ describe('deeply nested expressions', () => {
 
 	it('fails with a catchable error for deeply nested JSX member expressions', () => {
 		assertNestingError(runInChildProcess('parseAst', 'jsxMember', 3000));
+	});
+
+	it('fails with a catchable error for deeply nested member and call chains', () => {
+		for (const shape of ['member', 'call', 'optionalMember', 'mixedOptional']) {
+			assertNestingError(runInChildProcess('parseAst', shape, 3000));
+		}
+	});
+
+	it('fails with a catchable error for deeply nested JSX attribute values', () => {
+		assertNestingError(runInChildProcess('parseAst', 'jsxAttribute', 3000));
+	});
+
+	it('disposes of a deeply nested tree that is rejected for recovered syntax errors', () => {
+		const result = runInChildProcess('parseAst', 'recoveredError', 100000);
+		assert.strictEqual(result.result, 'caught');
+		assert.strictEqual(result.code, 'PARSE_ERROR');
+		assert.strictEqual(result.recovered, true);
+	});
+
+	it('fails with a catchable error for deeply nested unary expressions', () => {
+		assertNestingError(runInChildProcess('parseAst', 'unary', 15000));
 	});
 });

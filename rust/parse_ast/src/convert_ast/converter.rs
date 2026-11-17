@@ -403,6 +403,25 @@ impl<'a> AstConverter<'a> {
     }
   }
 
+  pub(crate) fn convert_chain_element(&mut self, expression: &Expr, is_chained: bool) {
+    if !self.enter_nesting(|| expression.span()) {
+      return;
+    }
+    match expression {
+      Expr::OptChain(optional_chain_expression) => {
+        self.store_chain_expression(optional_chain_expression, is_chained);
+      }
+      Expr::Call(call_expression) => {
+        self.convert_call_expression(call_expression, false, is_chained);
+      }
+      Expr::Member(member_expression) => {
+        self.convert_member_expression(member_expression, false, is_chained);
+      }
+      _ => self.convert_expression_without_nesting_check(expression),
+    }
+    self.nesting_depth -= 1;
+  }
+
   pub(crate) fn convert_expression(&mut self, expression: &Expr) {
     if !self.enter_nesting(|| expression.span()) {
       return;
@@ -578,6 +597,9 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn convert_jsx_attribute_value(&mut self, jsx_attribute_value: &JSXAttrValue) {
+    if !self.enter_nesting(|| jsx_attribute_value.span()) {
+      return;
+    }
     match jsx_attribute_value {
       JSXAttrValue::Str(string_literal) => self.store_literal_string(string_literal),
       JSXAttrValue::JSXExprContainer(expression_container) => {
@@ -586,6 +608,7 @@ impl<'a> AstConverter<'a> {
       JSXAttrValue::JSXElement(jsx_element) => self.store_jsx_element(jsx_element),
       JSXAttrValue::JSXFragment(jsx_fragment) => self.store_jsx_fragment(jsx_fragment),
     }
+    self.nesting_depth -= 1;
   }
 
   pub(crate) fn convert_jsx_element_child(&mut self, jsx_element_child: &JSXElementChild) {

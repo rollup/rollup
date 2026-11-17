@@ -3,7 +3,6 @@ use std::{io::Write, mem::take, sync::Arc};
 use anyhow::Error;
 use parking_lot::Mutex;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER};
-use swc_ecma_ast::Program;
 
 use crate::ast_nodes::parse_error::get_parse_error_buffer;
 use crate::convert_ast::converter::convert_string;
@@ -44,13 +43,9 @@ impl Emitter for ErrorEmitter {
   }
 }
 
-pub(crate) fn try_with_handler<F>(
-  code: &str,
-  swap_byte_order: bool,
-  op: F,
-) -> Result<Program, Vec<u8>>
+pub(crate) fn try_with_handler<T, F>(code: &str, swap_byte_order: bool, op: F) -> Result<T, Vec<u8>>
 where
-  F: FnOnce(&Handler) -> Result<Program, Error>,
+  F: FnOnce(&Handler) -> Result<T, Error>,
 {
   let wr = Box::<Writer>::default();
 
