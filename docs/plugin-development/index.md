@@ -2434,7 +2434,7 @@ Rollup uses Abstract Syntax Trees (ASTs) to parse and analyze JavaScript code.
 
 ### Lazy AST Generation
 
-For performance reasons, some ASTs returned by Rollup are generated lazily. A lazy node decodes its properties from Rollup's internal binary representation when they are accessed, so parts of the AST that are never read are never materialized. Within one AST, child nodes are cached, so repeated access returns the same node objects.
+For performance reasons, some ASTs returned by Rollup are generated lazily. A lazy node decodes its properties from Rollup's internal binary representation when they are accessed, so parts of the AST that are never read are never materialized. Within one AST, child nodes and decoded strings are cached, so repeated access returns the same node objects.
 
 Lazy ASTs are a read-only view of that representation. Mutating nodes, adding properties, freezing them, or reading them through a `Proxy` or through an object inheriting from a node is not supported.
 

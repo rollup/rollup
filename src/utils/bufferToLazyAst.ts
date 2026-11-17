@@ -40,6 +40,17 @@ function getNodeValue<T>(node: object, key: string, createValue: () => T): T {
 	return value;
 }
 
+function getString(position: number, buffer: AstBuffer): string {
+	const strings = (buffer.lazyStrings ??= new Map());
+	const cachedString = strings.get(position);
+	if (cachedString !== undefined) {
+		return cachedString;
+	}
+	const string = buffer.convertString(position);
+	strings.set(position, string);
+	return string;
+}
+
 export function convertNode(position: number, buffer: AstBuffer): any {
 	const cache = (buffer.lazyNodes ??= new Map());
 	const cachedNode = cache.get(position);
@@ -304,7 +315,7 @@ class LazyPanicError {
 	get message(): ast.LazyPanicError['message'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get parent() {
@@ -335,7 +346,7 @@ class LazyParseError {
 	get message(): ast.LazyParseError['message'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get parent() {
@@ -1067,7 +1078,7 @@ class LazyDirective {
 	get directive(): ast.LazyDirective['directive'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get expression(): ast.LazyDirective['expression'] {
@@ -2390,13 +2401,13 @@ class LazyJSXText {
 	get value(): ast.LazyJSXText['value'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get raw(): ast.LazyJSXText['raw'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 5;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get parent() {
@@ -2464,19 +2475,19 @@ class LazyLiteralBigInt {
 	get bigint(): ast.LazyLiteralBigInt['bigint'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get raw(): ast.LazyLiteralBigInt['raw'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 5;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get value(): ast.LazyLiteralBigInt['value'] {
 		const buffer = this.#buffer;
 		const position = this.#position;
-		const bigint = buffer.convertString(buffer[position + 4]);
+		const bigint = getString(buffer[position + 4], buffer);
 		return BigInt(bigint);
 	}
 
@@ -2575,7 +2586,7 @@ class LazyLiteralNumber {
 	get raw(): ast.LazyLiteralNumber['raw'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
+		return buffer[position] === 0 ? undefined : getString(buffer[position], buffer);
 	}
 
 	get value(): ast.LazyLiteralNumber['value'] {
@@ -2612,24 +2623,24 @@ class LazyLiteralRegExp {
 	get raw(): ast.LazyLiteralRegExp['raw'] {
 		const buffer = this.#buffer;
 		const position = this.#position;
-		const flags = buffer.convertString(buffer[position + 4]);
-		const pattern = buffer.convertString(buffer[position + 5]);
+		const flags = getString(buffer[position + 4], buffer);
+		const pattern = getString(buffer[position + 5], buffer);
 		return `/${pattern}/${flags}`;
 	}
 
 	get regex(): ast.LazyLiteralRegExp['regex'] {
 		const buffer = this.#buffer;
 		const position = this.#position;
-		const flags = buffer.convertString(buffer[position + 4]);
-		const pattern = buffer.convertString(buffer[position + 5]);
+		const flags = getString(buffer[position + 4], buffer);
+		const pattern = getString(buffer[position + 5], buffer);
 		return getNodeValue(this, 'regex', () => ({ flags, pattern }));
 	}
 
 	get value(): ast.LazyLiteralRegExp['value'] {
 		const buffer = this.#buffer;
 		const position = this.#position;
-		const flags = buffer.convertString(buffer[position + 4]);
-		const pattern = buffer.convertString(buffer[position + 5]);
+		const flags = getString(buffer[position + 4], buffer);
+		const pattern = getString(buffer[position + 5], buffer);
 		return getNodeValue(this, 'value', () => new RegExp(pattern, flags));
 	}
 
@@ -2661,13 +2672,13 @@ class LazyLiteralString {
 	get value(): ast.LazyLiteralString['value'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 4;
-		return buffer.convertString(buffer[position]);
+		return getString(buffer[position], buffer);
 	}
 
 	get raw(): ast.LazyLiteralString['raw'] {
 		const buffer = this.#buffer;
 		const position = this.#position + 5;
-		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
+		return buffer[position] === 0 ? undefined : getString(buffer[position], buffer);
 	}
 
 	get parent() {
@@ -3428,9 +3439,8 @@ class LazyTemplateElement {
 	get value(): ast.LazyTemplateElement['value'] {
 		const buffer = this.#buffer;
 		const position = this.#position;
-		const cooked =
-			buffer[position + 5] === 0 ? undefined : buffer.convertString(buffer[position + 5]);
-		const raw = buffer.convertString(buffer[position + 6]);
+		const cooked = buffer[position + 5] === 0 ? undefined : getString(buffer[position + 5], buffer);
+		const raw = getString(buffer[position + 6], buffer);
 		return getNodeValue(this, 'value', () => ({ cooked, raw }));
 	}
 

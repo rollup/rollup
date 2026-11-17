@@ -3,8 +3,9 @@ import type { ast } from '../rollup/types';
 export type AstBuffer = Uint32Array & {
 	convertFloat64: (this: AstBuffer, position: number) => number;
 	convertString: (position: number) => string;
-	lazyLists?: Map<number, readonly any[]>;
-	lazyNodes?: Map<number, ast.AstNode>;
+	lazyLists: Map<number, readonly any[]> | undefined;
+	lazyNodes: Map<number, ast.AstNode> | undefined;
+	lazyStrings: Map<number, string> | undefined;
 };
 
 export type AstBufferForWriting<T = Uint8Array | Buffer> = Uint32Array & AstBufferForWritingApi<T>;
@@ -106,7 +107,10 @@ export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 			scratchFloat64.setUint32(4, this[position + 1], true);
 			return scratchFloat64.getFloat64(0, true);
 		},
-		convertString
+		convertString,
+		lazyLists: undefined,
+		lazyNodes: undefined,
+		lazyStrings: undefined
 	});
 }
 

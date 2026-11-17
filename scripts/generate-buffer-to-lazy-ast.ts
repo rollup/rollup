@@ -29,9 +29,13 @@ const memoisedAdditionalFields = new Set([
 
 for (const [nodeName, fieldName] of Object.entries(eagerStringFields)) {
 	const node = astNodeNamesWithFieldOrder.find(({ name }) => name === nodeName)?.node;
-	if (!node?.fields?.some(field => field.name === fieldName && field.type === 'String')) {
+	if (
+		!node?.fields?.some(
+			field => field.name === fieldName && field.type === 'String' && !field.optional
+		)
+	) {
 		throw new Error(
-			`The eager string field ${nodeName}.${fieldName} is not a String field of that node`
+			`The eager string field ${nodeName}.${fieldName} is not a non-optional String field of that node`
 		);
 	}
 }
@@ -187,13 +191,6 @@ function getFieldGetter(
 		return annotations.length > 0 ? annotations : undefined;
 	}`;
 	}
-	if (field.type === 'String' && field.optional) {
-		return `get ${field.name}(): ${returnType} {
-		const buffer = this.#buffer;
-		const position = this.#position + ${offset};
-		return buffer[position] === 0 ? undefined : buffer.convertString(buffer[position]);
-	}`;
-	}
 	return `get ${field.name}(): ${returnType} {
 		const buffer = this.#buffer;
 		const position = this.#position + ${offset};
@@ -207,10 +204,10 @@ function getEagerScalarExpression(
 	node: NodeDescription,
 	positionExpression: string
 ): string {
-	const expression = getFieldExpression(nodeName, field, node, positionExpression);
-	return field.type === 'FixedString'
-		? `${expression} as ast.Lazy${nodeName}['${field.name}']`
-		: expression;
+	if (field.type === 'String') {
+		return `buffer.convertString(buffer[${positionExpression}])`;
+	}
+	return `${getFieldExpression(nodeName, field, node, positionExpression)} as ast.Lazy${nodeName}['${field.name}']`;
 }
 
 function getFieldExpression(
@@ -236,9 +233,8 @@ function getFieldExpression(
 			return `convertNodeList(${dataPosition}, buffer)`;
 		}
 		case 'String': {
-			return field.optional
-				? `${dataPosition} === 0 ? undefined : buffer.convertString(${dataPosition})`
-				: `buffer.convertString(${dataPosition})`;
+			const stringValue = `getString(${dataPosition}, buffer)`;
+			return field.optional ? `${dataPosition} === 0 ? undefined : ${stringValue}` : stringValue;
 		}
 		case 'FixedString': {
 			const stringValue = `FIXED_STRINGS[${dataPosition}]`;
@@ -351,6 +347,17 @@ function getNodeValue<T>(node: object, key: string, createValue: () => T): T {
 		writable: true
 	});
 	return value;
+}
+
+function getString(position: number, buffer: AstBuffer): string {
+	const strings = (buffer.lazyStrings ??= new Map());
+	const cachedString = strings.get(position);
+	if (cachedString !== undefined) {
+		return cachedString;
+	}
+	const string = buffer.convertString(position);
+	strings.set(position, string);
+	return string;
 }
 
 export function convertNode(position: number, buffer: AstBuffer): any {
