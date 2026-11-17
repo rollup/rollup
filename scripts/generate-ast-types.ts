@@ -1,9 +1,10 @@
 import { writeFile } from 'node:fs/promises';
-import type { AstUnionName, FieldDescription, NodeDescription } from './ast-types.ts';
-import { astNodeNamesWithFieldOrder, NODE_UNION_TYPES } from './ast-types.ts';
+import type { AstNodeName, AstUnionName, FieldDescription, NodeDescription } from './ast-types.ts';
+import { astNodeNamesWithFieldOrder, getAstTypeName, NODE_UNION_TYPES } from './ast-types.ts';
 import { generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 import {
 	getParentTypeInfo,
+	renderNodesWithUnionFieldAliases,
 	renderParentMap,
 	renderParentOf,
 	ROOT_NODE_NAMES
@@ -95,32 +96,40 @@ function getNodeFields(
 	return [...fields, ...additionalFields, ...fixedFields, ...flags];
 }
 
-function getNodeType(name: string, node: NodeDescription, nodeFields: FieldDescription[]): string {
+function getNodeType(
+	name: AstNodeName,
+	node: NodeDescription,
+	nodeFields: FieldDescription[]
+): string {
 	const fields = getNodeFields(node, nodeFields, getEagerNodeTypeReference);
 	return `export interface ${name} extends BaseNode {
-  type: '${node.astType || name}';${fields.map(field => `\n  ${field}`).join('')}
+  type: '${getAstTypeName(name)}';${fields.map(field => `\n  ${field}`).join('')}
 }`;
 }
 
 function getLazyNodeType(
-	name: string,
+	name: AstNodeName,
 	node: NodeDescription,
 	nodeFields: FieldDescription[]
 ): string {
 	const fields = getNodeFields(node, nodeFields, getLazyNodeTypeReference);
 	const parent = ROOT_NODE_NAMES.has(name) ? 'null' : `LazyNode<ParentOf<${name}>> | null`;
 	return `export interface Lazy${name} extends BaseNode {
-  type: '${node.astType || name}';${[...fields, `parent: ${parent};`].map(field => `\n  ${field}`).join('')}
+  type: '${getAstTypeName(name)}';${[...fields, `parent: ${parent};`].map(field => `\n  ${field}`).join('')}
 }`;
 }
 
 const parentTypeInfo = getParentTypeInfo();
+const nodesWithUnionFieldAliases = renderNodesWithUnionFieldAliases(
+	parentTypeInfo,
+	schemaName => schemaName
+);
 const parentMap = renderParentMap(parentTypeInfo, schemaName => schemaName);
 const parentOf = renderParentOf();
 
 const schemaNamesByAstType = new Map<string, string[]>();
-for (const { name, node } of astNodeNamesWithFieldOrder) {
-	const astType = node.astType || name;
+for (const { name } of astNodeNamesWithFieldOrder) {
+	const astType = getAstTypeName(name);
 	const schemaNames = schemaNamesByAstType.get(astType);
 	if (schemaNames) {
 		schemaNames.push(name);
@@ -157,6 +166,8 @@ ${Object.entries(NODE_UNION_TYPES)
 	.join('\n\n')}
 
 export type AstNode = ${astNodeNamesWithFieldOrder.map(({ name }) => `${name}`).join(' | ')};
+
+${nodesWithUnionFieldAliases}
 
 /**
  * The possible parents of a node, keyed by AST node type.

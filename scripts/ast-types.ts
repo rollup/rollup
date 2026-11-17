@@ -1143,3 +1143,14 @@ export const astNodeNamesWithFieldOrder: {
 		originalNode
 	};
 });
+
+export function getAstTypeName(name: AstTypeName): AstTypeName {
+	if (NODE_UNION_TYPES[name as AstUnionName]) {
+		return name;
+	}
+	const nodeDescription = AST_NODES[name as AstNodeName];
+	if (!nodeDescription) {
+		throw new Error(`Unknown node: ${name}`);
+	}
+	return nodeDescription.astType || name;
+}
