@@ -96,18 +96,24 @@ pub(crate) fn stack_limit_position() -> usize {
   current_stack_position.saturating_sub(STACK_BUDGET_WITHOUT_STACK_INFORMATION)
 }
 
-/// Syntax trees are recursive, so freeing them recurses once per nesting level. Two bounds cover
-/// that: recursively parsed nesting fits into the stack budget the parser was allowed to use, and
-/// iteratively parsed chains need at least two source bytes per level. Trees whose stack estimate
-/// exceeds `MAX_STACK_SIZE`, and all trees on targets without `stacker`, are intentionally leaked.
+/// Syntax trees are recursive, so freeing them recurses once per nesting level. Freeing needs less
+/// stack per source byte than `STACK_BYTES_PER_SOURCE_BYTE` gives: iteratively parsed chains need at
+/// least two source bytes per level, and deeper recursive nesting is already bounded by the parser's
+/// own stack budget. Trees that provably fit into that budget are therefore dropped directly,
+/// everything else is freed on a stack sized from the source length, and trees whose estimate
+/// exceeds `MAX_STACK_SIZE` or that are on targets without `stacker` are intentionally leaked.
 pub(crate) fn free_syntax_tree<T>(
   tree: ManuallyDrop<T>,
   code_length: usize,
   parser_stack_budget: usize,
 ) {
+  const STACK_BYTES_PER_SOURCE_BYTE: usize = 256;
+  if code_length.saturating_mul(STACK_BYTES_PER_SOURCE_BYTE) <= parser_stack_budget {
+    drop(ManuallyDrop::into_inner(tree));
+    return;
+  }
   #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "arm")))]
   {
-    const STACK_BYTES_PER_SOURCE_BYTE: usize = 256;
     const MAX_STACK_SIZE: usize = 1024 * 1024 * 1024;
     let stack_size = code_length
       .checked_mul(STACK_BYTES_PER_SOURCE_BYTE)
@@ -126,7 +132,6 @@ pub(crate) fn free_syntax_tree<T>(
   {
     // Growing the stack is not available here, so the tree is intentionally leaked instead of
     // risking a stack overflow while freeing it.
-    let _ = (code_length, parser_stack_budget);
     std::mem::forget(tree);
   }
 }
