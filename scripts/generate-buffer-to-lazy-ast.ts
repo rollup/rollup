@@ -112,9 +112,11 @@ function getNodeClass(
 		}
 	}
 	const lazyFields: string[] = [];
+	const eagerScalarFields: string[] = [];
 	const getters: string[] = [];
 	for (const [index, field] of fields.entries()) {
 		if (isEagerScalar(name, field)) {
+			eagerScalarFields.push(field.name);
 			declarations.push(`declare ${field.name}: ast.Lazy${name}['${field.name}'];`);
 			constructorBody.push(
 				`this.${field.name} = ${getEagerScalarExpression(name, field, `position + ${index + offset}`)};`
@@ -131,11 +133,27 @@ function getNodeClass(
 		lazyFields.push(fieldName);
 		getters.push(code);
 	}
-	const fixedProperties = Object.entries({
+	const fixedPropertyEntries = Object.entries({
 		...node.fixed,
 		type: `'${node.astType || name}'`
-	})
-		.sort(([key1], [key2]) => key1.localeCompare(key2))
+	}).sort(([key1], [key2]) => key1.localeCompare(key2));
+	const classMembers = new Set([
+		...lazyFields,
+		...eagerScalarFields,
+		...(node.flags ?? []),
+		'constructor',
+		'end',
+		'parent',
+		'start'
+	]);
+	for (const [fixedName] of fixedPropertyEntries) {
+		if (classMembers.has(fixedName)) {
+			throw new Error(
+				`The fixed field ${name}.${fixedName} collides with a member of the generated class`
+			);
+		}
+	}
+	const fixedProperties = fixedPropertyEntries
 		.map(([key, value]) => `${key}: ${value}`)
 		.join(',\n\t');
 	return `class ${className} {
@@ -155,7 +173,7 @@ ${getters.length > 0 ? `\n\t${getters.join('\n\n\t')}\n` : ''}
 			: convertNode(parentPosition - ${ENCODED_PARENT_BIAS}, buffer);
 	}
 }
-setFixedProperties(${className}.prototype, {
+Object.assign(${className}.prototype, {
 	${fixedProperties}
 });
 ${lazyFields.length > 0 ? `makeLazyFieldsEnumerable(${className}.prototype, [${lazyFields.map(fieldName => `'${fieldName}'`).join(', ')}]);` : ''}`;
@@ -294,17 +312,6 @@ import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
 export const IDENTIFIER_NAME_OFFSET = ${identifierNameOffset};
-
-function setFixedProperties(prototype: object, values: Record<string, unknown>): void {
-	for (const [key, value] of Object.entries(values)) {
-		Object.defineProperty(prototype, key, {
-			configurable: true,
-			enumerable: true,
-			value,
-			writable: true
-		});
-	}
-}
 
 /* Class getters are not enumerable, so only AST fields are made enumerable;
    the parent must stay hidden as for..in based walkers like estree-walker

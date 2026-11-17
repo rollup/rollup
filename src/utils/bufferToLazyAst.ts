@@ -11,17 +11,6 @@ import { error, getRollupError, logParseError } from './logs';
 
 export const IDENTIFIER_NAME_OFFSET = 4;
 
-function setFixedProperties(prototype: object, values: Record<string, unknown>): void {
-	for (const [key, value] of Object.entries(values)) {
-		Object.defineProperty(prototype, key, {
-			configurable: true,
-			enumerable: true,
-			value,
-			writable: true
-		});
-	}
-}
-
 /* Class getters are not enumerable, so only AST fields are made enumerable;
    the parent must stay hidden as for..in based walkers like estree-walker
    would otherwise traverse it into cycles. */
@@ -326,7 +315,7 @@ class LazyPanicError {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyPanicError.prototype, {
+Object.assign(LazyPanicError.prototype, {
 	type: 'PanicError'
 });
 makeLazyFieldsEnumerable(LazyPanicError.prototype, ['message']);
@@ -357,7 +346,7 @@ class LazyParseError {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyParseError.prototype, {
+Object.assign(LazyParseError.prototype, {
 	type: 'ParseError'
 });
 makeLazyFieldsEnumerable(LazyParseError.prototype, ['message']);
@@ -388,7 +377,7 @@ class LazyArrayExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyArrayExpression.prototype, {
+Object.assign(LazyArrayExpression.prototype, {
 	type: 'ArrayExpression'
 });
 makeLazyFieldsEnumerable(LazyArrayExpression.prototype, ['elements']);
@@ -419,7 +408,7 @@ class LazyArrayPattern {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyArrayPattern.prototype, {
+Object.assign(LazyArrayPattern.prototype, {
 	type: 'ArrayPattern'
 });
 makeLazyFieldsEnumerable(LazyArrayPattern.prototype, ['elements']);
@@ -471,7 +460,7 @@ class LazyArrowFunctionExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyArrowFunctionExpression.prototype, {
+Object.assign(LazyArrowFunctionExpression.prototype, {
 	id: null,
 	type: 'ArrowFunctionExpression'
 });
@@ -511,7 +500,7 @@ class LazyAssignmentExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyAssignmentExpression.prototype, {
+Object.assign(LazyAssignmentExpression.prototype, {
 	type: 'AssignmentExpression'
 });
 makeLazyFieldsEnumerable(LazyAssignmentExpression.prototype, ['left', 'right']);
@@ -548,7 +537,7 @@ class LazyAssignmentPattern {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyAssignmentPattern.prototype, {
+Object.assign(LazyAssignmentPattern.prototype, {
 	type: 'AssignmentPattern'
 });
 makeLazyFieldsEnumerable(LazyAssignmentPattern.prototype, ['left', 'right']);
@@ -579,7 +568,7 @@ class LazyAwaitExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyAwaitExpression.prototype, {
+Object.assign(LazyAwaitExpression.prototype, {
 	type: 'AwaitExpression'
 });
 makeLazyFieldsEnumerable(LazyAwaitExpression.prototype, ['argument']);
@@ -618,7 +607,7 @@ class LazyBinaryExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyBinaryExpression.prototype, {
+Object.assign(LazyBinaryExpression.prototype, {
 	type: 'BinaryExpression'
 });
 makeLazyFieldsEnumerable(LazyBinaryExpression.prototype, ['left', 'right']);
@@ -649,7 +638,7 @@ class LazyBlockStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyBlockStatement.prototype, {
+Object.assign(LazyBlockStatement.prototype, {
 	type: 'BlockStatement'
 });
 makeLazyFieldsEnumerable(LazyBlockStatement.prototype, ['body']);
@@ -680,7 +669,7 @@ class LazyBreakStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyBreakStatement.prototype, {
+Object.assign(LazyBreakStatement.prototype, {
 	type: 'BreakStatement'
 });
 makeLazyFieldsEnumerable(LazyBreakStatement.prototype, ['label']);
@@ -727,7 +716,7 @@ class LazyCallExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyCallExpression.prototype, {
+Object.assign(LazyCallExpression.prototype, {
 	type: 'CallExpression'
 });
 makeLazyFieldsEnumerable(LazyCallExpression.prototype, ['annotations', 'callee', 'arguments']);
@@ -764,7 +753,7 @@ class LazyCatchClause {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyCatchClause.prototype, {
+Object.assign(LazyCatchClause.prototype, {
 	type: 'CatchClause'
 });
 makeLazyFieldsEnumerable(LazyCatchClause.prototype, ['param', 'body']);
@@ -795,7 +784,7 @@ class LazyChainExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyChainExpression.prototype, {
+Object.assign(LazyChainExpression.prototype, {
 	type: 'ChainExpression'
 });
 makeLazyFieldsEnumerable(LazyChainExpression.prototype, ['expression']);
@@ -826,7 +815,7 @@ class LazyClassBody {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyClassBody.prototype, {
+Object.assign(LazyClassBody.prototype, {
 	type: 'ClassBody'
 });
 makeLazyFieldsEnumerable(LazyClassBody.prototype, ['body']);
@@ -875,7 +864,7 @@ class LazyClassDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyClassDeclaration.prototype, {
+Object.assign(LazyClassDeclaration.prototype, {
 	type: 'ClassDeclaration'
 });
 makeLazyFieldsEnumerable(LazyClassDeclaration.prototype, [
@@ -929,7 +918,7 @@ class LazyClassExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyClassExpression.prototype, {
+Object.assign(LazyClassExpression.prototype, {
 	type: 'ClassExpression'
 });
 makeLazyFieldsEnumerable(LazyClassExpression.prototype, ['decorators', 'id', 'superClass', 'body']);
@@ -972,7 +961,7 @@ class LazyConditionalExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyConditionalExpression.prototype, {
+Object.assign(LazyConditionalExpression.prototype, {
 	type: 'ConditionalExpression'
 });
 makeLazyFieldsEnumerable(LazyConditionalExpression.prototype, ['test', 'consequent', 'alternate']);
@@ -1003,7 +992,7 @@ class LazyContinueStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyContinueStatement.prototype, {
+Object.assign(LazyContinueStatement.prototype, {
 	type: 'ContinueStatement'
 });
 makeLazyFieldsEnumerable(LazyContinueStatement.prototype, ['label']);
@@ -1028,7 +1017,7 @@ class LazyDebuggerStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyDebuggerStatement.prototype, {
+Object.assign(LazyDebuggerStatement.prototype, {
 	type: 'DebuggerStatement'
 });
 
@@ -1058,7 +1047,7 @@ class LazyDecorator {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyDecorator.prototype, {
+Object.assign(LazyDecorator.prototype, {
 	type: 'Decorator'
 });
 makeLazyFieldsEnumerable(LazyDecorator.prototype, ['expression']);
@@ -1095,7 +1084,7 @@ class LazyDirective {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyDirective.prototype, {
+Object.assign(LazyDirective.prototype, {
 	type: 'ExpressionStatement'
 });
 makeLazyFieldsEnumerable(LazyDirective.prototype, ['directive', 'expression']);
@@ -1132,7 +1121,7 @@ class LazyDoWhileStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyDoWhileStatement.prototype, {
+Object.assign(LazyDoWhileStatement.prototype, {
 	type: 'DoWhileStatement'
 });
 makeLazyFieldsEnumerable(LazyDoWhileStatement.prototype, ['body', 'test']);
@@ -1157,7 +1146,7 @@ class LazyEmptyStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyEmptyStatement.prototype, {
+Object.assign(LazyEmptyStatement.prototype, {
 	type: 'EmptyStatement'
 });
 
@@ -1199,7 +1188,7 @@ class LazyExportAllDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyExportAllDeclaration.prototype, {
+Object.assign(LazyExportAllDeclaration.prototype, {
 	type: 'ExportAllDeclaration'
 });
 makeLazyFieldsEnumerable(LazyExportAllDeclaration.prototype, ['exported', 'source', 'attributes']);
@@ -1230,7 +1219,7 @@ class LazyExportDefaultDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyExportDefaultDeclaration.prototype, {
+Object.assign(LazyExportDefaultDeclaration.prototype, {
 	type: 'ExportDefaultDeclaration'
 });
 makeLazyFieldsEnumerable(LazyExportDefaultDeclaration.prototype, ['declaration']);
@@ -1279,7 +1268,7 @@ class LazyExportNamedDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyExportNamedDeclaration.prototype, {
+Object.assign(LazyExportNamedDeclaration.prototype, {
 	type: 'ExportNamedDeclaration'
 });
 makeLazyFieldsEnumerable(LazyExportNamedDeclaration.prototype, [
@@ -1321,7 +1310,7 @@ class LazyExportSpecifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyExportSpecifier.prototype, {
+Object.assign(LazyExportSpecifier.prototype, {
 	type: 'ExportSpecifier'
 });
 makeLazyFieldsEnumerable(LazyExportSpecifier.prototype, ['local', 'exported']);
@@ -1352,7 +1341,7 @@ class LazyExpressionStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyExpressionStatement.prototype, {
+Object.assign(LazyExpressionStatement.prototype, {
 	type: 'ExpressionStatement'
 });
 makeLazyFieldsEnumerable(LazyExpressionStatement.prototype, ['expression']);
@@ -1395,7 +1384,7 @@ class LazyForInStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyForInStatement.prototype, {
+Object.assign(LazyForInStatement.prototype, {
 	type: 'ForInStatement'
 });
 makeLazyFieldsEnumerable(LazyForInStatement.prototype, ['left', 'right', 'body']);
@@ -1441,7 +1430,7 @@ class LazyForOfStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyForOfStatement.prototype, {
+Object.assign(LazyForOfStatement.prototype, {
 	type: 'ForOfStatement'
 });
 makeLazyFieldsEnumerable(LazyForOfStatement.prototype, ['left', 'right', 'body']);
@@ -1490,7 +1479,7 @@ class LazyForStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyForStatement.prototype, {
+Object.assign(LazyForStatement.prototype, {
 	type: 'ForStatement'
 });
 makeLazyFieldsEnumerable(LazyForStatement.prototype, ['init', 'test', 'update', 'body']);
@@ -1546,7 +1535,7 @@ class LazyFunctionDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyFunctionDeclaration.prototype, {
+Object.assign(LazyFunctionDeclaration.prototype, {
 	expression: false,
 	type: 'FunctionDeclaration'
 });
@@ -1608,7 +1597,7 @@ class LazyFunctionExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyFunctionExpression.prototype, {
+Object.assign(LazyFunctionExpression.prototype, {
 	expression: false,
 	type: 'FunctionExpression'
 });
@@ -1636,7 +1625,7 @@ class LazyIdentifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyIdentifier.prototype, {
+Object.assign(LazyIdentifier.prototype, {
 	type: 'Identifier'
 });
 
@@ -1678,7 +1667,7 @@ class LazyIfStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyIfStatement.prototype, {
+Object.assign(LazyIfStatement.prototype, {
 	type: 'IfStatement'
 });
 makeLazyFieldsEnumerable(LazyIfStatement.prototype, ['test', 'consequent', 'alternate']);
@@ -1715,7 +1704,7 @@ class LazyImportAttribute {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyImportAttribute.prototype, {
+Object.assign(LazyImportAttribute.prototype, {
 	type: 'ImportAttribute'
 });
 makeLazyFieldsEnumerable(LazyImportAttribute.prototype, ['key', 'value']);
@@ -1763,7 +1752,7 @@ class LazyImportDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyImportDeclaration.prototype, {
+Object.assign(LazyImportDeclaration.prototype, {
 	type: 'ImportDeclaration'
 });
 makeLazyFieldsEnumerable(LazyImportDeclaration.prototype, ['specifiers', 'source', 'attributes']);
@@ -1794,7 +1783,7 @@ class LazyImportDefaultSpecifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyImportDefaultSpecifier.prototype, {
+Object.assign(LazyImportDefaultSpecifier.prototype, {
 	type: 'ImportDefaultSpecifier'
 });
 makeLazyFieldsEnumerable(LazyImportDefaultSpecifier.prototype, ['local']);
@@ -1836,7 +1825,7 @@ class LazyImportExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyImportExpression.prototype, {
+Object.assign(LazyImportExpression.prototype, {
 	type: 'ImportExpression'
 });
 makeLazyFieldsEnumerable(LazyImportExpression.prototype, ['source', 'options']);
@@ -1867,7 +1856,7 @@ class LazyImportNamespaceSpecifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyImportNamespaceSpecifier.prototype, {
+Object.assign(LazyImportNamespaceSpecifier.prototype, {
 	type: 'ImportNamespaceSpecifier'
 });
 makeLazyFieldsEnumerable(LazyImportNamespaceSpecifier.prototype, ['local']);
@@ -1904,7 +1893,7 @@ class LazyImportSpecifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyImportSpecifier.prototype, {
+Object.assign(LazyImportSpecifier.prototype, {
 	type: 'ImportSpecifier'
 });
 makeLazyFieldsEnumerable(LazyImportSpecifier.prototype, ['imported', 'local']);
@@ -1941,7 +1930,7 @@ class LazyJSXAttribute {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXAttribute.prototype, {
+Object.assign(LazyJSXAttribute.prototype, {
 	type: 'JSXAttribute'
 });
 makeLazyFieldsEnumerable(LazyJSXAttribute.prototype, ['name', 'value']);
@@ -1972,7 +1961,7 @@ class LazyJSXClosingElement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXClosingElement.prototype, {
+Object.assign(LazyJSXClosingElement.prototype, {
 	type: 'JSXClosingElement'
 });
 makeLazyFieldsEnumerable(LazyJSXClosingElement.prototype, ['name']);
@@ -1997,7 +1986,7 @@ class LazyJSXClosingFragment {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXClosingFragment.prototype, {
+Object.assign(LazyJSXClosingFragment.prototype, {
 	type: 'JSXClosingFragment'
 });
 
@@ -2039,7 +2028,7 @@ class LazyJSXElement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXElement.prototype, {
+Object.assign(LazyJSXElement.prototype, {
 	type: 'JSXElement'
 });
 makeLazyFieldsEnumerable(LazyJSXElement.prototype, [
@@ -2068,7 +2057,7 @@ class LazyJSXEmptyExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXEmptyExpression.prototype, {
+Object.assign(LazyJSXEmptyExpression.prototype, {
 	type: 'JSXEmptyExpression'
 });
 
@@ -2098,7 +2087,7 @@ class LazyJSXExpressionContainer {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXExpressionContainer.prototype, {
+Object.assign(LazyJSXExpressionContainer.prototype, {
 	type: 'JSXExpressionContainer'
 });
 makeLazyFieldsEnumerable(LazyJSXExpressionContainer.prototype, ['expression']);
@@ -2141,7 +2130,7 @@ class LazyJSXFragment {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXFragment.prototype, {
+Object.assign(LazyJSXFragment.prototype, {
 	type: 'JSXFragment'
 });
 makeLazyFieldsEnumerable(LazyJSXFragment.prototype, [
@@ -2172,7 +2161,7 @@ class LazyJSXIdentifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXIdentifier.prototype, {
+Object.assign(LazyJSXIdentifier.prototype, {
 	type: 'JSXIdentifier'
 });
 
@@ -2208,7 +2197,7 @@ class LazyJSXMemberExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXMemberExpression.prototype, {
+Object.assign(LazyJSXMemberExpression.prototype, {
 	type: 'JSXMemberExpression'
 });
 makeLazyFieldsEnumerable(LazyJSXMemberExpression.prototype, ['object', 'property']);
@@ -2245,7 +2234,7 @@ class LazyJSXNamespacedName {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXNamespacedName.prototype, {
+Object.assign(LazyJSXNamespacedName.prototype, {
 	type: 'JSXNamespacedName'
 });
 makeLazyFieldsEnumerable(LazyJSXNamespacedName.prototype, ['namespace', 'name']);
@@ -2285,7 +2274,7 @@ class LazyJSXOpeningElement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXOpeningElement.prototype, {
+Object.assign(LazyJSXOpeningElement.prototype, {
 	type: 'JSXOpeningElement'
 });
 makeLazyFieldsEnumerable(LazyJSXOpeningElement.prototype, ['name', 'attributes']);
@@ -2319,7 +2308,7 @@ class LazyJSXOpeningFragment {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXOpeningFragment.prototype, {
+Object.assign(LazyJSXOpeningFragment.prototype, {
 	type: 'JSXOpeningFragment'
 });
 makeLazyFieldsEnumerable(LazyJSXOpeningFragment.prototype, ['attributes', 'selfClosing']);
@@ -2350,7 +2339,7 @@ class LazyJSXSpreadAttribute {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXSpreadAttribute.prototype, {
+Object.assign(LazyJSXSpreadAttribute.prototype, {
 	type: 'JSXSpreadAttribute'
 });
 makeLazyFieldsEnumerable(LazyJSXSpreadAttribute.prototype, ['argument']);
@@ -2381,7 +2370,7 @@ class LazyJSXSpreadChild {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXSpreadChild.prototype, {
+Object.assign(LazyJSXSpreadChild.prototype, {
 	type: 'JSXSpreadChild'
 });
 makeLazyFieldsEnumerable(LazyJSXSpreadChild.prototype, ['expression']);
@@ -2418,7 +2407,7 @@ class LazyJSXText {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyJSXText.prototype, {
+Object.assign(LazyJSXText.prototype, {
 	type: 'JSXText'
 });
 makeLazyFieldsEnumerable(LazyJSXText.prototype, ['value', 'raw']);
@@ -2455,7 +2444,7 @@ class LazyLabeledStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLabeledStatement.prototype, {
+Object.assign(LazyLabeledStatement.prototype, {
 	type: 'LabeledStatement'
 });
 makeLazyFieldsEnumerable(LazyLabeledStatement.prototype, ['label', 'body']);
@@ -2499,7 +2488,7 @@ class LazyLiteralBigInt {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLiteralBigInt.prototype, {
+Object.assign(LazyLiteralBigInt.prototype, {
 	type: 'Literal'
 });
 makeLazyFieldsEnumerable(LazyLiteralBigInt.prototype, ['bigint', 'raw', 'value']);
@@ -2534,7 +2523,7 @@ class LazyLiteralBoolean {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLiteralBoolean.prototype, {
+Object.assign(LazyLiteralBoolean.prototype, {
 	type: 'Literal'
 });
 makeLazyFieldsEnumerable(LazyLiteralBoolean.prototype, ['raw']);
@@ -2565,7 +2554,7 @@ class LazyLiteralNull {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLiteralNull.prototype, {
+Object.assign(LazyLiteralNull.prototype, {
 	raw: 'null',
 	type: 'Literal'
 });
@@ -2603,7 +2592,7 @@ class LazyLiteralNumber {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLiteralNumber.prototype, {
+Object.assign(LazyLiteralNumber.prototype, {
 	type: 'Literal'
 });
 makeLazyFieldsEnumerable(LazyLiteralNumber.prototype, ['raw', 'value']);
@@ -2652,7 +2641,7 @@ class LazyLiteralRegExp {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLiteralRegExp.prototype, {
+Object.assign(LazyLiteralRegExp.prototype, {
 	type: 'Literal'
 });
 makeLazyFieldsEnumerable(LazyLiteralRegExp.prototype, ['raw', 'regex', 'value']);
@@ -2689,7 +2678,7 @@ class LazyLiteralString {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLiteralString.prototype, {
+Object.assign(LazyLiteralString.prototype, {
 	type: 'Literal'
 });
 makeLazyFieldsEnumerable(LazyLiteralString.prototype, ['value', 'raw']);
@@ -2728,7 +2717,7 @@ class LazyLogicalExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyLogicalExpression.prototype, {
+Object.assign(LazyLogicalExpression.prototype, {
 	type: 'LogicalExpression'
 });
 makeLazyFieldsEnumerable(LazyLogicalExpression.prototype, ['left', 'right']);
@@ -2770,7 +2759,7 @@ class LazyMemberExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyMemberExpression.prototype, {
+Object.assign(LazyMemberExpression.prototype, {
 	type: 'MemberExpression'
 });
 makeLazyFieldsEnumerable(LazyMemberExpression.prototype, ['object', 'property']);
@@ -2807,7 +2796,7 @@ class LazyMetaProperty {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyMetaProperty.prototype, {
+Object.assign(LazyMetaProperty.prototype, {
 	type: 'MetaProperty'
 });
 makeLazyFieldsEnumerable(LazyMetaProperty.prototype, ['meta', 'property']);
@@ -2857,7 +2846,7 @@ class LazyMethodDefinition {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyMethodDefinition.prototype, {
+Object.assign(LazyMethodDefinition.prototype, {
 	type: 'MethodDefinition'
 });
 makeLazyFieldsEnumerable(LazyMethodDefinition.prototype, ['decorators', 'key', 'value']);
@@ -2901,7 +2890,7 @@ class LazyNewExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyNewExpression.prototype, {
+Object.assign(LazyNewExpression.prototype, {
 	type: 'NewExpression'
 });
 makeLazyFieldsEnumerable(LazyNewExpression.prototype, ['annotations', 'callee', 'arguments']);
@@ -2932,7 +2921,7 @@ class LazyObjectExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyObjectExpression.prototype, {
+Object.assign(LazyObjectExpression.prototype, {
 	type: 'ObjectExpression'
 });
 makeLazyFieldsEnumerable(LazyObjectExpression.prototype, ['properties']);
@@ -2963,7 +2952,7 @@ class LazyObjectPattern {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyObjectPattern.prototype, {
+Object.assign(LazyObjectPattern.prototype, {
 	type: 'ObjectPattern'
 });
 makeLazyFieldsEnumerable(LazyObjectPattern.prototype, ['properties']);
@@ -2990,7 +2979,7 @@ class LazyPrivateIdentifier {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyPrivateIdentifier.prototype, {
+Object.assign(LazyPrivateIdentifier.prototype, {
 	type: 'PrivateIdentifier'
 });
 
@@ -3028,7 +3017,7 @@ class LazyProgram {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyProgram.prototype, {
+Object.assign(LazyProgram.prototype, {
 	sourceType: 'module',
 	type: 'Program'
 });
@@ -3075,7 +3064,7 @@ class LazyProperty {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyProperty.prototype, {
+Object.assign(LazyProperty.prototype, {
 	type: 'Property'
 });
 makeLazyFieldsEnumerable(LazyProperty.prototype, ['key', 'value']);
@@ -3123,7 +3112,7 @@ class LazyPropertyDefinition {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyPropertyDefinition.prototype, {
+Object.assign(LazyPropertyDefinition.prototype, {
 	type: 'PropertyDefinition'
 });
 makeLazyFieldsEnumerable(LazyPropertyDefinition.prototype, ['decorators', 'key', 'value']);
@@ -3154,7 +3143,7 @@ class LazyRestElement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyRestElement.prototype, {
+Object.assign(LazyRestElement.prototype, {
 	type: 'RestElement'
 });
 makeLazyFieldsEnumerable(LazyRestElement.prototype, ['argument']);
@@ -3185,7 +3174,7 @@ class LazyReturnStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyReturnStatement.prototype, {
+Object.assign(LazyReturnStatement.prototype, {
 	type: 'ReturnStatement'
 });
 makeLazyFieldsEnumerable(LazyReturnStatement.prototype, ['argument']);
@@ -3216,7 +3205,7 @@ class LazySequenceExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazySequenceExpression.prototype, {
+Object.assign(LazySequenceExpression.prototype, {
 	type: 'SequenceExpression'
 });
 makeLazyFieldsEnumerable(LazySequenceExpression.prototype, ['expressions']);
@@ -3247,7 +3236,7 @@ class LazySpreadElement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazySpreadElement.prototype, {
+Object.assign(LazySpreadElement.prototype, {
 	type: 'SpreadElement'
 });
 makeLazyFieldsEnumerable(LazySpreadElement.prototype, ['argument']);
@@ -3278,7 +3267,7 @@ class LazyStaticBlock {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyStaticBlock.prototype, {
+Object.assign(LazyStaticBlock.prototype, {
 	type: 'StaticBlock'
 });
 makeLazyFieldsEnumerable(LazyStaticBlock.prototype, ['body']);
@@ -3303,7 +3292,7 @@ class LazySuper {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazySuper.prototype, {
+Object.assign(LazySuper.prototype, {
 	type: 'Super'
 });
 
@@ -3339,7 +3328,7 @@ class LazySwitchCase {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazySwitchCase.prototype, {
+Object.assign(LazySwitchCase.prototype, {
 	type: 'SwitchCase'
 });
 makeLazyFieldsEnumerable(LazySwitchCase.prototype, ['test', 'consequent']);
@@ -3376,7 +3365,7 @@ class LazySwitchStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazySwitchStatement.prototype, {
+Object.assign(LazySwitchStatement.prototype, {
 	type: 'SwitchStatement'
 });
 makeLazyFieldsEnumerable(LazySwitchStatement.prototype, ['discriminant', 'cases']);
@@ -3413,7 +3402,7 @@ class LazyTaggedTemplateExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyTaggedTemplateExpression.prototype, {
+Object.assign(LazyTaggedTemplateExpression.prototype, {
 	type: 'TaggedTemplateExpression'
 });
 makeLazyFieldsEnumerable(LazyTaggedTemplateExpression.prototype, ['tag', 'quasi']);
@@ -3449,7 +3438,7 @@ class LazyTemplateElement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyTemplateElement.prototype, {
+Object.assign(LazyTemplateElement.prototype, {
 	type: 'TemplateElement'
 });
 makeLazyFieldsEnumerable(LazyTemplateElement.prototype, ['value']);
@@ -3486,7 +3475,7 @@ class LazyTemplateLiteral {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyTemplateLiteral.prototype, {
+Object.assign(LazyTemplateLiteral.prototype, {
 	type: 'TemplateLiteral'
 });
 makeLazyFieldsEnumerable(LazyTemplateLiteral.prototype, ['quasis', 'expressions']);
@@ -3511,7 +3500,7 @@ class LazyThisExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyThisExpression.prototype, {
+Object.assign(LazyThisExpression.prototype, {
 	type: 'ThisExpression'
 });
 
@@ -3541,7 +3530,7 @@ class LazyThrowStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyThrowStatement.prototype, {
+Object.assign(LazyThrowStatement.prototype, {
 	type: 'ThrowStatement'
 });
 makeLazyFieldsEnumerable(LazyThrowStatement.prototype, ['argument']);
@@ -3584,7 +3573,7 @@ class LazyTryStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyTryStatement.prototype, {
+Object.assign(LazyTryStatement.prototype, {
 	type: 'TryStatement'
 });
 makeLazyFieldsEnumerable(LazyTryStatement.prototype, ['block', 'handler', 'finalizer']);
@@ -3618,7 +3607,7 @@ class LazyUnaryExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyUnaryExpression.prototype, {
+Object.assign(LazyUnaryExpression.prototype, {
 	prefix: true,
 	type: 'UnaryExpression'
 });
@@ -3655,7 +3644,7 @@ class LazyUpdateExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyUpdateExpression.prototype, {
+Object.assign(LazyUpdateExpression.prototype, {
 	type: 'UpdateExpression'
 });
 makeLazyFieldsEnumerable(LazyUpdateExpression.prototype, ['argument']);
@@ -3688,7 +3677,7 @@ class LazyVariableDeclaration {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyVariableDeclaration.prototype, {
+Object.assign(LazyVariableDeclaration.prototype, {
 	type: 'VariableDeclaration'
 });
 makeLazyFieldsEnumerable(LazyVariableDeclaration.prototype, ['declarations']);
@@ -3725,7 +3714,7 @@ class LazyVariableDeclarator {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyVariableDeclarator.prototype, {
+Object.assign(LazyVariableDeclarator.prototype, {
 	type: 'VariableDeclarator'
 });
 makeLazyFieldsEnumerable(LazyVariableDeclarator.prototype, ['id', 'init']);
@@ -3762,7 +3751,7 @@ class LazyWhileStatement {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyWhileStatement.prototype, {
+Object.assign(LazyWhileStatement.prototype, {
 	type: 'WhileStatement'
 });
 makeLazyFieldsEnumerable(LazyWhileStatement.prototype, ['test', 'body']);
@@ -3796,7 +3785,7 @@ class LazyYieldExpression {
 		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
 	}
 }
-setFixedProperties(LazyYieldExpression.prototype, {
+Object.assign(LazyYieldExpression.prototype, {
 	type: 'YieldExpression'
 });
 makeLazyFieldsEnumerable(LazyYieldExpression.prototype, ['argument']);
