@@ -7,7 +7,12 @@ import {
 	NODE_END_OFFSET,
 	NODE_START_OFFSET
 } from './buffer-layout.ts';
-import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
+import {
+	firstLettersLowercase,
+	generateNotEditFilesComment,
+	getShorthandKeyUnwrapExpression,
+	lintTsFile
+} from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -122,13 +127,14 @@ function getFieldPropertyBase(
 			if (field.allowNull) {
 				const fallback = node.optionalFallback?.[field.name];
 				if (fallback) {
-					if (node.shorthandKey) {
-						const shorthandFlagIndex = node.flags?.indexOf('shorthand') ?? -1;
-						if (shorthandFlagIndex < 0) {
-							throw new Error(`${nodeName} has a shorthand key but no shorthand flag`);
-						}
-						const shorthandMask = 1 << shorthandFlagIndex;
-						return `(flags & ${shorthandMask}) === ${shorthandMask} ? ((value as ast.AssignmentPattern).type === 'AssignmentPattern' ? (value as ast.AssignmentPattern).left : value) : convertNode(${field.name}Position, buffer)`;
+					if (field.name === node.shorthandKey) {
+						const shorthandMask = 1 << node.flags!.indexOf('shorthand');
+						return `${getShorthandKeyUnwrapExpression({
+							cast: 'ast.AssignmentPattern',
+							castTarget: 'value',
+							flagCondition: `(flags & ${shorthandMask}) === ${shorthandMask}`,
+							value: fallback
+						})} : convertNode(${field.name}Position, buffer)`;
 					}
 					return `${field.name}Position === 0 ? ${fallback} : convertNode(${field.name}Position, buffer)`;
 				}

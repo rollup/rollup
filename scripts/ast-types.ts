@@ -900,7 +900,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		optionalFallback: {
 			key: 'value'
 		},
-		shorthandKey: true,
+		shorthandKey: 'key',
 		useMacro: false
 	},
 	PropertyDefinition: {
@@ -1107,7 +1107,7 @@ export interface NodeDescription {
 	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
 	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
 	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position. $typeFoo is replaced with the numeric code for Foo
-	shorthandKey?: boolean; // If the key field of a shorthand node is derived from the value instead of the buffer
+	shorthandKey?: string; // The field of a shorthand node that is derived from the value instead of the buffer
 	useMacro?: boolean; // Generate a Rust macro instead of separate constants
 }
 
@@ -1143,6 +1143,20 @@ export const astNodeNamesWithFieldOrder: {
 		originalNode
 	};
 });
+
+for (const { name, fields } of astNodeNamesWithFieldOrder) {
+	const floatIndex = fields.findIndex(field => field.type === 'Float');
+	if (floatIndex >= 0 && floatIndex !== fields.length - 1) {
+		// Floats occupy two words, but decoders derive later field offsets from the field index.
+		throw new Error(`The Float field ${name}.${fields[floatIndex].name} must be the last field`);
+	}
+}
+
+for (const { name, node } of astNodeNamesWithFieldOrder) {
+	if (node.shorthandKey && !node.flags?.includes('shorthand')) {
+		throw new Error(`The node ${name} declares a shorthand key but no shorthand flag`);
+	}
+}
 
 export function getAstTypeName(name: AstTypeName): AstTypeName {
 	if (NODE_UNION_TYPES[name as AstUnionName]) {

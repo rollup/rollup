@@ -2,7 +2,12 @@ import { writeFile } from 'node:fs/promises';
 import type { FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
 import { NODE_DATA_OFFSET, NODE_END_OFFSET, NODE_START_OFFSET } from './buffer-layout.ts';
-import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
+import {
+	firstLettersLowercase,
+	generateNotEditFilesComment,
+	getShorthandKeyUnwrapExpression,
+	lintTsFile
+} from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -44,9 +49,14 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	}
 	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
 		needsScope = true;
-		if (node.shorthandKey) {
+		if (fieldName === node.shorthandKey) {
 			definitions.push(
-				`node.${fieldName} = node.shorthand ? ((node.value as ast.AssignmentPattern).type === 'AssignmentPattern' ? (node.value as ast.AssignmentPattern).left : node.value) : convertNode(node, scope, ${fieldName}Position, buffer);\n`
+				`node.${fieldName} = ${getShorthandKeyUnwrapExpression({
+					cast: 'ast.AssignmentPattern',
+					castTarget: 'value',
+					flagCondition: 'node.shorthand',
+					value: `node.${fallbackName}`
+				})} : convertNode(node, scope, ${fieldName}Position, buffer);\n`
 			);
 			continue;
 		}

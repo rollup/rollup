@@ -9,6 +9,8 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
+export const IDENTIFIER_NAME_OFFSET = 4;
+
 function setFixedProperties(prototype: object, values: Record<string, unknown>): void {
 	for (const [key, value] of Object.entries(values)) {
 		Object.defineProperty(prototype, key, {

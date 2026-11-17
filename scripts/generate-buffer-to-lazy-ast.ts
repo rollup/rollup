@@ -9,7 +9,11 @@ import {
 	NODE_PARENT_OFFSET,
 	NODE_START_OFFSET
 } from './buffer-layout.ts';
-import { generateNotEditFilesComment, lintTsFile } from './helpers.ts';
+import {
+	generateNotEditFilesComment,
+	getShorthandKeyUnwrapExpression,
+	lintTsFile
+} from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -47,6 +51,18 @@ for (const field of memoisedAdditionalFields) {
 		throw new Error(`The memoised field ${field} is not an additional field of that node`);
 	}
 }
+
+const identifier = astNodeNamesWithFieldOrder.find(({ name }) => name === 'Identifier');
+if (!identifier) {
+	throw new Error('Cannot find the Identifier node description');
+}
+const identifierNameFieldIndex = identifier.fields.findIndex(
+	field => field.name === 'name' && field.type === 'String'
+);
+if (identifierNameFieldIndex < 0) {
+	throw new Error('The Identifier node must have a String field named "name"');
+}
+const identifierNameOffset = getOffset(identifier.node) + identifierNameFieldIndex;
 
 function getOffset(node: NodeDescription): number {
 	return getFirstFieldWordOffset(Boolean(node.flags));
@@ -165,14 +181,15 @@ function getFieldGetter(
 	const returnType = `ast.Lazy${nodeName}['${field.name}']`;
 	const fallback = node.optionalFallback?.[field.name];
 	if (field.type === 'Node' && field.allowNull && fallback) {
-		if (node.shorthandKey && field.name === 'key') {
+		if (field.name === node.shorthandKey) {
 			return `get ${field.name}(): ${returnType} {
 		const buffer = this.#buffer;
-		return this.shorthand
-			? this.value.type === 'AssignmentPattern'
-				? this.value.left as ${returnType}
-				: this.value as ${returnType}
-			: convertNode(buffer[this.#position + ${offset}], buffer);
+		return ${getShorthandKeyUnwrapExpression({
+			cast: returnType,
+			castTarget: 'result',
+			flagCondition: 'this.shorthand',
+			value: `this.${fallback}`
+		})} : convertNode(buffer[this.#position + ${offset}], buffer);
 	}`;
 		}
 		return `get ${field.name}(): ${returnType} {
@@ -317,6 +334,8 @@ import { EMPTY_ARRAY } from './blank';
 import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
+
+export const IDENTIFIER_NAME_OFFSET = ${identifierNameOffset};
 
 function setFixedProperties(prototype: object, values: Record<string, unknown>): void {
 	for (const [key, value] of Object.entries(values)) {

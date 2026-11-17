@@ -84,7 +84,7 @@ function getNodeSerializerBody({
 				if (field.allowNull) {
 					if (optionalFallback?.[fieldName]) {
 						fieldSerializer =
-							shorthandKey && field.name === 'key'
+							field.name === shorthandKey
 								? `if (!node.shorthand) ${fieldSerializer}`
 								: `if (node.${fieldName}.end != node.${optionalFallback?.[fieldName]}.end) ${fieldSerializer}`;
 					} else {

@@ -1,8 +1,7 @@
 import { parseAndWalk as parseAndWalkNative } from '../../native';
-import { IDENTIFIER_NAME_OFFSET } from '../ast/bufferLayout';
 import { nodeIds } from '../ast/nodeIds';
 import type { ParseAndWalkApi, ParseAndWalkHandler, ParseAndWalkVisitors } from '../rollup/types';
-import { convertNode, deserializeLazyAstBuffer } from './bufferToLazyAst';
+import { convertNode, deserializeLazyAstBuffer, IDENTIFIER_NAME_OFFSET } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 import {
