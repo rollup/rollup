@@ -2,6 +2,7 @@ require('./bundle-information');
 require('./fs-override');
 require('./get-log-filter');
 require('./parse-ast');
+require('./parse-nesting-depth');
 require('./iife');
 require('./in-memory-sourcemaps');
 require('./misc');
