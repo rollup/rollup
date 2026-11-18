@@ -11,8 +11,5 @@ swc_compiler_base = "67.0.0"
 swc_config = "6.0.1"
 swc_common = { version = "27.0.0", features = ["parking_lot"] }
 swc_ecma_ast = "30.0.2"
-swc_ecma_parser = { version = "47.0.0", features = ["unstable"] }
+swc_ecma_parser = "47.0.0"
 parking_lot = "0.12.5"
-
-[target.'cfg(not(any(target_arch = "wasm32", target_arch = "arm")))'.dependencies]
-stacker = "0.1.25"
