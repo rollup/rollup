@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.68.7
+
+_2026-11-18_
+
+### Bug Fixes
+
+- Revert previous fix as it was breaking bundling in certain cases (#6671)
+
+### Pull Requests
+
+- [#6671](https://github.com/rollup/rollup/pull/6671): Revert previous fix to fail with a parse error instead of exhausting the native stack (@lukastaegert)
+
 ## 4.68.6
 
 _2026-11-18_
