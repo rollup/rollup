@@ -29,17 +29,8 @@ impl AstConverter<'_> {
     // object
     self.update_reference_position(end_position + MEMBER_EXPRESSION_OBJECT_OFFSET);
     match object {
-      ExpressionOrSuper::Expression(Expr::OptChain(optional_chain_expression)) => {
-        self.store_chain_expression(optional_chain_expression, is_chained);
-      }
-      ExpressionOrSuper::Expression(Expr::Call(call_expression)) => {
-        self.convert_call_expression(call_expression, false, is_chained);
-      }
-      ExpressionOrSuper::Expression(Expr::Member(member_expression)) => {
-        self.convert_member_expression(member_expression, false, is_chained);
-      }
       ExpressionOrSuper::Expression(expression) => {
-        self.convert_expression(expression);
+        self.convert_chain_element(expression, is_chained)
       }
       ExpressionOrSuper::Super(super_token) => self.store_super_element(super_token),
     }

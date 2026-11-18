@@ -899,6 +899,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "parking_lot",
+ "stacker",
  "swc_common",
  "swc_compiler_base",
  "swc_config",
