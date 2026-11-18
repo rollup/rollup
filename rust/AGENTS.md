@@ -21,12 +21,6 @@
 - `parse_ast` never returns `Result`: parse errors are always encoded as a `ParseError` AST node that JS detects and converts to a thrown error; on NAPI, panics are caught and encoded as `PanicError` the same way, but the WASM build uses `panic_immediate_abort` and simply aborts — keep these protocols
 - Positions must be emitted in ascending order (the UTF-8→UTF-16 converter panics on backwards positions); stored `start`/`end` are UTF-16 offsets, never raw SWC UTF-8 spans
 
-## Parser And Converter Guards
-
-- `parse_ast` drives SWC through `GuardedTokens` instead of `swc_compiler_base::parse_js` so that deeply nested input fails with a `ParseError` instead of terminating the process — do not switch back to `parse_js`
-- Every new recursive cycle in the converter must route through `enter_nesting` (see `convert_expression`, `convert_statement`, `convert_pattern`, `convert_jsx_element_child`, `convert_jsx_object`, `convert_jsx_attribute_value` and `convert_chain_element`, which covers the member, call and optional chain cycles); iteratively parsed constructs like JSX member expressions otherwise bypass both the token-based stack guard and the depth limit
-- Syntax trees are freed with `free_syntax_tree` rather than dropped, because their destructors recurse once per nesting level; only trees with a converted counterpart are known to be shallow enough to drop directly
-
 ## Bindings Sync
 
 - A new binding function must be added to both `rust/bindings_napi/src/lib.rs` AND `rust/bindings_wasm/src/lib.rs` plus all three JS handover points with matching names: `native.js`, `native.wasm.js`, `browser/src/wasm.ts` (`lint:native-js` only checks that every export in `native.js` is also present in `native.wasm.js` — signatures and reverse parity are not checked)
