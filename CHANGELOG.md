@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.68.6
+
+_2026-11-18_
+
+### Bug Fixes
+
+- Fail the build with a parse error instead of a native stack overflow for deeply nested expressions (#6669)
+
+### Pull Requests
+
+- [#6669](https://github.com/rollup/rollup/pull/6669): fix: fail with a parse error instead of exhausting the native stack (@lukastaegert)
+
 ## 4.68.5
 
 _2026-11-17_
