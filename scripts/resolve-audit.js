@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { argv, execPath, exit } from 'node:process';
@@ -15,7 +15,15 @@ const auditResolveFile = `${projectRoot}/audit-resolve.json`;
 const resolveAuditScript = `${projectRoot}/node_modules/npm-audit-resolver/resolve.js`;
 
 const originalContent = readFileSync(auditResolveFile, 'utf8');
-const originalAuditResolve = /** @type {AuditResolve} */ (JSON.parse(originalContent));
+const originalDecisions = parseAuditResolve(originalContent).decisions;
+
+/**
+ * @param {string} content
+ * @return {AuditResolve}
+ */
+function parseAuditResolve(content) {
+	return JSON.parse(content);
+}
 
 /**
  * @param {AuditResolve} auditResolve
@@ -37,36 +45,42 @@ function isStillInForce(decision) {
 }
 
 /**
- * @param {Record<string, Decision>} originalDecisions
- * @param {Record<string, Decision>} updatedDecisions
- * @return {Record<string, Decision>}
+ * The advisories present in the audit report. npm reports them under varying
+ * dependency paths, so only the advisory id is a reliable identifier.
+ *
+ * @return {Promise<Set<string> | undefined>}
  */
-function mergeDecisions(originalDecisions, updatedDecisions) {
-	return Object.fromEntries(
-		Object.keys(updatedDecisions)
-			.sort()
-			.map(key => {
-				const originalDecision = originalDecisions[key];
-				const updatedDecision = updatedDecisions[key];
-				if (
-					originalDecision?.decision === updatedDecision.decision &&
-					isStillInForce(originalDecision)
-				) {
-					return [
-						key,
-						{
-							...updatedDecision,
-							expiresAt: originalDecision.expiresAt,
-							madeAt: originalDecision.madeAt
-						}
-					];
+function readReportedAdvisoryIds() {
+	const npmCli = process.env.npm_execpath;
+	return new Promise(resolve => {
+		execFile(
+			npmCli ? execPath : 'npm',
+			npmCli ? [npmCli, 'audit', '--json'] : ['audit', '--json'],
+			{ cwd: projectRoot, maxBuffer: 64 * 1024 * 1024 },
+			(error, stdout) => {
+				let vulnerabilities;
+				try {
+					vulnerabilities = Object.values(JSON.parse(stdout).vulnerabilities ?? {});
+				} catch {
+					console.warn(
+						`Could not read the audit report, keeping all unexpired decisions: ${error?.message ?? 'unparsable output'}`
+					);
+					resolve(undefined);
+					return;
 				}
-				return [key, updatedDecision];
-			})
-	);
+				const reportedAdvisoryIds = new Set();
+				for (const vulnerability of vulnerabilities) {
+					for (const via of vulnerability.via) {
+						if (typeof via === 'object') {
+							reportedAdvisoryIds.add(String(via.source));
+						}
+					}
+				}
+				resolve(reportedAdvisoryIds);
+			}
+		);
+	});
 }
-
-writeAuditResolve({ ...originalAuditResolve, decisions: {} });
 
 const childProcess = spawn(execPath, [resolveAuditScript, ...argv.slice(2)], {
 	cwd: projectRoot,
@@ -88,17 +102,24 @@ if (status !== 0) {
 	exit(status ?? 1);
 }
 
-const updatedAuditResolve = /** @type {AuditResolve} */ (
-	JSON.parse(readFileSync(auditResolveFile, 'utf8'))
-);
-const mergedDecisions = mergeDecisions(
-	originalAuditResolve.decisions,
-	updatedAuditResolve.decisions
+const updatedAuditResolve = parseAuditResolve(readFileSync(auditResolveFile, 'utf8'));
+const reportedAdvisoryIds = await readReportedAdvisoryIds();
+const decisions = Object.fromEntries(
+	Object.keys(updatedAuditResolve.decisions)
+		.filter(key => {
+			const [advisoryId] = key.split('|');
+			return (
+				isStillInForce(updatedAuditResolve.decisions[key]) &&
+				(reportedAdvisoryIds === undefined || reportedAdvisoryIds.has(advisoryId))
+			);
+		})
+		.sort()
+		.map(key => [key, updatedAuditResolve.decisions[key]])
 );
 
-writeAuditResolve({ ...updatedAuditResolve, decisions: mergedDecisions });
+writeAuditResolve({ ...updatedAuditResolve, decisions });
 
-const prunedCount = Object.keys(originalAuditResolve.decisions).filter(
-	key => !Object.hasOwn(mergedDecisions, key)
+const prunedCount = Object.keys(originalDecisions).filter(
+	key => !Object.hasOwn(decisions, key)
 ).length;
-console.log(`Wrote ${Object.keys(mergedDecisions).length} decisions and pruned ${prunedCount}.`);
+console.log(`Wrote ${Object.keys(decisions).length} decisions and pruned ${prunedCount}.`);
