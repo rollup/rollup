@@ -2873,6 +2873,8 @@ Unfortunately, due to the way chunking works, chunk size is measured before any 
 
 Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](../javascript-api/index.md), the returned bundle object will contain an additional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
 
+Note that plugin hook timings only include the synchronous time spent in a hook until it first yields to the event loop. Time spent in asynchronous hooks running in parallel is not attributed, as those timings would be misleading.
+
 `getTimings()` returns an object of the following form:
 
 ```
