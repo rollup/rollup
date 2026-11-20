@@ -202,6 +202,23 @@ const _anyLiteralParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Lite
 if (_anyLiteralParent && 'directive' in _anyLiteralParent) {
 	const _directive: string = _anyLiteralParent.directive;
 }
+const _anyLiteralNodeValue: rollup.ast.LazyNode<rollup.ast.Literal>['value'] = null as unknown as
+	string | number | bigint | boolean | RegExp | null;
+const _stringLiteralValue: string = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.LiteralString>
+).value;
+const _numberLiteralValue: number = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.LiteralNumber>
+).value;
+const _nullLiteralValue: null = (null as unknown as rollup.ast.LazyNode<rollup.ast.LiteralNull>)
+	.value;
+const _directiveText: string = (null as unknown as rollup.ast.LazyNode<rollup.ast.Directive>)
+	.directive;
+const _expressionStatementDirective: rollup.ast.LazyNode<rollup.ast.ExpressionStatement> =
+	null as unknown as rollup.ast.LazyDirective;
+const _literalStringHandler: rollup.ParseAndWalkHandler<rollup.ast.LiteralString> = node => {
+	const _literalValue: string = node.value;
+};
 
 const _literalParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Literal>> | null = (
 	null as unknown as rollup.ast.LazyNode<rollup.ast.Literal>

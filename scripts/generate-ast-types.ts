@@ -135,10 +135,10 @@ for (const { name } of astNodeNamesWithFieldOrder) {
 	}
 }
 
-const lazyNodeMap = `interface LazyNodeMap {${[...schemaNamesByAstType]
+const lazyNodeVariants = `interface LazyNodeVariants {${[...schemaNamesByAstType]
 	.map(
 		([astType, schemaNames]) =>
-			`\n\t${astType}: ${schemaNames.map(name => `Lazy${name}`).join(' | ')};`
+			`\n\t${astType}: ${schemaNames.map(name => `[${name}, Lazy${name}]`).join(' | ')};`
 	)
 	.join('')}
 }`;
@@ -178,13 +178,20 @@ ${parentOf}
 
 ${astNodeNamesWithFieldOrder.map(({ name, node, fields }) => getLazyNodeType(name, node, fields)).join('\n\n')}
 
-${lazyNodeMap}
+${lazyNodeVariants}
+
+type LazyVariantOf<T, Variant> = Variant extends [infer Eager, infer Lazy]
+	? [Eager] extends [T]
+		? Lazy
+		: never
+	: never;
 
 /**
  * A lazy AST node with a required parent link. Root nodes have \`parent === null\`.
+ * Resolves to the lazy variants whose eager type is assignable to \`T\`.
  */
 export type LazyNode<T extends AstNode = AstNode> = T extends AstNode
-	? LazyNodeMap[Extract<T['type'], keyof LazyNodeMap>]
+	? LazyVariantOf<T, LazyNodeVariants[T['type']]>
 	: never;
 
 export interface AstNodeTypeMap {${[...schemaNamesByAstType]

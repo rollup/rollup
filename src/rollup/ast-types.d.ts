@@ -1737,109 +1737,116 @@ export interface LazyYieldExpression extends BaseNode {
 	parent: LazyNode<ParentOf<YieldExpression>> | null;
 }
 
-interface LazyNodeMap {
-	PanicError: LazyPanicError;
-	ParseError: LazyParseError;
-	ArrayExpression: LazyArrayExpression;
-	ArrayPattern: LazyArrayPattern;
-	ArrowFunctionExpression: LazyArrowFunctionExpression;
-	AssignmentExpression: LazyAssignmentExpression;
-	AssignmentPattern: LazyAssignmentPattern;
-	AwaitExpression: LazyAwaitExpression;
-	BinaryExpression: LazyBinaryExpression;
-	BlockStatement: LazyBlockStatement;
-	BreakStatement: LazyBreakStatement;
-	CallExpression: LazyCallExpression;
-	CatchClause: LazyCatchClause;
-	ChainExpression: LazyChainExpression;
-	ClassBody: LazyClassBody;
-	ClassDeclaration: LazyClassDeclaration;
-	ClassExpression: LazyClassExpression;
-	ConditionalExpression: LazyConditionalExpression;
-	ContinueStatement: LazyContinueStatement;
-	DebuggerStatement: LazyDebuggerStatement;
-	Decorator: LazyDecorator;
-	ExpressionStatement: LazyDirective | LazyExpressionStatement;
-	DoWhileStatement: LazyDoWhileStatement;
-	EmptyStatement: LazyEmptyStatement;
-	ExportAllDeclaration: LazyExportAllDeclaration;
-	ExportDefaultDeclaration: LazyExportDefaultDeclaration;
-	ExportNamedDeclaration: LazyExportNamedDeclaration;
-	ExportSpecifier: LazyExportSpecifier;
-	ForInStatement: LazyForInStatement;
-	ForOfStatement: LazyForOfStatement;
-	ForStatement: LazyForStatement;
-	FunctionDeclaration: LazyFunctionDeclaration;
-	FunctionExpression: LazyFunctionExpression;
-	Identifier: LazyIdentifier;
-	IfStatement: LazyIfStatement;
-	ImportAttribute: LazyImportAttribute;
-	ImportDeclaration: LazyImportDeclaration;
-	ImportDefaultSpecifier: LazyImportDefaultSpecifier;
-	ImportExpression: LazyImportExpression;
-	ImportNamespaceSpecifier: LazyImportNamespaceSpecifier;
-	ImportSpecifier: LazyImportSpecifier;
-	JSXAttribute: LazyJSXAttribute;
-	JSXClosingElement: LazyJSXClosingElement;
-	JSXClosingFragment: LazyJSXClosingFragment;
-	JSXElement: LazyJSXElement;
-	JSXEmptyExpression: LazyJSXEmptyExpression;
-	JSXExpressionContainer: LazyJSXExpressionContainer;
-	JSXFragment: LazyJSXFragment;
-	JSXIdentifier: LazyJSXIdentifier;
-	JSXMemberExpression: LazyJSXMemberExpression;
-	JSXNamespacedName: LazyJSXNamespacedName;
-	JSXOpeningElement: LazyJSXOpeningElement;
-	JSXOpeningFragment: LazyJSXOpeningFragment;
-	JSXSpreadAttribute: LazyJSXSpreadAttribute;
-	JSXSpreadChild: LazyJSXSpreadChild;
-	JSXText: LazyJSXText;
-	LabeledStatement: LazyLabeledStatement;
+interface LazyNodeVariants {
+	PanicError: [PanicError, LazyPanicError];
+	ParseError: [ParseError, LazyParseError];
+	ArrayExpression: [ArrayExpression, LazyArrayExpression];
+	ArrayPattern: [ArrayPattern, LazyArrayPattern];
+	ArrowFunctionExpression: [ArrowFunctionExpression, LazyArrowFunctionExpression];
+	AssignmentExpression: [AssignmentExpression, LazyAssignmentExpression];
+	AssignmentPattern: [AssignmentPattern, LazyAssignmentPattern];
+	AwaitExpression: [AwaitExpression, LazyAwaitExpression];
+	BinaryExpression: [BinaryExpression, LazyBinaryExpression];
+	BlockStatement: [BlockStatement, LazyBlockStatement];
+	BreakStatement: [BreakStatement, LazyBreakStatement];
+	CallExpression: [CallExpression, LazyCallExpression];
+	CatchClause: [CatchClause, LazyCatchClause];
+	ChainExpression: [ChainExpression, LazyChainExpression];
+	ClassBody: [ClassBody, LazyClassBody];
+	ClassDeclaration: [ClassDeclaration, LazyClassDeclaration];
+	ClassExpression: [ClassExpression, LazyClassExpression];
+	ConditionalExpression: [ConditionalExpression, LazyConditionalExpression];
+	ContinueStatement: [ContinueStatement, LazyContinueStatement];
+	DebuggerStatement: [DebuggerStatement, LazyDebuggerStatement];
+	Decorator: [Decorator, LazyDecorator];
+	ExpressionStatement: [Directive, LazyDirective] | [ExpressionStatement, LazyExpressionStatement];
+	DoWhileStatement: [DoWhileStatement, LazyDoWhileStatement];
+	EmptyStatement: [EmptyStatement, LazyEmptyStatement];
+	ExportAllDeclaration: [ExportAllDeclaration, LazyExportAllDeclaration];
+	ExportDefaultDeclaration: [ExportDefaultDeclaration, LazyExportDefaultDeclaration];
+	ExportNamedDeclaration: [ExportNamedDeclaration, LazyExportNamedDeclaration];
+	ExportSpecifier: [ExportSpecifier, LazyExportSpecifier];
+	ForInStatement: [ForInStatement, LazyForInStatement];
+	ForOfStatement: [ForOfStatement, LazyForOfStatement];
+	ForStatement: [ForStatement, LazyForStatement];
+	FunctionDeclaration: [FunctionDeclaration, LazyFunctionDeclaration];
+	FunctionExpression: [FunctionExpression, LazyFunctionExpression];
+	Identifier: [Identifier, LazyIdentifier];
+	IfStatement: [IfStatement, LazyIfStatement];
+	ImportAttribute: [ImportAttribute, LazyImportAttribute];
+	ImportDeclaration: [ImportDeclaration, LazyImportDeclaration];
+	ImportDefaultSpecifier: [ImportDefaultSpecifier, LazyImportDefaultSpecifier];
+	ImportExpression: [ImportExpression, LazyImportExpression];
+	ImportNamespaceSpecifier: [ImportNamespaceSpecifier, LazyImportNamespaceSpecifier];
+	ImportSpecifier: [ImportSpecifier, LazyImportSpecifier];
+	JSXAttribute: [JSXAttribute, LazyJSXAttribute];
+	JSXClosingElement: [JSXClosingElement, LazyJSXClosingElement];
+	JSXClosingFragment: [JSXClosingFragment, LazyJSXClosingFragment];
+	JSXElement: [JSXElement, LazyJSXElement];
+	JSXEmptyExpression: [JSXEmptyExpression, LazyJSXEmptyExpression];
+	JSXExpressionContainer: [JSXExpressionContainer, LazyJSXExpressionContainer];
+	JSXFragment: [JSXFragment, LazyJSXFragment];
+	JSXIdentifier: [JSXIdentifier, LazyJSXIdentifier];
+	JSXMemberExpression: [JSXMemberExpression, LazyJSXMemberExpression];
+	JSXNamespacedName: [JSXNamespacedName, LazyJSXNamespacedName];
+	JSXOpeningElement: [JSXOpeningElement, LazyJSXOpeningElement];
+	JSXOpeningFragment: [JSXOpeningFragment, LazyJSXOpeningFragment];
+	JSXSpreadAttribute: [JSXSpreadAttribute, LazyJSXSpreadAttribute];
+	JSXSpreadChild: [JSXSpreadChild, LazyJSXSpreadChild];
+	JSXText: [JSXText, LazyJSXText];
+	LabeledStatement: [LabeledStatement, LazyLabeledStatement];
 	Literal:
-		| LazyLiteralBigInt
-		| LazyLiteralBoolean
-		| LazyLiteralNull
-		| LazyLiteralNumber
-		| LazyLiteralRegExp
-		| LazyLiteralString;
-	LogicalExpression: LazyLogicalExpression;
-	MemberExpression: LazyMemberExpression;
-	MetaProperty: LazyMetaProperty;
-	MethodDefinition: LazyMethodDefinition;
-	NewExpression: LazyNewExpression;
-	ObjectExpression: LazyObjectExpression;
-	ObjectPattern: LazyObjectPattern;
-	PrivateIdentifier: LazyPrivateIdentifier;
-	Program: LazyProgram;
-	Property: LazyProperty;
-	PropertyDefinition: LazyPropertyDefinition;
-	RestElement: LazyRestElement;
-	ReturnStatement: LazyReturnStatement;
-	SequenceExpression: LazySequenceExpression;
-	SpreadElement: LazySpreadElement;
-	StaticBlock: LazyStaticBlock;
-	Super: LazySuper;
-	SwitchCase: LazySwitchCase;
-	SwitchStatement: LazySwitchStatement;
-	TaggedTemplateExpression: LazyTaggedTemplateExpression;
-	TemplateElement: LazyTemplateElement;
-	TemplateLiteral: LazyTemplateLiteral;
-	ThisExpression: LazyThisExpression;
-	ThrowStatement: LazyThrowStatement;
-	TryStatement: LazyTryStatement;
-	UnaryExpression: LazyUnaryExpression;
-	UpdateExpression: LazyUpdateExpression;
-	VariableDeclaration: LazyVariableDeclaration;
-	VariableDeclarator: LazyVariableDeclarator;
-	WhileStatement: LazyWhileStatement;
-	YieldExpression: LazyYieldExpression;
+		| [LiteralBigInt, LazyLiteralBigInt]
+		| [LiteralBoolean, LazyLiteralBoolean]
+		| [LiteralNull, LazyLiteralNull]
+		| [LiteralNumber, LazyLiteralNumber]
+		| [LiteralRegExp, LazyLiteralRegExp]
+		| [LiteralString, LazyLiteralString];
+	LogicalExpression: [LogicalExpression, LazyLogicalExpression];
+	MemberExpression: [MemberExpression, LazyMemberExpression];
+	MetaProperty: [MetaProperty, LazyMetaProperty];
+	MethodDefinition: [MethodDefinition, LazyMethodDefinition];
+	NewExpression: [NewExpression, LazyNewExpression];
+	ObjectExpression: [ObjectExpression, LazyObjectExpression];
+	ObjectPattern: [ObjectPattern, LazyObjectPattern];
+	PrivateIdentifier: [PrivateIdentifier, LazyPrivateIdentifier];
+	Program: [Program, LazyProgram];
+	Property: [Property, LazyProperty];
+	PropertyDefinition: [PropertyDefinition, LazyPropertyDefinition];
+	RestElement: [RestElement, LazyRestElement];
+	ReturnStatement: [ReturnStatement, LazyReturnStatement];
+	SequenceExpression: [SequenceExpression, LazySequenceExpression];
+	SpreadElement: [SpreadElement, LazySpreadElement];
+	StaticBlock: [StaticBlock, LazyStaticBlock];
+	Super: [Super, LazySuper];
+	SwitchCase: [SwitchCase, LazySwitchCase];
+	SwitchStatement: [SwitchStatement, LazySwitchStatement];
+	TaggedTemplateExpression: [TaggedTemplateExpression, LazyTaggedTemplateExpression];
+	TemplateElement: [TemplateElement, LazyTemplateElement];
+	TemplateLiteral: [TemplateLiteral, LazyTemplateLiteral];
+	ThisExpression: [ThisExpression, LazyThisExpression];
+	ThrowStatement: [ThrowStatement, LazyThrowStatement];
+	TryStatement: [TryStatement, LazyTryStatement];
+	UnaryExpression: [UnaryExpression, LazyUnaryExpression];
+	UpdateExpression: [UpdateExpression, LazyUpdateExpression];
+	VariableDeclaration: [VariableDeclaration, LazyVariableDeclaration];
+	VariableDeclarator: [VariableDeclarator, LazyVariableDeclarator];
+	WhileStatement: [WhileStatement, LazyWhileStatement];
+	YieldExpression: [YieldExpression, LazyYieldExpression];
 }
+
+type LazyVariantOf<T, Variant> = Variant extends [infer Eager, infer Lazy]
+	? [Eager] extends [T]
+		? Lazy
+		: never
+	: never;
 
 /**
  * A lazy AST node with a required parent link. Root nodes have `parent === null`.
+ * Resolves to the lazy variants whose eager type is assignable to `T`.
  */
 export type LazyNode<T extends AstNode = AstNode> = T extends AstNode
-	? LazyNodeMap[Extract<T['type'], keyof LazyNodeMap>]
+	? LazyVariantOf<T, LazyNodeVariants[T['type']]>
 	: never;
 
 export interface AstNodeTypeMap {
