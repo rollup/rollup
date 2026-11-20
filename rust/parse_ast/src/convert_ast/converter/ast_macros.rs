@@ -176,10 +176,8 @@ macro_rules! store_export_specifier {
     $self.update_reference_position(end_position + 4);
     $self.$local_converter(&$local_value);
     // exported
-    if let Some(value) = $exported_value.as_ref() {
-      $self.update_reference_position(end_position + 8);
-      $self.$exported_converter(value);
-    }
+    $self.update_reference_position(end_position + 8);
+    $self.$exported_converter(&$exported_value);
     // end
     $self.add_end(end_position, &$span);
     $self.on_node_exit(walk_entry);
@@ -261,10 +259,8 @@ macro_rules! store_import_specifier {
     let walk_entry = $self.on_node_enter::<41>();
     let end_position = $self.add_type_and_start(&41u32.to_ne_bytes(), &$span, 12, false);
     // imported
-    if let Some(value) = $imported_value.as_ref() {
-      $self.update_reference_position(end_position + 4);
-      $self.$imported_converter(value);
-    }
+    $self.update_reference_position(end_position + 4);
+    $self.$imported_converter(&$imported_value);
     // local
     $self.update_reference_position(end_position + 8);
     $self.$local_converter(&$local_value);

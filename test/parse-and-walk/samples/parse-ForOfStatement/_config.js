@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const forOfStatements = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(forOfStatements, [
+		assertAstEqual(forOfStatements, [
 			{
 				type: 'ForOfStatement',
 				start: 17,

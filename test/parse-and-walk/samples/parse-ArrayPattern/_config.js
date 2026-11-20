@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const arrayPatterns = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(arrayPatterns, [
+		assertAstEqual(arrayPatterns, [
 			{
 				type: 'ArrayPattern',
 				start: 13,

@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
   CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
   CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SCOPE_OFFSET_OFFSET,
   CLASS_DECLARATION_SUPER_CLASS_OFFSET, NODE_TYPE_ID_CLASS_DECLARATION,
-  NODE_TYPE_ID_CLASS_EXPRESSION, TYPE_CLASS_DECLARATION,
+  NODE_TYPE_ID_CLASS_EXPRESSION, TYPE_CLASS_DECLARATION, WORD_SIZE,
 };
 use crate::convert_ast::converter::{AstConverter, DeclarationKind, ScopeType};
 
@@ -35,8 +35,9 @@ impl AstConverter<'_> {
     if let Some(outside_class_span_decorators_insert_position) =
       outside_class_span_decorators_insert_position
     {
+      self.reparent_decorators(outside_class_span_decorators_insert_position);
       self.buffer[end_position + CLASS_DECLARATION_DECORATORS_OFFSET
-        ..end_position + CLASS_DECLARATION_DECORATORS_OFFSET + 4]
+        ..end_position + CLASS_DECLARATION_DECORATORS_OFFSET + WORD_SIZE]
         .copy_from_slice(&outside_class_span_decorators_insert_position.to_ne_bytes());
     } else {
       self.convert_item_list(

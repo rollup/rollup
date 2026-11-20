@@ -194,18 +194,14 @@ impl AstConverter<'_> {
     let walk_entry = self.on_node_enter::<NODE_TYPE_ID_PROPERTY>();
     let end_position =
       self.add_type_and_start(&TYPE_PROPERTY, span, PROPERTY_RESERVED_BYTES, false);
+    // key
+    self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
+    self.without_declaration_kind(|ast_converter| ast_converter.convert_identifier(key));
     match assignment_value {
       Some(value) => {
         // value
         self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
-        let left_position = self.store_assignment_pattern_and_get_left_position(
-          span,
-          PatternOrIdentifier::Identifier(key),
-          value,
-        );
-        // key, reuse identifier to avoid converting positions out of order
-        let key_position = end_position + PROPERTY_KEY_OFFSET;
-        self.buffer[key_position..key_position + 4].copy_from_slice(&left_position.to_ne_bytes());
+        self.store_assignment_pattern(span, PatternOrIdentifier::Identifier(key), value);
       }
       None => {
         // value

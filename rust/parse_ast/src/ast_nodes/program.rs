@@ -2,7 +2,7 @@ use swc_ecma_ast::{Expr, Lit, ModuleItem, Program, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
   NODE_TYPE_ID_PROGRAM, PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET,
-  PROGRAM_RESERVED_BYTES, PROGRAM_SCOPE_OFFSET_OFFSET, TYPE_PROGRAM,
+  PROGRAM_RESERVED_BYTES, PROGRAM_SCOPE_OFFSET_OFFSET, TYPE_PROGRAM, WORD_SIZE,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter, ScopeType};
 
@@ -37,7 +37,7 @@ impl AstConverter<'_> {
               *can_be_directive = false;
             }
 
-            let mut module_item_insert_position = ast_converter.buffer.len() as u32 >> 2;
+            let mut module_item_insert_position = (ast_converter.buffer.len() / WORD_SIZE) as u32;
             ast_converter.convert_module_item(module_item, &mut module_item_insert_position);
             (true, Some(module_item_insert_position))
           },

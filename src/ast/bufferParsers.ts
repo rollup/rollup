@@ -308,7 +308,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 				body[index] = convertNode(
 					node,
 					buffer[nodePosition] !== 79 &&
-						(buffer[nodePosition + 3] & /* the static flag is always first */ 1) === 0
+						(buffer[nodePosition + 4] & /* the static flag is always first */ 1) === 0
 						? scope.instanceScope
 						: scope,
 					nodePosition,
@@ -392,9 +392,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function exportSpecifier(node: ExportSpecifier, position, buffer) {
 		const { scope } = node;
 		node.local = convertNode(node, scope, buffer[position], buffer);
-		const exportedPosition = buffer[position + 1];
-		node.exported =
-			exportedPosition === 0 ? node.local : convertNode(node, scope, exportedPosition, buffer);
+		node.exported = convertNode(node, scope, buffer[position + 1], buffer);
 	},
 	function expressionStatement(node: ExpressionStatement, position, buffer) {
 		const { scope } = node;
@@ -524,10 +522,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	},
 	function importSpecifier(node: ImportSpecifier, position, buffer) {
 		const { scope } = node;
-		const importedPosition = buffer[position];
+		node.imported = convertNode(node, scope, buffer[position], buffer);
 		node.local = convertNode(node, scope, buffer[position + 1], buffer);
-		node.imported =
-			importedPosition === 0 ? node.local : convertNode(node, scope, importedPosition, buffer);
 	},
 	function jsxAttribute(node: JSXAttribute, position, buffer) {
 		const { scope } = node;
@@ -689,10 +685,9 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.method = (flags & 1) === 1;
 		node.shorthand = (flags & 2) === 2;
 		node.computed = (flags & 4) === 4;
-		const keyPosition = buffer[position + 1];
+		node.key = convertNode(node, scope, buffer[position + 1], buffer);
 		node.value = convertNode(node, scope, buffer[position + 2], buffer);
 		node.kind = FIXED_STRINGS[buffer[position + 3]] as ast.Property['kind'];
-		node.key = keyPosition === 0 ? node.value : convertNode(node, scope, keyPosition, buffer);
 	},
 	function propertyDefinition(node: PropertyDefinition, position, buffer) {
 		const { scope } = node;
@@ -823,9 +818,9 @@ function convertNode(
 	}
 	const node = new NodeConstructor(parent, parentScope);
 	node.type = nodeTypeStrings[nodeType] as any;
-	node.start = buffer[position + 1];
-	node.end = buffer[position + 2];
-	bufferParsers[nodeType](node, position + 3, buffer);
+	node.start = buffer[position + 2];
+	node.end = buffer[position + 3];
+	bufferParsers[nodeType](node, position + 4, buffer);
 	node.initialise();
 	return node;
 }

@@ -9,7 +9,14 @@ impl AstConverter<'_> {
       self,
       span => &export_named_specifier.span,
       local => [export_named_specifier.orig, convert_module_export_name],
-      exported => [export_named_specifier.exported, convert_module_export_name]
+      exported => [*export_named_specifier, convert_exported_name]
     );
+  }
+
+  fn convert_exported_name(&mut self, specifier: &ExportNamedSpecifier) {
+    match specifier.exported.as_ref() {
+      Some(exported) => self.convert_module_export_name(exported),
+      None => self.convert_module_export_name(&specifier.orig),
+    }
   }
 }

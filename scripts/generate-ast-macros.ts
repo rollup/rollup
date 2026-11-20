@@ -1,8 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import { NODE_DATA_BYTES_AFTER_END, WORD_SIZE } from './buffer-layout.ts';
 import { generateNotEditFilesComment, lintRustFile, toSnakeCase } from './helpers.ts';
-
-const BYTES_PER_U32 = 4;
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -16,11 +15,11 @@ const astMacros = astNodeNamesWithFieldOrder
 		if (useMacro === false) {
 			return '';
 		}
-		let reservedBytes = BYTES_PER_U32;
+		let reservedBytes = NODE_DATA_BYTES_AFTER_END;
 		let valuesInput = '';
 		let flagConverter = '';
 		if (flags?.length) {
-			reservedBytes += BYTES_PER_U32;
+			reservedBytes += WORD_SIZE;
 			let flagsInput = '';
 			for (const flag of flags) {
 				valuesInput += `, ${flag} => $${flag}_value:expr`;
@@ -39,7 +38,7 @@ const astMacros = astNodeNamesWithFieldOrder
 					valuesInput += `, ${field.name} => $${field.name}_value:expr`;
 					fieldConverters += `
     let ${field.name}_position = end_position + ${reservedBytes};
-    $self.buffer[${field.name}_position..${field.name}_position + ${BYTES_PER_U32}].copy_from_slice($${field.name}_value);`;
+    $self.buffer[${field.name}_position..${field.name}_position + ${WORD_SIZE}].copy_from_slice($${field.name}_value);`;
 					break;
 				}
 				case 'Float': {
@@ -48,11 +47,11 @@ const astMacros = astNodeNamesWithFieldOrder
     let ${field.name}_position = end_position + ${reservedBytes};
     let ${field.name}_bits = $${field.name}_value.to_bits();
     // The two u32 words are written in native byte order, low word first
-    $self.buffer[${field.name}_position..${field.name}_position + 4]
+    $self.buffer[${field.name}_position..${field.name}_position + ${WORD_SIZE}]
       .copy_from_slice(&(${field.name}_bits as u32).to_ne_bytes());
-    $self.buffer[${field.name}_position + 4..${field.name}_position + 8]
+    $self.buffer[${field.name}_position + ${WORD_SIZE}..${field.name}_position + ${2 * WORD_SIZE}]
       .copy_from_slice(&((${field.name}_bits >> 32) as u32).to_ne_bytes());`;
-					reservedBytes += BYTES_PER_U32;
+					reservedBytes += WORD_SIZE;
 					break;
 				}
 				case 'Node': {
@@ -99,7 +98,7 @@ const astMacros = astNodeNamesWithFieldOrder
 					throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 				}
 			}
-			reservedBytes += BYTES_PER_U32;
+			reservedBytes += WORD_SIZE;
 		}
 		return `#[macro_export]
 macro_rules! store_${toSnakeCase(name)} {
@@ -138,8 +137,8 @@ macro_rules! store_${toSnakeCase(name)}_flags {
     let _: usize = $end_position;
     let mut flags = 0u32;
     ${setFlags}
-    let flags_position = $end_position + ${BYTES_PER_U32};
-    $self.buffer[flags_position..flags_position + ${BYTES_PER_U32}].copy_from_slice(&flags.to_ne_bytes());
+    let flags_position = $end_position + ${NODE_DATA_BYTES_AFTER_END};
+    $self.buffer[flags_position..flags_position + ${WORD_SIZE}].copy_from_slice(&flags.to_ne_bytes());
   };
 }
 
