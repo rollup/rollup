@@ -16,13 +16,6 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 } else if (command.version) {
 	console.log(`rollup v${package_.version}`);
 } else {
-	try {
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		require('source-map-support').install();
-	} catch {
-		// do nothing
-	}
-
 	const promise = run(command);
 	if (command.forceExit) {
 		promise.then(() => process.exit());
