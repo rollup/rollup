@@ -14,9 +14,11 @@ import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import { deoptimizeInteraction, UnknownValue } from '../nodes/shared/Expression';
 import type IdentifierBase from '../nodes/shared/IdentifierBase';
+import type { NodeBase } from '../nodes/shared/Node';
 import type ChildScope from '../scopes/ChildScope';
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
+import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -27,7 +29,7 @@ export default class NamespaceVariable extends Variable {
 	private areAllMembersDeoptimized = false;
 	private mergedNamespaces: readonly Variable[] = [];
 	private nonExplicitNamespacesIncluded = false;
-	private referencedEarly = false;
+	private referencedEarly: boolean | null = null;
 	private readonly references: IdentifierBase[] = [];
 
 	constructor(context: AstContext) {
@@ -39,6 +41,15 @@ export default class NamespaceVariable extends Variable {
 	addReference(identifier: IdentifierBase): void {
 		this.references.push(identifier);
 		this.name = identifier.name;
+	}
+
+	addUsedPlace(usedPlace: NodeBase): void {
+		super.addUsedPlace(usedPlace);
+		// This also covers accesses like `otherNamespace.namespace` that are
+		// resolved to this variable without an identifier reference
+		if (usedPlace.scope.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
+			this.referencedEarly = true;
+		}
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -148,7 +159,7 @@ export default class NamespaceVariable extends Variable {
 			.map(([name, variable]) => {
 				const key = unescapeExportName(name);
 				if (
-					this.referencedEarly ||
+					this.isReferencedEarly() ||
 					variable.isReassigned ||
 					variable === this ||
 					(variable.module &&
@@ -197,20 +208,43 @@ export default class NamespaceVariable extends Variable {
 		return output;
 	}
 
-	renderFirst(): boolean {
+	getIncludedMemberNamespaces(): NamespaceVariable[] {
+		const memberNamespaces: NamespaceVariable[] = [];
+		for (const [name, variable] of this.module.getExportedVariablesByName()) {
+			if (isNamespaceExportName(name) || !variable.included) continue;
+			const originalVariable =
+				variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
+			if (originalVariable instanceof NamespaceVariable && originalVariable !== this) {
+				memberNamespaces.push(originalVariable);
+			}
+		}
+		return memberNamespaces;
+	}
+
+	/**
+	 * Whether code that runs before the end of this module can access the
+	 * namespace object, so that it needs to be created at the top of the chunk.
+	 */
+	isReferencedEarly(): boolean {
+		if (this.referencedEarly === null) {
+			const moduleExecIndex = this.context.getModuleExecIndex();
+			this.referencedEarly = this.references.some(
+				identifier => identifier.scope.context.getModuleExecIndex() <= moduleExecIndex
+			);
+		}
 		return this.referencedEarly;
+	}
+
+	markReferencedEarly(): void {
+		this.referencedEarly = true;
+	}
+
+	renderFirst(): boolean {
+		return this.isReferencedEarly();
 	}
 
 	setMergedNamespaces(mergedNamespaces: readonly Variable[]): void {
 		this.mergedNamespaces = mergedNamespaces;
-		const moduleExecIndex = this.context.getModuleExecIndex();
-		for (const identifier of this.references) {
-			const { context } = identifier.scope;
-			if (context.getModuleExecIndex() <= moduleExecIndex) {
-				this.referencedEarly = true;
-				break;
-			}
-		}
 	}
 
 	private getMemberVariable(name: string): Variable | undefined {

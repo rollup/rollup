@@ -1340,6 +1340,34 @@ export default class Chunk {
 		}
 	}
 
+	// A namespace object that is a member of another namespace object can be
+	// read through that object as soon as it is created
+	private markNamespacesExposedEarlyByOtherNamespaces() {
+		const namespaces: NamespaceVariable[] = [];
+		for (const module of this.orderedModules) {
+			if (this.includedNamespaces.has(module)) {
+				namespaces.push(module.namespace);
+			}
+		}
+		let hasMarkedNamespace = true;
+		while (hasMarkedNamespace) {
+			hasMarkedNamespace = false;
+			for (const namespace of namespaces) {
+				for (const memberNamespace of namespace.getIncludedMemberNamespaces()) {
+					if (
+						this.chunkByModule.get(memberNamespace.module) === this &&
+						!memberNamespace.isReferencedEarly() &&
+						(namespace.isReferencedEarly() ||
+							namespace.module.execIndex < memberNamespace.module.execIndex)
+					) {
+						memberNamespace.markReferencedEarly();
+						hasMarkedNamespace = true;
+					}
+				}
+			}
+		}
+	}
+
 	// This method changes properties on the AST before rendering and must not be async
 	private renderModules(fileName: string) {
 		const {
@@ -1366,6 +1394,7 @@ export default class Chunk {
 		this.setDynamicImportResolutions(fileName);
 		this.setImportMetaResolutions(fileName);
 		this.setIdentifierRenderResolutions();
+		this.markNamespacesExposedEarlyByOtherNamespaces();
 
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		const indent = getIndentString(orderedModules, outputOptions);
