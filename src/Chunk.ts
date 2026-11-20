@@ -1340,32 +1340,57 @@ export default class Chunk {
 		}
 	}
 
-	// A namespace object that is a member of another namespace object can be
-	// read through that object as soon as it is created
-	private markNamespacesExposedEarlyByOtherNamespaces() {
+	// Namespace objects that can be read before their module ran are created at
+	// the top of the chunk. This is computed per chunk as it depends on which
+	// modules are part of it.
+	private getHoistedNamespaces(): Set<NamespaceVariable> {
 		const namespaces: NamespaceVariable[] = [];
 		for (const module of this.orderedModules) {
 			if (this.includedNamespaces.has(module)) {
 				namespaces.push(module.namespace);
 			}
 		}
-		let hasMarkedNamespace = true;
-		while (hasMarkedNamespace) {
-			hasMarkedNamespace = false;
+		const hoistedNamespaces = new Set<NamespaceVariable>();
+		for (const namespace of namespaces) {
+			if (namespace.isReferencedEarly() && this.canHoistNamespace(namespace)) {
+				hoistedNamespaces.add(namespace);
+			}
+		}
+		// A namespace object that is a member of another namespace object can be
+		// read through that object as soon as it is created. Repeat until nothing
+		// changes to cover chains of namespaces.
+		let hasHoistedNamespace = true;
+		while (hasHoistedNamespace) {
+			hasHoistedNamespace = false;
 			for (const namespace of namespaces) {
+				const isNamespaceHoisted = hoistedNamespaces.has(namespace);
 				for (const memberNamespace of namespace.getIncludedMemberNamespaces()) {
 					if (
+						!hoistedNamespaces.has(memberNamespace) &&
 						this.chunkByModule.get(memberNamespace.module) === this &&
-						!memberNamespace.isReferencedEarly() &&
-						(namespace.isReferencedEarly() ||
-							namespace.module.execIndex < memberNamespace.module.execIndex)
+						(isNamespaceHoisted || namespace.module.execIndex < memberNamespace.module.execIndex) &&
+						this.canHoistNamespace(memberNamespace)
 					) {
-						memberNamespace.markReferencedEarly();
-						hasMarkedNamespace = true;
+						hoistedNamespaces.add(memberNamespace);
+						hasHoistedNamespace = true;
 					}
 				}
 			}
 		}
+		return hoistedNamespaces;
+	}
+
+	// Merged namespaces are read when the namespace object is created. A merged
+	// namespace from a module in this chunk does not exist yet at the top of the
+	// chunk, so creating the namespace object there would drop its members.
+	private canHoistNamespace(namespace: NamespaceVariable): boolean {
+		for (const variable of namespace.getMergedNamespaces()) {
+			const { module } = variable;
+			if (module instanceof Module && this.chunkByModule.get(module) === this) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	// This method changes properties on the AST before rendering and must not be async
@@ -1394,7 +1419,7 @@ export default class Chunk {
 		this.setDynamicImportResolutions(fileName);
 		this.setImportMetaResolutions(fileName);
 		this.setIdentifierRenderResolutions();
-		this.markNamespacesExposedEarlyByOtherNamespaces();
+		const hoistedNamespaces = this.getHoistedNamespaces();
 
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		const indent = getIndentString(orderedModules, outputOptions);
@@ -1441,8 +1466,9 @@ export default class Chunk {
 				}
 				const namespace = module.namespace;
 				if (includedNamespaces.has(module)) {
-					const rendered = namespace.renderBlock(renderOptions);
-					if (namespace.renderFirst()) hoistedSource += n + rendered;
+					const isHoisted = hoistedNamespaces.has(namespace);
+					const rendered = namespace.renderBlock(renderOptions, isHoisted);
+					if (isHoisted) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));
 				}
 				const accessedGlobalVariables = accessedGlobalsByScope.get(module.scope);
