@@ -1381,11 +1381,11 @@ export default class Chunk {
 	}
 
 	// Merged namespaces are read when the namespace object is created. A merged
-	// namespace from a module in this chunk does not exist yet at the top of the
-	// chunk, so creating the namespace object there would drop its members.
+	// namespace that is rendered as a variable of this chunk does not exist yet
+	// at the top of the chunk.
 	private canHoistNamespace(namespace: NamespaceVariable): boolean {
 		for (const variable of namespace.getMergedNamespaces()) {
-			const { module } = variable;
+			const { module } = getRenderedVariable(variable);
 			if (module instanceof Module && this.chunkByModule.get(module) === this) {
 				return false;
 			}
@@ -1645,13 +1645,8 @@ export default class Chunk {
 				}
 			}
 		}
-		for (let variable of moduleImports) {
-			if (variable instanceof ExportDefaultVariable) {
-				variable = variable.getOriginalVariable();
-			}
-			if (variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.getBaseVariable();
-			}
+		for (const importedVariable of moduleImports) {
+			const variable = getRenderedVariable(importedVariable);
 			const chunk = this.chunkByModule.get(variable.module as Module);
 			if (chunk !== this) {
 				this.imports.add(variable);
@@ -1687,6 +1682,16 @@ export default class Chunk {
 			}
 		}
 	}
+}
+
+function getRenderedVariable(variable: Variable): Variable {
+	if (variable instanceof ExportDefaultVariable) {
+		variable = variable.getOriginalVariable();
+	}
+	if (variable instanceof SyntheticNamedExportVariable) {
+		variable = variable.getBaseVariable();
+	}
+	return variable;
 }
 
 function getChunkNameFromModule(module: Module): string {
