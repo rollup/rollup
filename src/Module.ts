@@ -1434,6 +1434,14 @@ export default class Module {
 				syntheticNamespaces.add(syntheticNamespace);
 			}
 		}
+		for (const [name, variable] of this.getExportedVariablesByName()) {
+			// External namespaces promoted through internal `export *` chains only appear here.
+			if (isNamespaceExportName(name)) {
+				variable.includePath(UNKNOWN_PATH, createInclusionContext());
+				this.includedImports.add(variable);
+				externalNamespaces.add(variable);
+			}
+		}
 		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
