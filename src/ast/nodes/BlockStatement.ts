@@ -4,6 +4,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import ExpressionStatement from './ExpressionStatement';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -11,13 +12,13 @@ import {
 	doNotDeoptimize,
 	type IncludeChildren,
 	type Node,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
-	type StatementNode
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class BlockStatement extends StatementBase {
-	declare body: readonly StatementNode[];
+export default class BlockStatement extends NodeBase {
+	declare parent: nodes.BlockStatementParent;
+	declare body: readonly nodes.Statement[];
 	declare type: NodeType.tBlockStatement;
 
 	private get deoptimizeBody(): boolean {

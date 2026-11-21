@@ -1,7 +1,9 @@
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import { onlyIncludeSelf, StatementBase } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class DebuggerStatement extends StatementBase {
+export default class DebuggerStatement extends NodeBase {
+	declare parent: nodes.DebuggerStatementParent;
 	declare type: NodeType.tDebuggerStatement;
 
 	hasEffects(): boolean {

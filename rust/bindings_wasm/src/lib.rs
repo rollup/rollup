@@ -1,18 +1,34 @@
-use js_sys::Uint8Array;
+use js_sys::{BigUint64Array, Uint8Array};
 use parse_ast::parse_ast;
 use wasm_bindgen::prelude::*;
 
-// WebAssembly is always little-endian while the JS side reads the buffer in the byte order of the
-// host, so on big-endian hosts the JS side asks for the 32-bit fields to be byte-swapped.
 #[wasm_bindgen]
-pub fn parse(
+pub fn parse(code: String, allow_return_outside_function: bool, jsx: bool) -> Vec<u8> {
+  console_error_panic_hook::set_once();
+  parse_ast(code, allow_return_outside_function, jsx, None, false)
+}
+
+#[wasm_bindgen(js_name=parseAndWalkSync)]
+pub fn parse_and_walk_sync(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  swap_byte_order: bool,
+  walked_nodes_bitset: BigUint64Array,
+  collect_scopes: bool,
 ) -> Vec<u8> {
   console_error_panic_hook::set_once();
-  parse_ast(code, allow_return_outside_function, jsx, swap_byte_order)
+  // The bitset is read by value so its words are interpreted as u64 values
+  // regardless of the host's byte order.
+  parse_ast(
+    code,
+    allow_return_outside_function,
+    jsx,
+    Some(&[
+      walked_nodes_bitset.get_index(0),
+      walked_nodes_bitset.get_index(1),
+    ]),
+    collect_scopes,
+  )
 }
 
 #[wasm_bindgen(js_name=xxhashBase64Url)]

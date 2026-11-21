@@ -1,12 +1,12 @@
 import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
+	ast,
 	InternalModuleFormat,
 	LogHandler,
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
-import type { AnnotationType } from './astConverterHelpers';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -25,6 +25,7 @@ import {
 	URL_OUTPUT_EXTEND,
 	URL_OUTPUT_GLOBALS,
 	URL_OUTPUT_INTEROP,
+	URL_OUTPUT_MANUALCHUNKS,
 	URL_OUTPUT_NAME,
 	URL_SOURCE_PHASE_IMPORTS,
 	URL_SOURCEMAP_IS_LIKELY_TO_BE_INCORRECT,
@@ -33,6 +34,12 @@ import {
 	URL_TREESHAKE_NOSIDEEFFECTS,
 	URL_TREESHAKE_PURE
 } from './urls';
+
+function getImportAttributesSuffix(attributes?: Record<string, string> | null): string {
+	return attributes && Object.keys(attributes).length > 0
+		? ` with import attributes ${JSON.stringify(attributes)}`
+		: '';
+}
 
 export function error(base: Error | RollupLog): never {
 	throw base instanceof Error ? base : getRollupError(base);
@@ -119,6 +126,7 @@ export function augmentLogMessage(log: AugmentedRollupLog): void {
 const ADDON_ERROR = 'ADDON_ERROR',
 	ALREADY_CLOSED = 'ALREADY_CLOSED',
 	AMBIGUOUS_EXTERNAL_NAMESPACES = 'AMBIGUOUS_EXTERNAL_NAMESPACES',
+	AMBIGUOUS_GLOBAL_NAME = 'AMBIGUOUS_GLOBAL_NAME',
 	ANONYMOUS_PLUGIN_CACHE = 'ANONYMOUS_PLUGIN_CACHE',
 	ASSET_NOT_FINALISED = 'ASSET_NOT_FINALISED',
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',
@@ -127,11 +135,13 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	BAD_LOADER = 'BAD_LOADER',
 	CANNOT_CALL_NAMESPACE = 'CANNOT_CALL_NAMESPACE',
 	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
+	CANNOT_SERIALIZE_AST = 'CANNOT_SERIALIZE_AST',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	CHUNK_INVALID = 'CHUNK_INVALID',
 	CIRCULAR_CHUNK = 'CIRCULAR_CHUNK',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CONFLICTING_MODULE_ATTRIBUTES = 'CONFLICTING_MODULE_ATTRIBUTES',
 	CONST_REASSIGN = 'CONST_REASSIGN',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
@@ -140,6 +150,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	DUPLICATE_IMPORT_OPTIONS = 'DUPLICATE_IMPORT_OPTIONS',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
 	EMPTY_BUNDLE = 'EMPTY_BUNDLE',
+	EMPTY_MANUAL_CHUNK = 'EMPTY_MANUAL_CHUNK',
 	EVAL = 'EVAL',
 	EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS =
 		'EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS',
@@ -153,7 +164,6 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	FIRST_SIDE_EFFECT = 'FIRST_SIDE_EFFECT',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
-	INCONSISTENT_IMPORT_ATTRIBUTES = 'INCONSISTENT_IMPORT_ATTRIBUTES',
 	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
@@ -235,6 +245,15 @@ export function logAmbiguousExternalNamespaces(
 	};
 }
 
+export function logAmbiguousGlobalName(rawId: string, globalName: string): RollupLog {
+	return {
+		code: AMBIGUOUS_GLOBAL_NAME,
+		id: rawId,
+		message: `The object form of "output.globals" maps several import attribute variants of the external module "${rawId}" to the same global name "${globalName}". Use the function form of "output.globals" to give each variant its own global name.`,
+		url: getRollupUrl(URL_OUTPUT_GLOBALS)
+	};
+}
+
 export function logAnonymousPluginCache(): RollupLog {
 	return {
 		code: ANONYMOUS_PLUGIN_CACHE,
@@ -294,6 +313,29 @@ export function logCannotEmitFromOptionsHook(): RollupLog {
 	};
 }
 
+export function logUnknownNodeType(
+	type: string,
+	parentType: string | null,
+	field: string
+): RollupLog {
+	const location = parentType ? `in ${parentType}.${field}` : 'at the root';
+	return {
+		code: CANNOT_SERIALIZE_AST,
+		message: `Could not serialize AST: Found unknown node type "${type}" ${location}.`
+	};
+}
+
+export function logExpectedNodeList(
+	parentType: string | null,
+	field: string,
+	value: unknown
+): RollupLog {
+	return {
+		code: CANNOT_SERIALIZE_AST,
+		message: `Could not serialize AST: Expected ${parentType}.${field} to be an array, but it was ${JSON.stringify(value)}.`
+	};
+}
+
 export function logChunkNotGeneratedForFileName(name: string): RollupLog {
 	return {
 		code: CHUNK_NOT_GENERATED,
@@ -321,15 +363,25 @@ export function logCircularDependency(cyclePath: string[]): RollupLog {
 	};
 }
 
-export function logCircularChunk(cyclePath: string[], isManualChunkConflict: boolean): RollupLog {
+export function logCircularChunk(
+	cyclePath: string[],
+	manualChunkNames: readonly string[],
+	nonManualChunkName: string | undefined,
+	onlyExplicitManualChunks: boolean
+): RollupLog {
 	return {
 		code: CIRCULAR_CHUNK,
 		ids: cyclePath,
-		message: `Circular chunk: ${cyclePath.join(' -> ')}. ${
-			isManualChunkConflict
-				? `Please adjust the manual chunk logic for these chunks.`
-				: `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${cyclePath.at(-2)}" to be extracted into the separate chunk "${cyclePath.at(-1)}".`
-		}`
+		message:
+			manualChunkNames.length === 0
+				? `Circular chunk: ${cyclePath.join(' -> ')}.`
+				: `Circular chunk: ${cyclePath.join(' -> ')}. ${
+						nonManualChunkName === undefined
+							? `Please adjust the manual chunk logic for these chunks.`
+							: onlyExplicitManualChunks
+								? `Please consider disabling the "output.onlyExplicitManualChunks" option, as enabling it causes modules located between the modules included in the manual chunk "${manualChunkNames[0]}" to be extracted into the separate chunk "${nonManualChunkName}".`
+								: `Please adjust the manual chunks or the module structure.`
+					}`
 	};
 }
 
@@ -340,6 +392,19 @@ export function logCircularReexport(exportName: string, exporter: string): Rollu
 		message: `"${exportName}" cannot be exported from "${relativeId(
 			exporter
 		)}" as it is a reexport that references itself.`
+	};
+}
+
+export function logConflictingModuleAttributes(
+	rawId: string,
+	idAttributes: Record<string, string>,
+	attributes: Record<string, string>
+): RollupLog {
+	return {
+		code: CONFLICTING_MODULE_ATTRIBUTES,
+		message: `Cannot use the import attributes ${JSON.stringify(attributes)} for "${relativeId(
+			rawId
+		)}" as its module id already encodes the import attributes ${JSON.stringify(idAttributes)}.`
 	};
 }
 
@@ -420,6 +485,15 @@ export function logEmptyChunk(chunkName: string): RollupLog {
 	};
 }
 
+export function logEmptyManualChunk(alias: string): RollupLog {
+	return {
+		code: EMPTY_MANUAL_CHUNK,
+		message: `Manual chunk "${alias}" was not generated as none of its modules are included in the bundle.`,
+		names: [alias],
+		url: getRollupUrl(URL_OUTPUT_MANUALCHUNKS)
+	};
+}
+
 export function logEval(id: string): RollupLog {
 	return {
 		code: EVAL,
@@ -431,13 +505,17 @@ export function logEval(id: string): RollupLog {
 	};
 }
 
-export function logExternalSyntheticExports(id: string, importer: string): RollupLog {
+export function logExternalSyntheticExports(
+	id: string,
+	importer: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: EXTERNAL_SYNTHETIC_EXPORTS,
 		exporter: id,
-		message: `External "${id}" cannot have "syntheticNamedExports" enabled (imported by "${relativeId(
-			importer
-		)}").`
+		message: `External "${id}"${getImportAttributesSuffix(
+			attributes
+		)} cannot have "syntheticNamedExports" enabled (imported by "${relativeId(importer)}").`
 	};
 }
 
@@ -499,31 +577,11 @@ export function logIllegalImportReassignment(name: string, importingId: string):
 	};
 }
 
-export function logInconsistentImportAttributes(
-	existingAttributes: Record<string, string>,
-	newAttributes: Record<string, string>,
-	source: string,
-	importer: string
+export function logInvalidAnnotation(
+	comment: string,
+	id: string,
+	type: ast.AnnotationType
 ): RollupLog {
-	return {
-		code: INCONSISTENT_IMPORT_ATTRIBUTES,
-		message: `Module "${relativeId(importer)}" tried to import "${relativeId(
-			source
-		)}" with ${formatAttributes(
-			newAttributes
-		)} attributes, but it was already imported elsewhere with ${formatAttributes(
-			existingAttributes
-		)} attributes. Please ensure that import attributes for the same module are always consistent.`
-	};
-}
-
-const formatAttributes = (attributes: Record<string, string>): string => {
-	const entries = Object.entries(attributes);
-	if (entries.length === 0) return 'no';
-	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
-};
-
-export function logInvalidAnnotation(comment: string, id: string, type: AnnotationType): RollupLog {
 	return {
 		code: INVALID_ANNOTATION,
 		id,
@@ -782,13 +840,14 @@ export function logMissingGlobalName(externalId: string, guess: string): RollupL
 
 export function logImplicitDependantCannotBeExternal(
 	unresolvedId: string,
-	implicitlyLoadedBefore: string
+	implicitlyLoadedBefore: string,
+	attributes: Record<string, string>
 ): RollupLog {
 	return {
 		code: MISSING_IMPLICIT_DEPENDANT,
 		message: `Module "${relativeId(
 			unresolvedId
-		)}" that should be implicitly loaded before "${relativeId(
+		)}"${getImportAttributesSuffix(attributes)} that should be implicitly loaded before "${relativeId(
 			implicitlyLoadedBefore
 		)}" cannot be external.`
 	};
@@ -796,13 +855,14 @@ export function logImplicitDependantCannotBeExternal(
 
 export function logUnresolvedImplicitDependant(
 	unresolvedId: string,
-	implicitlyLoadedBefore: string
+	implicitlyLoadedBefore: string,
+	attributes: Record<string, string>
 ): RollupLog {
 	return {
 		code: MISSING_IMPLICIT_DEPENDANT,
 		message: `Module "${relativeId(
 			unresolvedId
-		)}" that should be implicitly loaded before "${relativeId(
+		)}"${getImportAttributesSuffix(attributes)} that should be implicitly loaded before "${relativeId(
 			implicitlyLoadedBefore
 		)}" could not be resolved.`
 	};
@@ -1141,17 +1201,27 @@ export function logUnknownOption(
 	};
 }
 
-export function logEntryCannotBeExternal(unresolvedId: string): RollupLog {
+export function logEntryCannotBeExternal(
+	unresolvedId: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
-		message: `Entry module "${relativeId(unresolvedId)}" cannot be external.`
+		message: `Entry module "${relativeId(
+			unresolvedId
+		)}"${getImportAttributesSuffix(attributes)} cannot be external.`
 	};
 }
 
-export function logExternalModulesCannotBeIncludedInManualChunks(source: string): RollupLog {
+export function logExternalModulesCannotBeIncludedInManualChunks(
+	source: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS,
-		message: `"${source}" cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
+		message: `"${source}"${getImportAttributesSuffix(
+			attributes
+		)} cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
 	};
 }
 
@@ -1162,30 +1232,43 @@ export function logExternalModulesCannotBeTransformedToModules(source: string): 
 	};
 }
 
-export function logUnresolvedEntry(unresolvedId: string): RollupLog {
+export function logUnresolvedEntry(
+	unresolvedId: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
-		message: `Could not resolve entry module "${relativeId(unresolvedId)}".`
+		message: `Could not resolve entry module "${relativeId(
+			unresolvedId
+		)}"${getImportAttributesSuffix(attributes)}.`
 	};
 }
 
-export function logUnresolvedImport(source: string, importer: string): RollupLog {
+export function logUnresolvedImport(
+	source: string,
+	importer: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_IMPORT,
 		exporter: source,
 		id: importer,
-		message: `Could not resolve "${source}" from "${relativeId(importer)}"`
+		message: `Could not resolve "${source}"${getImportAttributesSuffix(attributes)} from "${relativeId(importer)}"`
 	};
 }
 
-export function logUnresolvedImportTreatedAsExternal(source: string, importer: string): RollupLog {
+export function logUnresolvedImportTreatedAsExternal(
+	source: string,
+	importer: string,
+	attributes: Record<string, string>
+): RollupLog {
 	return {
 		code: UNRESOLVED_IMPORT,
 		exporter: source,
 		id: importer,
-		message: `"${source}" is imported by "${relativeId(
-			importer
-		)}", but could not be resolved – treating it as an external dependency.`,
+		message: `"${source}"${getImportAttributesSuffix(
+			attributes
+		)} is imported by "${relativeId(importer)}", but could not be resolved – treating it as an external dependency.`,
 		url: getRollupUrl(URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY)
 	};
 }

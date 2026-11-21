@@ -18,5 +18,5 @@
     "type": "git",
     "url": "git+https://github.com/rollup/rollup.git"
   },
-  "main": "./rollup.freebsd-arm64.node"
+  "main": "rollup.freebsd-arm64.node"
 }

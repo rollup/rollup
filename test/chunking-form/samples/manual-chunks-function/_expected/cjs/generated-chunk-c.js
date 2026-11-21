@@ -1,5 +1,5 @@
 'use strict';
 
-console.log('dep2');
+require('./generated-dep2.js');
 
 console.log('dep-c');

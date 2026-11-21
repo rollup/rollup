@@ -1,6 +1,4 @@
-define(['./generated-chunk-c', './generated-chunk-b'], (function (chunkC, chunkB) { 'use strict';
-
-	console.log('dep1');
+define(['./generated-chunk-c', './generated-dep1', './generated-chunk-b', './generated-dep2'], (function (chunkC, dep1, chunkB, dep2) { 'use strict';
 
 	console.log('dep-a');
 

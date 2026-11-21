@@ -5,7 +5,7 @@ import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
 import prettyBytes from 'pretty-bytes';
-import { runWithEcho } from '../helpers.js';
+import { runWithEcho } from '../helpers.ts';
 import reportCollector from './report-collector.js';
 import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.js';
 

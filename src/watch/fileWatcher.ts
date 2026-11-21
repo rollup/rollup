@@ -1,5 +1,5 @@
 import chokidar, { type FSWatcher } from 'chokidar';
-import { platform } from 'node:os';
+import { existsSync } from 'node:fs';
 import type { ChangeEvent, ChokidarOptions } from '../rollup/types';
 import type { Task } from './watch';
 
@@ -43,17 +43,12 @@ export class FileWatcher {
 
 	private createWatcher(transformWatcherId: string | null): FSWatcher {
 		const task = this.task;
-		const isLinux = platform() === 'linux';
-		const isFreeBSD = platform() === 'freebsd';
 		const isTransformDependency = transformWatcherId !== null;
 		const handleChange = (id: string, event: ChangeEvent) => {
 			const changedId = transformWatcherId || id;
-			if (isLinux || isFreeBSD) {
-				// unwatching and watching fixes an issue with chokidar where on certain systems,
-				// a file that was unlinked and immediately recreated would create a change event
-				// but then no longer any further events
-				watcher.unwatch(changedId);
-				watcher.add(changedId);
+			if (event === 'update' && !existsSync(changedId)) {
+				// There is no content left to load as the deletion that follows reports the removal.
+				return;
 			}
 			task.invalidate(changedId, { event, isTransformDependency });
 		};
