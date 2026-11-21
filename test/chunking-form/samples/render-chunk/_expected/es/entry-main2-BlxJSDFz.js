@@ -1,36 +1,36 @@
-import { n as num$1 } from './chunk-dep2-CQDaPkp1.js';
+import { n as num$1 } from './chunk-dep2-BeJ9ci04.js';
 
-var num = 1;
+var num = 3;
 console.log('referenced asset', new URL('asset-test-C4X7hChn', import.meta.url).href);
 
-console.log(num + num$1);
+console.log(num$1 + num);
 console.log('referenced asset', new URL('asset-test-C4X7hChn', import.meta.url).href);
 console.log({
   "exports": [],
-  "facadeModuleId": "**/main1.js",
+  "facadeModuleId": "**/main2.js",
   "isDynamicEntry": false,
   "isEntry": true,
   "isImplicitEntry": false,
   "moduleIds": [
-    "**/dep1.js",
-    "**/main1.js"
+    "**/dep3.js",
+    "**/main2.js"
   ],
-  "name": "main1",
+  "name": "main2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main1-Ckv7K5sz.js",
+  "fileName": "entry-main2-BlxJSDFz.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-CQDaPkp1.js": [
+    "chunk-dep2-BeJ9ci04.js": [
       "n"
     ]
   },
   "imports": [
-    "chunk-dep2-CQDaPkp1.js"
+    "chunk-dep2-BeJ9ci04.js"
   ],
   "modules": {
-    "**/dep1.js": {
-      "code": "var num = 1;\nconsole.log('referenced asset', new URL('asset-test-C4X7hChn', import.meta.url).href);",
+    "**/dep3.js": {
+      "code": "var num = 3;\nconsole.log('referenced asset', new URL('asset-test-C4X7hChn', import.meta.url).href);",
       "originalLength": 19,
       "removedExports": [],
       "renderedExports": [
@@ -38,8 +38,8 @@ console.log({
       ],
       "renderedLength": 99
     },
-    "**/main1.js": {
-      "code": "console.log(num + num$1);\nconsole.log('referenced asset', new URL('asset-test-C4X7hChn', import.meta.url).href);",
+    "**/main2.js": {
+      "code": "console.log(num$1 + num);\nconsole.log('referenced asset', new URL('asset-test-C4X7hChn', import.meta.url).href);",
       "originalLength": 102,
       "removedExports": [],
       "renderedExports": [],
@@ -50,5 +50,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-Ckv7K5sz.js","entry-main2-Ckd5ikIS.js","chunk-dep2-CQDaPkp1.js"])
+console.log('all chunks', ["entry-main1-i5EHma1g.js","entry-main2-BlxJSDFz.js","chunk-dep2-BeJ9ci04.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');

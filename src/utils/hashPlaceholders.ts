@@ -60,11 +60,11 @@ export const replaceSinglePlaceholder = (
 export const replacePlaceholdersWithDefaultAndGetContainedPlaceholders = (
 	code: string,
 	placeholders: Set<string>
-): { containedPlaceholders: Set<string>; transformedCode: string } => {
-	const containedPlaceholders = new Set<string>();
+): { containedPlaceholders: string[]; transformedCode: string } => {
+	const containedPlaceholders: string[] = [];
 	const transformedCode = code.replace(REPLACER_REGEX, placeholder => {
 		if (placeholders.has(placeholder)) {
-			containedPlaceholders.add(placeholder);
+			containedPlaceholders.push(placeholder);
 			return `${hashPlaceholderLeft}${'0'.repeat(
 				placeholder.length - hashPlaceholderOverhead
 			)}${hashPlaceholderRight}`;
