@@ -25,7 +25,7 @@ import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';
 
 interface HashResult {
-	containedPlaceholders: Set<string>;
+	containedPlaceholders: string[];
 	contentHash: string;
 }
 
@@ -334,7 +334,7 @@ function getChunkHash(
 	if (map && outputOptions.sourcemap !== 'hidden') {
 		// Normalize raw map data and file names before base64 or URL encoding
 		// can hide placeholders and make hashes depend on chunk order.
-		let sourcemapPlaceholders: Set<string>;
+		let sourcemapPlaceholders: string[];
 		if (outputOptions.sourcemap === 'inline') {
 			const { containedPlaceholders: inlinePlaceholders, transformedCode: sourcemapJson } =
 				replacePlaceholdersWithDefaultAndGetContainedPlaceholders(map.toString(), placeholders);
@@ -355,7 +355,7 @@ function getChunkHash(
 			);
 		}
 		for (const placeholder of sourcemapPlaceholders) {
-			containedPlaceholders.add(placeholder);
+			containedPlaceholders.push(placeholder);
 		}
 	}
 	if (hashAugmentation) {
@@ -398,17 +398,30 @@ function generateFinalHashes(
 	for (const placeholder of placeholders) {
 		const { fileName } = renderedChunksByPlaceholder.get(placeholder)!;
 		let contentToHash = '';
-		const hashDependencyPlaceholders = new Set<string>([placeholder]);
-		for (const dependencyPlaceholder of hashDependencyPlaceholders) {
+		let repeatedReferences = '';
+		// First references determine traversal order. Record the positions and targets
+		// of later references, which the traversal order alone cannot distinguish.
+		const dependencyIndices = new Map([[placeholder, 0]]);
+		for (const [dependencyPlaceholder, sourceIndex] of dependencyIndices) {
 			const { containedPlaceholders, contentHash } =
 				hashDependenciesByPlaceholder.get(dependencyPlaceholder)!;
 			contentToHash += contentHash;
-			for (const containedPlaceholder of containedPlaceholders) {
-				// When looping over a map, setting an entry only causes a new iteration if the key is new
-				hashDependencyPlaceholders.add(containedPlaceholder);
+			for (const [referenceIndex, containedPlaceholder] of containedPlaceholders.entries()) {
+				const targetIndex = dependencyIndices.get(containedPlaceholder);
+				if (targetIndex === undefined) {
+					dependencyIndices.set(containedPlaceholder, dependencyIndices.size);
+				} else {
+					repeatedReferences += `:${sourceIndex},${referenceIndex},${targetIndex}`;
+				}
 			}
 		}
-		const finalHash = getUniqueHash(contentToHash, fileName, placeholder, usedFileNames, getHash);
+		const finalHash = getUniqueHash(
+			dependencyIndices.size === 1 ? contentToHash : contentToHash + repeatedReferences,
+			fileName,
+			placeholder,
+			usedFileNames,
+			getHash
+		);
 		bundle[replaceSinglePlaceholder(fileName, placeholder, finalHash)] = FILE_PLACEHOLDER;
 		hashesByPlaceholder.set(placeholder, finalHash);
 	}
