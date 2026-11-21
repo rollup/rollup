@@ -1,4 +1,4 @@
-System.register(['./chunk-dep2-C9ddpexS.js'], (function (exports, module) {
+System.register(['./chunk-dep2-B-WHSQJz.js'], (function (exports, module) {
 	'use strict';
 	var num$1;
 	return {
@@ -29,15 +29,15 @@ console.log({
   "name": "main2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main2-ByL47NtH.js",
+  "fileName": "entry-main2-BM5Ea84c.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-C9ddpexS.js": [
+    "chunk-dep2-B-WHSQJz.js": [
       "n"
     ]
   },
   "imports": [
-    "chunk-dep2-C9ddpexS.js"
+    "chunk-dep2-B-WHSQJz.js"
   ],
   "modules": {
     "**/dep3.js": {
@@ -61,5 +61,5 @@ console.log({
     "asset-test-C4X7hChn"
   ]
 });
-console.log('all chunks', ["entry-main1-Jmzu7nOJ.js","entry-main2-ByL47NtH.js","chunk-dep2-C9ddpexS.js"])
+console.log('all chunks', ["entry-main1-FmKOEelS.js","entry-main2-BM5Ea84c.js","chunk-dep2-B-WHSQJz.js"])
 console.log('referenced asset in renderChunk', 'asset-test-C4X7hChn');
