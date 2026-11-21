@@ -658,6 +658,11 @@ function resolveNamespaceVariables(
 	if (!baseVariable.isNamespace || baseVariable instanceof ExternalVariable) return null;
 	const exportName = path[0].key;
 	const [variable, options] = (baseVariable as NamespaceVariable).context.traceExport(exportName);
+	if (variable && options?.indirectExternal) {
+		// The external export set is unknown, so the member must stay a dynamic access.
+		variable.includePath(EMPTY_PATH, createInclusionContext());
+		return null;
+	}
 	if (!variable) {
 		if (path.length === 1) {
 			const fileName = (baseVariable as NamespaceVariable).context.fileName;
