@@ -58,6 +58,8 @@ Details and buffer-format contracts: see `rust/AGENTS.md`
 - `npm run update:napi` - Rebuild Rust NAPI, copy to dist/; run this after any change to `rust/`
 - `npm run build:quick` - `update:napi` plus a CJS-only JS rebuild that deletes `dist/es` and skips the browser build; tests needing `dist/es` are then silently skipped — use only for `solo` loops
 - `npm run build:copy-native` - Copy root `rollup.<platform>.node` to dist/ (called internally by update commands; `build:napi` alone does not copy)
+- `npm run build:rust-licenses` - Regenerate `licenses/rust.json` from the Cargo dependency graph; run after changing `rust/Cargo.lock`
+- `npm run build:licenses` - Assemble `LICENSE.md` and `browser/LICENSE.md` from the committed fragments in `licenses/`
 
 ### Full Build Commands
 
