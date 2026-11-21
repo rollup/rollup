@@ -12,6 +12,7 @@ import { moduleAliases } from './build-plugins/aliases';
 import { chokidarChangeThrottleReplacement } from './build-plugins/chokidar-change-throttle-replacement';
 import { chokidarReaddirThrottleReplacement } from './build-plugins/chokidar-readdir-throttle-replacement';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
+import getLicenseFragmentCollector from './build-plugins/collect-license-fragment';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import { emitNativeEntry } from './build-plugins/emit-native-entry';
@@ -19,7 +20,6 @@ import emitWasmFile from './build-plugins/emit-wasm-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
-import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
 import loadCliHelp from './build-plugins/load-cli-help';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
@@ -60,8 +60,8 @@ const nodePlugins: readonly Plugin[] = [
 export default async function getConfig(
 	command: Record<string, unknown>
 ): Promise<RollupOptions | RollupOptions[]> {
-	const { collectLicenses, writeLicense } = getLicenseHandler(
-		fileURLToPath(new URL('.', import.meta.url))
+	const nodeLicenseDependencies = getLicenseFragmentCollector(
+		fileURLToPath(new URL('licenses/javascript-node.json', import.meta.url))
 	);
 
 	const commonJSBuild: RollupOptions = {
@@ -92,7 +92,7 @@ export default async function getConfig(
 			emitNativeEntry(),
 			addCliEntry(),
 			esmDynamicImport(),
-			!command.configTest && collectLicenses(),
+			nodeLicenseDependencies.collector(),
 			copyNodeTypes()
 		],
 		strictDeprecations: true,
@@ -117,15 +117,21 @@ export default async function getConfig(
 			minifyInternalExports: false,
 			sourcemap: false
 		},
-		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
+		plugins: [
+			...nodePlugins,
+			emitModulePackageFile(),
+			nodeLicenseDependencies.collector(),
+			nodeLicenseDependencies.writer()
+		]
 	};
 
 	if (command.configIsBuildNode) {
 		return [commonJSBuild, esmBuild];
 	}
 
-	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
-		getLicenseHandler(fileURLToPath(new URL('browser', import.meta.url)));
+	const browserLicenseDependencies = getLicenseFragmentCollector(
+		fileURLToPath(new URL('licenses/javascript-browser.json', import.meta.url))
+	);
 
 	const browserBuilds: RollupOptions = {
 		input: 'src/browser-entry.ts',
@@ -154,8 +160,8 @@ export default async function getConfig(
 			commonjs(),
 			typescript(),
 			terser({ module: true, output: { comments: 'some' } }),
-			collectLicensesBrowser(),
-			writeLicenseBrowser(),
+			browserLicenseDependencies.collector(),
+			browserLicenseDependencies.writer(),
 			cleanBeforeWrite('browser/dist'),
 			emitWasmFile()
 		],
