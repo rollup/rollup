@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 4.68.8
+
+_2026-11-21_
+
+### Bug Fixes
+
+- Hoist namespace objects if necessary to avoid broken output (#6672)
+- Do not try to auto-install source-map-support as it was causing some issues (#6682)
+
+### Pull Requests
+
+- [#6672](https://github.com/rollup/rollup/pull/6672): Create namespace objects early when a cycle can read them before their module runs (@waw666waw666)
+- [#6673](https://github.com/rollup/rollup/pull/6673): docs: explain why async methods are preferred in plugins (@CharoenwitKunna, @lukastaegert)
+- [#6674](https://github.com/rollup/rollup/pull/6674): docs: document warning and error properties (@CharoenwitKunna, @lukastaegert)
+- [#6675](https://github.com/rollup/rollup/pull/6675): docs: document dynamic expressions in import() (@CharoenwitKunna, @lukastaegert)
+- [#6676](https://github.com/rollup/rollup/pull/6676): docs: clarify that --perf omits asynchronous plugin hook time (@CharoenwitKunna, @lukastaegert)
+- [#6678](https://github.com/rollup/rollup/pull/6678): Update dtolnay/rust-toolchain digest to 3900882 (@renovate[bot], @lukastaegert)
+- [#6679](https://github.com/rollup/rollup/pull/6679): Update minor/patch updates (@renovate[bot])
+- [#6680](https://github.com/rollup/rollup/pull/6680): Update dependency eslint-plugin-unicorn to v80 (@renovate[bot])
+- [#6681](https://github.com/rollup/rollup/pull/6681): Lock file maintenance (@renovate[bot])
+- [#6682](https://github.com/rollup/rollup/pull/6682): fix(cli): stop installing source-map-support (@lukastaegert)
+
 ## 4.68.7
 
 _2026-11-18_
