@@ -7,9 +7,10 @@ import {
 	classifyLicenseText,
 	compareStrings,
 	getTextId,
-	hasConcreteCopyrightNotice,
+	isCopyrightNotice,
 	normalizeText,
-	parseLicenseIds
+	parseLicenseIds,
+	splitLicenseText
 } from './license-texts.js';
 
 const REPOSITORY_ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -48,15 +49,16 @@ const ARTIFACTS = [
 ];
 
 /**
- * A license text is printed once at the end if it is a recognized license text
- * that does not name a copyright holder; everything else stays with the package
- * that ships it, so that notices keep their attribution.
+ * License texts are split into the notices of the package that ships them and a
+ * reusable body. Bodies of recognized license texts are printed once at the end
+ * of the file, so the same license text is never repeated for each dependency.
  *
  * @typedef {{ authors?: string[]; license: string | null; name: string; repository: string | null; texts: string[] }} FragmentPackage
  * @typedef {{ packages: FragmentPackage[]; texts: Record<string, string> }} Fragment
  * @typedef {{ packages: FragmentPackage[]; texts: Map<string, string>; title: string }} Section
  * @typedef {{ package: FragmentPackage; section: Section }} PackageRecord
- * @typedef {{ hoisted: boolean; label: string | null; licenseId: string | null; owner: PackageRecord | null; text: string }} TextInfo
+ * @typedef {{ attribution: string[]; bodyKey: string | null }} TextInfo
+ * @typedef {{ body: string; label: string | null; licenseId: string | null }} BodyInfo
  */
 
 /**
@@ -136,11 +138,117 @@ function quote(text) {
 }
 
 /**
- * @param {PackageRecord} record
- * @param {Map<string, TextInfo>} textInfos
+ * @param {string} body
  * @return {string}
  */
-function renderPackageBlock(record, textInfos) {
+function getBodyKey(body) {
+	return body.replaceAll(/\s+/g, '');
+}
+
+/**
+ * @param {readonly PackageRecord[]} records
+ * @return {{ bodies: Map<string, BodyInfo>; textInfos: Map<string, TextInfo> }}
+ */
+function indexLicenseTexts(records) {
+	/** @type {Map<string, TextInfo>} */
+	const textInfos = new Map();
+	/** @type {Map<string, BodyInfo>} */
+	const bodies = new Map();
+	for (const record of records) {
+		for (const textId of record.package.texts) {
+			let textInfo = textInfos.get(textId);
+			if (!textInfo) {
+				const text = record.section.texts.get(textId);
+				if (text === undefined) {
+					throw new Error(`Unknown license text ${textId} for ${record.package.name}`);
+				}
+				const { attribution, body } = splitLicenseText(text);
+				const bodyKey = body ? getBodyKey(body) : null;
+				textInfo = { attribution, bodyKey };
+				textInfos.set(textId, textInfo);
+				if (body && bodyKey && !bodies.has(bodyKey)) {
+					const licenseId = classifyLicenseText(body);
+					bodies.set(bodyKey, { body, label: null, licenseId });
+				}
+			}
+		}
+	}
+	assignBodyLabels(bodies);
+	return { bodies, textInfos };
+}
+
+/**
+ * @param {Map<string, BodyInfo>} bodies
+ * @return {void}
+ */
+function assignBodyLabels(bodies) {
+	const hoistedBodies = getSortedHoistedBodies(bodies);
+	const bodyCounts = new Map();
+	for (const bodyInfo of hoistedBodies) {
+		const licenseId = bodyInfo.licenseId ?? '';
+		bodyCounts.set(licenseId, (bodyCounts.get(licenseId) ?? 0) + 1);
+	}
+	const assignedCounts = new Map();
+	for (const bodyInfo of hoistedBodies) {
+		const licenseId = bodyInfo.licenseId ?? '';
+		const count = (assignedCounts.get(licenseId) ?? 0) + 1;
+		assignedCounts.set(licenseId, count);
+		bodyInfo.label = bodyCounts.get(licenseId) === 1 ? licenseId : `${licenseId} (${count})`;
+	}
+}
+
+/**
+ * @param {Map<string, BodyInfo>} bodies
+ * @return {BodyInfo[]}
+ */
+function getSortedHoistedBodies(bodies) {
+	return [...bodies.values()]
+		.filter(bodyInfo => bodyInfo.licenseId !== null)
+		.sort(
+			(bodyInfoA, bodyInfoB) =>
+				compareStrings(bodyInfoA.licenseId ?? '', bodyInfoB.licenseId ?? '') ||
+				compareStrings(bodyInfoA.body, bodyInfoB.body)
+		);
+}
+
+/**
+ * A package that declares an "A AND B" license but ships only one of the texts is
+ * legal to publish, but almost always a packaging mistake.
+ *
+ * @param {readonly PackageRecord[]} records
+ * @param {Map<string, TextInfo>} textInfos
+ * @param {Map<string, BodyInfo>} bodies
+ * @return {void}
+ */
+function warnAboutUncoveredLicenseIds(records, textInfos, bodies) {
+	for (const { package: fragmentPackage } of records) {
+		const ownLicenseIds = new Set();
+		for (const textId of fragmentPackage.texts) {
+			const bodyKey = textInfos.get(textId)?.bodyKey;
+			const licenseId = bodyKey ? bodies.get(bodyKey)?.licenseId : null;
+			if (licenseId) ownLicenseIds.add(licenseId);
+		}
+		if (ownLicenseIds.size === 0) continue;
+		for (const conjunct of (fragmentPackage.license ?? '').split(/\s+AND\s+/)) {
+			const alternativeLicenseIds = parseLicenseIds(conjunct).filter(
+				licenseId => !licenseId.includes(' WITH ')
+			);
+			if (alternativeLicenseIds.length === 0) continue;
+			if (alternativeLicenseIds.some(licenseId => ownLicenseIds.has(licenseId))) continue;
+			console.warn(
+				`${fragmentPackage.name} declares "${fragmentPackage.license}" but ships no text for ${conjunct.trim()}.`
+			);
+		}
+	}
+}
+
+/**
+ * @param {PackageRecord} record
+ * @param {Map<string, TextInfo>} textInfos
+ * @param {Map<string, BodyInfo>} bodies
+ * @return {string}
+ */
+function renderPackageBlock(record, textInfos, bodies) {
 	const { package: fragmentPackage } = record;
 	const lines = [`## ${fragmentPackage.name}`];
 	if (fragmentPackage.license) lines.push(`License: ${fragmentPackage.license}`);
@@ -148,19 +256,25 @@ function renderPackageBlock(record, textInfos) {
 	if (fragmentPackage.repository) lines.push(`Repository: ${fragmentPackage.repository}`);
 	const references = [];
 	const inlineTexts = [];
+	const attribution = [];
 	for (const textId of fragmentPackage.texts) {
 		const textInfo = textInfos.get(textId);
 		if (!textInfo) throw new Error(`Unknown license text ${textId} for ${fragmentPackage.name}`);
-		if (textInfo.hoisted) {
-			references.push(`see ${textInfo.label} below`);
-		} else if (textInfo.owner === record) {
-			inlineTexts.push(textInfo.text);
-		} else if (textInfo.owner) {
-			const licenseId = textInfo.licenseId ? `${textInfo.licenseId} ` : '';
-			references.push(`${licenseId}same as ${textInfo.owner.package.name}`);
+		for (const line of textInfo.attribution) attribution.push(line);
+		if (!textInfo.bodyKey) continue;
+		const bodyInfo = bodies.get(textInfo.bodyKey);
+		if (!bodyInfo) throw new Error(`Unknown license text body for ${fragmentPackage.name}`);
+		if (bodyInfo.licenseId) {
+			references.push(`see ${bodyInfo.label} below`);
+		} else {
+			inlineTexts.push(bodyInfo.body);
 		}
 	}
 	if (references.length > 0) lines.push(`License text: ${references.join(', ')}`);
+	const attributionLines = [...new Set(attribution)].sort(
+		(lineA, lineB) => Number(isCopyrightNotice(lineB)) - Number(isCopyrightNotice(lineA))
+	);
+	if (attributionLines.length > 0) lines.push('', quote(attributionLines.join('\n')));
 	for (const text of inlineTexts) lines.push('', quote(text));
 	return lines.join('\n');
 }
@@ -181,46 +295,8 @@ function renderLicenseFile(sections, coreLicenseText) {
 		}
 	}
 
-	/** @type {Map<string, TextInfo>} */
-	const textInfos = new Map();
-	for (const record of records) {
-		for (const textId of record.package.texts) {
-			let textInfo = textInfos.get(textId);
-			if (!textInfo) {
-				const text = record.section.texts.get(textId);
-				if (text === undefined) {
-					throw new Error(`Unknown license text ${textId} for ${record.package.name}`);
-				}
-				const licenseId = classifyLicenseText(text);
-				textInfo = {
-					hoisted: licenseId !== null && !hasConcreteCopyrightNotice(text),
-					label: null,
-					licenseId,
-					owner: null,
-					text
-				};
-				textInfos.set(textId, textInfo);
-			}
-			if (!textInfo.owner) textInfo.owner = record;
-		}
-	}
-
-	const hoistedTextInfos = [...textInfos.values()].filter(textInfo => textInfo.hoisted);
-	hoistedTextInfos.sort((textInfoA, textInfoB) =>
-		compareStrings(textInfoA.licenseId ?? '', textInfoB.licenseId ?? '')
-	);
-	const hoistedCounts = new Map();
-	for (const textInfo of hoistedTextInfos) {
-		const licenseId = textInfo.licenseId ?? '';
-		hoistedCounts.set(licenseId, (hoistedCounts.get(licenseId) ?? 0) + 1);
-	}
-	const assignedHoistedCounts = new Map();
-	for (const textInfo of hoistedTextInfos) {
-		const licenseId = textInfo.licenseId ?? '';
-		const count = (assignedHoistedCounts.get(licenseId) ?? 0) + 1;
-		assignedHoistedCounts.set(licenseId, count);
-		textInfo.label = hoistedCounts.get(licenseId) === 1 ? licenseId : `${licenseId} (${count})`;
-	}
+	const { bodies, textInfos } = indexLicenseTexts(records);
+	warnAboutUncoveredLicenseIds(records, textInfos, bodies);
 
 	const licenseIds = new Set();
 	for (const { package: fragmentPackage } of records) {
@@ -239,15 +315,16 @@ function renderLicenseFile(sections, coreLicenseText) {
 		parts.push(
 			`# ${section.title}\n` +
 				sectionRecords
-					.map(record => renderPackageBlock(record, textInfos))
+					.map(record => renderPackageBlock(record, textInfos, bodies))
 					.join(`\n\n${SEPARATOR}\n\n`)
 		);
 	}
-	if (hoistedTextInfos.length > 0) {
+	const hoistedBodies = getSortedHoistedBodies(bodies);
+	if (hoistedBodies.length > 0) {
 		parts.push(
 			`# License texts\n` +
-				hoistedTextInfos
-					.map(textInfo => `## ${textInfo.label}\n\n${quote(textInfo.text)}`)
+				hoistedBodies
+					.map(bodyInfo => `## ${bodyInfo.label}\n\n${quote(bodyInfo.body)}`)
 					.join(`\n\n${SEPARATOR}\n\n`)
 		);
 	}
