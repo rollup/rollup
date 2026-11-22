@@ -635,6 +635,11 @@ jobs:
         id: run-tests
         continue-on-error: true
         run: bash scripts/coverage.sh ci:coverage
+      - name: Check generated license files
+        run: |
+          npm run build:rust-licenses
+          npm run build:licenses
+          git diff --exit-code -- LICENSE.md browser/LICENSE.md licenses/
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

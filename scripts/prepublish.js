@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { cp, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +30,7 @@ await runPublish('npm', ['publish'], {
 	skipIfAlreadyPublished: true
 });
 await publishWasmNodePackage();
+await copyLicenseFileToPlatformPackages();
 
 const { optionalDependencies } = await readJson(MAIN_PACKAGE);
 // napi echoes the "already published" error for every package it skips, so that text in the
@@ -47,6 +48,19 @@ await writeFile(
 	MAIN_PACKAGE,
 	JSON.stringify({ ...mainPackage, optionalDependencies: publishedOptionalDependencies }, null, 2)
 );
+
+/**
+ * npm always includes a LICENSE.md from the package directory, so the platform
+ * packages receive the license file without listing it in their "files" field.
+ */
+async function copyLicenseFileToPlatformPackages() {
+	const platformDirectories = await readdir('npm', { withFileTypes: true });
+	await Promise.all(
+		platformDirectories
+			.filter(entry => entry.isDirectory())
+			.map(entry => cp('LICENSE.md', path.join('npm', entry.name, 'LICENSE.md')))
+	);
+}
 
 /**
  * @param {boolean} isPreRelease
