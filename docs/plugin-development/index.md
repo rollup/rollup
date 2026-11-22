@@ -61,7 +61,7 @@ export default ({
 - Plugins should have a clear name with `rollup-plugin-` prefix.
 - Include `rollup-plugin` keyword in `package.json`.
 - Plugins should be tested. We recommend [mocha](https://github.com/mochajs/mocha) or [ava](https://github.com/avajs/ava) which support Promises out of the box.
-- Use asynchronous methods when it is possible, e.g. `fs.readFile` instead of `fs.readFileSync`.
+- Use asynchronous methods when it is possible, e.g. `fs.readFile` instead of `fs.readFileSync`. Rollup is scheduling a lot of file system IO and other async operations in parallel. If all of those were synchronous, it would have devastating effects for the performance in large projects.
 - Document your plugin in English.
 - Make sure your plugin outputs correct source mappings if appropriate.
 - If your plugin uses 'virtual modules' (e.g. for helper functions), prefix the module ID with `\0`. This prevents other plugins from trying to process it.
@@ -1285,7 +1285,7 @@ type ResolveFileUrlHook = (options: {
 
 Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
 
-For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
+In browsers, all formats except ES modules and SystemJS rely on `URL`, `document` and the document base URL for this, as described in [File URLs](#file-urls). In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
 - `attributes`: The import attributes of the module that references this file.
 - `chunkId`: The id of the chunk this file is referenced from. If the chunk file name would contain a hash, this id will contain a placeholder instead. Rollup will replace this placeholder with the actual file name if it ends up in the generated code.
@@ -1322,7 +1322,7 @@ function resolveToDocumentPlugin() {
 
 Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
 
-By default, for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
+By default, for all formats except ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk: the loader-provided `module.meta.url` for SystemJS, `module.uri` resolved against the document base URL for AMD, or the URL of the current script or the document base URL for `iife`, `umd` and CommonJS output in browsers. The caveats described in [File URLs](#file-urls) apply to `iife`, `umd` and CommonJS and, whenever the AMD loader returns relative module URLs (the RequireJS default), to AMD as well. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
 
 This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. The `attributes` parameter contains the import attributes of the module. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
 
@@ -1999,7 +1999,17 @@ If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to
 
 ## File URLs
 
-To reference a file URL reference from within JS code, use the `import.meta.ROLLUP_FILE_URL_referenceId` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
+To reference a file URL reference from within JS code, use the `import.meta.ROLLUP_FILE_URL_referenceId` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment.
+
+For `iife`, `umd` and CommonJS output in browsers, the URL is resolved against the URL of the currently executing script, falling back to `document.baseURI`. For `amd`, the path is resolved via `require.toUrl` and the result against `document.baseURI`, so an injected `<base>` affects it whenever the loader returns relative URLs, which RequireJS does unless `baseUrl` is absolute. ES modules and SystemJS instead use the module URL provided by the runtime or loader and are not affected. The script URL is only available while the chunk executes: when an emitted file URL is resolved later, for example in an asynchronous callback, `document.currentScript` is `null` and the path is resolved relative to the document instead of the chunk. In contrast, `import.meta.url` in `iife`, `umd` and CommonJS output captures the executing script once, when the chunk's code starts running, so later reads still return the script URL, although reading its `src` still follows the current document base URL. If no script with a `src` is executing at that point — for example when an AMD loader runs the `umd` factory after the script has executed, or when CommonJS code is required lazily — the chunk's file name is resolved against `document.baseURI`.
+
+::: warning
+
+Browsers resolve the `src` of a script element against the document base URL that is active when it is read, not against the URL the script was loaded from. An attacker who can inject a `<base>` element — plain HTML is enough, no script execution required — can therefore make the generated code resolve emitted files against their origin. If such a URL is used to load a script, that script runs in your page.
+
+Restrict `<base>` elements with a `base-uri` Content Security Policy such as `base-uri 'none'`, and strip `<base>` from untrusted HTML. Alternatively, resolve against an explicit absolute URL: use [`resolveFileUrl`](#resolvefileurl) for emitted files and [`resolveImportMeta`](#resolveimportmeta) for `import.meta.url`, as neither hook covers the other's references. You can also emit ES modules or SystemJS instead. Avoid passing URLs derived from `import.meta.url` or emitted files to script loading APIs.
+
+:::
 
 The following example will detect imports of `.svg` files, emit the imported files as assets, and return their URLs to be used e.g. as the `src` attribute of an `img` tag:
 

@@ -41,7 +41,7 @@ import {
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import type { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
-import { resolveId } from './utils/resolveId';
+import { resolveId, withDefaultResolvedBy } from './utils/resolveId';
 import stripBom from './utils/stripBom';
 import transform from './utils/transform';
 import { URL_LOAD } from './utils/urls';
@@ -606,7 +606,7 @@ export class ModuleLoader {
 				dynamicImport.node.shouldIncludeDynamicAttributes = true;
 			} else {
 				dynamicImport.node.shouldIncludeDynamicAttributes = !!resolvedId.external;
-				dynamicImport.id = resolvedId.id;
+				dynamicImport.resolution = resolvedId;
 			}
 			return [dynamicImport, resolvedId] as const;
 		});
@@ -760,11 +760,13 @@ export class ModuleLoader {
 		importer: string,
 		attributes: Record<string, string>
 	): Promise<ResolvedId | string | null> {
-		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
+		const pluginResult = await this.pluginDriver.hookFirstAndGetPlugin('resolveDynamicImport', [
 			specifier,
 			importer,
 			{ attributes, importerAttributes: module.info.attributes }
 		]);
+		const resolution = pluginResult && pluginResult[0];
+		const resolvedBy = resolution ? pluginResult[1].name : undefined;
 		if (typeof specifier !== 'string') {
 			if (typeof resolution === 'string') {
 				return resolution;
@@ -773,7 +775,7 @@ export class ModuleLoader {
 				return null;
 			}
 			return this.getResolvedIdWithDefaults(
-				resolution as NormalizedResolveIdWithoutDefaults,
+				withDefaultResolvedBy(resolution as NormalizedResolveIdWithoutDefaults, resolvedBy),
 				attributes
 			);
 		}
@@ -807,9 +809,14 @@ export class ModuleLoader {
 				attributes
 			));
 		}
+		const normalizedResolution = this.getNormalizedResolvedIdWithoutDefaults(
+			resolution,
+			importer,
+			specifier
+		);
 		return this.handleInvalidResolvedId(
 			this.getResolvedIdWithDefaults(
-				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier),
+				normalizedResolution && withDefaultResolvedBy(normalizedResolution, resolvedBy),
 				attributes
 			),
 			specifier,

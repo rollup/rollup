@@ -81,7 +81,7 @@ export default class Variable extends ExpressionEntity {
 
 	getBaseVariableName(): string {
 		return (
-			this.renderedLikeHoisted?.getBaseVariableName() ||
+			this.getNamingVariable()?.getBaseVariableName() ||
 			this.renderBaseName ||
 			this.renderName ||
 			this.name
@@ -98,8 +98,9 @@ export default class Variable extends ExpressionEntity {
 		if (useOriginalName?.(this)) {
 			return this.name;
 		}
-		if (this.renderedLikeHoisted) {
-			return this.renderedLikeHoisted.getName(getPropertyAccess, useOriginalName);
+		const namingVariable = this.getNamingVariable();
+		if (namingVariable) {
+			return namingVariable.getName(getPropertyAccess, useOriginalName);
 		}
 		const name = this.renderName || this.name;
 		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
@@ -125,11 +126,20 @@ export default class Variable extends ExpressionEntity {
 	}
 
 	/**
-	 * Links the rendered name of this variable to another variable and includes
-	 * this variable if the other variable is included.
+	 * Links this variable to a hoisted variable. Including this variable then
+	 * includes the hoisted variable, and while the hoisted variable renders as an
+	 * identifier, this variable renders with its name.
 	 */
 	renderLikeHoisted(variable: Variable): void {
 		this.renderedLikeHoisted = variable;
+	}
+
+	getHoistedVariable(): Variable | undefined {
+		return this.renderedLikeHoisted;
+	}
+
+	private getNamingVariable(): Variable | undefined {
+		return this.renderedLikeHoisted?.renderBaseName === null ? this.renderedLikeHoisted : undefined;
 	}
 
 	markCalledFromTryStatement(): void {}

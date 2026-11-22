@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
+import { renderSystemExportForLoop } from '../../utils/systemJsRendering';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
@@ -61,6 +62,9 @@ export default class ForInStatement extends StatementBase {
 			code.prependLeft(this.right.start, ' ');
 		}
 		this.body.render(code, options);
+		if (options.format === 'system') {
+			renderSystemExportForLoop(this.left, this.body, code, options);
+		}
 	}
 
 	applyDeoptimizations() {

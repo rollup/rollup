@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
+import { isDeclaredWithoutBinding } from '../../utils/reassignedExportsMember';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -35,6 +35,18 @@ export default class VariableDeclaration extends NodeBase {
 	declare declarations: readonly VariableDeclarator[];
 	declare kind: VariableDeclarationKind;
 	declare type: NodeType.tVariableDeclaration;
+
+	addExportedVariables(
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+	): void {
+		// Only `var` is hoisted to the surrounding scope, so only those bindings can
+		// be the exported ones. `let` and `const` in a loop head are new bindings.
+		if (this.kind !== 'var') return;
+		for (const declarator of this.declarations) {
+			declarator.id.addExportedVariables(variables, exportNamesByVariable);
+		}
+	}
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
@@ -88,6 +100,14 @@ export default class VariableDeclaration extends NodeBase {
 		options: RenderOptions,
 		nodeRenderOptions: NodeRenderOptions = BLANK
 	): void {
+		// A `var` declaration can be the body of a for-in/of loop. Only the
+		// left-hand side is a loop head. Rewriting that head as a statement
+		// inserts a semicolon and turns `for (var name of ...)` into invalid code.
+		// Exported `var` bindings are updated from the loop body instead.
+		if (this.isForInOfHead()) {
+			this.renderForInOfHead(code, options);
+			return;
+		}
 		if (this.areAllDeclarationsIncludedAndNotExported(options.exportNamesByVariable)) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
@@ -98,8 +118,52 @@ export default class VariableDeclaration extends NodeBase {
 			) {
 				code.appendLeft(this.end, ';');
 			}
+		} else if (this.isInSingleStatementPosition()) {
+			this.renderSingleStatementDeclaration(
+				code,
+				options,
+				nodeRenderOptions.isNoStatement === true
+			);
 		} else {
-			this.renderReplacedDeclarations(code, options);
+			this.renderReplacedDeclarations(code, options, nodeRenderOptions.isNoStatement === true);
+		}
+	}
+
+	private isForInOfHead(): boolean {
+		const parent = this.parent;
+		return (
+			(parent.type === NodeType.ForOfStatement || parent.type === NodeType.ForInStatement) &&
+			(parent as { left?: unknown }).left === this
+		);
+	}
+
+	isInSingleStatementPosition(): boolean {
+		const { type } = this.parent;
+		return !(
+			type === NodeType.Program ||
+			type === NodeType.BlockStatement ||
+			type === NodeType.StaticBlock ||
+			type === NodeType.SwitchCase ||
+			type === NodeType.ExportNamedDeclaration
+		);
+	}
+
+	private renderForInOfHead(code: MagicString, options: RenderOptions): void {
+		const declarator = this.declarations[0];
+		if (
+			declarator.id instanceof Identifier &&
+			isDeclaredWithoutBinding(declarator.id.variable!, options.exportNamesByVariable)
+		) {
+			// `for (var name of xs)` declares `name`, but a reassigned export is
+			// rendered as `exports.name`, and a catch parameter shadowing one must
+			// stay an assignment. Keeping `var`, or synthesizing `= void 0` because
+			// the declarator has no initializer, is a syntax error.
+			code.remove(this.start, declarator.id.start);
+			declarator.id.render(code, options);
+			return;
+		}
+		for (const eachDeclarator of this.declarations) {
+			eachDeclarator.render(code, options);
 		}
 	}
 
@@ -110,14 +174,21 @@ export default class VariableDeclaration extends NodeBase {
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		systemPatternExports: readonly Variable[],
-		options: RenderOptions
+		options: RenderOptions,
+		omitTrailingSemicolon: boolean
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		separatorString += ';';
+		// A for-loop initializer is not a statement. The separator after it
+		// belongs to the for statement, so another semicolon makes the head invalid.
+		if (!omitTrailingSemicolon) {
+			separatorString += ';';
+		}
 		if (lastSeparatorPos === null) {
-			code.appendLeft(renderedContentEnd, separatorString);
+			if (separatorString) {
+				code.appendLeft(renderedContentEnd, separatorString);
+			}
 		} else {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
@@ -144,7 +215,11 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private renderReplacedDeclarations(code: MagicString, options: RenderOptions): void {
+	private renderReplacedDeclarations(
+		code: MagicString,
+		options: RenderOptions,
+		omitTrailingSemicolon: boolean
+	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
@@ -166,6 +241,7 @@ export default class VariableDeclaration extends NodeBase {
 			options,
 			aggregatedSystemExports
 		);
+		const { exportNamesByVariable } = options;
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
 				treeshakeNode(node, code, start, end);
@@ -174,14 +250,14 @@ export default class VariableDeclaration extends NodeBase {
 			node.render(code, options);
 			leadingString = '';
 			nextSeparatorString = '';
-			if (
+			const rendersAsAssignment =
 				!node.id.included ||
 				(node.id instanceof Identifier &&
-					isReassignedExportsMember(
+					isDeclaredWithoutBinding(
 						(node.id as IdentifierWithVariable).variable,
-						options.exportNamesByVariable
-					))
-			) {
+						exportNamesByVariable
+					));
+			if (rendersAsAssignment) {
 				if (hasRenderedContent) {
 					separatorString += ';';
 				}
@@ -226,8 +302,122 @@ export default class VariableDeclaration extends NodeBase {
 			actualContentEnd!,
 			renderedContentEnd,
 			aggregatedSystemExports,
-			options
+			options,
+			omitTrailingSemicolon
 		);
+	}
+
+	private renderSingleStatementDeclaration(
+		code: MagicString,
+		options: RenderOptions,
+		omitTrailingSemicolon: boolean
+	): void {
+		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
+			this.declarations,
+			code,
+			this.start + this.kind.length,
+			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
+		);
+		let actualContentEnd: number | undefined, renderedContentEnd: number;
+		renderedContentEnd = findNonWhiteSpace(code.original, this.start + this.kind.length);
+		let lastSeparatorPos = renderedContentEnd - 1;
+		code.remove(this.start, lastSeparatorPos);
+		let hasRenderedContent = false;
+		let lastRenderedContentEnd = renderedContentEnd;
+		let separatorString = '';
+		const trailingSystemExports: Variable[] = [];
+		const {
+			exportNamesByVariable,
+			snippets: { _, getPropertyAccess }
+		} = options;
+		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
+			if (!node.included) {
+				treeshakeNode(node, code, start, end);
+				continue;
+			}
+			node.render(code, options);
+			if (options.format === 'system') {
+				this.renderSingleStatementSystemExports(
+					node,
+					separator,
+					contentEnd,
+					code,
+					options,
+					trailingSystemExports
+				);
+			}
+			let leadingString = '';
+			const rendersAsAssignment =
+				node.id instanceof Identifier &&
+				isDeclaredWithoutBinding(node.id.variable!, exportNamesByVariable);
+			if (hasRenderedContent) {
+				separatorString = ',';
+			} else if (!rendersAsAssignment) {
+				leadingString = `${this.kind} `;
+			}
+			if (renderedContentEnd === lastSeparatorPos + 1) {
+				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString + leadingString);
+			} else {
+				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.appendLeft(renderedContentEnd, leadingString);
+			}
+			actualContentEnd = contentEnd;
+			renderedContentEnd = end;
+			lastRenderedContentEnd = separator === null ? contentEnd : separator;
+			hasRenderedContent = true;
+			lastSeparatorPos = separator!;
+			separatorString = '';
+		}
+		if (trailingSystemExports.length > 0) {
+			const name = trailingSystemExports[0].getName(getPropertyAccess);
+			code.appendLeft(
+				lastRenderedContentEnd,
+				`,${_}${name}${_}=${_}(${getSystemExportStatement(
+					trailingSystemExports,
+					options
+				)},${_}${name})`
+			);
+		}
+		this.renderDeclarationEnd(
+			code,
+			separatorString,
+			lastSeparatorPos,
+			actualContentEnd!,
+			renderedContentEnd,
+			[],
+			options,
+			omitTrailingSemicolon
+		);
+	}
+
+	private renderSingleStatementSystemExports(
+		node: VariableDeclarator,
+		separator: number | null,
+		contentEnd: number,
+		code: MagicString,
+		options: RenderOptions,
+		trailingSystemExports: Variable[]
+	): void {
+		const { exportNamesByVariable } = options;
+		if (node.id instanceof Identifier) {
+			const variable = node.id.variable!;
+			const exportNames = exportNamesByVariable.get(variable);
+			if (!node.init || !exportNames) return;
+			if (exportNames.length === 1) {
+				const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
+				renderSystemExportExpression(
+					variable,
+					findNonWhiteSpace(code.original, operatorPos + 1),
+					separator === null ? contentEnd : separator,
+					code,
+					options
+				);
+			} else {
+				trailingSystemExports.push(variable);
+			}
+		} else {
+			node.id.addExportedVariables(trailingSystemExports, exportNamesByVariable);
+		}
 	}
 
 	private areAllDeclarationsIncludedAndNotExported(
@@ -239,7 +429,12 @@ export default class VariableDeclaration extends NodeBase {
 		for (const declarator of this.declarations) {
 			if (!declarator.id.included) return false;
 			if (declarator.id.type === NodeType.Identifier) {
-				if (exportNamesByVariable.has(declarator.id.variable!)) return false;
+				if (
+					exportNamesByVariable.has(declarator.id.variable!) ||
+					isDeclaredWithoutBinding(declarator.id.variable!, exportNamesByVariable)
+				) {
+					return false;
+				}
 			} else {
 				const exportedVariables: Variable[] = [];
 				declarator.id.addExportedVariables(exportedVariables, exportNamesByVariable);

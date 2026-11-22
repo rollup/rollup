@@ -5,6 +5,8 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import Identifier from './ast/nodes/Identifier';
 import type ImportExpression from './ast/nodes/ImportExpression';
 import { formatsMaybeAccessDocumentCurrentScript } from './ast/nodes/MetaProperty';
+import VariableDeclaration from './ast/nodes/VariableDeclaration';
+import VariableDeclarator from './ast/nodes/VariableDeclarator';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import type ExternalVariable from './ast/variables/ExternalVariable';
@@ -979,7 +981,7 @@ export default class Chunk {
 					(variable.isReassigned && this.exportNamesByVariable.get(variable)!.length > 1) ||
 					// Pattern bindings are plain locals; a trailing assignment
 					// would lose later reassignments.
-					(variable.isTargetOfAssignment && isDeclaredInDestructuringPattern(variable))
+					(variable.isTargetOfAssignment && cannotBeRenderedAsExportsMember(variable))
 			});
 		}
 		return exports;
@@ -1338,6 +1340,59 @@ export default class Chunk {
 		}
 	}
 
+	// Namespace objects that can be read before their module ran are created at
+	// the top of the chunk. This is computed per chunk as it depends on which
+	// modules are part of it.
+	private getHoistedNamespaces(): Set<NamespaceVariable> {
+		const namespaces: NamespaceVariable[] = [];
+		for (const module of this.orderedModules) {
+			if (this.includedNamespaces.has(module)) {
+				namespaces.push(module.namespace);
+			}
+		}
+		const hoistedNamespaces = new Set<NamespaceVariable>();
+		for (const namespace of namespaces) {
+			if (namespace.isReferencedEarly() && this.canHoistNamespace(namespace)) {
+				hoistedNamespaces.add(namespace);
+			}
+		}
+		// A namespace object that is a member of another namespace object can be
+		// read through that object as soon as it is created. Repeat until nothing
+		// changes to cover chains of namespaces.
+		let hasHoistedNamespace = true;
+		while (hasHoistedNamespace) {
+			hasHoistedNamespace = false;
+			for (const namespace of namespaces) {
+				const isNamespaceHoisted = hoistedNamespaces.has(namespace);
+				for (const memberNamespace of namespace.getIncludedMemberNamespaces()) {
+					if (
+						!hoistedNamespaces.has(memberNamespace) &&
+						this.chunkByModule.get(memberNamespace.module) === this &&
+						(isNamespaceHoisted || namespace.module.execIndex < memberNamespace.module.execIndex) &&
+						this.canHoistNamespace(memberNamespace)
+					) {
+						hoistedNamespaces.add(memberNamespace);
+						hasHoistedNamespace = true;
+					}
+				}
+			}
+		}
+		return hoistedNamespaces;
+	}
+
+	// Merged namespaces are read when the namespace object is created. A merged
+	// namespace that is rendered as a variable of this chunk does not exist yet
+	// at the top of the chunk.
+	private canHoistNamespace(namespace: NamespaceVariable): boolean {
+		for (const variable of namespace.getMergedNamespaces()) {
+			const { module } = getRenderedVariable(variable);
+			if (module instanceof Module && this.chunkByModule.get(module) === this) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	// This method changes properties on the AST before rendering and must not be async
 	private renderModules(fileName: string) {
 		const {
@@ -1364,6 +1419,7 @@ export default class Chunk {
 		this.setDynamicImportResolutions(fileName);
 		this.setImportMetaResolutions(fileName);
 		this.setIdentifierRenderResolutions();
+		const hoistedNamespaces = this.getHoistedNamespaces();
 
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		const indent = getIndentString(orderedModules, outputOptions);
@@ -1410,8 +1466,9 @@ export default class Chunk {
 				}
 				const namespace = module.namespace;
 				if (includedNamespaces.has(module)) {
-					const rendered = namespace.renderBlock(renderOptions);
-					if (namespace.renderFirst()) hoistedSource += n + rendered;
+					const isHoisted = hoistedNamespaces.has(namespace);
+					const rendered = namespace.renderBlock(renderOptions, isHoisted);
+					if (isHoisted) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));
 				}
 				const accessedGlobalVariables = accessedGlobalsByScope.get(module.scope);
@@ -1516,7 +1573,7 @@ export default class Chunk {
 				format !== 'system' &&
 				exportVariable.isReassigned &&
 				!exportVariable.isId &&
-				!isDeclaredInDestructuringPattern(exportVariable)
+				!cannotBeRenderedAsExportsMember(exportVariable)
 			) {
 				exportVariable.setRenderNames('exports', unescapeExportName(exportName));
 			} else if (exportVariable instanceof SyntheticNamedExportVariable) {
@@ -1588,13 +1645,8 @@ export default class Chunk {
 				}
 			}
 		}
-		for (let variable of moduleImports) {
-			if (variable instanceof ExportDefaultVariable) {
-				variable = variable.getOriginalVariable();
-			}
-			if (variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.getBaseVariable();
-			}
+		for (const importedVariable of moduleImports) {
+			const variable = getRenderedVariable(importedVariable);
 			const chunk = this.chunkByModule.get(variable.module as Module);
 			if (chunk !== this) {
 				this.imports.add(variable);
@@ -1632,8 +1684,25 @@ export default class Chunk {
 	}
 }
 
+function getRenderedVariable(variable: Variable): Variable {
+	if (variable instanceof ExportDefaultVariable) {
+		variable = variable.getOriginalVariable();
+	}
+	if (variable instanceof SyntheticNamedExportVariable) {
+		variable = variable.getBaseVariable();
+	}
+	return variable;
+}
+
 function getChunkNameFromModule(module: Module): string {
 	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
+}
+
+function cannotBeRenderedAsExportsMember(variable: Variable): boolean {
+	return (
+		isDeclaredInDestructuringPattern(variable) ||
+		isDeclaredInMultiDeclaratorSingleStatement(variable)
+	);
 }
 
 function isDeclaredInDestructuringPattern(variable: Variable): boolean {
@@ -1643,6 +1712,24 @@ function isDeclaredInDestructuringPattern(variable: Variable): boolean {
 			declaration =>
 				declaration instanceof Identifier && declaration.isDeclarationInDestructuringPattern()
 		)
+	);
+}
+
+function isDeclaredInMultiDeclaratorSingleStatement(variable: Variable): boolean {
+	return (
+		variable instanceof LocalVariable &&
+		(variable.declarations as Identifier[]).some(declaration => {
+			const declarator = declaration.parent;
+			if (!(declarator instanceof VariableDeclarator) || declarator.id !== declaration) {
+				return false;
+			}
+			const declarationNode = declarator.parent;
+			return (
+				declarationNode instanceof VariableDeclaration &&
+				declarationNode.declarations.length > 1 &&
+				declarationNode.isInSingleStatementPosition()
+			);
+		})
 	);
 }
 

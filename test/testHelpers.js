@@ -206,6 +206,45 @@ exports.normaliseOutput = function normaliseOutput(code) {
 	return code.toString().trim().replace(/\r\n/g, '\n');
 };
 
+exports.getSystemExportRecorder = function getSystemExportRecorder() {
+	let execute;
+	const exportHistory = [];
+	const recordSystemExport = (name, value) => {
+		if (typeof name === 'object' && name !== null) {
+			for (const key of Object.keys(name)) {
+				exportHistory.push([key, name[key]]);
+			}
+			return name;
+		}
+		exportHistory.push([name, value]);
+		return value;
+	};
+	const valuesOf = name => exportHistory.filter(([key]) => key === name).map(([, value]) => value);
+	return {
+		context: {
+			System: {
+				register(_dependencies, declaration) {
+					({ execute } = declaration(recordSystemExport));
+				}
+			}
+		},
+		execute() {
+			return execute();
+		},
+		valuesOf,
+		definedValues(name) {
+			return valuesOf(name).filter(value => value !== undefined);
+		},
+		last(name) {
+			const values = valuesOf(name);
+			if (values.length === 0) {
+				throw new Error(`No exported values for "${name}"`);
+			}
+			return values[values.length - 1];
+		}
+	};
+};
+
 /**
  * @template {TestConfigBase} C
  * @param {string} suiteName

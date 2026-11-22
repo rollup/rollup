@@ -1,5 +1,101 @@
 # rollup changelog
 
+## 4.68.8
+
+_2026-11-21_
+
+### Bug Fixes
+
+- Hoist namespace objects if necessary to avoid broken output (#6672)
+- Do not try to auto-install source-map-support as it was causing some issues (#6682)
+
+### Pull Requests
+
+- [#6672](https://github.com/rollup/rollup/pull/6672): Create namespace objects early when a cycle can read them before their module runs (@waw666waw666)
+- [#6673](https://github.com/rollup/rollup/pull/6673): docs: explain why async methods are preferred in plugins (@CharoenwitKunna, @lukastaegert)
+- [#6674](https://github.com/rollup/rollup/pull/6674): docs: document warning and error properties (@CharoenwitKunna, @lukastaegert)
+- [#6675](https://github.com/rollup/rollup/pull/6675): docs: document dynamic expressions in import() (@CharoenwitKunna, @lukastaegert)
+- [#6676](https://github.com/rollup/rollup/pull/6676): docs: clarify that --perf omits asynchronous plugin hook time (@CharoenwitKunna, @lukastaegert)
+- [#6678](https://github.com/rollup/rollup/pull/6678): Update dtolnay/rust-toolchain digest to 3900882 (@renovate[bot], @lukastaegert)
+- [#6679](https://github.com/rollup/rollup/pull/6679): Update minor/patch updates (@renovate[bot])
+- [#6680](https://github.com/rollup/rollup/pull/6680): Update dependency eslint-plugin-unicorn to v80 (@renovate[bot])
+- [#6681](https://github.com/rollup/rollup/pull/6681): Lock file maintenance (@renovate[bot])
+- [#6682](https://github.com/rollup/rollup/pull/6682): fix(cli): stop installing source-map-support (@lukastaegert)
+
+## 4.68.7
+
+_2026-11-18_
+
+### Bug Fixes
+
+- Revert previous fix as it was breaking bundling in certain cases (#6671)
+
+### Pull Requests
+
+- [#6671](https://github.com/rollup/rollup/pull/6671): Revert previous fix to fail with a parse error instead of exhausting the native stack (@lukastaegert)
+
+## 4.68.6
+
+_2026-11-18_
+
+### Bug Fixes
+
+- Fail the build with a parse error instead of a native stack overflow for deeply nested expressions (#6669)
+
+### Pull Requests
+
+- [#6669](https://github.com/rollup/rollup/pull/6669): fix: fail with a parse error instead of exhausting the native stack (@lukastaegert)
+
+## 4.68.5
+
+_2026-11-17_
+
+### Bug Fixes
+
+- Improve handling of repeated file updates in watch mode for Linux and Windows (#6637)
+- Properly handle `this` in JSX member expressions (#6654)
+
+### Pull Requests
+
+- [#6637](https://github.com/rollup/rollup/pull/6637): Rebuild with the latest content when a watched file changes in quick succession (@privatenumber, @lukastaegert)
+- [#6654](https://github.com/rollup/rollup/pull/6654): Keep `this` in JSX member expressions (@luantaraschi, @lukastaegert)
+- [#6667](https://github.com/rollup/rollup/pull/6667): Migrate Renovate config (@renovate[bot])
+
+## 4.68.4
+
+_2026-11-16_
+
+### Bug Fixes
+
+- Ensure that mutations of arguments to certain global methods are respected in analysis (#6661)
+- Ensure dynamic imports resolution via plugin is handled equivalently to regular dynamic imports (#6665)
+
+### Pull Requests
+
+- [#6661](https://github.com/rollup/rollup/pull/6661): Deoptimize arguments that known globals expose via their return value (@waw666waw666)
+- [#6665](https://github.com/rollup/rollup/pull/6665): Fix resolution info for dynamic imports resolved by plugins (@TrickyPi, @lukastaegert)
+- [#6666](https://github.com/rollup/rollup/pull/6666): Document base URL caveats for emitted file URLs (@lukastaegert)
+
+## 4.68.3
+
+_2026-11-13_
+
+### Bug Fixes
+
+- Fix generated code in non-ESM formats for assignments and exported declarations in loops and single-statement bodies (#6651)
+- Ensure rollup does not make assumptions about the contents of an array where the length has been reassigned (#6655)
+
+### Pull Requests
+
+- [#6651](https://github.com/rollup/rollup/pull/6651): Fix system format updates for destructuring and for-loop assignments (@rome-xi, @lukastaegert)
+- [#6655](https://github.com/rollup/rollup/pull/6655): Deoptimize array elements when the length is assigned (@waw666waw666, @lukastaegert)
+- [#6657](https://github.com/rollup/rollup/pull/6657): docs: remove the dead repl.it reproduction option from the bug report template (@abd1rahmane, @lukastaegert)
+- [#6658](https://github.com/rollup/rollup/pull/6658): Update minor/patch updates (@renovate[bot])
+- [#6659](https://github.com/rollup/rollup/pull/6659): Lock file maintenance (@renovate[bot])
+- [#6660](https://github.com/rollup/rollup/pull/6660): Lock file maintenance (@renovate[bot])
+- [#6662](https://github.com/rollup/rollup/pull/6662): Update minor/patch updates (@renovate[bot], @lukastaegert)
+- [#6663](https://github.com/rollup/rollup/pull/6663): Lock file maintenance (@renovate[bot])
+
 ## 4.68.2
 
 _2026-11-09_

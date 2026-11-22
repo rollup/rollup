@@ -382,6 +382,8 @@ Specifies the format of the generated bundle. One of the following:
 - `umd` – Universal Module Definition, works as `amd`, `cjs` and `iife` all in one
 - `system` – Native format of the SystemJS loader (alias: `systemjs`)
 
+In browsers, all formats except ES modules and SystemJS resolve `import.meta.url` and emitted file URLs via the current script or the document base URL, so they depend on the document base URL. See [File URLs](../plugin-development/index.md#file-urls) for the resulting caveats.
+
 ### output.globals
 
 |  |  |
@@ -2870,6 +2872,8 @@ Unfortunately, due to the way chunking works, chunk size is measured before any 
 | Default: | `false`              |
 
 Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](../javascript-api/index.md), the returned bundle object will contain an additional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
+
+Note that plugin hook timings only include the synchronous time spent in a hook until it first yields to the event loop. Time spent in asynchronous hooks running in parallel is not attributed, as those timings would be misleading.
 
 `getTimings()` returns an object of the following form:
 

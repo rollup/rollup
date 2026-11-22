@@ -56,7 +56,12 @@ async function runTest(config) {
 
 		const spawnOptions = {
 			timeout: 40_000,
-			env: { ...process.env, FORCE_COLOR: '0', ...config.env },
+			env: {
+				...process.env,
+				FORCE_COLOR: '0',
+				NODE_OPTIONS: [process.env.NODE_OPTIONS, '--enable-source-maps'].filter(Boolean).join(' '),
+				...config.env
+			},
 			killSignal: 'SIGKILL'
 		};
 		const childProcess = config.spawnArgs

@@ -389,6 +389,13 @@ export default {
 };
 ```
 
+## Warning and error properties
+
+When Rollup creates a warning or error that originates from a plugin, it adds two properties:
+
+- `plugin` is added by Rollup to designate which plugin caused the warning or error. Plugins do not need to set it themselves.
+- For warnings from plugins, `code` is always `PLUGIN_WARNING`. If a plugin sets a `code` to identify a specific warning, Rollup copies that code to `pluginCode`.
+
 ## Accessing the parser
 
 In order to parse arbitrary code using Rollup's parser, plugins can use [`this.parse`](../plugin-development/index.md#this-parse). To use this functionality outside the context of a Rollup build, the parser is also exposed as a separate export. It has the same signature as `this.parse`:

@@ -65,25 +65,12 @@ export default class ThisExpression extends NodeBase {
 		} else if (path.length > 0) {
 			this.variable.includePath(path, context);
 		}
-		const functionScope = findFunctionScope(this.scope, this.variable);
-		if (
-			functionScope &&
-			functionScope.functionNode.parent instanceof Property &&
-			functionScope.functionNode.parent.parent instanceof ObjectExpression
-		) {
-			functionScope.functionNode.parent.parent.includePath(path, context);
-		}
+		includeThisPathInObjectLiteral(this.scope, this.variable, path, context);
 	}
 
 	initialise(): void {
 		super.initialise();
-		this.alias =
-			this.scope.findLexicalBoundary() instanceof ModuleScope
-				? this.scope.context.moduleContext
-				: null;
-		if (this.alias === 'undefined') {
-			this.scope.context.log(LOGLEVEL_WARN, logThisIsUndefined(), this.start);
-		}
+		this.alias = getTopLevelThisAlias(this.scope, this.start);
 	}
 
 	render(code: MagicString): void {
@@ -93,6 +80,33 @@ export default class ThisExpression extends NodeBase {
 				storeName: true
 			});
 		}
+	}
+}
+
+export function getTopLevelThisAlias(scope: ChildScope, position: number): string | null {
+	if (!(scope.findLexicalBoundary() instanceof ModuleScope)) {
+		return null;
+	}
+	const { moduleContext } = scope.context;
+	if (moduleContext === 'undefined') {
+		scope.context.log(LOGLEVEL_WARN, logThisIsUndefined(), position);
+	}
+	return moduleContext;
+}
+
+export function includeThisPathInObjectLiteral(
+	scope: ChildScope,
+	thisVariable: Variable,
+	path: ObjectPath,
+	context: InclusionContext
+): void {
+	const functionScope = findFunctionScope(scope, thisVariable);
+	if (
+		functionScope &&
+		functionScope.functionNode.parent instanceof Property &&
+		functionScope.functionNode.parent.parent instanceof ObjectExpression
+	) {
+		functionScope.functionNode.parent.parent.includePath(path, context);
 	}
 }
 
