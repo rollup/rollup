@@ -61,15 +61,23 @@ const STANDARD_LIBRARY = {
  */
 
 /**
+ * CI exports `CARGO_TERM_COLOR=always`, which would wrap parts of the output in
+ * ANSI escapes and break parsing, so color is disabled explicitly.
+ *
  * @param {string[]} parameters
  * @return {Promise<string>}
  */
 async function runCargo(parameters) {
-	const { stdout } = await execFileAsync('cargo', parameters, {
-		cwd: RUST_DIRECTORY,
-		encoding: 'utf8',
-		maxBuffer: 64 * 1024 * 1024
-	});
+	const [subcommand, ...commandArguments] = parameters;
+	const { stdout } = await execFileAsync(
+		'cargo',
+		[subcommand, '--color', 'never', ...commandArguments],
+		{
+			cwd: RUST_DIRECTORY,
+			encoding: 'utf8',
+			maxBuffer: 64 * 1024 * 1024
+		}
+	);
 	return stdout;
 }
 
