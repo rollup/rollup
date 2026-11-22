@@ -79,6 +79,64 @@ describe('loadConfigFile', () => {
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
 	});
 
+	it('applies environment options before evaluating an ESM config', async () => {
+		const previousInput = process.env.ROLLUP_TEST_CONFIG_INPUT;
+		delete process.env.ROLLUP_TEST_CONFIG_INPUT;
+		try {
+			const { options } = await loadConfigFile(
+				path.resolve(__dirname, 'samples/environment/rollup.config.mjs'),
+				{ environment: 'ROLLUP_TEST_CONFIG_INPUT:myfile' }
+			);
+			assert.strictEqual(options[0].input, 'myfile');
+			assert.strictEqual(process.env.ROLLUP_TEST_CONFIG_INPUT, 'myfile');
+		} finally {
+			if (previousInput === undefined) {
+				delete process.env.ROLLUP_TEST_CONFIG_INPUT;
+			} else {
+				process.env.ROLLUP_TEST_CONFIG_INPUT = previousInput;
+			}
+		}
+	});
+
+	it('applies environment options before evaluating a CommonJS config', async () => {
+		const keys = [
+			'ROLLUP_TEST_CONFIG_INPUT',
+			'ROLLUP_TEST_CONFIG_FLAG',
+			'ROLLUP_TEST_CONFIG_EMPTY',
+			'ROLLUP_TEST_CONFIG_HOST'
+		];
+		const previousValues = keys.map(key => process.env[key]);
+		process.env.ROLLUP_TEST_CONFIG_INPUT = 'previous-input';
+		process.env.ROLLUP_TEST_CONFIG_EMPTY = 'previous-value';
+		try {
+			const configFile = path.resolve(__dirname, 'samples/environment/rollup.config.cjs');
+			const { options } = await loadConfigFile(configFile, {
+				environment: [
+					'ROLLUP_TEST_CONFIG_INPUT:first,ROLLUP_TEST_CONFIG_FLAG,ROLLUP_TEST_CONFIG_EMPTY:',
+					'ROLLUP_TEST_CONFIG_HOST:http://localhost:4000,ROLLUP_TEST_CONFIG_INPUT:myfile'
+				]
+			});
+			assert.deepStrictEqual(options[0].input, ['myfile', 'true', '', 'http://localhost:4000']);
+			assert.deepStrictEqual(
+				keys.map(key => process.env[key]),
+				options[0].input
+			);
+
+			const environment = { ...process.env };
+			await loadConfigFile(configFile);
+			assert.deepStrictEqual({ ...process.env }, environment);
+		} finally {
+			for (const [index, key] of keys.entries()) {
+				const previousValue = previousValues[index];
+				if (previousValue === undefined) {
+					delete process.env[key];
+				} else {
+					process.env[key] = previousValue;
+				}
+			}
+		}
+	});
+
 	it('throws a helpful error when loading an ES module that should actually be CommonJS', async () => {
 		let caughtError;
 		try {

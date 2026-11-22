@@ -1,4 +1,3 @@
-import { env } from 'node:process';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { logDuplicateImportOptions, logFailAfterWarnings } from '../../src/utils/logs';
 import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
@@ -10,6 +9,7 @@ import { getConfigPath } from './getConfigPath';
 import { loadConfigFile } from './loadConfigFile';
 import type { BatchWarnings } from './loadConfigFileType';
 import loadConfigFromCommand from './loadConfigFromCommand';
+import { setEnvironment } from './setEnvironment';
 
 export default async function runRollup(command: Record<string, any>): Promise<void> {
 	let inputSource;
@@ -39,18 +39,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 		}
 	}
 
-	if (command.environment) {
-		const environment = Array.isArray(command.environment)
-			? command.environment
-			: [command.environment];
-
-		for (const argument of environment) {
-			for (const pair of argument.split(',')) {
-				const [key, ...value] = pair.split(':');
-				env[key] = value.length === 0 ? String(true) : value.join(':');
-			}
-		}
-	}
+	setEnvironment(command.environment);
 
 	if (isWatchEnabled(command.watch)) {
 		await loadFsEvents();
