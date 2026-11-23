@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import type { FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import { NODE_DATA_OFFSET, NODE_END_OFFSET, NODE_START_OFFSET } from './buffer-layout.ts';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
@@ -41,12 +42,6 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	for (const [fieldName, { value: fieldValue }] of Object.entries(node.additionalFields || {})) {
 		definitions.push(`node.${fieldName} = ${fieldValue};\n`);
 	}
-	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
-		needsScope = true;
-		definitions.push(
-			`node.${fieldName} = ${fieldName}Position === 0 ? node.${fallbackName} : convertNode(node, scope, ${fieldName}Position, buffer);\n`
-		);
-	}
 	if (needsScope) {
 		definitions.unshift('const {scope} = node;');
 	}
@@ -78,7 +73,8 @@ function getFieldDefinition(
 					/\$type([A-Z]\w+)\b/g,
 					(_, typeName) =>
 						`${astNodeNamesWithFieldOrder.findIndex(astNode => astNode.name === typeName)}`
-				),
+				)
+				.replace(/\$flagsOffset/g, `${NODE_DATA_OFFSET}`),
 			needsScope: true
 		};
 	}
@@ -92,18 +88,15 @@ function getFieldDefinition(
 	switch (field.type) {
 		case 'Node': {
 			if (field.allowNull) {
-				let definition = `const ${field.name}Position = ${dataStart};`;
-				let needsScope = false;
-				if (!node.optionalFallback?.[field.name]) {
-					needsScope = true;
-					let additionalDefinition = `\n${assignmentLeftHand}${field.name}Position === 0 ? null : convertNode(node, ${scope}, ${field.name}Position, buffer)`;
-					if (node.postProcessFields?.[field.name]) {
-						const [variableName, postProcess] = node.postProcessFields[field.name];
-						additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
-					}
-					definition += additionalDefinition;
+				let additionalDefinition = `\n${assignmentLeftHand}${field.name}Position === 0 ? null : convertNode(node, ${scope}, ${field.name}Position, buffer)`;
+				if (node.postProcessFields?.[field.name]) {
+					const [variableName, postProcess] = node.postProcessFields[field.name];
+					additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
 				}
-				return { definition, needsScope };
+				return {
+					definition: `const ${field.name}Position = ${dataStart};${additionalDefinition}`,
+					needsScope: true
+				};
 			}
 			return {
 				definition: `${assignmentLeftHand}convertNode(node, ${scope}, ${dataStart}, buffer);`,
@@ -224,9 +217,9 @@ function convertNode(
   }
   const node = new NodeConstructor(parent, parentScope);
   node.type = nodeTypeStrings[nodeType] as any;
-  node.start = buffer[position + 1];
-  node.end = buffer[position + 2];
-  bufferParsers[nodeType](node, position + 3, buffer);
+  node.start = buffer[position + ${NODE_START_OFFSET}];
+  node.end = buffer[position + ${NODE_END_OFFSET}];
+  bufferParsers[nodeType](node, position + ${NODE_DATA_OFFSET}, buffer);
   node.initialise();
   return node;
 }

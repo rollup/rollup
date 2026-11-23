@@ -79,7 +79,8 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 
 ##### Lazy and Binary ASTs
 
-- `moduleInfo.ast` now returns a new lazy AST on each access whose nested properties are only materialized when they are accessed; mutating the AST is no longer supported as changes are not persisted and may throw (#6257)
+- `moduleInfo.ast` now returns a new lazy AST on each access whose nested properties are only materialized when they are accessed; its properties are not own properties, so spreading it, `Object.keys` or `JSON.stringify` only expose scalar values like `start` and `end` and drop `type` and child nodes; mutating the AST is no longer supported as changes are not persisted and may throw (#6257, #6640)
+- Lazy AST nodes are instances of classes that keep their buffer private, so reading their child nodes or `parent` through a `Proxy` or through an object inheriting from a node throws a `TypeError` (#6640)
 - The `ast` passed to the `shouldTransformCachedModule` hook is now a lazy AST as well (#6257)
 - ASTs returned from the `load` or `transform` hooks are now serialized into a binary buffer before Rollup uses them; this carries a performance penalty, should be avoided and might be deprecated in the future; it also discards extra properties of AST nodes and throws a `CANNOT_SERIALIZE_AST` error for node types that are not known to Rollup instead of supporting custom AST nodes (#6257)
 - The `signal` option of `parseAstAsync` has been removed as it could not abort an ongoing parsing but at best prevent a not-yet-started parsing, which made its effect unpredictable (#6271)
@@ -112,6 +113,11 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - `RenderedModule` gained `rawId` and `attributes` while `PreRenderedChunk` gained `facadeModuleRawId` and `facadeModuleAttributes` (#6266)
 - Manual chunks that are only loaded via dynamic imports now behave like dynamic entries, so modules that are already loaded when the manual chunk is imported stay in the importing chunk (#6533)
 - The `CIRCULAR_CHUNK` warning now only gives manual chunk advice when a manual chunk is part of the cycle, and that advice depends on `onlyExplicitManualChunks` (#6533)
+- The `attributes` option of `this.load` now determines which module instance is loaded, so resolutions returned by `this.resolve` can be passed to it directly, and attributes that contradict those encoded in the id, e.g. an id taken from `moduleInfo`, throw a `CONFLICTING_MODULE_ATTRIBUTES` error (#6653)
+- The object form of `output.manualChunks` now also accepts modules with import attributes, given as `{ rawId, attributes }` objects or as ids that encode the attributes (#6653)
+- `importedIdResolutions` and `dynamicallyImportedIdResolutions` now use the new `ResolvedImport` type, which includes the `rawId` of the module (#6653)
+- Lazy ASTs now expose a `parent` link, including the nodes passed to `parseAndWalk` visitors, which is typed per node type via the new `ast.ParentOf` and `ast.LazyNode` types (#6640)
+- Lazy AST nodes are instances of one generated class per node type, which reduces the memory needed to materialize a full AST by about 15% (#6640)
 
 ### Bug Fixes
 
@@ -120,6 +126,7 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - When the same dynamic import is reached from several entries, the dynamically imported chunk no longer imports from an unrelated entry chunk and thereby runs that entry's side effects (#6533)
 - Chunks emitted with `implicitlyLoadedAfterOneOf` are no longer missing from the output when their module is fully tree-shaken, e.g. when using `preserveModules`, which made `this.getFileName` throw for their reference id (#6533)
 - Builds no longer stall without an error message when `load` hooks await `this.load` while all `maxParallelFileOps` slots are taken (#6586)
+- Invalid dynamic import attributes now emit the `INVALID_IMPORT_ATTRIBUTE` warning only once (#6653)
 
 ### Pull Requests
 
@@ -139,6 +146,11 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - [#6585](https://github.com/rollup/rollup/pull/6585): [v5.0] Call assetFileNames only once per deduplicated asset (@lukastaegert)
 - [#6586](https://github.com/rollup/rollup/pull/6586): [v5.0] Let maxParallelFileOps only limit file operations via the fs API (@lukastaegert)
 - [#6599](https://github.com/rollup/rollup/pull/6599): [v5.0] Update chokidar to v6 (@lukastaegert)
+- [#6597](https://github.com/rollup/rollup/pull/6597): [v5.0] Update dependency pretty-ms to v10 (@renovate[bot])
+- [#6619](https://github.com/rollup/rollup/pull/6619): [v5.0] Remove and activate deprecated features (@lukastaegert)
+- [#6624](https://github.com/rollup/rollup/pull/6624): [v5.0] Improve migration guide and changelog (@lukastaegert)
+- [#6653](https://github.com/rollup/rollup/pull/6653): [v5.0] Respect import attributes in this.load and related APIs (@TrickyPi)
+- [#6640](https://github.com/rollup/rollup/pull/6640): Add parent links to lazy ASTs and make lazy traversal fast (@lukastaegert)
 
 For previous changelogs, see
 

@@ -7,6 +7,7 @@ use swc_config::is_module::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsSyntax, Syntax};
 
+use convert_ast::converter::ast_constants::WORD_SIZE;
 use convert_ast::converter::AstConverter;
 use error_emit::try_with_handler;
 
@@ -53,7 +54,7 @@ pub fn parse_ast(
       let mut buffer = Vec::with_capacity(20 * code_reference.len());
       if has_walking_info {
         // Reserve 4 bytes at the start for the walking info offset
-        buffer.extend_from_slice(&[0u8; 4]);
+        buffer.extend_from_slice(&[0u8; WORD_SIZE]);
       }
 
       let result = try_with_handler(&code_reference, |handler| {
@@ -91,7 +92,7 @@ pub fn parse_ast(
       // Panic error case: create fresh buffer and write panic error
       let mut buffer = Vec::new();
       if has_walking_info {
-        buffer.extend_from_slice(&[0u8; 4]);
+        buffer.extend_from_slice(&[0u8; WORD_SIZE]);
       }
       let msg = if let Some(msg) = err.downcast_ref::<&str>() {
         msg

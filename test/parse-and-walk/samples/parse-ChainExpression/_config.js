@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const chainExpressions = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(chainExpressions, [
+		assertAstEqual(chainExpressions, [
 			{
 				type: 'ChainExpression',
 				start: 31,

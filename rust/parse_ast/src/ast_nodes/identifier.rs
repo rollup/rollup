@@ -2,13 +2,14 @@ use swc_ecma_ast::{BindingIdent, Ident, IdentName};
 
 use crate::convert_ast::converter::ast_constants::{
   IDENTIFIER_NAME_OFFSET, IDENTIFIER_RESERVED_BYTES, NODE_TYPE_ID_IDENTIFIER, TYPE_IDENTIFIER,
+  WORD_SIZE,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl AstConverter<'_> {
   pub(crate) fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
     let walk_entry = self.on_node_enter::<NODE_TYPE_ID_IDENTIFIER>();
-    let identifier_position = (self.buffer.len() as u32) >> 2;
+    let identifier_position = (self.buffer.len() / WORD_SIZE) as u32;
     let end_position =
       self.add_type_and_explicit_start(&TYPE_IDENTIFIER, start, IDENTIFIER_RESERVED_BYTES);
     // name

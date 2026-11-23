@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const binaryExpressions = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(binaryExpressions, [
+		assertAstEqual(binaryExpressions, [
 			{
 				type: 'BinaryExpression',
 				start: 15,

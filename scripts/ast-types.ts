@@ -178,6 +178,8 @@ export const NODE_UNION_TYPES: Record<AstUnionName, AstTypeName[]> = {
 		'FunctionExpression',
 		'Identifier',
 		'ImportExpression',
+		'JSXElement',
+		'JSXFragment',
 		'Literal',
 		'LogicalExpression',
 		'MemberExpression',
@@ -366,7 +368,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		useMacro: false
 	},
 	BlockStatement: {
-		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }],
+		fields: [{ name: 'body', nodeTypes: ['Directive', 'Statement'], type: 'NodeList' }],
 		useMacro: false
 	},
 	BreakStatement: {
@@ -417,7 +419,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
             const nodePosition = buffer[bodyPosition + 1 + index];
             body[index] = convertNode(
                 node,
-                buffer[nodePosition] !== $typeStaticBlock && (buffer[nodePosition + 3] & /* the static flag is always first */ 1) === 0 ? scope.instanceScope : scope,
+                buffer[nodePosition] !== $typeStaticBlock && (buffer[nodePosition + $flagsOffset] & /* the static flag is always first */ 1) === 0 ? scope.instanceScope : scope,
                 nodePosition,
                 buffer
             );
@@ -510,16 +512,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	ExportSpecifier: {
 		fields: [
 			{ name: 'local', nodeTypes: ['Identifier', 'LiteralString'], type: 'Node' },
-			{
-				allowNull: true,
-				name: 'exported',
-				nodeTypes: ['Identifier', 'LiteralString'],
-				type: 'Node'
-			}
-		],
-		optionalFallback: {
-			exported: 'local'
-		}
+			{ name: 'exported', nodeTypes: ['Identifier', 'LiteralString'], type: 'Node' }
+		]
 	},
 	ExpressionStatement: {
 		fields: [{ name: 'expression', nodeTypes: ['Expression'], type: 'Node' }]
@@ -651,12 +645,9 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	ImportSpecifier: {
 		fields: [
-			{ allowNull: true, name: 'imported', nodeTypes: ['Identifier', 'Literal'], type: 'Node' },
+			{ name: 'imported', nodeTypes: ['Identifier', 'Literal'], type: 'Node' },
 			{ name: 'local', nodeTypes: ['Identifier'], type: 'Node' }
-		],
-		optionalFallback: {
-			imported: 'local'
-		}
+		]
 	},
 	JSXAttribute: {
 		fields: [
@@ -664,7 +655,13 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{
 				allowNull: true,
 				name: 'value',
-				nodeTypes: ['JSXElement', 'JSXExpressionContainer', 'JSXSpreadChild', 'Literal'],
+				nodeTypes: [
+					'JSXElement',
+					'JSXFragment',
+					'JSXExpressionContainer',
+					'JSXSpreadChild',
+					'Literal'
+				],
 				type: 'Node'
 			}
 		]
@@ -875,12 +872,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	Property: {
 		fields: [
-			{
-				allowNull: true,
-				name: 'key',
-				nodeTypes: ['Expression'],
-				type: 'Node'
-			},
+			{ name: 'key', nodeTypes: ['Expression'], type: 'Node' },
 			{
 				name: 'value',
 				nodeTypes: ['Expression', 'DestructuringPattern'],
@@ -889,9 +881,6 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{ name: 'kind', type: 'FixedString', values: ['init', 'get', 'set'] }
 		],
 		flags: ['method', 'shorthand', 'computed'],
-		optionalFallback: {
-			key: 'value'
-		},
 		useMacro: false
 	},
 	PropertyDefinition: {
@@ -1094,7 +1083,6 @@ export interface NodeDescription {
 	additionalFields?: Record<string, { value: string; type: string }>; // Derived fields can be specified as arbitrary strings here
 	baseForAdditionalFields?: string[]; // Fields needed to define additional fields
 	serializeHiddenFields?: Record<string, string>; // How to serialize fields that are part of the buffer but are not part of the JS AST, usually together with additionalFields
-	optionalFallback?: Record<string, string>; // If an optional variable should not have "null" as fallback, but the value of another field,
 	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
 	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
 	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position. $typeFoo is replaced with the numeric code for Foo
@@ -1133,3 +1121,22 @@ export const astNodeNamesWithFieldOrder: {
 		originalNode
 	};
 });
+
+for (const { name, fields } of astNodeNamesWithFieldOrder) {
+	const floatIndex = fields.findIndex(field => field.type === 'Float');
+	if (floatIndex >= 0 && floatIndex !== fields.length - 1) {
+		// Floats occupy two words, but decoders derive later field offsets from the field index.
+		throw new Error(`The Float field ${name}.${fields[floatIndex].name} must be the last field`);
+	}
+}
+
+export function getAstTypeName(name: AstTypeName): AstTypeName {
+	if (NODE_UNION_TYPES[name as AstUnionName]) {
+		return name;
+	}
+	const nodeDescription = AST_NODES[name as AstNodeName];
+	if (!nodeDescription) {
+		throw new Error(`Unknown node: ${name}`);
+	}
+	return nodeDescription.astType || name;
+}

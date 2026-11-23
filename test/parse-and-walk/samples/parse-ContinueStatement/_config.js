@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const continueStatements = [];
 
@@ -10,7 +10,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(continueStatements, [
+		assertAstEqual(continueStatements, [
 			{
 				type: 'ContinueStatement',
 				start: 32,

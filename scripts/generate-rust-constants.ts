@@ -1,8 +1,16 @@
 import { writeFile } from 'node:fs/promises';
 import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.ts';
+import {
+	ENCODED_PARENT_BIAS,
+	NODE_DATA_BYTES_AFTER_END,
+	NODE_DATA_OFFSET,
+	NODE_END_OFFSET,
+	NODE_PARENT_OFFSET,
+	NODE_START_OFFSET,
+	NODE_TYPE_OFFSET,
+	WORD_SIZE
+} from './buffer-layout.ts';
 import { generateNotEditFilesComment, lintRustFile, toScreamingSnakeCase } from './helpers.ts';
-
-const BYTES_PER_U32 = 4;
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -32,9 +40,9 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 		// - end position
 		// - flags if present
 		// - non-inlined fields
-		let reservedBytes = BYTES_PER_U32;
+		let reservedBytes = NODE_DATA_BYTES_AFTER_END;
 		if (flags) {
-			reservedBytes += BYTES_PER_U32;
+			reservedBytes += WORD_SIZE;
 		}
 		for (const { name: fieldName, type: fieldType } of fields) {
 			lines.push(
@@ -53,7 +61,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 			) {
 				throw new Error(`Unhandled field type ${fieldType}`);
 			}
-			reservedBytes += fieldType === 'Float' ? 8 : BYTES_PER_U32;
+			reservedBytes += fieldType === 'Float' ? 2 * WORD_SIZE : WORD_SIZE;
 		}
 		lines.unshift(
 			`pub const ${toScreamingSnakeCase(name)}_RESERVED_BYTES: usize = ${reservedBytes};`
@@ -62,7 +70,17 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 	})
 	.join('\n');
 
+const bufferLayout = `pub const WORD_SIZE: usize = ${WORD_SIZE};
+pub const NODE_TYPE_OFFSET: usize = ${NODE_TYPE_OFFSET};
+pub const NODE_PARENT_OFFSET: usize = ${NODE_PARENT_OFFSET};
+pub const NODE_START_OFFSET: usize = ${NODE_START_OFFSET};
+pub const NODE_END_OFFSET: usize = ${NODE_END_OFFSET};
+pub const NODE_DATA_OFFSET: usize = ${NODE_DATA_OFFSET};
+pub const NODE_DATA_BYTES_AFTER_END: usize = ${NODE_DATA_BYTES_AFTER_END};
+pub const ENCODED_PARENT_BIAS: usize = ${ENCODED_PARENT_BIAS};`;
+
 const astConstants = `${notEditFilesComment}
+${bufferLayout}
 ${nodeTypes}
 
 ${reservedBytesAndOffsets}
