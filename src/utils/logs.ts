@@ -7,6 +7,7 @@ import type {
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
+import { BUFFER_FORMAT_VERSION } from './bufferInventory';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -165,6 +166,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
 	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
+	INVALID_AST_BUFFER_VERSION = 'INVALID_AST_BUFFER_VERSION',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
@@ -589,6 +591,15 @@ export function logInvalidAnnotation(
 			id
 		)}" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.`,
 		url: getRollupUrl(type === 'noSideEffects' ? URL_TREESHAKE_NOSIDEEFFECTS : URL_TREESHAKE_PURE)
+	};
+}
+
+export function logInvalidAstBufferVersion(formatVersion: number | undefined): RollupLog {
+	return {
+		code: INVALID_AST_BUFFER_VERSION,
+		message: `Cannot use AST buffer: unsupported format ${
+			formatVersion === undefined ? 'version' : `version ${formatVersion}`
+		}, expected version ${BUFFER_FORMAT_VERSION}. The buffer was created by a different Rollup version, e.g. as part of an outdated cache. Discard the cache passed to Rollup together with any persisted copy and try again.`
 	};
 }
 

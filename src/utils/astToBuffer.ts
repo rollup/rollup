@@ -5,6 +5,8 @@ import type { AstNode } from '../rollup/ast-types';
 import type { ast, SerializeAst } from '../rollup/types';
 import {
 	BUFFER_AST_OFFSET,
+	BUFFER_FORMAT_VERSION,
+	BUFFER_FORMAT_VERSION_OFFSET,
 	BUFFER_INVENTORY_WORD_COUNT,
 	BUFFER_SOURCEMAP_LOCATIONS_OFFSET
 } from './bufferInventory';
@@ -31,6 +33,7 @@ export const serializeAst:
 		typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
 	)(INITIAL_BUFFER_SIZE, sourcemapLocations);
 	let buffer = initialBuffer.reserve(BUFFER_INVENTORY_WORD_COUNT);
+	buffer[BUFFER_FORMAT_VERSION_OFFSET] = BUFFER_FORMAT_VERSION;
 	buffer[BUFFER_AST_OFFSET] = buffer.position;
 	buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(
 		node as any,

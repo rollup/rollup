@@ -51,6 +51,14 @@ jobs:
           git restore .
           npm run build:ast-converters
           git diff HEAD --exit-code --ignore-space-at-eol
+      - name: Buffer Format Version
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        run: |
+          git fetch --depth 1 --no-tags origin "$BASE_SHA"
+          git show FETCH_HEAD:scripts/buffer-format.json > "$RUNNER_TEMP/buffer-format.json" || rm -f "$RUNNER_TEMP/buffer-format.json"
+          npm run check:buffer-format -- "$RUNNER_TEMP/buffer-format.json"
 
   build:
     strategy:

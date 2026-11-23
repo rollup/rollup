@@ -7,8 +7,9 @@ use swc_config::is_module::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsSyntax, Syntax};
 
+use convert_ast::converter::ast_constants::WORD_SIZE;
 use convert_ast::converter::buffer_inventory_constants::{
-  BUFFER_AST_OFFSET, BUFFER_INVENTORY_BYTES,
+  BUFFER_AST_OFFSET, BUFFER_FORMAT_VERSION, BUFFER_FORMAT_VERSION_OFFSET, BUFFER_INVENTORY_BYTES,
 };
 use convert_ast::converter::{update_reference_position, AstConverter};
 use error_emit::try_with_handler;
@@ -21,10 +22,13 @@ mod ast_nodes;
 mod convert_ast;
 mod error_emit;
 
-/// The AST root always directly follows the buffer inventory.
+/// Creates a buffer whose inventory references the AST root, which always
+/// directly follows the inventory.
 fn create_buffer_with_inventory(capacity: usize) -> Vec<u8> {
   let mut buffer = Vec::with_capacity(capacity);
   buffer.resize(BUFFER_INVENTORY_BYTES, 0);
+  buffer[BUFFER_FORMAT_VERSION_OFFSET..BUFFER_FORMAT_VERSION_OFFSET + WORD_SIZE]
+    .copy_from_slice(&BUFFER_FORMAT_VERSION.to_ne_bytes());
   update_reference_position(&mut buffer, BUFFER_AST_OFFSET);
   buffer
 }

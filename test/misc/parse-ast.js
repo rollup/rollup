@@ -9,7 +9,7 @@ const {
 	deserializeLazyAst
 } = require('../../dist/parseAst');
 const { rollup } = require('../../dist/rollup');
-const { assertAstEqual, hasEsBuild } = require('../testHelpers');
+const { assertAstEqual, hasEsBuild, loader } = require('../testHelpers');
 
 describe('parseAst', () => {
 	it('round-trips a serialized AST', () => {
@@ -503,7 +503,8 @@ describe('lazy AST parents', () => {
 	it('resolves parents when deserializing a fragment at a non-zero position', () => {
 		const buffer = serializeAst(parseAst('const x = foo;'));
 		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
-		const declarationPosition = words[words[words[0] + 4] + 1];
+		const rootPosition = words[1];
+		const declarationPosition = words[words[rootPosition + 4] + 1];
 		const declaration = deserializeLazyAst(buffer, declarationPosition);
 		assert.strictEqual(declaration.type, 'VariableDeclaration');
 		assert.strictEqual(declaration.parent.type, 'Program');
@@ -568,6 +569,47 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.id.parent, declarator);
 		assert.strictEqual(declarator.init.parent, declarator);
 		assert.strictEqual(otherParent, declarator.init);
+	});
+});
+
+describe('AST buffer versions', () => {
+	it('rejects buffers with a different format version', () => {
+		const buffer = serializeAst(parseAst('const x = 1;'));
+		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+		const formatVersion = words[0];
+		words[0] = formatVersion + 1;
+		const expectedError = {
+			code: 'INVALID_AST_BUFFER_VERSION',
+			message: `Cannot use AST buffer: unsupported format version ${
+				formatVersion + 1
+			}, expected version ${formatVersion}. The buffer was created by a different Rollup version, e.g. as part of an outdated cache. Discard the cache passed to Rollup together with any persisted copy and try again.`
+		};
+		assert.throws(() => deserializeAst(buffer), expectedError);
+		assert.throws(() => deserializeLazyAst(buffer), expectedError);
+	});
+
+	it('rejects buffers that are too short to contain the inventory', () => {
+		for (const byteLength of [0, 4, 12]) {
+			assert.throws(() => deserializeAst(new Uint8Array(byteLength)), {
+				code: 'INVALID_AST_BUFFER_VERSION',
+				message: /^Cannot use AST buffer: unsupported format version, expected version \d+\./
+			});
+		}
+	});
+
+	it('rejects cached AST buffers from a different format version', async () => {
+		const files = { 'main.js': 'export const value = 42;' };
+		const { cache } = await rollup({ input: 'main.js', plugins: [loader(files)] });
+		const [cachedModule] = cache.modules;
+		const words = new Uint32Array(
+			cachedModule.astBuffer.buffer,
+			cachedModule.astBuffer.byteOffset,
+			cachedModule.astBuffer.byteLength / 4
+		);
+		words[0] += 1;
+		await assert.rejects(() => rollup({ cache, input: 'main.js', plugins: [loader(files)] }), {
+			code: 'INVALID_AST_BUFFER_VERSION'
+		});
 	});
 });
 

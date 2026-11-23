@@ -1,4 +1,10 @@
 import type { ast } from '../rollup/types';
+import {
+	BUFFER_FORMAT_VERSION,
+	BUFFER_FORMAT_VERSION_OFFSET,
+	BUFFER_INVENTORY_WORD_COUNT
+} from './bufferInventory';
+import { error, logInvalidAstBufferVersion } from './logs';
 
 export type AstBuffer = Uint32Array & {
 	convertFloat64: (this: AstBuffer, position: number) => number;
@@ -99,6 +105,11 @@ export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 		alignedByteBuffer.byteOffset,
 		alignedByteBuffer.byteLength >> 2
 	);
+	const formatVersion =
+		array.length >= BUFFER_INVENTORY_WORD_COUNT ? array[BUFFER_FORMAT_VERSION_OFFSET] : undefined;
+	if (formatVersion !== BUFFER_FORMAT_VERSION) {
+		error(logInvalidAstBufferVersion(formatVersion));
+	}
 	let convertString: (position: number) => string;
 	if (isBigEndianHost) {
 		convertString = position => decodePackedString(array, position, array[position]);

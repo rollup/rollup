@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import { BUFFER_INVENTORY_FIELDS } from './ast-types.ts';
+import { BUFFER_FORMAT_VERSION, BUFFER_INVENTORY_FIELDS } from './ast-types.ts';
 import { WORD_SIZE } from './buffer-layout.ts';
 import {
 	generateNotEditFilesComment,
@@ -26,18 +26,27 @@ const fields = BUFFER_INVENTORY_FIELDS.map((field, index) => ({
 	type: field.type
 }));
 
+if (fields[0].type !== 'FormatVersion') {
+	throw new Error('The format version must be the first buffer inventory field');
+}
+
 const rustConstants = `${notEditFilesComment}
 pub const BUFFER_INVENTORY_BYTES: usize = ${fields.length * WORD_SIZE};
+pub const BUFFER_FORMAT_VERSION: u32 = ${BUFFER_FORMAT_VERSION};
 ${fields.map(f => `pub const ${f.constantName}: usize = ${f.index * WORD_SIZE};`).join('\n')}
 `;
 
 const tsConstants = `${notEditFilesComment}
 export const BUFFER_INVENTORY_WORD_COUNT = ${fields.length};
+export const BUFFER_FORMAT_VERSION = ${BUFFER_FORMAT_VERSION};
 ${fields.map(f => `export const ${f.constantName} = ${f.index};`).join('\n')}
 `;
 
 const tsReaders = fields
 	.map(({ allowNull, capitalizedName, constantName, type }) => {
+		if (type === 'FormatVersion') {
+			return '';
+		}
 		if (type === 'Node') {
 			if (allowNull) {
 				throw new Error('Nullable node references are not supported in the buffer inventory');
@@ -52,6 +61,7 @@ const tsReaders = fields
 		}
 		throw new Error(`Unhandled inventory field type ${type}`);
 	})
+	.filter(reader => reader)
 	.join('\n\n');
 
 const sectionHelpers = fields.some(({ type }) => type === 'Section')
