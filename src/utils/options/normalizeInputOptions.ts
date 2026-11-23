@@ -1,12 +1,13 @@
 import type {
 	HasModuleSideEffects,
 	InputOptions,
+	IsExternal,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
 	RollupBuild,
 	RollupFsModule
 } from '../../rollup/types';
-import { EMPTY_ARRAY } from '../blank';
+import { EMPTY_ARRAY, EMPTY_OBJECT } from '../blank';
 import { ensureArray } from '../ensureArray';
 import * as fs from '../fs';
 import { getLogger } from '../logger';
@@ -51,7 +52,7 @@ export async function normalizeInputOptions(
 		context,
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
-		external: getIdMatcher(config.external),
+		external: getExternal(config.external),
 		fs: config.fs ?? (fs as RollupFsModule),
 		input: getInput(config),
 		jsx: getJsx(config),
@@ -84,20 +85,13 @@ const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
 		? undefined
 		: (config.cache as unknown as RollupBuild)?.cache || config.cache;
 
-const getIdMatcher = <T extends any[]>(
-	option:
-		| undefined
-		| boolean
-		| string
-		| RegExp
-		| (string | RegExp)[]
-		| ((id: string, ...parameters: T) => boolean | null | void)
-): ((id: string, ...parameters: T) => boolean) => {
+const getExternal = (option: InputOptions['external'] | boolean): IsExternal => {
 	if (option === true) {
 		return () => true;
 	}
 	if (typeof option === 'function') {
-		return (id, ...parameters) => (id[0] !== '\0' && option(id, ...parameters)) || false;
+		return (id, importer, isResolved, options = { attributes: EMPTY_OBJECT }) =>
+			(id[0] !== '\0' && option(id, importer, isResolved, options)) || false;
 	}
 	if (option) {
 		const ids = new Set<string>();
@@ -109,7 +103,7 @@ const getIdMatcher = <T extends any[]>(
 				ids.add(value);
 			}
 		}
-		return (id: string, ..._arguments) =>
+		return id =>
 			ids.has(id) ||
 			matchers.some(matcher =>
 				matcher.global || matcher.sticky ? id.search(matcher) !== -1 : matcher.test(id)

@@ -8,8 +8,8 @@ export default {
 	output: {
 		format: 'cjs'
 	},
-	external(id) {
-		return id === config;
+	external(id, _importer, _isResolved, { attributes }) {
+		return id === config && attributes.type === 'external';
 	},
 	plugins: [
 		{

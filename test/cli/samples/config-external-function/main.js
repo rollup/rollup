@@ -1,4 +1,4 @@
-import { execute } from './_config.js';
+import { execute } from './_config.js' with { type: 'external' };
 import { ok } from 'assert';
 import { method } from 'external-module';
 
