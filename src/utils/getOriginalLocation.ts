@@ -3,13 +3,14 @@ import type { DecodedSourceMapOrMissing, ExistingDecodedSourceMap } from '../rol
 export function getOriginalLocation(
 	sourcemapChain: readonly DecodedSourceMapOrMissing[],
 	location: { column: number; line: number }
-): { column: number; line: number } {
+): { column: number; line: number } | null {
 	const filteredSourcemapChain = sourcemapChain.filter(
 		(sourcemap): sourcemap is ExistingDecodedSourceMap => !sourcemap.missing
 	);
 	traceSourcemap: while (filteredSourcemapChain.length > 0) {
 		const sourcemap = filteredSourcemapChain.pop()!;
 		const line = sourcemap.mappings[location.line - 1];
+		if (line?.length === 0) return null;
 		if (line) {
 			const filteredLine = line.filter(
 				(segment): segment is [number, number, number, number] => segment.length > 1
