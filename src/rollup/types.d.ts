@@ -229,30 +229,109 @@ declare global {
 	interface AbortSignal {}
 }
 
-export type ParseAst = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => ast.Program;
+/**
+ * Edits the parsed code and generates a sourcemap for it. All positions refer
+ * to the original code that was parsed. This is based on the magic-string
+ * types.
+ */
+export interface CodeEditor {
+	append: (content: string) => CodeEditor;
+	appendLeft: (index: number, content: string) => CodeEditor;
+	appendRight: (index: number, content: string) => CodeEditor;
+	generateMap: (options?: CodeEditorMapOptions) => SourceMap;
+	hasChanged: () => boolean;
+	indent: {
+		(options?: CodeEditorIndentOptions): CodeEditor;
+		(indentString?: string, options?: CodeEditorIndentOptions): CodeEditor;
+	};
+	move: (start: number, end: number, index: number, affinity?: 'left' | 'right') => CodeEditor;
+	overwrite: (
+		start: number,
+		end: number,
+		content: string,
+		options?: { contentOnly?: boolean; storeName?: boolean }
+	) => CodeEditor;
+	readonly original: string;
+	prepend: (content: string) => CodeEditor;
+	prependLeft: (index: number, content: string) => CodeEditor;
+	prependRight: (index: number, content: string) => CodeEditor;
+	remove: (start: number, end: number) => CodeEditor;
+	slice: (start?: number, end?: number) => string;
+	toString: () => string;
+	trim: (charType?: string) => CodeEditor;
+	trimEnd: (charType?: string) => CodeEditor;
+	trimLines: () => CodeEditor;
+	trimStart: (charType?: string) => CodeEditor;
+	update: (
+		start: number,
+		end: number,
+		content: string,
+		options?: { overwrite?: boolean; storeName?: boolean }
+	) => CodeEditor;
+}
 
-export type ParseAstAsync = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => Promise<ast.Program>;
+export interface CodeEditorIndentOptions {
+	exclude?: [number, number] | [number, number][];
+	indentStart?: boolean;
+}
+
+export interface CodeEditorMapOptions {
+	file?: string;
+	/**
+	 * Deactivated by default, in which case the map contains a mapping for every
+	 * stored sourcemap location.
+	 */
+	hires?: boolean | 'boundary';
+	includeContent?: boolean;
+	source?: string;
+}
+
+export interface ParseOptions {
+	allowReturnOutsideFunction?: boolean;
+	jsx?: boolean;
+}
+
+export interface CodeEditorParseResult<Ast> {
+	ast: Ast;
+	codeEditor: CodeEditor;
+}
+
+export interface ParseAst {
+	(input: string, options: ParseOptions & { codeEditor: true }): CodeEditorParseResult<ast.Program>;
+	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.Program;
+}
+
+export interface ParseAstAsync {
+	(
+		input: string,
+		options: ParseOptions & { codeEditor: true }
+	): Promise<CodeEditorParseResult<ast.Program>>;
+	(input: string, options?: ParseOptions & { codeEditor?: false }): Promise<ast.Program>;
+}
 
 export type DeserializeAst = (
 	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/,
 	position?: number
 ) => ast.AstNode;
 
-export type ParseLazyAst = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => ast.LazyNode<ast.Program>;
+export interface ParseLazyAst {
+	(
+		input: string,
+		options: ParseOptions & { codeEditor: true }
+	): CodeEditorParseResult<ast.LazyNode<ast.Program>>;
+	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.LazyNode<ast.Program>;
+}
 
-export type ParseLazyAstAsync = (
-	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
-) => Promise<ast.LazyNode<ast.Program>>;
+export interface ParseLazyAstAsync {
+	(
+		input: string,
+		options: ParseOptions & { codeEditor: true }
+	): Promise<CodeEditorParseResult<ast.LazyNode<ast.Program>>>;
+	(
+		input: string,
+		options?: ParseOptions & { codeEditor?: false }
+	): Promise<ast.LazyNode<ast.Program>>;
+}
 
 export type DeserializeLazyAst = (
 	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/,
@@ -265,6 +344,11 @@ export type SerializeAst = (
 ) => /*browser: Uint8Array; */ Buffer; /*browser*/
 
 export interface ParseAndWalkApi {
+	/**
+	 * The editor for the walked code. Only present when parseAndWalk is called
+	 * with `{ codeEditor: true }`.
+	 */
+	codeEditor?: CodeEditor;
 	/**
 	 * Call this function to parse all child nodes of the current node.
 	 * This function returns once all children are parsed and their callbacks
@@ -282,6 +366,10 @@ export interface ParseAndWalkApi {
 	scope?: ParseAndWalkScope;
 }
 
+export interface ParseAndWalkApiWithCodeEditor extends ParseAndWalkApi {
+	codeEditor: CodeEditor;
+}
+
 export interface ParseAndWalkScope {
 	/**
 	 * Returns true if the name is declared in this scope or any parent scope.
@@ -289,20 +377,34 @@ export interface ParseAndWalkScope {
 	contains: (name: string) => boolean;
 }
 
-export type ParseAndWalkHandler<T extends ast.AstNode = ast.AstNode> = (
-	node: ast.LazyNode<T>,
-	api: ParseAndWalkApi
-) => void;
+export interface ParseAndWalkOptions extends ParseOptions {
+	/**
+	 * Additionally track which identifiers are declared in which scope.
+	 */
+	collectScopes?: boolean;
+}
 
-export type ParseAndWalkVisitors = {
-	[K in keyof ast.AstNodeTypeMap]?: ParseAndWalkHandler<ast.AstNodeTypeMap[K]>;
+export type ParseAndWalkHandler<
+	T extends ast.AstNode = ast.AstNode,
+	Api extends ParseAndWalkApi = ParseAndWalkApi
+> = (node: ast.LazyNode<T>, api: Api) => void;
+
+export type ParseAndWalkVisitors<Api extends ParseAndWalkApi = ParseAndWalkApi> = {
+	[K in keyof ast.AstNodeTypeMap]?: ParseAndWalkHandler<ast.AstNodeTypeMap[K], Api>;
 };
 
-export type ParseAndWalk = (
-	input: string,
-	visitors: ParseAndWalkVisitors,
-	options?: { allowReturnOutsideFunction?: boolean; collectScopes?: boolean; jsx?: boolean }
-) => Promise<void>;
+export interface ParseAndWalk {
+	(
+		input: string,
+		visitors: ParseAndWalkVisitors<ParseAndWalkApiWithCodeEditor>,
+		options: ParseAndWalkOptions & { codeEditor: true }
+	): Promise<{ codeEditor: CodeEditor }>;
+	(
+		input: string,
+		visitors: ParseAndWalkVisitors,
+		options?: ParseAndWalkOptions & { codeEditor?: false }
+	): Promise<void>;
+}
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;

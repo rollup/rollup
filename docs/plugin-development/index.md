@@ -1997,6 +1997,7 @@ An object containing potentially useful Rollup metadata:
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	codeEditor?: boolean;
 	jsx?: boolean;
 }
 ```
@@ -2004,7 +2005,30 @@ interface ParseOptions {
 Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST. The returned AST is a fully materialized plain JavaScript object.
 
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
+- `codeEditor`: When `true`, an object `{ ast, codeEditor }` is returned instead of the AST so that the parsed code can be edited and mapped back to the original source. See below.
 - `jsx`: When `true`, JSX syntax is supported in the parsed code.
+
+To return a sourcemap for a transformation that only touches parts of the code, Rollup can collect the position of every AST node while parsing and pass it to an editor:
+
+```js
+{
+	name: 'replace-console-logs',
+	transform(code) {
+		const { ast, codeEditor } = this.parse(code, { codeEditor: true });
+		// find the nodes you want to change on the AST
+		const node = ast.body[0];
+		codeEditor.overwrite(node.start, node.end, 'replacement');
+		return {
+			code: codeEditor.toString(),
+			map: codeEditor.generateMap()
+		};
+	}
+}
+```
+
+The editor is based on the [`magic-string`](https://github.com/Rich-Harris/magic-string) package: it stores edits by their position in the original code and generates a sourcemap that maps the edited code back to it. As Rollup collected the position of every node, the map also contains mappings for all unedited parts, so code that is not touched by your plugin still points to the correct location. The editing methods `overwrite`, `update`, `remove`, `move`, `appendLeft`, `appendRight`, `prependLeft`, `prependRight`, `append` and `prepend` refer to positions in the original code, while `trim`, `trimStart`, `trimEnd`, `trimLines` and `indent` work on the whole code; all of them return the editor for chaining. `codeEditor.original` is the original code, `codeEditor.toString()` returns the edited code and `codeEditor.hasChanged()` tells you whether anything was changed.
+
+See [`magic-string`](https://github.com/Rich-Harris/magic-string) for more details on how to use them.
 
 ### this.parseAndWalk
 
@@ -2015,6 +2039,7 @@ Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](h
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	codeEditor?: boolean;
 	collectScopes?: boolean;
 	jsx?: boolean;
 }
@@ -2026,6 +2051,7 @@ type Visitors = {
 	[NodeType: string]: (
 		node: ast.LazyNode,
 		api: {
+			codeEditor?: CodeEditor;
 			parseChildren: () => void;
 			skipChildren: () => void;
 			scope?: ParseAndWalkScope;
@@ -2043,6 +2069,7 @@ Efficiently walk specific types of AST nodes without traversing the entire tree.
 Each visitor function receives:
 
 - `node`: The lazy AST node with full type information based on the visitor key
+- `api.codeEditor`: The editor for the walked code (only present when `codeEditor: true` is passed)
 - `api.parseChildren()`: Parse and visit all children of the current node
 - `api.skipChildren()`: Skip parsing children of the current node
 - `api.scope`: The scope the node lives in (only present when `collectScopes: true` is passed)
@@ -2069,6 +2096,23 @@ this.parseAndWalk(code, {
 	}
 });
 ```
+
+When you pass `{ codeEditor: true }`, the visitor api provides a `codeEditor`, and the promise resolves to an object `{ codeEditor }` that contains the same editor, also when no node was visited. This allows rewriting the code while walking it:
+
+```js
+const { codeEditor } = await this.parseAndWalk(
+	code,
+	{
+		ImportDeclaration(node, api) {
+			api.codeEditor.remove(node.start, node.end);
+		}
+	},
+	{ codeEditor: true }
+);
+return { code: codeEditor.toString(), map: codeEditor.generateMap() };
+```
+
+The editor is the same as the one returned by [`this.parse`](#this-parse) with `codeEditor: true`, so the generated map also covers the parts of the code that were not edited.
 
 **Performance characteristics:**
 

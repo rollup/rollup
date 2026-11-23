@@ -3,6 +3,8 @@
  * @typedef {import('../../src/rollup/types').RollupError} RollupError
  */
 const path = require('node:path');
+const assert = require('node:assert');
+const { decode } = require('@jridgewell/sourcemap-codec');
 const {
 	parseAst,
 	parseAstAsync,
@@ -60,3 +62,161 @@ runTestSuiteWithSamples(
 		);
 	}
 );
+
+describe('code editor', () => {
+	const code = `const emoji = '🚀';\nfunction foo(bar) {\n\tif (bar) {\n\t\treturn emoji;\n\t}\n}\nfoo(emoji);\n`;
+
+	it('maps the start and end of every node', () => {
+		const { ast, codeEditor } = parseAst(code, { codeEditor: true });
+		const mappedPositions = getMappedPositions(codeEditor.generateMap().mappings);
+		const unmappedPositions = [];
+		for (const [start, end] of getNodeRanges(ast)) {
+			for (const position of [start, end]) {
+				// Locations on a line break are not mapped by MagicString as the
+				// mapping of the following line takes precedence.
+				if (position >= code.length || code[position] === '\n') {
+					continue;
+				}
+				const [line, column] = getLineAndColumn(code, position);
+				if (!mappedPositions.has(`${line}:${column}`)) {
+					unmappedPositions.push(position);
+				}
+			}
+		}
+		assert.deepStrictEqual(unmappedPositions, []);
+	});
+
+	it('supports all parse helpers', async () => {
+		const results = [
+			parseAst(code, { codeEditor: true }),
+			await parseAstAsync(code, { codeEditor: true }),
+			parseLazyAst(code, { codeEditor: true }),
+			await parseLazyAstAsync(code, { codeEditor: true })
+		];
+		const expectedPositions = getMappedPositions(results[0].codeEditor.generateMap().mappings);
+		for (const { ast, codeEditor } of results) {
+			assert.strictEqual(ast.type, 'Program');
+			assert.strictEqual(codeEditor.original, code);
+			assert.strictEqual(codeEditor.hasChanged(), false);
+			assert.deepStrictEqual(
+				getMappedPositions(codeEditor.generateMap().mappings),
+				expectedPositions
+			);
+		}
+	});
+
+	it('maps the code with the editor from parseAndWalk', async () => {
+		const { codeEditor: parsedCodeEditor } = parseAst(code, { codeEditor: true });
+		const expectedPositions = getMappedPositions(parsedCodeEditor.generateMap().mappings);
+		const { codeEditor } = await parseAndWalk(code, { Identifier() {} }, { codeEditor: true });
+		assert.deepStrictEqual(
+			getMappedPositions(codeEditor.generateMap().mappings),
+			expectedPositions
+		);
+	});
+
+	it('returns the AST without a code editor unless requested', () => {
+		assert.strictEqual(parseAst(code).type, 'Program');
+		assert.strictEqual(parseLazyAst(code).type, 'Program');
+	});
+
+	it('applies edits and keeps mapping the unedited code', () => {
+		const { codeEditor } = parseAst(code, { codeEditor: true });
+		const callPosition = code.indexOf('foo(emoji)');
+		codeEditor.overwrite(callPosition, callPosition + 3, 'bar');
+		const map = codeEditor.generateMap({ includeContent: true });
+		assert.ok(codeEditor.hasChanged());
+		assert.ok(codeEditor.toString().endsWith('bar(emoji);\n'));
+		assert.deepStrictEqual(map.sourcesContent, [code]);
+		assert.ok(getMappedPositions(map.mappings).has('1:0'));
+	});
+
+	it('exposes the same editor in the api and the result of parseAndWalk', async () => {
+		let editorFromVisitor;
+		const { codeEditor } = await parseAndWalk(
+			code,
+			{
+				IfStatement(node, api) {
+					editorFromVisitor = api.codeEditor;
+					api.codeEditor.remove(node.start, node.end);
+				}
+			},
+			{ codeEditor: true }
+		);
+		assert.strictEqual(editorFromVisitor, codeEditor);
+		assert.strictEqual(codeEditor.toString().includes('if (bar)'), false);
+	});
+
+	it('returns the editor from parseAndWalk when no node was visited', async () => {
+		const { codeEditor } = await parseAndWalk(
+			code,
+			{ ClassDeclaration() {} },
+			{ codeEditor: true }
+		);
+		assert.strictEqual(codeEditor.original, code);
+		assert.strictEqual(codeEditor.hasChanged(), false);
+	});
+
+	it('resolves to nothing from parseAndWalk without the option', async () => {
+		assert.strictEqual(await parseAndWalk(code, { Identifier() {} }), undefined);
+	});
+});
+
+/**
+ * @param {string} mappings
+ * @returns {Set<string>}
+ */
+function getMappedPositions(mappings) {
+	const positions = new Set();
+	for (const line of decode(mappings)) {
+		for (const segment of line) {
+			if (segment.length > 1) {
+				positions.add(`${segment[2]}:${segment[3]}`);
+			}
+		}
+	}
+	return positions;
+}
+
+/**
+ * @param {string} code
+ * @param {number} position
+ * @returns {[line: number, column: number]}
+ */
+function getLineAndColumn(code, position) {
+	let line = 0;
+	let lineStart = 0;
+	for (let index = 0; index < position; index++) {
+		if (code[index] === '\n') {
+			line++;
+			lineStart = index + 1;
+		}
+	}
+	return [line, position - lineStart];
+}
+
+/**
+ * @param {unknown} value
+ * @param {[number, number][]} ranges
+ * @returns {[number, number][]}
+ */
+function getNodeRanges(value, ranges = []) {
+	if (Array.isArray(value)) {
+		for (const child of value) {
+			getNodeRanges(child, ranges);
+		}
+	} else if (value && typeof value === 'object') {
+		const node = /** @type {{end?: number, start?: number, type?: string}} */ (value);
+		if (
+			typeof node.type === 'string' &&
+			typeof node.start === 'number' &&
+			typeof node.end === 'number'
+		) {
+			ranges.push([node.start, node.end]);
+		}
+		for (const child of Object.values(value)) {
+			getNodeRanges(child, ranges);
+		}
+	}
+	return ranges;
+}

@@ -118,6 +118,8 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - `importedIdResolutions` and `dynamicallyImportedIdResolutions` now use the new `ResolvedImport` type, which includes the `rawId` of the module (#6653)
 - Lazy ASTs now expose a `parent` link, including the nodes passed to `parseAndWalk` visitors, which is typed per node type via the new `ast.ParentOf` and `ast.LazyNode` types (#6640)
 - Lazy AST nodes are instances of one generated class per node type, which reduces the memory needed to materialize a full AST by about 15% (#6640)
+- `this.parse`, `this.parseAndWalk` and the helpers exported from `rollup/parseAst` accept a new `codeEditor` option that additionally returns a magic-string instance prepared with the positions of all AST nodes; plugins can edit the code through it and generate a sourcemap that also maps the parts that were not edited, without adding a magic-string dependency (#6696)
+- The Rust parser now collects the position of every AST node while converting it to the binary buffer, and modules use these positions directly instead of collecting them again in JavaScript, which reduces the time and memory needed to generate sourcemaps for unedited code (#6696)
 
 ### Bug Fixes
 
@@ -127,6 +129,7 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - Chunks emitted with `implicitlyLoadedAfterOneOf` are no longer missing from the output when their module is fully tree-shaken, e.g. when using `preserveModules`, which made `this.getFileName` throw for their reference id (#6533)
 - Builds no longer stall without an error message when `load` hooks await `this.load` while all `maxParallelFileOps` slots are taken (#6586)
 - Invalid dynamic import attributes now emit the `INVALID_IMPORT_ATTRIBUTE` warning only once (#6653)
+- AST buffers in a cache that were created by a different Rollup version are rejected with an `INVALID_AST_BUFFER_VERSION` error that asks the user to discard the cache, instead of silently reading a buffer with an incompatible layout (#6696)
 
 ### Pull Requests
 
@@ -151,6 +154,7 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - [#6624](https://github.com/rollup/rollup/pull/6624): [v5.0] Improve migration guide and changelog (@lukastaegert)
 - [#6653](https://github.com/rollup/rollup/pull/6653): [v5.0] Respect import attributes in this.load and related APIs (@TrickyPi)
 - [#6640](https://github.com/rollup/rollup/pull/6640): Add parent links to lazy ASTs and make lazy traversal fast (@lukastaegert)
+- [#6696](https://github.com/rollup/rollup/pull/6696): [v5.0] Precompute sourcemap locations and add a code editor API (@lukastaegert)
 
 For previous changelogs, see
 

@@ -1,8 +1,16 @@
 import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
-import type { ParseAndWalkApi, ParseAndWalkHandler, ParseAndWalkVisitors } from '../rollup/types';
+import type {
+	CodeEditor,
+	ParseAndWalk,
+	ParseAndWalkApi,
+	ParseAndWalkHandler,
+	ParseAndWalkOptions,
+	ParseAndWalkVisitors
+} from '../rollup/types';
 import { getAstPosition, getWalkingInfo } from './bufferInventory';
 import { convertNode, deserializeLazyAstBuffer, IDENTIFIER_NAME_OFFSET } from './bufferToLazyAst';
+import { createCodeEditor } from './codeEditor';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 import {
@@ -11,11 +19,19 @@ import {
 	SCOPE_PARENT_OFFSET
 } from './scopeConstants';
 
-export async function parseAndWalk(
+type ParseAndWalkOptionsWithCodeEditor = ParseAndWalkOptions & { codeEditor?: boolean };
+
+export const parseAndWalk = (async (
 	input: string,
 	visitors: ParseAndWalkVisitors,
-	{ allowReturnOutsideFunction = false, collectScopes = false, jsx = false } = {}
-) {
+	options: ParseAndWalkOptionsWithCodeEditor = {}
+) => {
+	const {
+		allowReturnOutsideFunction = false,
+		codeEditor = false,
+		collectScopes = false,
+		jsx = false
+	} = options;
 	const selectedNodesBuffer = getSelectedNodesBitsetBuffer(visitors);
 
 	const astBuffer = getAstBuffer(
@@ -25,7 +41,7 @@ export async function parseAndWalk(
 			jsx,
 			selectedNodesBuffer,
 			collectScopes,
-			false
+			codeEditor
 		)
 	);
 	const walkingInfo = getWalkingInfo(astBuffer);
@@ -33,8 +49,10 @@ export async function parseAndWalk(
 		// Without walking info, the buffer contains a parse error
 		return deserializeLazyAstBuffer(astBuffer, getAstPosition(astBuffer)) as never;
 	}
-	walkAstBuffer(astBuffer, walkingInfo, visitors, collectScopes);
-}
+	const codeEditorInstance = codeEditor ? createCodeEditor(input, astBuffer) : undefined;
+	walkAstBuffer(astBuffer, walkingInfo, visitors, collectScopes, codeEditorInstance);
+	return codeEditorInstance ? { codeEditor: codeEditorInstance } : undefined;
+}) as ParseAndWalk;
 
 function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>): BigUint64Array {
 	let selectedNodesBitset = 0n;
@@ -63,7 +81,8 @@ function walkAstBuffer(
 	astBuffer: AstBuffer,
 	walkingInfo: Uint32Array,
 	visitors: ParseAndWalkVisitors,
-	collectScopes: boolean
+	collectScopes: boolean,
+	codeEditor: CodeEditor | undefined
 ) {
 	const entrySize = 3;
 
@@ -76,6 +95,7 @@ function walkAstBuffer(
 		}
 	}
 	const api: ParseAndWalkApi = {
+		codeEditor,
 		parseChildren() {
 			const endPosition = walkingInfo[walkingPosition + 1] * entrySize;
 			walkingPosition += entrySize;

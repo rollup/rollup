@@ -1,3 +1,4 @@
+import { parseLazyAst } from './dist/parseAst';
 import type * as rollup from './dist/rollup';
 
 // Plugin API
@@ -289,3 +290,39 @@ const _templateParent: rollup.ast.LazyNode<rollup.ast.TemplateLiteral> | null =
 
 // @ts-expect-error ClassBody cannot contain an Identifier
 const _identifierInClassBody = _lazyIdentifier.parent?.type === 'ClassBody';
+
+const _codeEditorPlugin: rollup.Plugin = {
+	async buildStart() {
+		const { codeEditor } = await this.parseAndWalk(
+			'const value = 1;',
+			{
+				VariableDeclaration(node, api) {
+					api.codeEditor.remove(node.start, node.end);
+				}
+			},
+			{ codeEditor: true }
+		);
+		const _hasChanged: boolean = codeEditor.hasChanged();
+		const _original: string = codeEditor.original;
+		const _walkResult = await this.parseAndWalk('const value = 1;', {});
+		// @ts-expect-error without the option, parseAndWalk resolves to nothing
+		const _missingEditor: rollup.CodeEditor = _walkResult.codeEditor;
+	},
+	name: 'code-editor',
+	transform(code) {
+		const { ast, codeEditor } = this.parse(code, { codeEditor: true });
+		const _type: string = ast.type;
+		const _map: rollup.SourceMap = codeEditor.generateMap({ hires: false });
+		const _sharedOptions: rollup.ParseOptions = { allowReturnOutsideFunction: true };
+		const _programFromSharedOptions: rollup.ast.Program = this.parse(code, _sharedOptions);
+		// @ts-expect-error without the option, parse returns the AST
+		const _missingEditor: rollup.CodeEditor = this.parse(code).codeEditor;
+		// @ts-expect-error the original code cannot be changed
+		codeEditor.original = code;
+		return { code: codeEditor.toString(), map: codeEditor.generateMap() };
+	}
+};
+
+const _lazyParseResult = parseLazyAst('const value = 1;', { codeEditor: true });
+const _lazyCodeEditor: rollup.CodeEditor = _lazyParseResult.codeEditor;
+const _lazyProgram: rollup.ast.LazyNode<rollup.ast.Program> = _lazyParseResult.ast;
