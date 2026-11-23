@@ -41,6 +41,9 @@ export default async function build(
 			if (outputs.length > 1) process.stdout.write(`\n${cyan(bold(`//→ ${file.fileName}:`))}\n`);
 			process.stdout.write(file.type === 'asset' ? file.source : file.code);
 		}
+		await new Promise<void>(resolve => {
+			process.stdout.write('', () => resolve());
+		});
 		if (!silent) {
 			warnings.flush();
 		}
