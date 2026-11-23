@@ -8,6 +8,7 @@ import type {
 	ParseLazyAst,
 	ParseLazyAstAsync
 } from '../rollup/types';
+import { getAstPosition } from './bufferInventory';
 import { deserializeAstBuffer } from './bufferToAst';
 import { deserializeLazyAstBuffer } from './bufferToLazyAst';
 import { getAstBuffer } from './getAstBuffer';
@@ -15,11 +16,15 @@ import { getAstBuffer } from './getAstBuffer';
 export { serializeAst } from './astToBuffer';
 export { parseAndWalk } from './parseAndWalk';
 
-export const deserializeAst: DeserializeAst = (buffer, position = 0) =>
-	deserializeAstBuffer(getAstBuffer(buffer), position);
+export const deserializeAst: DeserializeAst = (buffer, position = 0) => {
+	const astBuffer = getAstBuffer(buffer);
+	return deserializeAstBuffer(astBuffer, position === 0 ? getAstPosition(astBuffer) : position);
+};
 
-export const deserializeLazyAst: DeserializeLazyAst = (buffer, position = 0) =>
-	deserializeLazyAstBuffer(getAstBuffer(buffer), position);
+export const deserializeLazyAst: DeserializeLazyAst = (buffer, position = 0) => {
+	const astBuffer = getAstBuffer(buffer);
+	return deserializeLazyAstBuffer(astBuffer, position === 0 ? getAstPosition(astBuffer) : position);
+};
 
 export const parseAst: ParseAst = (
 	input,

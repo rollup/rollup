@@ -1,15 +1,11 @@
 import type { ast } from '../rollup/types';
 
-export const SOURCE_MAP_LOCATIONS_MAGIC = 0xff4d4c42;
-
 export type AstBuffer = Uint32Array & {
-	astEnd: number;
 	convertFloat64: (this: AstBuffer, position: number) => number;
 	convertString: (position: number) => string;
 	lazyLists: Map<number, readonly any[]> | undefined;
 	lazyNodes: Map<number, ast.AstNode> | undefined;
 	lazyStrings: Map<number, string> | undefined;
-	sourcemapLocations: Uint32Array | undefined;
 };
 
 export type AstBufferForWriting<T = Uint8Array | Buffer> = Uint32Array & AstBufferForWritingApi<T>;
@@ -103,17 +99,6 @@ export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 		alignedByteBuffer.byteOffset,
 		alignedByteBuffer.byteLength >> 2
 	);
-	let sourcemapLocations: Uint32Array | undefined;
-	let astEnd = array.length;
-	const lastWordPosition = array.length - 1;
-	if (array[lastWordPosition] === SOURCE_MAP_LOCATIONS_MAGIC) {
-		const wordCount = array[lastWordPosition - 1];
-		const start = lastWordPosition - 1 - wordCount;
-		if (wordCount > 0 && start >= 0) {
-			sourcemapLocations = array.subarray(start, start + wordCount);
-			astEnd = start;
-		}
-	}
 	let convertString: (position: number) => string;
 	if (isBigEndianHost) {
 		convertString = position => decodePackedString(array, position, array[position]);
@@ -132,7 +117,6 @@ export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 		};
 	}
 	return Object.assign(array, {
-		astEnd,
 		convertFloat64(this: AstBuffer, position: number) {
 			scratchFloat64.setUint32(0, this[position], true);
 			scratchFloat64.setUint32(4, this[position + 1], true);
@@ -141,8 +125,7 @@ export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 		convertString,
 		lazyLists: undefined,
 		lazyNodes: undefined,
-		lazyStrings: undefined,
-		sourcemapLocations
+		lazyStrings: undefined
 	});
 }
 

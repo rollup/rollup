@@ -3,12 +3,13 @@
 
 import type { AstNode } from '../rollup/ast-types';
 import type { ast, SerializeAst } from '../rollup/types';
-import type { AstBufferForWriting } from './getAstBuffer';
 import {
-	createAstBufferNode,
-	createAstBufferUint8,
-	SOURCE_MAP_LOCATIONS_MAGIC
-} from './getAstBuffer';
+	BUFFER_AST_OFFSET,
+	BUFFER_INVENTORY_WORD_COUNT,
+	BUFFER_SOURCEMAP_LOCATIONS_OFFSET
+} from './bufferInventory';
+import type { AstBufferForWriting } from './getAstBuffer';
+import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
 import { error, logExpectedNodeList, logUnknownNodeType } from './logs';
 import FIXED_STRING_INDICES from './serialize-ast-strings.js';
 
@@ -29,17 +30,19 @@ export const serializeAst:
 	const initialBuffer = (
 		typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
 	)(INITIAL_BUFFER_SIZE, sourcemapLocations);
-	const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(
+	let buffer = initialBuffer.reserve(BUFFER_INVENTORY_WORD_COUNT);
+	buffer[BUFFER_AST_OFFSET] = buffer.position;
+	buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(
 		node as any,
-		initialBuffer,
+		buffer,
 		0
 	);
-	const trailerStart = buffer.position;
-	const trailer = buffer.reserve(sourcemapLocations.length + 2);
-	trailer.set(sourcemapLocations, trailerStart);
-	trailer[trailerStart + sourcemapLocations.length] = sourcemapLocations.length;
-	trailer[trailerStart + sourcemapLocations.length + 1] = SOURCE_MAP_LOCATIONS_MAGIC;
-	return trailer.toOutput();
+	buffer[BUFFER_SOURCEMAP_LOCATIONS_OFFSET] = buffer.position;
+	const sectionPosition = buffer.position;
+	buffer = buffer.reserve(sourcemapLocations.length + 1);
+	buffer[sectionPosition] = sourcemapLocations.length;
+	buffer.set(sourcemapLocations, sectionPosition + 1);
+	return buffer.toOutput();
 };
 
 const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive> = (

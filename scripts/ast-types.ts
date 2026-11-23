@@ -146,6 +146,17 @@ export const SCOPE_NODE_FIELDS = [
 	{ name: 'declarations' }
 ] as const;
 
+// Layout of the buffer inventory that starts every AST buffer. It references
+// the AST root and the buffered sections. A section reference points at a word
+// count that is followed by the section words. Sections declared with
+// allowNull are encoded as a 0 reference and decoded as null when they were
+// not collected.
+export const BUFFER_INVENTORY_FIELDS = [
+	{ name: 'ast', type: 'Node' },
+	{ allowNull: true, name: 'sourcemapLocations', type: 'Section' },
+	{ allowNull: true, name: 'walkingInfo', type: 'Section' }
+] as const;
+
 export type AstUnionName =
 	| 'BindingPattern'
 	| 'DestructuringPattern'

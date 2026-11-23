@@ -7,6 +7,9 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, WORD_SIZE,
 };
 
+use crate::convert_ast::converter::buffer_inventory_constants::{
+  BUFFER_SOURCEMAP_LOCATIONS_OFFSET, BUFFER_WALKING_INFO_OFFSET,
+};
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
@@ -28,6 +31,7 @@ use swc_ecma_ast::{
 pub(crate) mod analyze_code;
 pub(crate) mod ast_constants;
 mod ast_macros;
+pub(crate) mod buffer_inventory_constants;
 pub(crate) mod scope_constants;
 pub(crate) mod string_constants;
 mod utf16_positions;
@@ -41,7 +45,7 @@ const _: () = {
   assert!(NODE_DATA_BYTES_AFTER_END == (NODE_DATA_OFFSET - NODE_END_OFFSET) * WORD_SIZE);
 };
 
-const SOURCE_MAP_LOCATIONS_MAGIC: u32 = 0xff4d_4c42;
+const WALKING_ENTRY_WORDS: usize = 3;
 
 pub(crate) struct WalkEntry {
   pub(crate) node_buffer_position: u32,
@@ -97,7 +101,7 @@ impl<'a> AstConverter<'a> {
   ) -> Self {
     let sourcemap_locations = if collect_sourcemap_locations {
       // UTF-16 length is never larger than the UTF-8 byte length. The vector is
-      // truncated to the exact Program end before the trailer is written.
+      // truncated to the exact Program end before the section is written.
       Some(vec![0; (code.len() >> 5) + 1])
     } else {
       None
@@ -124,17 +128,17 @@ impl<'a> AstConverter<'a> {
       "Nodes were started but not ended"
     );
 
-    if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
-      let walking_info_offset = (self.buffer.len() / WORD_SIZE) as u32;
-
-      // Write the offset at the beginning of the buffer (native endian)
-      self.buffer[0..WORD_SIZE].copy_from_slice(&walking_info_offset.to_ne_bytes());
-
-      // Append walking entries: [node_position(4), skip_to_index(4), scope_position(4)] for each entry
+    // An empty section is written as well so that JS can tell a walk without
+    // matches from a parse error.
+    if self.walked_nodes_bitset.is_some() {
+      update_reference_position(&mut self.buffer, BUFFER_WALKING_INFO_OFFSET);
+      self.buffer.extend_from_slice(
+        &((self.walking_entries.len() * WALKING_ENTRY_WORDS) as u32).to_ne_bytes(),
+      );
       for entry in &self.walking_entries {
         self
           .buffer
-          .extend_from_slice(&(entry.node_buffer_position).to_ne_bytes());
+          .extend_from_slice(&entry.node_buffer_position.to_ne_bytes());
         self
           .buffer
           .extend_from_slice(&entry.skip_to_index.to_ne_bytes());
@@ -144,19 +148,15 @@ impl<'a> AstConverter<'a> {
       }
     }
 
-    // Sourcemap locations trailer: bitset words, word count, magic marker.
-    if let Some(locations) = &mut self.sourcemap_locations {
+    if let Some(mut locations) = self.sourcemap_locations.take() {
       locations.truncate((self.program_end >> 5) as usize + 1);
-    }
-    if let Some(locations) = self.sourcemap_locations.take() {
-      let word_count = locations.len() as u32;
+      update_reference_position(&mut self.buffer, BUFFER_SOURCEMAP_LOCATIONS_OFFSET);
+      self
+        .buffer
+        .extend_from_slice(&(locations.len() as u32).to_ne_bytes());
       for location in locations {
         self.buffer.extend_from_slice(&location.to_ne_bytes());
       }
-      self.buffer.extend_from_slice(&word_count.to_ne_bytes());
-      self
-        .buffer
-        .extend_from_slice(&SOURCE_MAP_LOCATIONS_MAGIC.to_ne_bytes());
     }
 
     self.buffer.shrink_to_fit();

@@ -503,7 +503,7 @@ describe('lazy AST parents', () => {
 	it('resolves parents when deserializing a fragment at a non-zero position', () => {
 		const buffer = serializeAst(parseAst('const x = foo;'));
 		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
-		const declarationPosition = words[words[4] + 1];
+		const declarationPosition = words[words[words[0] + 4] + 1];
 		const declaration = deserializeLazyAst(buffer, declarationPosition);
 		assert.strictEqual(declaration.type, 'VariableDeclaration');
 		assert.strictEqual(declaration.parent.type, 'Program');
@@ -568,6 +568,19 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.id.parent, declarator);
 		assert.strictEqual(declarator.init.parent, declarator);
 		assert.strictEqual(otherParent, declarator.init);
+	});
+});
+
+describe('parseAndWalk', () => {
+	it('returns without visiting when no node matches the selected types', async () => {
+		let visited = false;
+		const result = await parseAndWalk('const value = 42;', {
+			YieldExpression: () => {
+				visited = true;
+			}
+		});
+		assert.strictEqual(visited, false);
+		assert.strictEqual(result, undefined);
 	});
 });
 

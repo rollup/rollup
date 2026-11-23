@@ -171,10 +171,10 @@ const bufferParsers = `${notEditFilesComment}
 import type { ast } from '../rollup/types';
 import { convertAnnotations } from '../utils/astConverterHelpers';
 import { EMPTY_ARRAY } from '../utils/blank';
+import { getAstPosition } from '../utils/bufferInventory';
 import { convertNode as convertJsonNode } from '../utils/bufferToLazyAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { AstBuffer } from '../utils/getAstBuffer';
-import { getAstBuffer } from '../utils/getAstBuffer';
 ${nodeTypeImports.join('\n')}
 import { UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import type { Node, NodeBase } from './nodes/shared/Node';
@@ -186,11 +186,11 @@ import { EMPTY_PATH } from './utils/PathTracker';
 import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(
-  buffer: Buffer | Uint8Array,
+  buffer: AstBuffer,
   parent: Node | null,
   parentScope: ModuleScope
 ): Program {
-  return convertNode(parent, parentScope, 0, getAstBuffer(buffer));
+  return convertNode(parent, parentScope, getAstPosition(buffer), buffer);
 }
 
 

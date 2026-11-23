@@ -37,6 +37,26 @@ describe('ast buffer', () => {
 		const nativeBuffer = native.parse(code, false, false, false);
 		const wasmBuffer = toHostByteOrder(parse(code, false, false, false));
 		assert(Buffer.from(wasmBuffer).equals(nativeBuffer));
+		const nativeLocationBuffer = native.parse(code, false, false, true);
+		const wasmLocationBuffer = toHostByteOrder(parse(code, false, false, true));
+		assert(Buffer.from(wasmLocationBuffer).equals(nativeLocationBuffer));
+		assert.strictEqual(
+			toWords(nativeBuffer)[1],
+			0,
+			'the inventory has no sourcemap locations unless they are collected'
+		);
+		const locationWords = toWords(nativeLocationBuffer);
+		const sourcemapLocationsPosition = locationWords[1];
+		assert.notStrictEqual(
+			sourcemapLocationsPosition,
+			0,
+			'the inventory references the collected sourcemap locations'
+		);
+		assert.strictEqual(
+			locationWords[sourcemapLocationsPosition],
+			(code.length >> 5) + 1,
+			'the sourcemap locations section is sized to the code length'
+		);
 
 		// 72 is the node type id of Program, which lives in the second (high)
 		// word of the walked-nodes bitset, pinning the bitset word order.
@@ -53,11 +73,78 @@ describe('ast buffer', () => {
 			parseAndWalkSync(code, false, false, walkedNodesBitset, true, false)
 		);
 		assert(Buffer.from(wasmWalkBuffer).equals(nativeWalkBuffer));
+		const walkWords = toWords(nativeWalkBuffer);
+		assert.strictEqual(walkWords[0], 3, 'the inventory references the root node after itself');
+		assert.strictEqual(toWords(nativeBuffer)[2], 0, 'a parse buffer has no walking info');
+		const walkingInfoPosition = walkWords[2];
 		assert.notStrictEqual(
-			toWords(wasmWalkBuffer)[0],
-			toWords(nativeBuffer)[0],
-			'the walked buffer starts with the walking info offset instead of the node type'
+			walkingInfoPosition,
+			0,
+			'the inventory references the walking info section'
 		);
+		assert.strictEqual(
+			walkWords[walkingInfoPosition],
+			3,
+			'the walking info section holds one three-word entry for the selected Program'
+		);
+		const nativeEmptyWalkBuffer = await native.parseAndWalk(
+			code,
+			false,
+			false,
+			new BigUint64Array([0n, 0n]),
+			false,
+			false
+		);
+		assert(
+			Buffer.from(
+				toHostByteOrder(
+					parseAndWalkSync(code, false, false, new BigUint64Array([0n, 0n]), false, false)
+				)
+			).equals(nativeEmptyWalkBuffer)
+		);
+		const emptyWalkWords = toWords(nativeEmptyWalkBuffer);
+		const emptyWalkingInfoPosition = emptyWalkWords[2];
+		assert.notStrictEqual(
+			emptyWalkingInfoPosition,
+			0,
+			'a walk request always writes the walking info section'
+		);
+		assert.strictEqual(
+			emptyWalkWords[emptyWalkingInfoPosition],
+			0,
+			'the walking info section is empty when no node type is selected'
+		);
+
+		const nativeWalkLocationBuffer = await native.parseAndWalk(
+			code,
+			false,
+			false,
+			walkedNodesBitset,
+			true,
+			true
+		);
+		assert(
+			Buffer.from(
+				toHostByteOrder(parseAndWalkSync(code, false, false, walkedNodesBitset, true, true))
+			).equals(nativeWalkLocationBuffer)
+		);
+		const walkLocationWords = toWords(nativeWalkLocationBuffer);
+		assert.notStrictEqual(
+			walkLocationWords[1],
+			0,
+			'a walk buffer can also have sourcemap locations'
+		);
+		assert.notStrictEqual(walkLocationWords[2], 0, 'a walk buffer references its walking info');
+		assert.strictEqual(
+			walkLocationWords[walkLocationWords[1]],
+			(code.length >> 5) + 1,
+			'both sections are written independently'
+		);
+
+		const errorWords = toWords(native.parse('const x = ;', false, false, false));
+		assert.strictEqual(errorWords[0], 3, 'an error buffer also starts with the inventory');
+		assert.strictEqual(errorWords[1], 0, 'an error buffer has no sourcemap locations');
+		assert.strictEqual(errorWords[2], 0, 'an error buffer has no walking info');
 
 		const identifiers = [];
 		await parseAndWalk(
@@ -92,15 +179,16 @@ describe('ast buffer', () => {
 
 	it('stores strings and float values in the documented word format', () => {
 		const numberWords = toWords(serializeAst({ type: 'Literal', start: 0, end: 0, value: 1.5 }));
-		// word 4 is the raw reference, which is unset here; then 1.5 is stored
-		// as the low/high pair of its f64 bit pattern 0x3ff8000000000000
-		assert.strictEqual(numberWords[4], 0x00000000);
-		assert.strictEqual(numberWords[5], 0x00000000);
-		assert.strictEqual(numberWords[6], 0x3ff80000);
+		const rootPosition = numberWords[0];
+		// the raw string reference is unset here; then 1.5 is stored as the
+		// low/high pair of its f64 bit pattern 0x3ff8000000000000
+		assert.strictEqual(numberWords[rootPosition + 4], 0);
+		assert.strictEqual(numberWords[rootPosition + 5], 0);
+		assert.strictEqual(numberWords[rootPosition + 6], 0x3ff80000);
 		const stringWords = toWords(
 			serializeAst({ type: 'Literal', start: 0, end: 0, value: 'abcde', raw: '"abcde"' })
 		);
-		const stringPosition = stringWords[4];
+		const stringPosition = stringWords[stringWords[0] + 4];
 		assert.strictEqual(stringWords[stringPosition], 5);
 		// the bytes are packed LSB-first: 'a' into the lowest byte position
 		assert.strictEqual(stringWords[stringPosition + 1], 0x64636261);
@@ -125,18 +213,29 @@ describe('ast buffer', () => {
 			})
 		);
 		const nativeWords = toWords(native.parse('x;', false, false, false));
-		assert.strictEqual(words[0], nativeWords[0], 'the root type is at word 0');
-		assert.strictEqual(words[1], 0, 'the root has no parent');
-		assert.strictEqual(words[2], 0, 'the root start is at word 2');
-		assert.strictEqual(words[3], 2, 'the root end is at word 3');
-		assert.strictEqual(nativeWords[1], 0, 'the native root has no parent');
-		assert.strictEqual(nativeWords[2], 0, 'the native root start is at word 2');
-		assert.strictEqual(nativeWords[3], 2, 'the native root end is at word 3');
-		const nativeBodyListPosition = nativeWords[4];
+		const rootPosition = words[0];
+		assert.strictEqual(rootPosition, 3, 'the root node follows the buffer inventory');
+		assert.strictEqual(nativeWords[0], rootPosition, 'the native buffer has the same inventory');
+		assert.strictEqual(
+			words[rootPosition],
+			nativeWords[rootPosition],
+			'the root type is at the root position'
+		);
+		assert.strictEqual(words[rootPosition + 1], 0, 'the root has no parent');
+		assert.strictEqual(words[rootPosition + 2], 0, 'the root start follows the parent');
+		assert.strictEqual(words[rootPosition + 3], 2, 'the root end follows the start');
+		assert.strictEqual(nativeWords[rootPosition + 1], 0, 'the native root has no parent');
+		assert.strictEqual(
+			nativeWords[rootPosition + 2],
+			0,
+			'the native root start follows the parent'
+		);
+		assert.strictEqual(nativeWords[rootPosition + 3], 2, 'the native root end follows the start');
+		const nativeBodyListPosition = nativeWords[rootPosition + 4];
 		const nativeStatementPosition = nativeWords[nativeBodyListPosition + 1];
 		assert.strictEqual(
 			nativeWords[nativeStatementPosition + 1],
-			1,
+			rootPosition + 1,
 			'the native child stores the root position plus one'
 		);
 		const nativeIdentifierPosition = nativeWords[nativeStatementPosition + 4];
@@ -147,11 +246,11 @@ describe('ast buffer', () => {
 			'x'.charCodeAt(0),
 			'the native identifier name points at its characters'
 		);
-		const bodyListPosition = words[4];
+		const bodyListPosition = words[rootPosition + 4];
 		const statementPosition = words[bodyListPosition + 1];
 		assert.strictEqual(
 			words[statementPosition + 1],
-			1,
+			rootPosition + 1,
 			'the child stores the root position plus one'
 		);
 		assert.strictEqual(words[statementPosition + 2], 0, 'the child start is at word 2');
@@ -177,7 +276,12 @@ describe('ast buffer', () => {
 				type: 'ArrowFunctionExpression'
 			})
 		);
-		assert.strictEqual(arrowWords[4], 1, 'the async flag is the first bit of the flags word');
+		const arrowRootPosition = arrowWords[0];
+		assert.strictEqual(
+			arrowWords[arrowRootPosition + 4],
+			1,
+			'the async flag is the first bit of the flags word'
+		);
 
 		const identifierWords = toWords(
 			serializeAst({
@@ -195,7 +299,7 @@ describe('ast buffer', () => {
 				type: 'Program'
 			})
 		);
-		const statementPosition = identifierWords[identifierWords[4] + 1];
+		const statementPosition = identifierWords[identifierWords[identifierWords[0] + 4] + 1];
 		const identifierPosition = identifierWords[statementPosition + 4];
 		const namePosition = identifierWords[identifierPosition + 4];
 		assert.strictEqual(

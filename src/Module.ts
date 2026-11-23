@@ -49,6 +49,7 @@ import type {
 	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import { getSourcemapLocations } from './utils/bufferInventory';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import {
@@ -938,7 +939,8 @@ export default class Module {
 		this.magicString = new MagicString(code, {
 			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
-		const sourcemapLocations = getAstBuffer(astBuffer).sourcemapLocations;
+		const astBufferView = getAstBuffer(astBuffer);
+		const sourcemapLocations = getSourcemapLocations(astBufferView);
 		const fittedSourcemapLocations = new Uint32Array((code.length >> 5) + 1);
 		if (sourcemapLocations) {
 			fittedSourcemapLocations.set(sourcemapLocations.subarray(0, fittedSourcemapLocations.length));
@@ -986,7 +988,7 @@ export default class Module {
 			enumerable: true,
 			get: () => this.tryParseLazy(this.astBuffer)
 		});
-		this.ast = convertProgram(this.astBuffer, null, this.scope);
+		this.ast = convertProgram(astBufferView, null, this.scope);
 		timeEnd('generate ast', 3);
 	}
 

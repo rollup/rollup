@@ -1,6 +1,7 @@
 import { parseAndWalk as parseAndWalkNative } from '../../native';
 import { nodeIds } from '../ast/nodeIds';
 import type { ParseAndWalkApi, ParseAndWalkHandler, ParseAndWalkVisitors } from '../rollup/types';
+import { getAstPosition, getWalkingInfo } from './bufferInventory';
 import { convertNode, deserializeLazyAstBuffer, IDENTIFIER_NAME_OFFSET } from './bufferToLazyAst';
 import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
@@ -27,8 +28,12 @@ export async function parseAndWalk(
 			false
 		)
 	);
-
-	walkAstBuffer(astBuffer, visitors, collectScopes);
+	const walkingInfo = getWalkingInfo(astBuffer);
+	if (!walkingInfo) {
+		// Without walking info, the buffer contains a parse error
+		return deserializeLazyAstBuffer(astBuffer, getAstPosition(astBuffer)) as never;
+	}
+	walkAstBuffer(astBuffer, walkingInfo, visitors, collectScopes);
 }
 
 function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>): BigUint64Array {
@@ -56,19 +61,13 @@ function getSelectedNodesBitsetBuffer(visitors: Record<string, unknown>): BigUin
 //  sure to include its tests in the smoke tests to test on a big endian system?
 function walkAstBuffer(
 	astBuffer: AstBuffer,
+	walkingInfo: Uint32Array,
 	visitors: ParseAndWalkVisitors,
 	collectScopes: boolean
 ) {
-	const walkingInfoOffset = astBuffer[0];
 	const entrySize = 3;
 
-	// If it is 0, there are no walking buffer or walked nodes
-	if (walkingInfoOffset === 0) {
-		// This will throw the correct error if there was a parse error
-		return deserializeLazyAstBuffer(astBuffer, 1) as never;
-	}
-
-	let walkingPosition = walkingInfoOffset;
+	let walkingPosition = 0;
 	const scopeCache = new Map<number, NonNullable<ParseAndWalkApi['scope']>>();
 	const nodeVisitors: ParseAndWalkHandler[] = [];
 	for (const [nodeType, visitor] of Object.entries(visitors)) {
@@ -78,7 +77,7 @@ function walkAstBuffer(
 	}
 	const api: ParseAndWalkApi = {
 		parseChildren() {
-			const endPosition = walkingInfoOffset + astBuffer[walkingPosition + 1] * entrySize;
+			const endPosition = walkingInfo[walkingPosition + 1] * entrySize;
 			walkingPosition += entrySize;
 			walkUntilPosition(endPosition);
 			// After parseChildren, the walkingPosition must point to the last child,
@@ -88,15 +87,15 @@ function walkAstBuffer(
 		skipChildren() {
 			// Like parseChildren, the pointer must point to the last child after
 			// skipping, not beyond.
-			walkingPosition = walkingInfoOffset + astBuffer[walkingPosition + 1] * entrySize - entrySize;
+			walkingPosition = walkingInfo[walkingPosition + 1] * entrySize - entrySize;
 		}
 	};
 
 	function walkUntilPosition(endPosition: number) {
 		for (; walkingPosition < endPosition; walkingPosition += entrySize) {
-			const nodePosition = astBuffer[walkingPosition];
+			const nodePosition = walkingInfo[walkingPosition];
 			if (collectScopes) {
-				api.scope = getScope(astBuffer[walkingPosition + 2]);
+				api.scope = getScope(walkingInfo[walkingPosition + 2]);
 			}
 			nodeVisitors[astBuffer[nodePosition]]!(convertNode(nodePosition, astBuffer), api);
 		}
@@ -134,5 +133,5 @@ function walkAstBuffer(
 		return scope;
 	}
 
-	walkUntilPosition(astBuffer.astEnd);
+	walkUntilPosition(walkingInfo.length);
 }
