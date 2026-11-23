@@ -9,7 +9,272 @@ import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): ast.AstNode => {
+export const IDENTIFIER_NAME_OFFSET = 4;
+
+/* Class getters are not enumerable, so only AST fields are made enumerable;
+   the parent must stay hidden as for..in based walkers like estree-walker
+   would otherwise traverse it into cycles. */
+function makeLazyFieldsEnumerable(prototype: object, keys: readonly string[]): void {
+	for (const key of keys) {
+		Object.defineProperty(prototype, key, { enumerable: true });
+	}
+}
+
+function getNodeValue<T>(node: object, key: string, createValue: () => T): T {
+	const value = createValue();
+	Object.defineProperty(node, key, {
+		configurable: true,
+		enumerable: true,
+		value,
+		writable: true
+	});
+	return value;
+}
+
+function getString(position: number, buffer: AstBuffer): string {
+	const strings = (buffer.lazyStrings ??= new Map());
+	const cachedString = strings.get(position);
+	if (cachedString !== undefined) {
+		return cachedString;
+	}
+	const string = buffer.convertString(position);
+	strings.set(position, string);
+	return string;
+}
+
+export function convertNode(position: number, buffer: AstBuffer): any {
+	const cache = (buffer.lazyNodes ??= new Map());
+	const cachedNode = cache.get(position);
+	if (cachedNode !== undefined) {
+		return cachedNode;
+	}
+	const node = createNode(position, buffer);
+	cache.set(position, node);
+	return node;
+}
+
+/* Kept apart from convertNode so that convertNode stays small enough to be inlined into getters. */
+function createNode(position: number, buffer: AstBuffer): ast.LazyNode<ast.AstNode> {
+	switch (buffer[position]) {
+		case 0:
+			return new LazyPanicError(position, buffer);
+		case 1:
+			return new LazyParseError(position, buffer);
+		case 2:
+			return new LazyArrayExpression(position, buffer);
+		case 3:
+			return new LazyArrayPattern(position, buffer);
+		case 4:
+			return new LazyArrowFunctionExpression(position, buffer);
+		case 5:
+			return new LazyAssignmentExpression(position, buffer);
+		case 6:
+			return new LazyAssignmentPattern(position, buffer);
+		case 7:
+			return new LazyAwaitExpression(position, buffer);
+		case 8:
+			return new LazyBinaryExpression(position, buffer);
+		case 9:
+			return new LazyBlockStatement(position, buffer);
+		case 10:
+			return new LazyBreakStatement(position, buffer);
+		case 11:
+			return new LazyCallExpression(position, buffer);
+		case 12:
+			return new LazyCatchClause(position, buffer);
+		case 13:
+			return new LazyChainExpression(position, buffer);
+		case 14:
+			return new LazyClassBody(position, buffer);
+		case 15:
+			return new LazyClassDeclaration(position, buffer);
+		case 16:
+			return new LazyClassExpression(position, buffer);
+		case 17:
+			return new LazyConditionalExpression(position, buffer);
+		case 18:
+			return new LazyContinueStatement(position, buffer);
+		case 19:
+			return new LazyDebuggerStatement(position, buffer);
+		case 20:
+			return new LazyDecorator(position, buffer);
+		case 21:
+			return new LazyDirective(position, buffer);
+		case 22:
+			return new LazyDoWhileStatement(position, buffer);
+		case 23:
+			return new LazyEmptyStatement(position, buffer);
+		case 24:
+			return new LazyExportAllDeclaration(position, buffer);
+		case 25:
+			return new LazyExportDefaultDeclaration(position, buffer);
+		case 26:
+			return new LazyExportNamedDeclaration(position, buffer);
+		case 27:
+			return new LazyExportSpecifier(position, buffer);
+		case 28:
+			return new LazyExpressionStatement(position, buffer);
+		case 29:
+			return new LazyForInStatement(position, buffer);
+		case 30:
+			return new LazyForOfStatement(position, buffer);
+		case 31:
+			return new LazyForStatement(position, buffer);
+		case 32:
+			return new LazyFunctionDeclaration(position, buffer);
+		case 33:
+			return new LazyFunctionExpression(position, buffer);
+		case 34:
+			return new LazyIdentifier(position, buffer);
+		case 35:
+			return new LazyIfStatement(position, buffer);
+		case 36:
+			return new LazyImportAttribute(position, buffer);
+		case 37:
+			return new LazyImportDeclaration(position, buffer);
+		case 38:
+			return new LazyImportDefaultSpecifier(position, buffer);
+		case 39:
+			return new LazyImportExpression(position, buffer);
+		case 40:
+			return new LazyImportNamespaceSpecifier(position, buffer);
+		case 41:
+			return new LazyImportSpecifier(position, buffer);
+		case 42:
+			return new LazyJSXAttribute(position, buffer);
+		case 43:
+			return new LazyJSXClosingElement(position, buffer);
+		case 44:
+			return new LazyJSXClosingFragment(position, buffer);
+		case 45:
+			return new LazyJSXElement(position, buffer);
+		case 46:
+			return new LazyJSXEmptyExpression(position, buffer);
+		case 47:
+			return new LazyJSXExpressionContainer(position, buffer);
+		case 48:
+			return new LazyJSXFragment(position, buffer);
+		case 49:
+			return new LazyJSXIdentifier(position, buffer);
+		case 50:
+			return new LazyJSXMemberExpression(position, buffer);
+		case 51:
+			return new LazyJSXNamespacedName(position, buffer);
+		case 52:
+			return new LazyJSXOpeningElement(position, buffer);
+		case 53:
+			return new LazyJSXOpeningFragment(position, buffer);
+		case 54:
+			return new LazyJSXSpreadAttribute(position, buffer);
+		case 55:
+			return new LazyJSXSpreadChild(position, buffer);
+		case 56:
+			return new LazyJSXText(position, buffer);
+		case 57:
+			return new LazyLabeledStatement(position, buffer);
+		case 58:
+			return new LazyLiteralBigInt(position, buffer);
+		case 59:
+			return new LazyLiteralBoolean(position, buffer);
+		case 60:
+			return new LazyLiteralNull(position, buffer);
+		case 61:
+			return new LazyLiteralNumber(position, buffer);
+		case 62:
+			return new LazyLiteralRegExp(position, buffer);
+		case 63:
+			return new LazyLiteralString(position, buffer);
+		case 64:
+			return new LazyLogicalExpression(position, buffer);
+		case 65:
+			return new LazyMemberExpression(position, buffer);
+		case 66:
+			return new LazyMetaProperty(position, buffer);
+		case 67:
+			return new LazyMethodDefinition(position, buffer);
+		case 68:
+			return new LazyNewExpression(position, buffer);
+		case 69:
+			return new LazyObjectExpression(position, buffer);
+		case 70:
+			return new LazyObjectPattern(position, buffer);
+		case 71:
+			return new LazyPrivateIdentifier(position, buffer);
+		case 72:
+			return new LazyProgram(position, buffer);
+		case 73:
+			return new LazyProperty(position, buffer);
+		case 74:
+			return new LazyPropertyDefinition(position, buffer);
+		case 75:
+			return new LazyRestElement(position, buffer);
+		case 76:
+			return new LazyReturnStatement(position, buffer);
+		case 77:
+			return new LazySequenceExpression(position, buffer);
+		case 78:
+			return new LazySpreadElement(position, buffer);
+		case 79:
+			return new LazyStaticBlock(position, buffer);
+		case 80:
+			return new LazySuper(position, buffer);
+		case 81:
+			return new LazySwitchCase(position, buffer);
+		case 82:
+			return new LazySwitchStatement(position, buffer);
+		case 83:
+			return new LazyTaggedTemplateExpression(position, buffer);
+		case 84:
+			return new LazyTemplateElement(position, buffer);
+		case 85:
+			return new LazyTemplateLiteral(position, buffer);
+		case 86:
+			return new LazyThisExpression(position, buffer);
+		case 87:
+			return new LazyThrowStatement(position, buffer);
+		case 88:
+			return new LazyTryStatement(position, buffer);
+		case 89:
+			return new LazyUnaryExpression(position, buffer);
+		case 90:
+			return new LazyUpdateExpression(position, buffer);
+		case 91:
+			return new LazyVariableDeclaration(position, buffer);
+		case 92:
+			return new LazyVariableDeclarator(position, buffer);
+		case 93:
+			return new LazyWhileStatement(position, buffer);
+		case 94:
+			return new LazyYieldExpression(position, buffer);
+		default: {
+			/* istanbul ignore next: This should never be executed but is a safeguard against faulty buffers */
+			console.trace();
+			throw new Error(`Unknown node type: ${buffer[position]}`);
+		}
+	}
+}
+
+function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
+	if (position === 0) return EMPTY_ARRAY;
+	const cache = (buffer.lazyLists ??= new Map());
+	const cachedList = cache.get(position);
+	if (cachedList !== undefined) {
+		return cachedList;
+	}
+	const length = buffer[position];
+	const list: any[] = new Array(length);
+	for (let index = 0; index < length; index++) {
+		const nodePosition = buffer[position + 1 + index];
+		list[index] = nodePosition ? convertNode(nodePosition, buffer) : null;
+	}
+	cache.set(position, list);
+	return list;
+}
+
+export const deserializeLazyAstBuffer = (
+	buffer: AstBuffer,
+	position: number
+): ast.LazyNode<ast.AstNode> => {
 	const node = convertNode(position, buffer);
 	switch (node.type) {
 		case PanicError: {
@@ -24,1708 +289,3503 @@ export const deserializeLazyAstBuffer = (buffer: AstBuffer, position: number): a
 	}
 };
 
-/* eslint-disable sort-keys */
-const nodeConverters: ((position: number, buffer: AstBuffer) => ast.AstNode)[] = [
-	function panicError(position, buffer): ast.PanicError {
-		const node: ast.PanicError = {
-			type: 'PanicError',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get message() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'message', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function parseError(position, buffer): ast.ParseError {
-		const node: ast.ParseError = {
-			type: 'ParseError',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get message() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'message', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function arrayExpression(position, buffer): ast.ArrayExpression {
-		const node: ast.ArrayExpression = {
-			type: 'ArrayExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get elements() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'elements', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function arrayPattern(position, buffer): ast.ArrayPattern {
-		const node: ast.ArrayPattern = {
-			type: 'ArrayPattern',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get elements() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'elements', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function arrowFunctionExpression(position, buffer): ast.ArrowFunctionExpression {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const node: ast.ArrowFunctionExpression = {
-			type: 'ArrowFunctionExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			async: (flags & 1) === 1,
-			expression: (flags & 2) === 2,
-			generator: (flags & 4) === 4,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get params() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			id: null
-		};
-		return node;
-	},
-	function assignmentExpression(position, buffer): ast.AssignmentExpression {
-		const node: ast.AssignmentExpression = {
-			type: 'AssignmentExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.AssignmentExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function assignmentPattern(position, buffer): ast.AssignmentPattern {
-		const node: ast.AssignmentPattern = {
-			type: 'AssignmentPattern',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get left() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function awaitExpression(position, buffer): ast.AwaitExpression {
-		const node: ast.AwaitExpression = {
-			type: 'AwaitExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function binaryExpression(position, buffer): ast.BinaryExpression {
-		const node: ast.BinaryExpression = {
-			type: 'BinaryExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.BinaryExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function blockStatement(position, buffer): ast.BlockStatement {
-		const node: ast.BlockStatement = {
-			type: 'BlockStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function breakStatement(position, buffer): ast.BreakStatement {
-		const labelPosition = buffer[position + 2];
-		const node: ast.BreakStatement = {
-			type: 'BreakStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function callExpression(position, buffer): ast.CallExpression {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const node: ast.CallExpression = {
-			type: 'CallExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			optional: (flags & 1) === 1,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get callee() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'callee', { value: result });
-				return result;
-			},
-			get arguments() {
-				const result = convertNodeList(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'arguments', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function catchClause(position, buffer): ast.CatchClause {
-		const parameterPosition = buffer[position + 2];
-		const node: ast.CatchClause = {
-			type: 'CatchClause',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get param() {
-				const result = parameterPosition === 0 ? null : convertNode(parameterPosition, buffer);
-				Object.defineProperty(node, 'param', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function chainExpression(position, buffer): ast.ChainExpression {
-		const node: ast.ChainExpression = {
-			type: 'ChainExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function classBody(position, buffer): ast.ClassBody {
-		const node: ast.ClassBody = {
-			type: 'ClassBody',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function classDeclaration(position, buffer): ast.ClassDeclaration {
-		const idPosition = buffer[position + 3];
-		const superClassPosition = buffer[position + 4];
-		const node: ast.ClassDeclaration = {
-			type: 'ClassDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get decorators() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get superClass() {
-				const result = superClassPosition === 0 ? null : convertNode(superClassPosition, buffer);
-				Object.defineProperty(node, 'superClass', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function classExpression(position, buffer): ast.ClassExpression {
-		const idPosition = buffer[position + 3];
-		const superClassPosition = buffer[position + 4];
-		const node: ast.ClassExpression = {
-			type: 'ClassExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get decorators() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get superClass() {
-				const result = superClassPosition === 0 ? null : convertNode(superClassPosition, buffer);
-				Object.defineProperty(node, 'superClass', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function conditionalExpression(position, buffer): ast.ConditionalExpression {
-		const node: ast.ConditionalExpression = {
-			type: 'ConditionalExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get consequent() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
-			},
-			get alternate() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'alternate', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function continueStatement(position, buffer): ast.ContinueStatement {
-		const labelPosition = buffer[position + 2];
-		const node: ast.ContinueStatement = {
-			type: 'ContinueStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get label() {
-				const result = labelPosition === 0 ? null : convertNode(labelPosition, buffer);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function debuggerStatement(position, buffer): ast.DebuggerStatement {
-		const node: ast.DebuggerStatement = {
-			type: 'DebuggerStatement',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function decorator(position, buffer): ast.Decorator {
-		const node: ast.Decorator = {
-			type: 'Decorator',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function directive(position, buffer): ast.Directive {
-		const node: ast.Directive = {
-			type: 'ExpressionStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get directive() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'directive', { value: result });
-				return result;
-			},
-			get expression() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function doWhileStatement(position, buffer): ast.DoWhileStatement {
-		const node: ast.DoWhileStatement = {
-			type: 'DoWhileStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			get test() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function emptyStatement(position, buffer): ast.EmptyStatement {
-		const node: ast.EmptyStatement = {
-			type: 'EmptyStatement',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function exportAllDeclaration(position, buffer): ast.ExportAllDeclaration {
-		const exportedPosition = buffer[position + 2];
-		const node: ast.ExportAllDeclaration = {
-			type: 'ExportAllDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get exported() {
-				const result = exportedPosition === 0 ? null : convertNode(exportedPosition, buffer);
-				Object.defineProperty(node, 'exported', { value: result });
-				return result;
-			},
-			get source() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function exportDefaultDeclaration(position, buffer): ast.ExportDefaultDeclaration {
-		const node: ast.ExportDefaultDeclaration = {
-			type: 'ExportDefaultDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get declaration() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'declaration', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function exportNamedDeclaration(position, buffer): ast.ExportNamedDeclaration {
-		const sourcePosition = buffer[position + 3];
-		const declarationPosition = buffer[position + 5];
-		const node: ast.ExportNamedDeclaration = {
-			type: 'ExportNamedDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get specifiers() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'specifiers', { value: result });
-				return result;
-			},
-			get source() {
-				const result = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			},
-			get declaration() {
-				const result = declarationPosition === 0 ? null : convertNode(declarationPosition, buffer);
-				Object.defineProperty(node, 'declaration', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function exportSpecifier(position, buffer): ast.ExportSpecifier {
-		const local = convertNode(buffer[position + 2], buffer);
-		const exportedPosition = buffer[position + 3];
-		const node: ast.ExportSpecifier = {
-			type: 'ExportSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			local,
-			get exported() {
-				const result =
-					exportedPosition === 0 ? { ...local } : convertNode(exportedPosition, buffer);
-				Object.defineProperty(node, 'exported', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function expressionStatement(position, buffer): ast.ExpressionStatement {
-		const node: ast.ExpressionStatement = {
-			type: 'ExpressionStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function forInStatement(position, buffer): ast.ForInStatement {
-		const node: ast.ForInStatement = {
-			type: 'ForInStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get left() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function forOfStatement(position, buffer): ast.ForOfStatement {
-		const flags = buffer[position + 2];
-		const node: ast.ForOfStatement = {
-			type: 'ForOfStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			await: (flags & 1) === 1,
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function forStatement(position, buffer): ast.ForStatement {
-		const initPosition = buffer[position + 2];
-		const testPosition = buffer[position + 3];
-		const updatePosition = buffer[position + 4];
-		const node: ast.ForStatement = {
-			type: 'ForStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer);
-				Object.defineProperty(node, 'init', { value: result });
-				return result;
-			},
-			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get update() {
-				const result = updatePosition === 0 ? null : convertNode(updatePosition, buffer);
-				Object.defineProperty(node, 'update', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function functionDeclaration(position, buffer): ast.FunctionDeclaration {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const idPosition = buffer[position + 4];
-		const node: ast.FunctionDeclaration = {
-			type: 'FunctionDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			async: (flags & 1) === 1,
-			generator: (flags & 2) === 2,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get params() {
-				const result = convertNodeList(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			expression: false
-		};
-		return node;
-	},
-	function functionExpression(position, buffer): ast.FunctionExpression {
-		const flags = buffer[position + 2];
-		const annotations = convertAnnotations(buffer[position + 3], buffer);
-		const idPosition = buffer[position + 4];
-		const node: ast.FunctionExpression = {
-			type: 'FunctionExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			async: (flags & 1) === 1,
-			generator: (flags & 2) === 2,
-			...(annotations.length > 0 ? { annotations } : {}),
-			get id() {
-				const result = idPosition === 0 ? null : convertNode(idPosition, buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get params() {
-				const result = convertNodeList(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'params', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 6], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			expression: false
-		};
-		return node;
-	},
-	function identifier(position, buffer): ast.Identifier {
-		const node: ast.Identifier = {
-			type: 'Identifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function ifStatement(position, buffer): ast.IfStatement {
-		const alternatePosition = buffer[position + 4];
-		const node: ast.IfStatement = {
-			type: 'IfStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get consequent() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
-			},
-			get alternate() {
-				const result = alternatePosition === 0 ? null : convertNode(alternatePosition, buffer);
-				Object.defineProperty(node, 'alternate', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importAttribute(position, buffer): ast.ImportAttribute {
-		const node: ast.ImportAttribute = {
-			type: 'ImportAttribute',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get key() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			get value() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importDeclaration(position, buffer): ast.ImportDeclaration {
-		const phasePosition = buffer[position + 5];
-		const node: ast.ImportDeclaration = {
-			type: 'ImportDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get specifiers() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'specifiers', { value: result });
-				return result;
-			},
-			get source() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			},
-			get phase() {
-				const result =
-					phasePosition === 0
-						? undefined
-						: (FIXED_STRINGS[buffer[position + 5]] as ast.ImportDeclaration['phase']);
-				Object.defineProperty(node, 'phase', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importDefaultSpecifier(position, buffer): ast.ImportDefaultSpecifier {
-		const node: ast.ImportDefaultSpecifier = {
-			type: 'ImportDefaultSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get local() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'local', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importExpression(position, buffer): ast.ImportExpression {
-		const optionsPosition = buffer[position + 3];
-		const phasePosition = buffer[position + 4];
-		const node: ast.ImportExpression = {
-			type: 'ImportExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get source() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'source', { value: result });
-				return result;
-			},
-			get options() {
-				const result = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer);
-				Object.defineProperty(node, 'options', { value: result });
-				return result;
-			},
-			get phase() {
-				const result =
-					phasePosition === 0
-						? undefined
-						: (FIXED_STRINGS[buffer[position + 4]] as ast.ImportExpression['phase']);
-				Object.defineProperty(node, 'phase', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importNamespaceSpecifier(position, buffer): ast.ImportNamespaceSpecifier {
-		const node: ast.ImportNamespaceSpecifier = {
-			type: 'ImportNamespaceSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get local() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'local', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function importSpecifier(position, buffer): ast.ImportSpecifier {
-		const importedPosition = buffer[position + 2];
-		const local = convertNode(buffer[position + 3], buffer);
-		const node: ast.ImportSpecifier = {
-			type: 'ImportSpecifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get imported() {
-				const result =
-					importedPosition === 0 ? { ...local } : convertNode(importedPosition, buffer);
-				Object.defineProperty(node, 'imported', { value: result });
-				return result;
-			},
-			local
-		};
-		return node;
-	},
-	function jsxAttribute(position, buffer): ast.JSXAttribute {
-		const valuePosition = buffer[position + 3];
-		const node: ast.JSXAttribute = {
-			type: 'JSXAttribute',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			},
-			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxClosingElement(position, buffer): ast.JSXClosingElement {
-		const node: ast.JSXClosingElement = {
-			type: 'JSXClosingElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxClosingFragment(position, buffer): ast.JSXClosingFragment {
-		const node: ast.JSXClosingFragment = {
-			type: 'JSXClosingFragment',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function jsxElement(position, buffer): ast.JSXElement {
-		const closingElementPosition = buffer[position + 4];
-		const node: ast.JSXElement = {
-			type: 'JSXElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get openingElement() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'openingElement', { value: result });
-				return result;
-			},
-			get children() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'children', { value: result });
-				return result;
-			},
-			get closingElement() {
-				const result =
-					closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer);
-				Object.defineProperty(node, 'closingElement', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxEmptyExpression(position, buffer): ast.JSXEmptyExpression {
-		const node: ast.JSXEmptyExpression = {
-			type: 'JSXEmptyExpression',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function jsxExpressionContainer(position, buffer): ast.JSXExpressionContainer {
-		const node: ast.JSXExpressionContainer = {
-			type: 'JSXExpressionContainer',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxFragment(position, buffer): ast.JSXFragment {
-		const node: ast.JSXFragment = {
-			type: 'JSXFragment',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get openingFragment() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'openingFragment', { value: result });
-				return result;
-			},
-			get children() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'children', { value: result });
-				return result;
-			},
-			get closingFragment() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'closingFragment', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxIdentifier(position, buffer): ast.JSXIdentifier {
-		const node: ast.JSXIdentifier = {
-			type: 'JSXIdentifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxMemberExpression(position, buffer): ast.JSXMemberExpression {
-		const node: ast.JSXMemberExpression = {
-			type: 'JSXMemberExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get object() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'object', { value: result });
-				return result;
-			},
-			get property() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxNamespacedName(position, buffer): ast.JSXNamespacedName {
-		const node: ast.JSXNamespacedName = {
-			type: 'JSXNamespacedName',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get namespace() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'namespace', { value: result });
-				return result;
-			},
-			get name() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxOpeningElement(position, buffer): ast.JSXOpeningElement {
-		const flags = buffer[position + 2];
-		const node: ast.JSXOpeningElement = {
-			type: 'JSXOpeningElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			selfClosing: (flags & 1) === 1,
-			get name() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			},
-			get attributes() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'attributes', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxOpeningFragment(position, buffer): ast.JSXOpeningFragment {
-		const node: ast.JSXOpeningFragment = {
-			type: 'JSXOpeningFragment',
-			start: buffer[position],
-			end: buffer[position + 1],
-			attributes: [],
-			selfClosing: false
-		};
-		return node;
-	},
-	function jsxSpreadAttribute(position, buffer): ast.JSXSpreadAttribute {
-		const node: ast.JSXSpreadAttribute = {
-			type: 'JSXSpreadAttribute',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxSpreadChild(position, buffer): ast.JSXSpreadChild {
-		const node: ast.JSXSpreadChild = {
-			type: 'JSXSpreadChild',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expression() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expression', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function jsxText(position, buffer): ast.JSXText {
-		const node: ast.JSXText = {
-			type: 'JSXText',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get value() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			},
-			get raw() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function labeledStatement(position, buffer): ast.LabeledStatement {
-		const node: ast.LabeledStatement = {
-			type: 'LabeledStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get label() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'label', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function literalBigInt(position, buffer): ast.LiteralBigInt {
-		const bigint = buffer.convertString(buffer[position + 2]);
-		const node: ast.LiteralBigInt = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			bigint,
-			get raw() {
-				const result = buffer.convertString(buffer[position + 3]);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			},
-			value: BigInt(bigint)
-		};
-		return node;
-	},
-	function literalBoolean(position, buffer): ast.LiteralBoolean {
-		const flags = buffer[position + 2];
-		const value = (flags & 1) === 1;
-		const node: ast.LiteralBoolean = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			value,
-			raw: value ? 'true' : 'false'
-		};
-		return node;
-	},
-	function literalNull(position, buffer): ast.LiteralNull {
-		const node: ast.LiteralNull = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			raw: 'null',
-			value: null
-		};
-		return node;
-	},
-	function literalNumber(position, buffer): ast.LiteralNumber {
-		const rawPosition = buffer[position + 2];
-		const node: ast.LiteralNumber = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get raw() {
-				const result = rawPosition === 0 ? undefined : buffer.convertString(rawPosition);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			},
-			get value() {
-				const result = buffer.convertFloat64(position + 3);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function literalRegExp(position, buffer): ast.LiteralRegExp {
-		const flags = buffer.convertString(buffer[position + 2]);
-		const pattern = buffer.convertString(buffer[position + 3]);
-		const node: ast.LiteralRegExp = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			raw: `/${pattern}/${flags}`,
-			regex: { flags, pattern },
-			value: new RegExp(pattern, flags)
-		};
-		return node;
-	},
-	function literalString(position, buffer): ast.LiteralString {
-		const rawPosition = buffer[position + 3];
-		const node: ast.LiteralString = {
-			type: 'Literal',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get value() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			},
-			get raw() {
-				const result = rawPosition === 0 ? undefined : buffer.convertString(rawPosition);
-				Object.defineProperty(node, 'raw', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function logicalExpression(position, buffer): ast.LogicalExpression {
-		const node: ast.LogicalExpression = {
-			type: 'LogicalExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.LogicalExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get left() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'left', { value: result });
-				return result;
-			},
-			get right() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'right', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function memberExpression(position, buffer): ast.MemberExpression {
-		const flags = buffer[position + 2];
-		const node: ast.MemberExpression = {
-			type: 'MemberExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			computed: (flags & 1) === 1,
-			optional: (flags & 2) === 2,
-			get object() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'object', { value: result });
-				return result;
-			},
-			get property() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function metaProperty(position, buffer): ast.MetaProperty {
-		const node: ast.MetaProperty = {
-			type: 'MetaProperty',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get meta() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'meta', { value: result });
-				return result;
-			},
-			get property() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'property', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function methodDefinition(position, buffer): ast.MethodDefinition {
-		const flags = buffer[position + 2];
-		const node: ast.MethodDefinition = {
-			type: 'MethodDefinition',
-			start: buffer[position],
-			end: buffer[position + 1],
-			static: (flags & 1) === 1,
-			computed: (flags & 2) === 2,
-			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get key() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			get value() {
-				const result = convertNode(buffer[position + 5], buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			},
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 6]] as ast.MethodDefinition['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function newExpression(position, buffer): ast.NewExpression {
-		const annotations = convertAnnotations(buffer[position + 2], buffer);
-		const node: ast.NewExpression = {
-			type: 'NewExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			...(annotations.length > 0 ? { annotations } : {}),
-			get callee() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'callee', { value: result });
-				return result;
-			},
-			get arguments() {
-				const result = convertNodeList(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'arguments', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function objectExpression(position, buffer): ast.ObjectExpression {
-		const node: ast.ObjectExpression = {
-			type: 'ObjectExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get properties() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'properties', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function objectPattern(position, buffer): ast.ObjectPattern {
-		const node: ast.ObjectPattern = {
-			type: 'ObjectPattern',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get properties() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'properties', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function privateIdentifier(position, buffer): ast.PrivateIdentifier {
-		const node: ast.PrivateIdentifier = {
-			type: 'PrivateIdentifier',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get name() {
-				const result = buffer.convertString(buffer[position + 2]);
-				Object.defineProperty(node, 'name', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function program(position, buffer): ast.Program {
-		const invalidAnnotations = convertAnnotations(buffer[position + 3], buffer);
-		const node: ast.Program = {
-			type: 'Program',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			},
-			...(invalidAnnotations.length > 0 ? { invalidAnnotations } : {}),
-			sourceType: 'module'
-		};
-		return node;
-	},
-	function property(position, buffer): ast.Property {
-		const flags = buffer[position + 2];
-		const keyPosition = buffer[position + 3];
-		const value = convertNode(buffer[position + 4], buffer);
-		const node: ast.Property = {
-			type: 'Property',
-			start: buffer[position],
-			end: buffer[position + 1],
-			method: (flags & 1) === 1,
-			shorthand: (flags & 2) === 2,
-			computed: (flags & 4) === 4,
-			get key() {
-				const result = keyPosition === 0 ? { ...value } : convertNode(keyPosition, buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			value,
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 5]] as ast.Property['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function propertyDefinition(position, buffer): ast.PropertyDefinition {
-		const flags = buffer[position + 2];
-		const valuePosition = buffer[position + 5];
-		const node: ast.PropertyDefinition = {
-			type: 'PropertyDefinition',
-			start: buffer[position],
-			end: buffer[position + 1],
-			static: (flags & 1) === 1,
-			computed: (flags & 2) === 2,
-			get decorators() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'decorators', { value: result });
-				return result;
-			},
-			get key() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'key', { value: result });
-				return result;
-			},
-			get value() {
-				const result = valuePosition === 0 ? null : convertNode(valuePosition, buffer);
-				Object.defineProperty(node, 'value', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function restElement(position, buffer): ast.RestElement {
-		const node: ast.RestElement = {
-			type: 'RestElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function returnStatement(position, buffer): ast.ReturnStatement {
-		const argumentPosition = buffer[position + 2];
-		const node: ast.ReturnStatement = {
-			type: 'ReturnStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function sequenceExpression(position, buffer): ast.SequenceExpression {
-		const node: ast.SequenceExpression = {
-			type: 'SequenceExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get expressions() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'expressions', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function spreadElement(position, buffer): ast.SpreadElement {
-		const node: ast.SpreadElement = {
-			type: 'SpreadElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function staticBlock(position, buffer): ast.StaticBlock {
-		const node: ast.StaticBlock = {
-			type: 'StaticBlock',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get body() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function superElement(position, buffer): ast.Super {
-		const node: ast.Super = {
-			type: 'Super',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function switchCase(position, buffer): ast.SwitchCase {
-		const testPosition = buffer[position + 2];
-		const node: ast.SwitchCase = {
-			type: 'SwitchCase',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = testPosition === 0 ? null : convertNode(testPosition, buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get consequent() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'consequent', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function switchStatement(position, buffer): ast.SwitchStatement {
-		const node: ast.SwitchStatement = {
-			type: 'SwitchStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get discriminant() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'discriminant', { value: result });
-				return result;
-			},
-			get cases() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'cases', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function taggedTemplateExpression(position, buffer): ast.TaggedTemplateExpression {
-		const node: ast.TaggedTemplateExpression = {
-			type: 'TaggedTemplateExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get tag() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'tag', { value: result });
-				return result;
-			},
-			get quasi() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'quasi', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function templateElement(position, buffer): ast.TemplateElement {
-		const flags = buffer[position + 2];
-		const cookedPosition = buffer[position + 3];
-		const cooked = cookedPosition === 0 ? undefined : buffer.convertString(cookedPosition);
-		const raw = buffer.convertString(buffer[position + 4]);
-		const node: ast.TemplateElement = {
-			type: 'TemplateElement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			tail: (flags & 1) === 1,
-			value: { cooked, raw }
-		};
-		return node;
-	},
-	function templateLiteral(position, buffer): ast.TemplateLiteral {
-		const node: ast.TemplateLiteral = {
-			type: 'TemplateLiteral',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get quasis() {
-				const result = convertNodeList(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'quasis', { value: result });
-				return result;
-			},
-			get expressions() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'expressions', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function thisExpression(position, buffer): ast.ThisExpression {
-		const node: ast.ThisExpression = {
-			type: 'ThisExpression',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-		return node;
-	},
-	function throwStatement(position, buffer): ast.ThrowStatement {
-		const node: ast.ThrowStatement = {
-			type: 'ThrowStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get argument() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function tryStatement(position, buffer): ast.TryStatement {
-		const handlerPosition = buffer[position + 3];
-		const finalizerPosition = buffer[position + 4];
-		const node: ast.TryStatement = {
-			type: 'TryStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get block() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'block', { value: result });
-				return result;
-			},
-			get handler() {
-				const result = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer);
-				Object.defineProperty(node, 'handler', { value: result });
-				return result;
-			},
-			get finalizer() {
-				const result = finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer);
-				Object.defineProperty(node, 'finalizer', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function unaryExpression(position, buffer): ast.UnaryExpression {
-		const node: ast.UnaryExpression = {
-			type: 'UnaryExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.UnaryExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get argument() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			},
-			prefix: true
-		};
-		return node;
-	},
-	function updateExpression(position, buffer): ast.UpdateExpression {
-		const flags = buffer[position + 2];
-		const node: ast.UpdateExpression = {
-			type: 'UpdateExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			prefix: (flags & 1) === 1,
-			get operator() {
-				const result = FIXED_STRINGS[buffer[position + 3]] as ast.UpdateExpression['operator'];
-				Object.defineProperty(node, 'operator', { value: result });
-				return result;
-			},
-			get argument() {
-				const result = convertNode(buffer[position + 4], buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function variableDeclaration(position, buffer): ast.VariableDeclaration {
-		const node: ast.VariableDeclaration = {
-			type: 'VariableDeclaration',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get kind() {
-				const result = FIXED_STRINGS[buffer[position + 2]] as ast.VariableDeclaration['kind'];
-				Object.defineProperty(node, 'kind', { value: result });
-				return result;
-			},
-			get declarations() {
-				const result = convertNodeList(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'declarations', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function variableDeclarator(position, buffer): ast.VariableDeclarator {
-		const initPosition = buffer[position + 3];
-		const node: ast.VariableDeclarator = {
-			type: 'VariableDeclarator',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get id() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'id', { value: result });
-				return result;
-			},
-			get init() {
-				const result = initPosition === 0 ? null : convertNode(initPosition, buffer);
-				Object.defineProperty(node, 'init', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function whileStatement(position, buffer): ast.WhileStatement {
-		const node: ast.WhileStatement = {
-			type: 'WhileStatement',
-			start: buffer[position],
-			end: buffer[position + 1],
-			get test() {
-				const result = convertNode(buffer[position + 2], buffer);
-				Object.defineProperty(node, 'test', { value: result });
-				return result;
-			},
-			get body() {
-				const result = convertNode(buffer[position + 3], buffer);
-				Object.defineProperty(node, 'body', { value: result });
-				return result;
-			}
-		};
-		return node;
-	},
-	function yieldExpression(position, buffer): ast.YieldExpression {
-		const flags = buffer[position + 2];
-		const argumentPosition = buffer[position + 3];
-		const node: ast.YieldExpression = {
-			type: 'YieldExpression',
-			start: buffer[position],
-			end: buffer[position + 1],
-			delegate: (flags & 1) === 1,
-			get argument() {
-				const result = argumentPosition === 0 ? null : convertNode(argumentPosition, buffer);
-				Object.defineProperty(node, 'argument', { value: result });
-				return result;
-			}
-		};
-		return node;
-	}
-];
+class LazyPanicError {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'PanicError';
+	declare start: number;
+	declare end: number;
 
-export function convertNode(position: number, buffer: AstBuffer): any {
-	const nodeType = buffer[position];
-	const converter = nodeConverters[nodeType];
-	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
-	if (!converter) {
-		console.trace();
-		throw new Error(`Unknown node type: ${nodeType}`);
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
 	}
-	return converter(position + 1, buffer);
-}
 
-function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {
-	if (position === 0) return EMPTY_ARRAY;
-	const length = buffer[position++];
-	const list: any[] = new Array(length);
-	for (let index = 0; index < length; index++) {
-		const nodePosition = buffer[position++];
-		list[index] = nodePosition ? convertNode(nodePosition, buffer) : null;
+	get message(): ast.LazyPanicError['message'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return getString(buffer[position], buffer);
 	}
-	return list;
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
 }
+Object.assign(LazyPanicError.prototype, {
+	type: 'PanicError'
+});
+makeLazyFieldsEnumerable(LazyPanicError.prototype, ['message']);
+
+class LazyParseError {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ParseError';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get message(): ast.LazyParseError['message'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return getString(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyParseError.prototype, {
+	type: 'ParseError'
+});
+makeLazyFieldsEnumerable(LazyParseError.prototype, ['message']);
+
+class LazyArrayExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ArrayExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get elements(): ast.LazyArrayExpression['elements'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyArrayExpression.prototype, {
+	type: 'ArrayExpression'
+});
+makeLazyFieldsEnumerable(LazyArrayExpression.prototype, ['elements']);
+
+class LazyArrayPattern {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ArrayPattern';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get elements(): ast.LazyArrayPattern['elements'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyArrayPattern.prototype, {
+	type: 'ArrayPattern'
+});
+makeLazyFieldsEnumerable(LazyArrayPattern.prototype, ['elements']);
+
+class LazyArrowFunctionExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ArrowFunctionExpression';
+	declare start: number;
+	declare end: number;
+	declare id: null;
+	declare async: boolean;
+	declare expression: boolean;
+	declare generator: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.async = (flags & 1) === 1;
+		this.expression = (flags & 2) === 2;
+		this.generator = (flags & 4) === 4;
+	}
+
+	get annotations(): ast.LazyArrowFunctionExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	}
+
+	get params(): ast.LazyArrowFunctionExpression['params'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyArrowFunctionExpression['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyArrowFunctionExpression.prototype, {
+	id: null,
+	type: 'ArrowFunctionExpression'
+});
+makeLazyFieldsEnumerable(LazyArrowFunctionExpression.prototype, ['annotations', 'params', 'body']);
+
+class LazyAssignmentExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'AssignmentExpression';
+	declare start: number;
+	declare end: number;
+	declare operator: ast.LazyAssignmentExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyAssignmentExpression['operator'];
+	}
+
+	get left(): ast.LazyAssignmentExpression['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyAssignmentExpression['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyAssignmentExpression.prototype, {
+	type: 'AssignmentExpression'
+});
+makeLazyFieldsEnumerable(LazyAssignmentExpression.prototype, ['left', 'right']);
+
+class LazyAssignmentPattern {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'AssignmentPattern';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get left(): ast.LazyAssignmentPattern['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyAssignmentPattern['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyAssignmentPattern.prototype, {
+	type: 'AssignmentPattern'
+});
+makeLazyFieldsEnumerable(LazyAssignmentPattern.prototype, ['left', 'right']);
+
+class LazyAwaitExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'AwaitExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get argument(): ast.LazyAwaitExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyAwaitExpression.prototype, {
+	type: 'AwaitExpression'
+});
+makeLazyFieldsEnumerable(LazyAwaitExpression.prototype, ['argument']);
+
+class LazyBinaryExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'BinaryExpression';
+	declare start: number;
+	declare end: number;
+	declare operator: ast.LazyBinaryExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyBinaryExpression['operator'];
+	}
+
+	get left(): ast.LazyBinaryExpression['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyBinaryExpression['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyBinaryExpression.prototype, {
+	type: 'BinaryExpression'
+});
+makeLazyFieldsEnumerable(LazyBinaryExpression.prototype, ['left', 'right']);
+
+class LazyBlockStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'BlockStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get body(): ast.LazyBlockStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyBlockStatement.prototype, {
+	type: 'BlockStatement'
+});
+makeLazyFieldsEnumerable(LazyBlockStatement.prototype, ['body']);
+
+class LazyBreakStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'BreakStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get label(): ast.LazyBreakStatement['label'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyBreakStatement.prototype, {
+	type: 'BreakStatement'
+});
+makeLazyFieldsEnumerable(LazyBreakStatement.prototype, ['label']);
+
+class LazyCallExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'CallExpression';
+	declare start: number;
+	declare end: number;
+	declare optional: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.optional = (flags & 1) === 1;
+	}
+
+	get annotations(): ast.LazyCallExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	}
+
+	get callee(): ast.LazyCallExpression['callee'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get arguments(): ast.LazyCallExpression['arguments'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyCallExpression.prototype, {
+	type: 'CallExpression'
+});
+makeLazyFieldsEnumerable(LazyCallExpression.prototype, ['annotations', 'callee', 'arguments']);
+
+class LazyCatchClause {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'CatchClause';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get param(): ast.LazyCatchClause['param'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyCatchClause['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyCatchClause.prototype, {
+	type: 'CatchClause'
+});
+makeLazyFieldsEnumerable(LazyCatchClause.prototype, ['param', 'body']);
+
+class LazyChainExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ChainExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get expression(): ast.LazyChainExpression['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyChainExpression.prototype, {
+	type: 'ChainExpression'
+});
+makeLazyFieldsEnumerable(LazyChainExpression.prototype, ['expression']);
+
+class LazyClassBody {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ClassBody';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get body(): ast.LazyClassBody['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyClassBody.prototype, {
+	type: 'ClassBody'
+});
+makeLazyFieldsEnumerable(LazyClassBody.prototype, ['body']);
+
+class LazyClassDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ClassDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get decorators(): ast.LazyClassDeclaration['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get id(): ast.LazyClassDeclaration['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get superClass(): ast.LazyClassDeclaration['superClass'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyClassDeclaration['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyClassDeclaration.prototype, {
+	type: 'ClassDeclaration'
+});
+makeLazyFieldsEnumerable(LazyClassDeclaration.prototype, [
+	'decorators',
+	'id',
+	'superClass',
+	'body'
+]);
+
+class LazyClassExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ClassExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get decorators(): ast.LazyClassExpression['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get id(): ast.LazyClassExpression['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get superClass(): ast.LazyClassExpression['superClass'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyClassExpression['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyClassExpression.prototype, {
+	type: 'ClassExpression'
+});
+makeLazyFieldsEnumerable(LazyClassExpression.prototype, ['decorators', 'id', 'superClass', 'body']);
+
+class LazyConditionalExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ConditionalExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get test(): ast.LazyConditionalExpression['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get consequent(): ast.LazyConditionalExpression['consequent'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get alternate(): ast.LazyConditionalExpression['alternate'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyConditionalExpression.prototype, {
+	type: 'ConditionalExpression'
+});
+makeLazyFieldsEnumerable(LazyConditionalExpression.prototype, ['test', 'consequent', 'alternate']);
+
+class LazyContinueStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ContinueStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get label(): ast.LazyContinueStatement['label'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyContinueStatement.prototype, {
+	type: 'ContinueStatement'
+});
+makeLazyFieldsEnumerable(LazyContinueStatement.prototype, ['label']);
+
+class LazyDebuggerStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'DebuggerStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyDebuggerStatement.prototype, {
+	type: 'DebuggerStatement'
+});
+
+class LazyDecorator {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Decorator';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get expression(): ast.LazyDecorator['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyDecorator.prototype, {
+	type: 'Decorator'
+});
+makeLazyFieldsEnumerable(LazyDecorator.prototype, ['expression']);
+
+class LazyDirective {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExpressionStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get directive(): ast.LazyDirective['directive'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return getString(buffer[position], buffer);
+	}
+
+	get expression(): ast.LazyDirective['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyDirective.prototype, {
+	type: 'ExpressionStatement'
+});
+makeLazyFieldsEnumerable(LazyDirective.prototype, ['directive', 'expression']);
+
+class LazyDoWhileStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'DoWhileStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get body(): ast.LazyDoWhileStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get test(): ast.LazyDoWhileStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyDoWhileStatement.prototype, {
+	type: 'DoWhileStatement'
+});
+makeLazyFieldsEnumerable(LazyDoWhileStatement.prototype, ['body', 'test']);
+
+class LazyEmptyStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'EmptyStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyEmptyStatement.prototype, {
+	type: 'EmptyStatement'
+});
+
+class LazyExportAllDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportAllDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get exported(): ast.LazyExportAllDeclaration['exported'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get source(): ast.LazyExportAllDeclaration['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyExportAllDeclaration['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyExportAllDeclaration.prototype, {
+	type: 'ExportAllDeclaration'
+});
+makeLazyFieldsEnumerable(LazyExportAllDeclaration.prototype, ['exported', 'source', 'attributes']);
+
+class LazyExportDefaultDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportDefaultDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get declaration(): ast.LazyExportDefaultDeclaration['declaration'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyExportDefaultDeclaration.prototype, {
+	type: 'ExportDefaultDeclaration'
+});
+makeLazyFieldsEnumerable(LazyExportDefaultDeclaration.prototype, ['declaration']);
+
+class LazyExportNamedDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportNamedDeclaration';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get specifiers(): ast.LazyExportNamedDeclaration['specifiers'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get source(): ast.LazyExportNamedDeclaration['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyExportNamedDeclaration['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get declaration(): ast.LazyExportNamedDeclaration['declaration'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyExportNamedDeclaration.prototype, {
+	type: 'ExportNamedDeclaration'
+});
+makeLazyFieldsEnumerable(LazyExportNamedDeclaration.prototype, [
+	'specifiers',
+	'source',
+	'attributes',
+	'declaration'
+]);
+
+class LazyExportSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExportSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get local(): ast.LazyExportSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get exported(): ast.LazyExportSpecifier['exported'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyExportSpecifier.prototype, {
+	type: 'ExportSpecifier'
+});
+makeLazyFieldsEnumerable(LazyExportSpecifier.prototype, ['local', 'exported']);
+
+class LazyExpressionStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ExpressionStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get expression(): ast.LazyExpressionStatement['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyExpressionStatement.prototype, {
+	type: 'ExpressionStatement'
+});
+makeLazyFieldsEnumerable(LazyExpressionStatement.prototype, ['expression']);
+
+class LazyForInStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ForInStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get left(): ast.LazyForInStatement['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyForInStatement['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyForInStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyForInStatement.prototype, {
+	type: 'ForInStatement'
+});
+makeLazyFieldsEnumerable(LazyForInStatement.prototype, ['left', 'right', 'body']);
+
+class LazyForOfStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ForOfStatement';
+	declare start: number;
+	declare end: number;
+	declare await: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.await = (flags & 1) === 1;
+	}
+
+	get left(): ast.LazyForOfStatement['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyForOfStatement['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyForOfStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyForOfStatement.prototype, {
+	type: 'ForOfStatement'
+});
+makeLazyFieldsEnumerable(LazyForOfStatement.prototype, ['left', 'right', 'body']);
+
+class LazyForStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ForStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get init(): ast.LazyForStatement['init'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get test(): ast.LazyForStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get update(): ast.LazyForStatement['update'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyForStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyForStatement.prototype, {
+	type: 'ForStatement'
+});
+makeLazyFieldsEnumerable(LazyForStatement.prototype, ['init', 'test', 'update', 'body']);
+
+class LazyFunctionDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'FunctionDeclaration';
+	declare start: number;
+	declare end: number;
+	declare expression: false;
+	declare async: boolean;
+	declare generator: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.async = (flags & 1) === 1;
+		this.generator = (flags & 2) === 2;
+	}
+
+	get annotations(): ast.LazyFunctionDeclaration['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	}
+
+	get id(): ast.LazyFunctionDeclaration['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get params(): ast.LazyFunctionDeclaration['params'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyFunctionDeclaration['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 8;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyFunctionDeclaration.prototype, {
+	expression: false,
+	type: 'FunctionDeclaration'
+});
+makeLazyFieldsEnumerable(LazyFunctionDeclaration.prototype, [
+	'annotations',
+	'id',
+	'params',
+	'body'
+]);
+
+class LazyFunctionExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'FunctionExpression';
+	declare start: number;
+	declare end: number;
+	declare expression: false;
+	declare async: boolean;
+	declare generator: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.async = (flags & 1) === 1;
+		this.generator = (flags & 2) === 2;
+	}
+
+	get annotations(): ast.LazyFunctionExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	}
+
+	get id(): ast.LazyFunctionExpression['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get params(): ast.LazyFunctionExpression['params'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyFunctionExpression['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 8;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyFunctionExpression.prototype, {
+	expression: false,
+	type: 'FunctionExpression'
+});
+makeLazyFieldsEnumerable(LazyFunctionExpression.prototype, ['annotations', 'id', 'params', 'body']);
+
+class LazyIdentifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Identifier';
+	declare start: number;
+	declare end: number;
+	declare name: ast.LazyIdentifier['name'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.name = buffer.convertString(buffer[position + 4]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyIdentifier.prototype, {
+	type: 'Identifier'
+});
+
+class LazyIfStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'IfStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get test(): ast.LazyIfStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get consequent(): ast.LazyIfStatement['consequent'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get alternate(): ast.LazyIfStatement['alternate'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyIfStatement.prototype, {
+	type: 'IfStatement'
+});
+makeLazyFieldsEnumerable(LazyIfStatement.prototype, ['test', 'consequent', 'alternate']);
+
+class LazyImportAttribute {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportAttribute';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get key(): ast.LazyImportAttribute['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyImportAttribute['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyImportAttribute.prototype, {
+	type: 'ImportAttribute'
+});
+makeLazyFieldsEnumerable(LazyImportAttribute.prototype, ['key', 'value']);
+
+class LazyImportDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportDeclaration';
+	declare start: number;
+	declare end: number;
+	declare phase: ast.LazyImportDeclaration['phase'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.phase =
+			buffer[position + 7] === 0
+				? undefined
+				: (FIXED_STRINGS[buffer[position + 7]] as ast.LazyImportDeclaration['phase']);
+	}
+
+	get specifiers(): ast.LazyImportDeclaration['specifiers'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get source(): ast.LazyImportDeclaration['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyImportDeclaration['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyImportDeclaration.prototype, {
+	type: 'ImportDeclaration'
+});
+makeLazyFieldsEnumerable(LazyImportDeclaration.prototype, ['specifiers', 'source', 'attributes']);
+
+class LazyImportDefaultSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportDefaultSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get local(): ast.LazyImportDefaultSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyImportDefaultSpecifier.prototype, {
+	type: 'ImportDefaultSpecifier'
+});
+makeLazyFieldsEnumerable(LazyImportDefaultSpecifier.prototype, ['local']);
+
+class LazyImportExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportExpression';
+	declare start: number;
+	declare end: number;
+	declare phase: ast.LazyImportExpression['phase'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.phase =
+			buffer[position + 6] === 0
+				? undefined
+				: (FIXED_STRINGS[buffer[position + 6]] as ast.LazyImportExpression['phase']);
+	}
+
+	get source(): ast.LazyImportExpression['source'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get options(): ast.LazyImportExpression['options'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyImportExpression.prototype, {
+	type: 'ImportExpression'
+});
+makeLazyFieldsEnumerable(LazyImportExpression.prototype, ['source', 'options']);
+
+class LazyImportNamespaceSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportNamespaceSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get local(): ast.LazyImportNamespaceSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyImportNamespaceSpecifier.prototype, {
+	type: 'ImportNamespaceSpecifier'
+});
+makeLazyFieldsEnumerable(LazyImportNamespaceSpecifier.prototype, ['local']);
+
+class LazyImportSpecifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ImportSpecifier';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get imported(): ast.LazyImportSpecifier['imported'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get local(): ast.LazyImportSpecifier['local'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyImportSpecifier.prototype, {
+	type: 'ImportSpecifier'
+});
+makeLazyFieldsEnumerable(LazyImportSpecifier.prototype, ['imported', 'local']);
+
+class LazyJSXAttribute {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXAttribute';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get name(): ast.LazyJSXAttribute['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyJSXAttribute['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXAttribute.prototype, {
+	type: 'JSXAttribute'
+});
+makeLazyFieldsEnumerable(LazyJSXAttribute.prototype, ['name', 'value']);
+
+class LazyJSXClosingElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXClosingElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get name(): ast.LazyJSXClosingElement['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXClosingElement.prototype, {
+	type: 'JSXClosingElement'
+});
+makeLazyFieldsEnumerable(LazyJSXClosingElement.prototype, ['name']);
+
+class LazyJSXClosingFragment {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXClosingFragment';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXClosingFragment.prototype, {
+	type: 'JSXClosingFragment'
+});
+
+class LazyJSXElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get openingElement(): ast.LazyJSXElement['openingElement'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get children(): ast.LazyJSXElement['children'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get closingElement(): ast.LazyJSXElement['closingElement'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXElement.prototype, {
+	type: 'JSXElement'
+});
+makeLazyFieldsEnumerable(LazyJSXElement.prototype, [
+	'openingElement',
+	'children',
+	'closingElement'
+]);
+
+class LazyJSXEmptyExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXEmptyExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXEmptyExpression.prototype, {
+	type: 'JSXEmptyExpression'
+});
+
+class LazyJSXExpressionContainer {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXExpressionContainer';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get expression(): ast.LazyJSXExpressionContainer['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXExpressionContainer.prototype, {
+	type: 'JSXExpressionContainer'
+});
+makeLazyFieldsEnumerable(LazyJSXExpressionContainer.prototype, ['expression']);
+
+class LazyJSXFragment {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXFragment';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get openingFragment(): ast.LazyJSXFragment['openingFragment'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get children(): ast.LazyJSXFragment['children'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get closingFragment(): ast.LazyJSXFragment['closingFragment'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXFragment.prototype, {
+	type: 'JSXFragment'
+});
+makeLazyFieldsEnumerable(LazyJSXFragment.prototype, [
+	'openingFragment',
+	'children',
+	'closingFragment'
+]);
+
+class LazyJSXIdentifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXIdentifier';
+	declare start: number;
+	declare end: number;
+	declare name: ast.LazyJSXIdentifier['name'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.name = buffer.convertString(buffer[position + 4]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXIdentifier.prototype, {
+	type: 'JSXIdentifier'
+});
+
+class LazyJSXMemberExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXMemberExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get object(): ast.LazyJSXMemberExpression['object'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get property(): ast.LazyJSXMemberExpression['property'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXMemberExpression.prototype, {
+	type: 'JSXMemberExpression'
+});
+makeLazyFieldsEnumerable(LazyJSXMemberExpression.prototype, ['object', 'property']);
+
+class LazyJSXNamespacedName {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXNamespacedName';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get namespace(): ast.LazyJSXNamespacedName['namespace'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get name(): ast.LazyJSXNamespacedName['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXNamespacedName.prototype, {
+	type: 'JSXNamespacedName'
+});
+makeLazyFieldsEnumerable(LazyJSXNamespacedName.prototype, ['namespace', 'name']);
+
+class LazyJSXOpeningElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXOpeningElement';
+	declare start: number;
+	declare end: number;
+	declare selfClosing: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.selfClosing = (flags & 1) === 1;
+	}
+
+	get name(): ast.LazyJSXOpeningElement['name'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get attributes(): ast.LazyJSXOpeningElement['attributes'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXOpeningElement.prototype, {
+	type: 'JSXOpeningElement'
+});
+makeLazyFieldsEnumerable(LazyJSXOpeningElement.prototype, ['name', 'attributes']);
+
+class LazyJSXOpeningFragment {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXOpeningFragment';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get attributes(): ast.LazyJSXOpeningFragment['attributes'] {
+		return [];
+	}
+
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style -- constant fields must stay getters to not become own properties
+	get selfClosing(): ast.LazyJSXOpeningFragment['selfClosing'] {
+		return false;
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXOpeningFragment.prototype, {
+	type: 'JSXOpeningFragment'
+});
+makeLazyFieldsEnumerable(LazyJSXOpeningFragment.prototype, ['attributes', 'selfClosing']);
+
+class LazyJSXSpreadAttribute {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXSpreadAttribute';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get argument(): ast.LazyJSXSpreadAttribute['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXSpreadAttribute.prototype, {
+	type: 'JSXSpreadAttribute'
+});
+makeLazyFieldsEnumerable(LazyJSXSpreadAttribute.prototype, ['argument']);
+
+class LazyJSXSpreadChild {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXSpreadChild';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get expression(): ast.LazyJSXSpreadChild['expression'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXSpreadChild.prototype, {
+	type: 'JSXSpreadChild'
+});
+makeLazyFieldsEnumerable(LazyJSXSpreadChild.prototype, ['expression']);
+
+class LazyJSXText {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'JSXText';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get value(): ast.LazyJSXText['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return getString(buffer[position], buffer);
+	}
+
+	get raw(): ast.LazyJSXText['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return getString(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyJSXText.prototype, {
+	type: 'JSXText'
+});
+makeLazyFieldsEnumerable(LazyJSXText.prototype, ['value', 'raw']);
+
+class LazyLabeledStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'LabeledStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get label(): ast.LazyLabeledStatement['label'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyLabeledStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLabeledStatement.prototype, {
+	type: 'LabeledStatement'
+});
+makeLazyFieldsEnumerable(LazyLabeledStatement.prototype, ['label', 'body']);
+
+class LazyLiteralBigInt {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get bigint(): ast.LazyLiteralBigInt['bigint'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return getString(buffer[position], buffer);
+	}
+
+	get raw(): ast.LazyLiteralBigInt['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return getString(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyLiteralBigInt['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const bigint = getString(buffer[position + 4], buffer);
+		return BigInt(bigint);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLiteralBigInt.prototype, {
+	type: 'Literal'
+});
+makeLazyFieldsEnumerable(LazyLiteralBigInt.prototype, ['bigint', 'raw', 'value']);
+
+class LazyLiteralBoolean {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+	declare value: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.value = (flags & 1) === 1;
+	}
+
+	get raw(): ast.LazyLiteralBoolean['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const value = (buffer[position + 4] & 1) === 1;
+		return value ? 'true' : 'false';
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLiteralBoolean.prototype, {
+	type: 'Literal'
+});
+makeLazyFieldsEnumerable(LazyLiteralBoolean.prototype, ['raw']);
+
+class LazyLiteralNull {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+	declare raw: 'null';
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style -- constant fields must stay getters to not become own properties
+	get value(): ast.LazyLiteralNull['value'] {
+		return null;
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLiteralNull.prototype, {
+	raw: 'null',
+	type: 'Literal'
+});
+makeLazyFieldsEnumerable(LazyLiteralNull.prototype, ['value']);
+
+class LazyLiteralNumber {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get raw(): ast.LazyLiteralNumber['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? undefined : getString(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyLiteralNumber['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer.convertFloat64(position);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLiteralNumber.prototype, {
+	type: 'Literal'
+});
+makeLazyFieldsEnumerable(LazyLiteralNumber.prototype, ['raw', 'value']);
+
+class LazyLiteralRegExp {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get raw(): ast.LazyLiteralRegExp['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const flags = getString(buffer[position + 4], buffer);
+		const pattern = getString(buffer[position + 5], buffer);
+		return `/${pattern}/${flags}`;
+	}
+
+	get regex(): ast.LazyLiteralRegExp['regex'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const flags = getString(buffer[position + 4], buffer);
+		const pattern = getString(buffer[position + 5], buffer);
+		return getNodeValue(this, 'regex', () => ({ flags, pattern }));
+	}
+
+	get value(): ast.LazyLiteralRegExp['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const flags = getString(buffer[position + 4], buffer);
+		const pattern = getString(buffer[position + 5], buffer);
+		return getNodeValue(this, 'value', () => new RegExp(pattern, flags));
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLiteralRegExp.prototype, {
+	type: 'Literal'
+});
+makeLazyFieldsEnumerable(LazyLiteralRegExp.prototype, ['raw', 'regex', 'value']);
+
+class LazyLiteralString {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Literal';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get value(): ast.LazyLiteralString['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return getString(buffer[position], buffer);
+	}
+
+	get raw(): ast.LazyLiteralString['raw'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? undefined : getString(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLiteralString.prototype, {
+	type: 'Literal'
+});
+makeLazyFieldsEnumerable(LazyLiteralString.prototype, ['value', 'raw']);
+
+class LazyLogicalExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'LogicalExpression';
+	declare start: number;
+	declare end: number;
+	declare operator: ast.LazyLogicalExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyLogicalExpression['operator'];
+	}
+
+	get left(): ast.LazyLogicalExpression['left'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get right(): ast.LazyLogicalExpression['right'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyLogicalExpression.prototype, {
+	type: 'LogicalExpression'
+});
+makeLazyFieldsEnumerable(LazyLogicalExpression.prototype, ['left', 'right']);
+
+class LazyMemberExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'MemberExpression';
+	declare start: number;
+	declare end: number;
+	declare computed: boolean;
+	declare optional: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.computed = (flags & 1) === 1;
+		this.optional = (flags & 2) === 2;
+	}
+
+	get object(): ast.LazyMemberExpression['object'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get property(): ast.LazyMemberExpression['property'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyMemberExpression.prototype, {
+	type: 'MemberExpression'
+});
+makeLazyFieldsEnumerable(LazyMemberExpression.prototype, ['object', 'property']);
+
+class LazyMetaProperty {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'MetaProperty';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get meta(): ast.LazyMetaProperty['meta'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get property(): ast.LazyMetaProperty['property'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyMetaProperty.prototype, {
+	type: 'MetaProperty'
+});
+makeLazyFieldsEnumerable(LazyMetaProperty.prototype, ['meta', 'property']);
+
+class LazyMethodDefinition {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'MethodDefinition';
+	declare start: number;
+	declare end: number;
+	declare static: boolean;
+	declare computed: boolean;
+	declare kind: ast.LazyMethodDefinition['kind'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.static = (flags & 1) === 1;
+		this.computed = (flags & 2) === 2;
+		this.kind = FIXED_STRINGS[buffer[position + 8]] as ast.LazyMethodDefinition['kind'];
+	}
+
+	get decorators(): ast.LazyMethodDefinition['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get key(): ast.LazyMethodDefinition['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyMethodDefinition['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyMethodDefinition.prototype, {
+	type: 'MethodDefinition'
+});
+makeLazyFieldsEnumerable(LazyMethodDefinition.prototype, ['decorators', 'key', 'value']);
+
+class LazyNewExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'NewExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get annotations(): ast.LazyNewExpression['annotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		const annotations = convertAnnotations(buffer[position], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	}
+
+	get callee(): ast.LazyNewExpression['callee'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get arguments(): ast.LazyNewExpression['arguments'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyNewExpression.prototype, {
+	type: 'NewExpression'
+});
+makeLazyFieldsEnumerable(LazyNewExpression.prototype, ['annotations', 'callee', 'arguments']);
+
+class LazyObjectExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ObjectExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get properties(): ast.LazyObjectExpression['properties'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyObjectExpression.prototype, {
+	type: 'ObjectExpression'
+});
+makeLazyFieldsEnumerable(LazyObjectExpression.prototype, ['properties']);
+
+class LazyObjectPattern {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ObjectPattern';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get properties(): ast.LazyObjectPattern['properties'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyObjectPattern.prototype, {
+	type: 'ObjectPattern'
+});
+makeLazyFieldsEnumerable(LazyObjectPattern.prototype, ['properties']);
+
+class LazyPrivateIdentifier {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'PrivateIdentifier';
+	declare start: number;
+	declare end: number;
+	declare name: ast.LazyPrivateIdentifier['name'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.name = buffer.convertString(buffer[position + 4]);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyPrivateIdentifier.prototype, {
+	type: 'PrivateIdentifier'
+});
+
+class LazyProgram {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Program';
+	declare start: number;
+	declare end: number;
+	declare sourceType: 'module';
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get body(): ast.LazyProgram['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get invalidAnnotations(): ast.LazyProgram['invalidAnnotations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		const annotations = convertAnnotations(buffer[position], buffer);
+		return annotations.length > 0 ? annotations : undefined;
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyProgram.prototype, {
+	sourceType: 'module',
+	type: 'Program'
+});
+makeLazyFieldsEnumerable(LazyProgram.prototype, ['body', 'invalidAnnotations']);
+
+class LazyProperty {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Property';
+	declare start: number;
+	declare end: number;
+	declare method: boolean;
+	declare shorthand: boolean;
+	declare computed: boolean;
+	declare kind: ast.LazyProperty['kind'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.method = (flags & 1) === 1;
+		this.shorthand = (flags & 2) === 2;
+		this.computed = (flags & 4) === 4;
+		this.kind = FIXED_STRINGS[buffer[position + 7]] as ast.LazyProperty['kind'];
+	}
+
+	get key(): ast.LazyProperty['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyProperty['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyProperty.prototype, {
+	type: 'Property'
+});
+makeLazyFieldsEnumerable(LazyProperty.prototype, ['key', 'value']);
+
+class LazyPropertyDefinition {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'PropertyDefinition';
+	declare start: number;
+	declare end: number;
+	declare static: boolean;
+	declare computed: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.static = (flags & 1) === 1;
+		this.computed = (flags & 2) === 2;
+	}
+
+	get decorators(): ast.LazyPropertyDefinition['decorators'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get key(): ast.LazyPropertyDefinition['key'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get value(): ast.LazyPropertyDefinition['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 7;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyPropertyDefinition.prototype, {
+	type: 'PropertyDefinition'
+});
+makeLazyFieldsEnumerable(LazyPropertyDefinition.prototype, ['decorators', 'key', 'value']);
+
+class LazyRestElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'RestElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get argument(): ast.LazyRestElement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyRestElement.prototype, {
+	type: 'RestElement'
+});
+makeLazyFieldsEnumerable(LazyRestElement.prototype, ['argument']);
+
+class LazyReturnStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ReturnStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get argument(): ast.LazyReturnStatement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyReturnStatement.prototype, {
+	type: 'ReturnStatement'
+});
+makeLazyFieldsEnumerable(LazyReturnStatement.prototype, ['argument']);
+
+class LazySequenceExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SequenceExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get expressions(): ast.LazySequenceExpression['expressions'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazySequenceExpression.prototype, {
+	type: 'SequenceExpression'
+});
+makeLazyFieldsEnumerable(LazySequenceExpression.prototype, ['expressions']);
+
+class LazySpreadElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SpreadElement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get argument(): ast.LazySpreadElement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazySpreadElement.prototype, {
+	type: 'SpreadElement'
+});
+makeLazyFieldsEnumerable(LazySpreadElement.prototype, ['argument']);
+
+class LazyStaticBlock {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'StaticBlock';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get body(): ast.LazyStaticBlock['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyStaticBlock.prototype, {
+	type: 'StaticBlock'
+});
+makeLazyFieldsEnumerable(LazyStaticBlock.prototype, ['body']);
+
+class LazySuper {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'Super';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazySuper.prototype, {
+	type: 'Super'
+});
+
+class LazySwitchCase {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SwitchCase';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get test(): ast.LazySwitchCase['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get consequent(): ast.LazySwitchCase['consequent'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazySwitchCase.prototype, {
+	type: 'SwitchCase'
+});
+makeLazyFieldsEnumerable(LazySwitchCase.prototype, ['test', 'consequent']);
+
+class LazySwitchStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'SwitchStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get discriminant(): ast.LazySwitchStatement['discriminant'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get cases(): ast.LazySwitchStatement['cases'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazySwitchStatement.prototype, {
+	type: 'SwitchStatement'
+});
+makeLazyFieldsEnumerable(LazySwitchStatement.prototype, ['discriminant', 'cases']);
+
+class LazyTaggedTemplateExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TaggedTemplateExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get tag(): ast.LazyTaggedTemplateExpression['tag'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get quasi(): ast.LazyTaggedTemplateExpression['quasi'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyTaggedTemplateExpression.prototype, {
+	type: 'TaggedTemplateExpression'
+});
+makeLazyFieldsEnumerable(LazyTaggedTemplateExpression.prototype, ['tag', 'quasi']);
+
+class LazyTemplateElement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TemplateElement';
+	declare start: number;
+	declare end: number;
+	declare tail: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.tail = (flags & 1) === 1;
+	}
+
+	get value(): ast.LazyTemplateElement['value'] {
+		const buffer = this.#buffer;
+		const position = this.#position;
+		const cooked = buffer[position + 5] === 0 ? undefined : getString(buffer[position + 5], buffer);
+		const raw = getString(buffer[position + 6], buffer);
+		return getNodeValue(this, 'value', () => ({ cooked, raw }));
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyTemplateElement.prototype, {
+	type: 'TemplateElement'
+});
+makeLazyFieldsEnumerable(LazyTemplateElement.prototype, ['value']);
+
+class LazyTemplateLiteral {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TemplateLiteral';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get quasis(): ast.LazyTemplateLiteral['quasis'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get expressions(): ast.LazyTemplateLiteral['expressions'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyTemplateLiteral.prototype, {
+	type: 'TemplateLiteral'
+});
+makeLazyFieldsEnumerable(LazyTemplateLiteral.prototype, ['quasis', 'expressions']);
+
+class LazyThisExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ThisExpression';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyThisExpression.prototype, {
+	type: 'ThisExpression'
+});
+
+class LazyThrowStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'ThrowStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get argument(): ast.LazyThrowStatement['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyThrowStatement.prototype, {
+	type: 'ThrowStatement'
+});
+makeLazyFieldsEnumerable(LazyThrowStatement.prototype, ['argument']);
+
+class LazyTryStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'TryStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get block(): ast.LazyTryStatement['block'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get handler(): ast.LazyTryStatement['handler'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get finalizer(): ast.LazyTryStatement['finalizer'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyTryStatement.prototype, {
+	type: 'TryStatement'
+});
+makeLazyFieldsEnumerable(LazyTryStatement.prototype, ['block', 'handler', 'finalizer']);
+
+class LazyUnaryExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'UnaryExpression';
+	declare start: number;
+	declare end: number;
+	declare prefix: true;
+	declare operator: ast.LazyUnaryExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.operator = FIXED_STRINGS[buffer[position + 4]] as ast.LazyUnaryExpression['operator'];
+	}
+
+	get argument(): ast.LazyUnaryExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyUnaryExpression.prototype, {
+	prefix: true,
+	type: 'UnaryExpression'
+});
+makeLazyFieldsEnumerable(LazyUnaryExpression.prototype, ['argument']);
+
+class LazyUpdateExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'UpdateExpression';
+	declare start: number;
+	declare end: number;
+	declare prefix: boolean;
+	declare operator: ast.LazyUpdateExpression['operator'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.prefix = (flags & 1) === 1;
+		this.operator = FIXED_STRINGS[buffer[position + 5]] as ast.LazyUpdateExpression['operator'];
+	}
+
+	get argument(): ast.LazyUpdateExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 6;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyUpdateExpression.prototype, {
+	type: 'UpdateExpression'
+});
+makeLazyFieldsEnumerable(LazyUpdateExpression.prototype, ['argument']);
+
+class LazyVariableDeclaration {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'VariableDeclaration';
+	declare start: number;
+	declare end: number;
+	declare kind: ast.LazyVariableDeclaration['kind'];
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		this.kind = FIXED_STRINGS[buffer[position + 4]] as ast.LazyVariableDeclaration['kind'];
+	}
+
+	get declarations(): ast.LazyVariableDeclaration['declarations'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNodeList(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyVariableDeclaration.prototype, {
+	type: 'VariableDeclaration'
+});
+makeLazyFieldsEnumerable(LazyVariableDeclaration.prototype, ['declarations']);
+
+class LazyVariableDeclarator {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'VariableDeclarator';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get id(): ast.LazyVariableDeclarator['id'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get init(): ast.LazyVariableDeclarator['init'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyVariableDeclarator.prototype, {
+	type: 'VariableDeclarator'
+});
+makeLazyFieldsEnumerable(LazyVariableDeclarator.prototype, ['id', 'init']);
+
+class LazyWhileStatement {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'WhileStatement';
+	declare start: number;
+	declare end: number;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+	}
+
+	get test(): ast.LazyWhileStatement['test'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 4;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get body(): ast.LazyWhileStatement['body'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyWhileStatement.prototype, {
+	type: 'WhileStatement'
+});
+makeLazyFieldsEnumerable(LazyWhileStatement.prototype, ['test', 'body']);
+
+class LazyYieldExpression {
+	#position: number;
+	#buffer: AstBuffer;
+	declare type: 'YieldExpression';
+	declare start: number;
+	declare end: number;
+	declare delegate: boolean;
+
+	constructor(position: number, buffer: AstBuffer) {
+		this.#position = position;
+		this.#buffer = buffer;
+		this.start = buffer[position + 2];
+		this.end = buffer[position + 3];
+		const flags = buffer[position + 4];
+		this.delegate = (flags & 1) === 1;
+	}
+
+	get argument(): ast.LazyYieldExpression['argument'] {
+		const buffer = this.#buffer;
+		const position = this.#position + 5;
+		return buffer[position] === 0 ? null : convertNode(buffer[position], buffer);
+	}
+
+	get parent() {
+		const buffer = this.#buffer;
+		const parentPosition = buffer[this.#position + 1];
+		return parentPosition === 0 ? null : convertNode(parentPosition - 1, buffer);
+	}
+}
+Object.assign(LazyYieldExpression.prototype, {
+	type: 'YieldExpression'
+});
+makeLazyFieldsEnumerable(LazyYieldExpression.prototype, ['argument']);

@@ -1,6 +1,12 @@
 import { writeFile } from 'node:fs/promises';
 import type { FieldDescription, NodeDescription } from './ast-types.ts';
 import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import {
+	getFirstFieldWordOffset,
+	NODE_DATA_OFFSET,
+	NODE_END_OFFSET,
+	NODE_START_OFFSET
+} from './buffer-layout.ts';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.ts';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
@@ -9,10 +15,9 @@ const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];
-	let offset = 2;
+	const offset = getFirstFieldWordOffset(Boolean(node.flags));
 	if (node.flags) {
-		offset++;
-		definitions.push('const flags = buffer[position + 2];\n');
+		definitions.push(`const flags = buffer[position + ${NODE_DATA_OFFSET}];\n`);
 		for (const [index, flag] of node.flags.entries()) {
 			if (isHoistedField(flag, node)) {
 				definitions.push(`const ${flag} = (flags & ${1 << index}) === ${1 << index};`);
@@ -23,7 +28,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 		definitions.push(getFieldDefinition(field, index + offset));
 		if (isHoistedField(field.name, node)) {
 			definitions.push(
-				`const ${field.name} = ${getFieldPropertyBase(field, name, node, index + offset)};`
+				`const ${field.name} = ${getFieldPropertyBase(field, name, index + offset)};`
 			);
 		}
 	}
@@ -40,18 +45,15 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 	return `function ${node.converterFunction || firstLettersLowercase(name)} (position, buffer): ast.${name} {
     ${definitions.join('')}return {
       type: '${node.astType || name}',
-      start: buffer[position],
-      end: buffer[position + 1],
+      start: buffer[position + ${NODE_START_OFFSET}],
+      end: buffer[position + ${NODE_END_OFFSET}],
       ${properties.join(',\n')}
     };
   }`;
 });
 
 function isHoistedField(name: string, node: NodeDescription): boolean | undefined {
-	return (
-		node.baseForAdditionalFields?.includes(name) ||
-		(node.optionalFallback && Object.values(node.optionalFallback).includes(name))
-	);
+	return node.baseForAdditionalFields?.includes(name);
 }
 
 function getFieldDefinition(field: FieldDescription, offset: number): string {
@@ -99,24 +101,18 @@ function getFieldProperty(
 			return `...(${field.name}.length > 0 ? { ${field.name} } : {})`;
 		}
 		default: {
-			return `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`;
+			return `${field.name}: ${getFieldPropertyBase(field, nodeName, offset)}`;
 		}
 	}
 }
 
-function getFieldPropertyBase(
-	field: FieldDescription,
-	nodeName: string,
-	node: NodeDescription,
-	offset: number
-): string {
+function getFieldPropertyBase(field: FieldDescription, nodeName: string, offset: number): string {
 	const position = `position + ${offset}`;
 	const dataStart = `buffer[${position}]`;
 	switch (field.type) {
 		case 'Node': {
 			if (field.allowNull) {
-				const fallback = node.optionalFallback?.[field.name];
-				return `${field.name}Position === 0 ? ${fallback ? `{ ...${fallback} }` : null} : convertNode(${field.name}Position, buffer)`;
+				return `${field.name}Position === 0 ? null : convertNode(${field.name}Position, buffer)`;
 			}
 			return `convertNode(${dataStart}, buffer)`;
 		}
@@ -187,7 +183,7 @@ export function convertNode(position: number, buffer: AstBuffer): any {
     console.trace();
     throw new Error(\`Unknown node type: \${nodeType}\`);
   }
-  return converter(position + 1, buffer);
+  return converter(position, buffer);
 }
 
 function convertNodeList(position: number, buffer: AstBuffer): readonly any[] {

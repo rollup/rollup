@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+const { assertAstEqual } = require('../../../testHelpers.js');
 
 const jsxElements = [];
 
@@ -11,7 +11,7 @@ module.exports = defineTest({
 		}
 	},
 	assertions() {
-		assert.deepEqual(jsxElements, [
+		assertAstEqual(jsxElements, [
 			{
 				type: 'JSXElement',
 				start: 15,
