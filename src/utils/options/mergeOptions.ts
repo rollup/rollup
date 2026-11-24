@@ -41,6 +41,60 @@ export const commandAliases: Record<string, string> = {
 	w: 'watch'
 };
 
+// Long options that require a value. The CLI uses this to turn "--option -"
+// into "--option=-" before parsing so a bare "-" is consumed as the option
+// value instead of being treated as a positional stdin marker. Options whose
+// value is optional (config, sourcemap, stdin) must not be listed here.
+export const commandValueOptions: ReadonlySet<string> = new Set([
+	'amd.basePath',
+	'amd.define',
+	'amd.id',
+	'treeshake.manualPureFunctions',
+	'watch.buildDelay',
+	'watch.exclude',
+	'watch.include',
+	'watch.onBundleEnd',
+	'watch.onBundleStart',
+	'watch.onEnd',
+	'watch.onError',
+	'watch.onStart',
+	'assetFileNames',
+	'banner',
+	'chunkFileNames',
+	'configImportAttributesKey',
+	'configPlugin',
+	'context',
+	'dir',
+	'entryFileNames',
+	'environment',
+	'experimentalCacheExpiry',
+	'experimentalMinChunkSize',
+	'exports',
+	'external',
+	'file',
+	'filterLogs',
+	'footer',
+	'format',
+	'generatedCode',
+	'globals',
+	'hashCharacters',
+	'importAttributesKey',
+	'input',
+	'interop',
+	'intro',
+	'jsx',
+	'logLevel',
+	'maxParallelFileOps',
+	'name',
+	'outro',
+	'plugin',
+	'preserveModulesRoot',
+	'sourcemapBaseUrl',
+	'sourcemapFile',
+	'sourcemapFileNames',
+	'virtualDirname'
+]);
+
 const EMPTY_COMMAND_OPTIONS = { external: [], globals: undefined };
 
 export async function mergeOptions(
