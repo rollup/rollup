@@ -85,6 +85,10 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - ASTs returned from the `load` or `transform` hooks are now serialized into a binary buffer before Rollup uses them; this carries a performance penalty, should be avoided and might be deprecated in the future; it also discards extra properties of AST nodes and throws a `CANNOT_SERIALIZE_AST` error for node types that are not known to Rollup instead of supporting custom AST nodes (#6257)
 - The `signal` option of `parseAstAsync` has been removed as it could not abort an ongoing parsing but at best prevent a not-yet-started parsing, which made its effect unpredictable (#6271)
 
+##### Sourcemaps
+
+- `this.getCombinedSourcemap` now returns a map with a mapping for every word start and non-word character instead of every character when a module has no previous sourcemaps, which makes the map smaller; positions inside a word now map to the start of the word, which is also visible in the bundle sourcemap if a plugin returns this map or merges it into its own (#6696)
+
 ##### File System Access
 
 - The `fs` option is no longer experimental, and `this.fs` and `options.fs` now expose exactly the methods of the `RollupFsModule` interface; custom file system implementations must not call the file system exposed by Rollup as nested calls can stall the build (#6586)
