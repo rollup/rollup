@@ -118,8 +118,9 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - `importedIdResolutions` and `dynamicallyImportedIdResolutions` now use the new `ResolvedImport` type, which includes the `rawId` of the module (#6653)
 - Lazy ASTs now expose a `parent` link, including the nodes passed to `parseAndWalk` visitors, which is typed per node type via the new `ast.ParentOf` and `ast.LazyNode` types (#6640)
 - Lazy AST nodes are instances of one generated class per node type, which reduces the memory needed to materialize a full AST by about 15% (#6640)
-- `this.parse`, `this.parseAndWalk` and the helpers exported from `rollup/parseAst` accept a new `codeEditor` option that additionally returns a magic-string instance prepared with the positions of all AST nodes; plugins can edit the code through it and generate a sourcemap that also maps the parts that were not edited, without adding a magic-string dependency (#6696)
-- The Rust parser now collects the position of every AST node while converting it to the binary buffer, and modules use these positions directly instead of collecting them again in JavaScript, which reduces the time and memory needed to generate sourcemaps for unedited code (#6696)
+- `this.parse`, `this.parseAndWalk` and the helpers exported from `rollup/parseAst` accept a new `codeEditor` option that additionally returns a magic-string instance prepared with the positions of all AST nodes; plugins can edit the code through it and generate a sourcemap that also maps the parts that were not edited, without adding a magic-string dependency; visitors of `parseAndWalk` receive the editor as `api.codeEditor`, and it is typed via the new `CodeEditor` type (#6696)
+- The Rust parser now collects the position of every AST node while converting it to the binary buffer, and modules use these positions directly instead of registering them node by node in JavaScript, which speeds up module initialization (#6696)
+- AST buffers with an incompatible format, e.g. from a cache or from `serializeAst` output created by a different Rollup version, are now rejected with an `INVALID_AST_BUFFER_VERSION` error when restoring a cache or calling `deserializeAst`/`deserializeLazyAst`, instead of being misread (#6696)
 
 ### Bug Fixes
 
@@ -129,7 +130,6 @@ See the [migration guide](https://rollupjs.org/migration/) for upgrade instructi
 - Chunks emitted with `implicitlyLoadedAfterOneOf` are no longer missing from the output when their module is fully tree-shaken, e.g. when using `preserveModules`, which made `this.getFileName` throw for their reference id (#6533)
 - Builds no longer stall without an error message when `load` hooks await `this.load` while all `maxParallelFileOps` slots are taken (#6586)
 - Invalid dynamic import attributes now emit the `INVALID_IMPORT_ATTRIBUTE` warning only once (#6653)
-- AST buffers in a cache that were created by a different Rollup version are rejected with an `INVALID_AST_BUFFER_VERSION` error that asks the user to discard the cache, instead of silently reading a buffer with an incompatible layout (#6696)
 
 ### Pull Requests
 

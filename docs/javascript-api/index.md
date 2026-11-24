@@ -461,7 +461,7 @@ assert.deepEqual(
 
 Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you only want to inspect a small part of the syntax tree, use `parseLazyAst` or `parseLazyAstAsync`; they accept the same options but return a lazy AST with `parent` links.
 
-To edit the parsed code and generate a sourcemap that also maps the parts that were not edited, pass `{ codeEditor: true }`. The result then contains the AST together with an editor for the code. This editor is a pre-created instance of [`magic-string`](https://github.com/Rich-Harris/magic-string) that already includes all sourcemap locations.
+To edit the parsed code and generate a sourcemap that also maps the parts that were not edited, pass `{ codeEditor: true }`. The result then contains the AST together with an editor for the code, which is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes. In TypeScript, the call only type-checks when `codeEditor` is the literal `true` or `false`, so use `as const` if you store the options in a variable.
 
 ```js
 import { parseAst } from 'rollup/parseAst';
