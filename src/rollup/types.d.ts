@@ -231,7 +231,8 @@ declare global {
 
 /**
  * Edits the parsed code and generates a sourcemap for it. All positions refer
- * to the original code that was parsed. This is a typed subset of magic-string's
+ * to the original code that was parsed. This is a typed subset of
+ * magic-string's
  * [`MagicString`](https://github.com/Rich-Harris/magic-string) class.
  */
 export interface CodeEditor {
@@ -277,12 +278,6 @@ export interface CodeEditorIndentOptions {
 
 export interface CodeEditorMapOptions {
 	file?: string;
-	/**
-	 * Deactivated by default, in which case the map contains a mapping for the
-	 * start and end of every AST node, which is usually sufficient as unedited
-	 * code is mapped as well.
-	 */
-	hires?: boolean | 'boundary';
 	includeContent?: boolean;
 	source?: string;
 }

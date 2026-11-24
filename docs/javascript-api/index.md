@@ -471,7 +471,7 @@ console.log(codeEditor.original); // const value = 42;
 console.log(codeEditor.generateMap({ source: 'main.js' }).mappings);
 ```
 
-All editing methods such as `overwrite`, `remove`, `appendLeft` or `prependRight` refer to positions in the original code and return the editor for chaining. The generated map contains mappings for the start and end of the nodes in unedited code, so the default non-hires map is sufficient to map the unedited parts of the code precisely.
+All editing methods such as `overwrite`, `remove`, `appendLeft` or `prependRight` refer to positions in the original code and return the editor for chaining. The generated map contains mappings for the start and end of the nodes in unedited code, so the unedited parts of the code are mapped at the granularity of AST nodes.
 
 See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy ASTs and parent links.
 

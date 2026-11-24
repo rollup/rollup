@@ -312,7 +312,12 @@ const _codeEditorPlugin: rollup.Plugin = {
 	transform(code) {
 		const { ast, codeEditor } = this.parse(code, { codeEditor: true });
 		const _type: string = ast.type;
-		const _map: rollup.SourceMap = codeEditor.generateMap({ hires: false });
+		const _map: rollup.SourceMap = codeEditor.generateMap({
+			includeContent: true,
+			source: 'main.js'
+		});
+		// @ts-expect-error hires is not supported as it ignores the prepared locations
+		const _hiresMap = codeEditor.generateMap({ hires: true });
 		const _sharedOptions: rollup.ParseOptions = { allowReturnOutsideFunction: true };
 		const _programFromSharedOptions: rollup.ast.Program = this.parse(code, _sharedOptions);
 		// @ts-expect-error without the option, parse returns the AST
