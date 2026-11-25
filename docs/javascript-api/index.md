@@ -461,14 +461,21 @@ assert.deepEqual(
 
 Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you only want to inspect a small part of the syntax tree, use `parseLazyAst` or `parseLazyAstAsync`; they accept the same options but return a lazy AST with `parent` links.
 
-To edit the parsed code and generate a sourcemap that also maps the parts that were not edited, pass `{ codeEditor: true }`. The result then contains the AST together with an editor for the code, which is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes. In TypeScript, the call only type-checks when `codeEditor` is the literal `true` or `false`, so use `as const` if you store the options in a variable.
+To edit the parsed code and generate a sourcemap that also maps the parts that were not edited, pass `{ codeEditor: true }`. The result then contains the AST together with an editor for the code, which is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes. If the option is a plain `boolean`, the result is a union of the AST and `{ ast, codeEditor }`, so check for the `codeEditor` property before using it.
 
-```js
+```js twoslash
+import assert from 'node:assert';
 import { parseAst } from 'rollup/parseAst';
 
-const { codeEditor } = parseAst('const value = 42;', { codeEditor: true });
-console.log(codeEditor.original); // const value = 42;
-console.log(codeEditor.generateMap({ source: 'main.js' }).mappings);
+const code = 'const value = 42;';
+const { ast, codeEditor } = parseAst(code, { codeEditor: true });
+const declaration = ast.body[0];
+codeEditor.appendLeft(declaration.start, '// edited\n');
+
+assert.equal(codeEditor.original, code);
+assert.equal(codeEditor.toString(), '// edited\nconst value = 42;');
+const map = codeEditor.generateMap({ source: 'main.js' });
+assert.deepEqual(map.sources, ['main.js']);
 ```
 
 All editing methods such as `overwrite`, `remove`, `appendLeft` or `prependRight` refer to positions in the original code and return the editor for chaining. The generated map contains mappings for the start and end of the nodes in unedited code, so the unedited parts of the code are mapped at the granularity of AST nodes.

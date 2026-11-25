@@ -1994,10 +1994,12 @@ An object containing potentially useful Rollup metadata:
 | --: | :-- |
 | Type: | `(code: string, options?: ParseOptions & { codeEditor?: false }) => ast.Program` |
 |  | `(code: string, options: ParseOptions & { codeEditor: true }) => { ast: ast.Program; codeEditor: CodeEditor }` |
+|  | `(code: string, options: ParseOptions) => ast.Program \| { ast: ast.Program; codeEditor: CodeEditor }` |
 
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	codeEditor?: boolean;
 	jsx?: boolean;
 }
 ```
@@ -2005,28 +2007,41 @@ interface ParseOptions {
 Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST. The returned AST is a fully materialized plain JavaScript object.
 
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
-- `codeEditor`: When `true`, an object `{ ast, codeEditor }` is returned instead of the AST so that the parsed code can be edited and mapped back to the original source. In TypeScript, the call only type-checks when `codeEditor` is the literal `true` or `false`, so use `as const` if you store the options in a variable. See below.
+- `codeEditor`: When `true`, an object `{ ast, codeEditor }` is returned instead of the AST so that the parsed code can be edited and mapped back to the original source. If the option is a plain `boolean`, the result is a union of both shapes, so check for the `codeEditor` property before using it. See below.
 - `jsx`: When `true`, JSX syntax is supported in the parsed code.
 
-To return a sourcemap for a transformation that only touches parts of the code, Rollup can collect the position of every AST node while parsing and pass it to an editor:
+To return a sourcemap for a transformation that only touches parts of the code, Rollup can collect the position of every AST node while parsing and pass it to an editor. The following plugin adds a generated doc comment in front of every top-level export:
 
-```js
-{
-	name: 'replace-console-logs',
-	transform(code) {
-		const { ast, codeEditor } = this.parse(code, { codeEditor: true });
-		// find the nodes you want to change on the AST
-		const node = ast.body[0];
-		codeEditor.overwrite(node.start, node.end, 'replacement');
-		return {
-			code: codeEditor.toString(),
-			map: codeEditor.generateMap()
-		};
-	}
+```js twoslash
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+export function injectGeneratedComments() {
+	return {
+		name: 'inject-generated-comments',
+		transform(code, id) {
+			const { ast, codeEditor } = this.parse(code, { codeEditor: true });
+			for (const statement of ast.body) {
+				if (
+					statement.type === 'ExportNamedDeclaration' ||
+					statement.type === 'ExportDefaultDeclaration'
+				) {
+					codeEditor.appendLeft(statement.start, '/** @generated */\n');
+				}
+			}
+			if (!codeEditor.hasChanged()) return null;
+			return {
+				code: codeEditor.toString(),
+				map: codeEditor.generateMap({ includeContent: true, source: id })
+			};
+		}
+	};
 }
 ```
 
-The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes: it stores edits by their position in the original code and generates a sourcemap that maps the edited code back to it. As the position of every node is known, the map also contains mappings for all unedited parts, so code that is not touched by your plugin still points to the correct location. The editing methods `overwrite`, `update`, `remove`, `move`, `appendLeft`, `appendRight`, `prependLeft`, `prependRight`, `append` and `prepend` refer to positions in the original code, while `trim`, `trimStart`, `trimEnd`, `trimLines` and `indent` work on the whole code; all of them return the editor for chaining. `codeEditor.original` is the original code, `codeEditor.toString()` returns the edited code and `codeEditor.hasChanged()` tells you whether anything was changed. See the [magic-string documentation](https://github.com/Rich-Harris/magic-string) for details on these methods; Rollup only types the subset that it uses.
+In a transform hook, `source` and `includeContent` are the recommended options: they attribute the map to the transformed module and embed the original code, so Rollup can combine it with the maps of later transforms without reading files from disk.
+
+The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes: it stores edits by their position in the original code and generates a sourcemap that maps the edited code back to it. As the position of every node is known, the map also contains mappings for all unedited parts, so code that is not touched by your plugin still points to the correct location. The editing methods `overwrite`, `update`, `remove`, `move`, `appendLeft`, `appendRight`, `prependLeft`, `prependRight`, `append` and `prepend` refer to positions in the original code, while `trim`, `trimStart`, `trimEnd`, `trimLines` and `indent` work on the whole code; all of them return the editor for chaining. `codeEditor.original` is the original code, `codeEditor.toString()` returns the edited code and `codeEditor.hasChanged()` tells you whether anything was changed. See the [magic-string documentation](https://github.com/Rich-Harris/magic-string) for details on these methods; Rollup only types the subset of methods that it offers for editing.
 
 ### this.parseAndWalk
 
@@ -2034,27 +2049,31 @@ The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) in
 | --: | :-- |
 | Type: | `(code: string, visitors: Visitors, options?: ParseAndWalkOptions & { codeEditor?: false }) => Promise<void>` |
 |  | `(code: string, visitors: Visitors, options: ParseAndWalkOptions & { codeEditor: true }) => Promise<{ codeEditor: CodeEditor }>` |
+|  | `(code: string, visitors: Visitors, options: ParseAndWalkOptions) => Promise<void \| { codeEditor: CodeEditor }>` |
 
 ```typescript
-interface ParseAndWalkOptions {
-	allowReturnOutsideFunction?: boolean;
+interface ParseAndWalkOptions extends ParseOptions {
 	collectScopes?: boolean;
-	jsx?: boolean;
+}
+
+interface ParseAndWalkApi {
+	codeEditor?: CodeEditor;
+	parseChildren: () => void;
+	skipChildren: () => void;
+	scope?: ParseAndWalkScope;
+}
+
+// Visitors are typed with this api when codeEditor is true, so that
+// `api.codeEditor` is present
+interface ParseAndWalkApiWithCodeEditor extends ParseAndWalkApi {
+	codeEditor: CodeEditor;
 }
 
 // NodeType is any ESTree-compatible node type name known to Rollup,
 // e.g. "Identifier", "CallExpression", etc.
 // `node` will be typed accordingly based on the visitor key
-type Visitors = {
-	[NodeType: string]: (
-		node: ast.LazyNode,
-		api: {
-			codeEditor?: CodeEditor;
-			parseChildren: () => void;
-			skipChildren: () => void;
-			scope?: ParseAndWalkScope;
-		}
-	) => void;
+type Visitors<Api extends ParseAndWalkApi = ParseAndWalkApi> = {
+	[NodeType: string]: (node: ast.LazyNode, api: Api) => void;
 };
 
 interface ParseAndWalkScope {
@@ -2095,22 +2114,44 @@ this.parseAndWalk(code, {
 });
 ```
 
-When you pass `{ codeEditor: true }`, the visitor api provides a `codeEditor`, and the promise resolves to an object `{ codeEditor }` that contains the same editor, also when no node was visited. This allows rewriting the code while walking it:
+When you pass `{ codeEditor: true }`, the visitor api provides a `codeEditor`, and the promise resolves to an object `{ codeEditor }` that contains the same editor, also when no node was visited. This allows rewriting the code while walking it. The following plugin replaces every `console.log(...)` call with `undefined`:
 
-```js
-const { codeEditor } = await this.parseAndWalk(
-	code,
-	{
-		ImportDeclaration(node, api) {
-			api.codeEditor.remove(node.start, node.end);
+```js twoslash
+// ---cut-start---
+/** @returns {import('rollup').Plugin} */
+// ---cut-end---
+export function replaceConsoleLogs() {
+	return {
+		name: 'replace-console-logs',
+		async transform(code, id) {
+			const { codeEditor } = await this.parseAndWalk(
+				code,
+				{
+					CallExpression(node, api) {
+						if (
+							node.callee.type === 'MemberExpression' &&
+							node.callee.object.type === 'Identifier' &&
+							node.callee.object.name === 'console' &&
+							node.callee.property.type === 'Identifier' &&
+							node.callee.property.name === 'log'
+						) {
+							api.codeEditor.overwrite(node.start, node.end, 'undefined');
+						}
+					}
+				},
+				{ codeEditor: true }
+			);
+			if (!codeEditor.hasChanged()) return null;
+			return {
+				code: codeEditor.toString(),
+				map: codeEditor.generateMap({ includeContent: true, source: id })
+			};
 		}
-	},
-	{ codeEditor: true }
-);
-return { code: codeEditor.toString(), map: codeEditor.generateMap() };
+	};
+}
 ```
 
-In TypeScript, the call only type-checks when `codeEditor` is the literal `true` or `false`, so use `as const` if you store the options in a variable.
+If `codeEditor` is a plain `boolean`, the promise resolves to `void | { codeEditor }`, so check the result before using the editor.
 
 The editor is the same as the one returned by [`this.parse`](#this-parse) with `codeEditor: true`, so the generated map also covers the parts of the code that were not edited.
 
