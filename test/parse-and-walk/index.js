@@ -66,24 +66,35 @@ runTestSuiteWithSamples(
 describe('code editor', () => {
 	const code = `const emoji = '🚀';\nfunction foo(bar) {\n\tif (bar) {\n\t\treturn emoji;\n\t}\n}\nfoo(emoji);\n`;
 
-	it('maps the start and end of every node', () => {
+	it('maps the start and end of every node and the closing brace of block statements', () => {
 		const { ast, codeEditor } = parseAst(code, { codeEditor: true });
 		const mappedPositions = getMappedPositions(codeEditor.generateMap().mappings);
 		const unmappedPositions = [];
-		for (const [start, end] of getNodeRanges(ast)) {
-			for (const position of [start, end]) {
-				// Locations on a line break are not mapped by MagicString as the
-				// mapping of the following line takes precedence.
-				if (position >= code.length || code[position] === '\n') {
-					continue;
-				}
-				const [line, column] = getLineAndColumn(code, position);
-				if (!mappedPositions.has(`${line}:${column}`)) {
-					unmappedPositions.push(position);
-				}
+		for (const position of getSourcemapPositions(ast)) {
+			// Locations on a line break are not mapped by MagicString as the
+			// mapping of the following line takes precedence.
+			if (position >= code.length || code[position] === '\n') {
+				continue;
+			}
+			const [line, column] = getLineAndColumn(code, position);
+			if (!mappedPositions.has(`${line}:${column}`)) {
+				unmappedPositions.push(position);
 			}
 		}
 		assert.deepStrictEqual(unmappedPositions, []);
+	});
+
+	it('counts columns in UTF-16 code units after an astral character', () => {
+		const { codeEditor } = parseAst(`const emoji = '🚀';\n'🚀' && emoji;\n`, {
+			codeEditor: true
+		});
+		const mappings = decode(codeEditor.generateMap().mappings);
+		// The identifier starts after the two code units of the astral character:
+		// [generated column, source index, original line, original column]
+		assert.deepStrictEqual(
+			mappings[1].find(([generatedColumn]) => generatedColumn === 8),
+			[8, 0, 1, 8]
+		);
 	});
 
 	it('supports all parse helpers', async () => {
@@ -94,8 +105,7 @@ describe('code editor', () => {
 			await parseLazyAstAsync(code, { codeEditor: true })
 		];
 		const expectedPositions = getMappedPositions(results[0].codeEditor.generateMap().mappings);
-		for (const { ast, codeEditor } of results) {
-			assert.strictEqual(ast.type, 'Program');
+		for (const { codeEditor } of results) {
 			assert.strictEqual(codeEditor.original, code);
 			assert.strictEqual(codeEditor.hasChanged(), false);
 			assert.deepStrictEqual(
@@ -103,6 +113,18 @@ describe('code editor', () => {
 				expectedPositions
 			);
 		}
+	});
+
+	it('supports the code editor together with jsx and top-level return', () => {
+		const { ast, codeEditor } = parseAst('return <div>{emoji}</div>;', {
+			allowReturnOutsideFunction: true,
+			codeEditor: true,
+			jsx: true
+		});
+		assert.strictEqual(ast.body[0].type, 'ReturnStatement');
+		const mappedPositions = getMappedPositions(codeEditor.generateMap().mappings);
+		// The identifier inside the JSX expression container
+		assert.ok(mappedPositions.has('0:13'));
 	});
 
 	it('maps the code with the editor from parseAndWalk', async () => {
@@ -116,8 +138,8 @@ describe('code editor', () => {
 	});
 
 	it('returns the AST without a code editor unless requested', () => {
-		assert.strictEqual(parseAst(code).type, 'Program');
-		assert.strictEqual(parseLazyAst(code).type, 'Program');
+		assert.strictEqual('codeEditor' in parseAst(code), false);
+		assert.strictEqual('codeEditor' in parseLazyAst(code), false);
 	});
 
 	it('applies edits and keeps mapping the unedited code', () => {
@@ -128,7 +150,25 @@ describe('code editor', () => {
 		assert.ok(codeEditor.hasChanged());
 		assert.ok(codeEditor.toString().endsWith('bar(emoji);\n'));
 		assert.deepStrictEqual(map.sourcesContent, [code]);
-		assert.ok(getMappedPositions(map.mappings).has('1:0'));
+		// The identifier inside the edited call is only mapped because the parser
+		// collected its position.
+		assert.ok(getMappedPositions(map.mappings).has('6:4'));
+	});
+
+	it('parses empty code with the code editor', () => {
+		const { ast, codeEditor } = parseAst('', { codeEditor: true });
+		assert.deepStrictEqual(ast.body, []);
+		assert.strictEqual(codeEditor.original, '');
+		assert.deepStrictEqual(getMappedPositions(codeEditor.generateMap().mappings), new Set());
+	});
+
+	it('maps short code without a trailing newline that ends in a node', () => {
+		const shortCode = 'const a = 1;\nconsole.log(a)';
+		const { ast, codeEditor } = parseAst(shortCode, { codeEditor: true });
+		assert.strictEqual(ast.body[1].end, shortCode.length);
+		// The call argument needs a position from the bitset word that even short
+		// code has to provide.
+		assert.ok(getMappedPositions(codeEditor.generateMap().mappings).has('1:12'));
 	});
 
 	it('exposes the same editor in the api and the result of parseAndWalk', async () => {
@@ -197,13 +237,13 @@ function getLineAndColumn(code, position) {
 
 /**
  * @param {unknown} value
- * @param {[number, number][]} ranges
- * @returns {[number, number][]}
+ * @param {number[]} positions
+ * @returns {number[]}
  */
-function getNodeRanges(value, ranges = []) {
+function getSourcemapPositions(value, positions = []) {
 	if (Array.isArray(value)) {
 		for (const child of value) {
-			getNodeRanges(child, ranges);
+			getSourcemapPositions(child, positions);
 		}
 	} else if (value && typeof value === 'object') {
 		const node = /** @type {{end?: number, start?: number, type?: string}} */ (value);
@@ -212,11 +252,16 @@ function getNodeRanges(value, ranges = []) {
 			typeof node.start === 'number' &&
 			typeof node.end === 'number'
 		) {
-			ranges.push([node.start, node.end]);
+			positions.push(node.start, node.end);
+			// The parser also collects the closing brace of a block statement,
+			// which is one position before the end of the node.
+			if (node.type === 'BlockStatement') {
+				positions.push(node.end - 1);
+			}
 		}
 		for (const child of Object.values(value)) {
-			getNodeRanges(child, ranges);
+			getSourcemapPositions(child, positions);
 		}
 	}
-	return ranges;
+	return positions;
 }
