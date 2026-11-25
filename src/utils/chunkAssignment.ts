@@ -808,15 +808,8 @@ function addAwaitedChunkDependencies(
 ): boolean {
 	let hasAwaitedDependencies = false;
 	for (const chunk of graphChunks) {
-		let dependencies: Set<Module> | undefined;
-		for (const module of chunk.modules) {
-			if (module.hasTopLevelAwait()) (dependencies ||= new Set()).add(module);
-		}
-		if (!dependencies) continue;
-		for (const dependency of dependencies) {
-			for (const importedModule of dependency.getDependenciesToBeIncluded()) {
-				if (!(importedModule instanceof ExternalModule)) dependencies.add(importedModule);
-			}
+		if (!chunk.modules.some(module => module.hasTopLevelAwait())) continue;
+		for (const dependency of chunk.modules) {
 			for (const { node } of dependency.dynamicImports) {
 				const importedChunk =
 					node.included && node.resolution instanceof Module
