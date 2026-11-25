@@ -350,10 +350,7 @@ export type DeserializeLazyAst = (
 	position?: number
 ) => ast.LazyNode<ast.AstNode>;
 
-export type SerializeAst = (
-	node: ast.AstNode,
-	codeLength?: number
-) => /*browser: Uint8Array; */ Buffer; /*browser*/
+export type SerializeAst = (node: ast.AstNode) => /*browser: Uint8Array; */ Buffer; /*browser*/
 
 export interface ParseAndWalkApi {
 	/**
