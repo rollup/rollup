@@ -7,7 +7,7 @@ import type {
 	ParseAstAsync,
 	ParseLazyAst,
 	ParseLazyAstAsync,
-	ParseOptions
+	ParseOptionsWithCodeEditor
 } from '../rollup/types';
 import { BUFFER_INVENTORY_WORD_COUNT, getAstPosition } from './bufferInventory';
 import { deserializeAstBuffer } from './bufferToAst';
@@ -50,7 +50,7 @@ function createParseResult<Ast>(
 	return withCodeEditor ? { ast: node, codeEditor: createCodeEditor(input, astBuffer) } : node;
 }
 
-export const parseAst = ((input: string, options: ParseOptions = {}) => {
+export const parseAst = ((input: string, options: ParseOptionsWithCodeEditor = {}) => {
 	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
 	const astBuffer = getAstBuffer(parse(input, allowReturnOutsideFunction, jsx, codeEditor));
 	return createParseResult(
@@ -61,7 +61,7 @@ export const parseAst = ((input: string, options: ParseOptions = {}) => {
 	);
 }) as ParseAst;
 
-export const parseAstAsync = (async (input: string, options: ParseOptions = {}) => {
+export const parseAstAsync = (async (input: string, options: ParseOptionsWithCodeEditor = {}) => {
 	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
 	const astBuffer = getAstBuffer(
 		await parseAsync(input, allowReturnOutsideFunction, jsx, codeEditor)
@@ -74,7 +74,7 @@ export const parseAstAsync = (async (input: string, options: ParseOptions = {}) 
 	);
 }) as ParseAstAsync;
 
-export const parseLazyAst = ((input: string, options: ParseOptions = {}) => {
+export const parseLazyAst = ((input: string, options: ParseOptionsWithCodeEditor = {}) => {
 	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
 	const astBuffer = getAstBuffer(parse(input, allowReturnOutsideFunction, jsx, codeEditor));
 	return createParseResult(
@@ -85,7 +85,10 @@ export const parseLazyAst = ((input: string, options: ParseOptions = {}) => {
 	);
 }) as ParseLazyAst;
 
-export const parseLazyAstAsync = (async (input: string, options: ParseOptions = {}) => {
+export const parseLazyAstAsync = (async (
+	input: string,
+	options: ParseOptionsWithCodeEditor = {}
+) => {
 	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
 	const astBuffer = getAstBuffer(
 		await parseAsync(input, allowReturnOutsideFunction, jsx, codeEditor)

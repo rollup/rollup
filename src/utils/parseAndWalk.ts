@@ -5,7 +5,7 @@ import type {
 	ParseAndWalk,
 	ParseAndWalkApi,
 	ParseAndWalkHandler,
-	ParseAndWalkOptions,
+	ParseAndWalkOptionsWithCodeEditor,
 	ParseAndWalkVisitors
 } from '../rollup/types';
 import { getAstPosition, getWalkingInfo } from './bufferInventory';
@@ -22,7 +22,7 @@ import {
 export const parseAndWalk = (async (
 	input: string,
 	visitors: ParseAndWalkVisitors,
-	options: ParseAndWalkOptions = {}
+	options: ParseAndWalkOptionsWithCodeEditor = {}
 ) => {
 	const {
 		allowReturnOutsideFunction = false,

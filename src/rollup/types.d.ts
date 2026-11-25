@@ -289,8 +289,20 @@ export interface CodeEditorMapOptions {
 
 export interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
-	codeEditor?: boolean;
+	/**
+	 * Stays `false` here because asking for an editor changes the result: use
+	 * `ParseOptionsWithCodeEditor` for that.
+	 */
+	codeEditor?: false;
 	jsx?: boolean;
+}
+
+export interface ParseOptionsWithCodeEditor extends Omit<ParseOptions, 'codeEditor'> {
+	/**
+	 * Additionally return a `CodeEditor`. Use this type when the flag is a runtime
+	 * boolean, in which case the result is a union of both shapes.
+	 */
+	codeEditor?: boolean;
 }
 
 export interface CodeEditorParseResult<Ast> {
@@ -299,20 +311,26 @@ export interface CodeEditorParseResult<Ast> {
 }
 
 export interface ParseAst {
-	(input: string, options: ParseOptions & { codeEditor: true }): CodeEditorParseResult<ast.Program>;
-	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.Program;
-	(input: string, options?: ParseOptions): ast.Program | CodeEditorParseResult<ast.Program>;
+	(
+		input: string,
+		options: ParseOptionsWithCodeEditor & { codeEditor: true }
+	): CodeEditorParseResult<ast.Program>;
+	(input: string, options?: ParseOptions): ast.Program;
+	(
+		input: string,
+		options?: ParseOptionsWithCodeEditor
+	): ast.Program | CodeEditorParseResult<ast.Program>;
 }
 
 export interface ParseAstAsync {
 	(
 		input: string,
-		options: ParseOptions & { codeEditor: true }
+		options: ParseOptionsWithCodeEditor & { codeEditor: true }
 	): Promise<CodeEditorParseResult<ast.Program>>;
-	(input: string, options?: ParseOptions & { codeEditor?: false }): Promise<ast.Program>;
+	(input: string, options?: ParseOptions): Promise<ast.Program>;
 	(
 		input: string,
-		options?: ParseOptions
+		options?: ParseOptionsWithCodeEditor
 	): Promise<ast.Program | CodeEditorParseResult<ast.Program>>;
 }
 
@@ -324,27 +342,24 @@ export type DeserializeAst = (
 export interface ParseLazyAst {
 	(
 		input: string,
-		options: ParseOptions & { codeEditor: true }
+		options: ParseOptionsWithCodeEditor & { codeEditor: true }
 	): CodeEditorParseResult<ast.LazyNode<ast.Program>>;
-	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.LazyNode<ast.Program>;
+	(input: string, options?: ParseOptions): ast.LazyNode<ast.Program>;
 	(
 		input: string,
-		options?: ParseOptions
+		options?: ParseOptionsWithCodeEditor
 	): ast.LazyNode<ast.Program> | CodeEditorParseResult<ast.LazyNode<ast.Program>>;
 }
 
 export interface ParseLazyAstAsync {
 	(
 		input: string,
-		options: ParseOptions & { codeEditor: true }
+		options: ParseOptionsWithCodeEditor & { codeEditor: true }
 	): Promise<CodeEditorParseResult<ast.LazyNode<ast.Program>>>;
+	(input: string, options?: ParseOptions): Promise<ast.LazyNode<ast.Program>>;
 	(
 		input: string,
-		options?: ParseOptions & { codeEditor?: false }
-	): Promise<ast.LazyNode<ast.Program>>;
-	(
-		input: string,
-		options?: ParseOptions
+		options?: ParseOptionsWithCodeEditor
 	): Promise<ast.LazyNode<ast.Program> | CodeEditorParseResult<ast.LazyNode<ast.Program>>>;
 }
 
@@ -396,6 +411,9 @@ export interface ParseAndWalkOptions extends ParseOptions {
 	collectScopes?: boolean;
 }
 
+export interface ParseAndWalkOptionsWithCodeEditor
+	extends Omit<ParseAndWalkOptions, 'codeEditor'>, ParseOptionsWithCodeEditor {}
+
 export type ParseAndWalkHandler<
 	T extends ast.AstNode = ast.AstNode,
 	Api extends ParseAndWalkApi = ParseAndWalkApi
@@ -409,17 +427,13 @@ export interface ParseAndWalk {
 	(
 		input: string,
 		visitors: ParseAndWalkVisitors<ParseAndWalkApiWithCodeEditor>,
-		options: ParseAndWalkOptions & { codeEditor: true }
+		options: ParseAndWalkOptionsWithCodeEditor & { codeEditor: true }
 	): Promise<{ codeEditor: CodeEditor }>;
+	(input: string, visitors: ParseAndWalkVisitors, options?: ParseAndWalkOptions): Promise<void>;
 	(
 		input: string,
 		visitors: ParseAndWalkVisitors,
-		options?: ParseAndWalkOptions & { codeEditor?: false }
-	): Promise<void>;
-	(
-		input: string,
-		visitors: ParseAndWalkVisitors,
-		options?: ParseAndWalkOptions
+		options?: ParseAndWalkOptionsWithCodeEditor
 	): Promise<void | { codeEditor: CodeEditor }>;
 }
 

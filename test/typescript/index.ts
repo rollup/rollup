@@ -314,6 +314,24 @@ const _codeEditorPlugin: rollup.Plugin = {
 			await this.parseAndWalk('const value = 1;', {}, { codeEditor: codeEditorOption });
 		// @ts-expect-error with a boolean option, the result may not contain an editor
 		const _editorFromForwardedWalkOption = _walkResultWithForwardedOption.codeEditor;
+		const _sharedWalkOptions: rollup.ParseAndWalkOptions = { collectScopes: true };
+		const _walkResultFromSharedOptions: Promise<void> = this.parseAndWalk(
+			'const value = 1;',
+			{},
+			_sharedWalkOptions
+		);
+		const _walkOptionsWithEditor: rollup.ParseAndWalkOptionsWithCodeEditor = {
+			..._sharedWalkOptions,
+			codeEditor: codeEditorOption
+		};
+		const _walkResultFromOptionsWithEditor: Promise<void | { codeEditor: rollup.CodeEditor }> =
+			this.parseAndWalk('const value = 1;', {}, _walkOptionsWithEditor);
+		// @ts-expect-error the result may contain an editor
+		const _notOnlyVoid: Promise<void> = this.parseAndWalk(
+			'const value = 1;',
+			{},
+			_walkOptionsWithEditor
+		);
 	},
 	name: 'code-editor',
 	transform(code) {
@@ -332,10 +350,24 @@ const _codeEditorPlugin: rollup.Plugin = {
 		// @ts-expect-error with a boolean option, the result may not contain an editor
 		const _editorFromForwardedParseOption = forwardedParseResult.codeEditor;
 		const _sharedOptions: rollup.ParseOptions = { allowReturnOutsideFunction: true };
-		const _programOrEditorFromSharedOptions: ParseResult = this.parse(code, _sharedOptions);
+		const _programFromSharedOptions: rollup.ast.Program = this.parse(code, _sharedOptions);
+		// @ts-expect-error codeEditor is deliberately not part of ParseOptions
+		const _optionsWithEditorInSharedType: rollup.ParseOptions = { codeEditor: true };
 		const _maybeSharedOptions: rollup.ParseOptions | undefined =
 			Math.random() > 0.5 ? {} : undefined;
-		const _programOrEditorFromForwardedOptions: ParseResult = this.parse(code, _maybeSharedOptions);
+		const _programFromForwardedOptions: rollup.ast.Program = this.parse(code, _maybeSharedOptions);
+		const _optionsWithEditor: rollup.ParseOptionsWithCodeEditor = {
+			..._sharedOptions,
+			codeEditor: codeEditorOption
+		};
+		// @ts-expect-error options that may carry an editor cannot widen to ParseOptions
+		const _widenedOptions: rollup.ParseOptions = _optionsWithEditor;
+		const _optionsWithoutEditor: rollup.ParseOptions = { codeEditor: false, jsx: true };
+		const _parseResultFromOptionsWithEditor: ParseResult = this.parse(code, _optionsWithEditor);
+		// @ts-expect-error the result may contain an editor
+		const _notOnlyProgram: rollup.ast.Program = this.parse(code, _optionsWithEditor);
+		// @ts-expect-error with a boolean option, the result may not contain an editor
+		const _editorFromOptionsWithEditor = this.parse(code, _optionsWithEditor).codeEditor;
 		// @ts-expect-error without the option, parse returns the AST
 		const _missingEditor: rollup.CodeEditor = this.parse(code).codeEditor;
 		// @ts-expect-error the original code cannot be changed
