@@ -312,6 +312,8 @@ const _codeEditorPlugin: rollup.Plugin = {
 		const codeEditorOption: boolean = Math.random() > 0.5;
 		const _walkResultWithForwardedOption: void | { codeEditor: rollup.CodeEditor } =
 			await this.parseAndWalk('const value = 1;', {}, { codeEditor: codeEditorOption });
+		// @ts-expect-error with a boolean option, the result may not contain an editor
+		const _editorFromForwardedWalkOption = _walkResultWithForwardedOption.codeEditor;
 	},
 	name: 'code-editor',
 	transform(code) {
@@ -321,14 +323,19 @@ const _codeEditorPlugin: rollup.Plugin = {
 			includeContent: true,
 			source: 'main.js'
 		});
-		// @ts-expect-error per-character hires mappings would bypass the prepared locations
-		const _hiresMap = codeEditor.generateMap({ hires: true });
+		const mapOptions = { hires: true };
+		// @ts-expect-error "hires" is deliberately not part of the options
+		const _hiresMap = codeEditor.generateMap(mapOptions);
 		const codeEditorOption: boolean = Math.random() > 0.5;
-		const _parseResultWithForwardedOption: ParseResult = this.parse(code, {
-			codeEditor: codeEditorOption
-		});
+		const forwardedParseResult = this.parse(code, { codeEditor: codeEditorOption });
+		const _parseResultWithForwardedOption: ParseResult = forwardedParseResult;
+		// @ts-expect-error with a boolean option, the result may not contain an editor
+		const _editorFromForwardedParseOption = forwardedParseResult.codeEditor;
 		const _sharedOptions: rollup.ParseOptions = { allowReturnOutsideFunction: true };
 		const _programOrEditorFromSharedOptions: ParseResult = this.parse(code, _sharedOptions);
+		const _maybeSharedOptions: rollup.ParseOptions | undefined =
+			Math.random() > 0.5 ? {} : undefined;
+		const _programOrEditorFromForwardedOptions: ParseResult = this.parse(code, _maybeSharedOptions);
 		// @ts-expect-error without the option, parse returns the AST
 		const _missingEditor: rollup.CodeEditor = this.parse(code).codeEditor;
 		// @ts-expect-error the original code cannot be changed

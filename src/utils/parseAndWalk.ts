@@ -19,12 +19,10 @@ import {
 	SCOPE_PARENT_OFFSET
 } from './scopeConstants';
 
-type ParseAndWalkOptionsWithCodeEditor = ParseAndWalkOptions & { codeEditor?: boolean };
-
 export const parseAndWalk = (async (
 	input: string,
 	visitors: ParseAndWalkVisitors,
-	options: ParseAndWalkOptionsWithCodeEditor = {}
+	options: ParseAndWalkOptions = {}
 ) => {
 	const {
 		allowReturnOutsideFunction = false,

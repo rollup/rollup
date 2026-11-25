@@ -301,7 +301,7 @@ export interface CodeEditorParseResult<Ast> {
 export interface ParseAst {
 	(input: string, options: ParseOptions & { codeEditor: true }): CodeEditorParseResult<ast.Program>;
 	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.Program;
-	(input: string, options: ParseOptions): ast.Program | CodeEditorParseResult<ast.Program>;
+	(input: string, options?: ParseOptions): ast.Program | CodeEditorParseResult<ast.Program>;
 }
 
 export interface ParseAstAsync {
@@ -310,7 +310,10 @@ export interface ParseAstAsync {
 		options: ParseOptions & { codeEditor: true }
 	): Promise<CodeEditorParseResult<ast.Program>>;
 	(input: string, options?: ParseOptions & { codeEditor?: false }): Promise<ast.Program>;
-	(input: string, options: ParseOptions): Promise<ast.Program | CodeEditorParseResult<ast.Program>>;
+	(
+		input: string,
+		options?: ParseOptions
+	): Promise<ast.Program | CodeEditorParseResult<ast.Program>>;
 }
 
 export type DeserializeAst = (
@@ -326,7 +329,7 @@ export interface ParseLazyAst {
 	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.LazyNode<ast.Program>;
 	(
 		input: string,
-		options: ParseOptions
+		options?: ParseOptions
 	): ast.LazyNode<ast.Program> | CodeEditorParseResult<ast.LazyNode<ast.Program>>;
 }
 
@@ -341,7 +344,7 @@ export interface ParseLazyAstAsync {
 	): Promise<ast.LazyNode<ast.Program>>;
 	(
 		input: string,
-		options: ParseOptions
+		options?: ParseOptions
 	): Promise<ast.LazyNode<ast.Program> | CodeEditorParseResult<ast.LazyNode<ast.Program>>>;
 }
 
@@ -416,7 +419,7 @@ export interface ParseAndWalk {
 	(
 		input: string,
 		visitors: ParseAndWalkVisitors,
-		options: ParseAndWalkOptions
+		options?: ParseAndWalkOptions
 	): Promise<void | { codeEditor: CodeEditor }>;
 }
 
