@@ -19,14 +19,14 @@ import { getAstBuffer } from './getAstBuffer';
 export { serializeAst } from './astToBuffer';
 export { parseAndWalk } from './parseAndWalk';
 
-export const deserializeAst: DeserializeAst = (buffer, position = 0) => {
+export const deserializeAst: DeserializeAst = (buffer, position) => {
 	const astBuffer = getAstBuffer(buffer);
-	return deserializeAstBuffer(astBuffer, position === 0 ? getAstPosition(astBuffer) : position);
+	return deserializeAstBuffer(astBuffer, position ?? getAstPosition(astBuffer));
 };
 
-export const deserializeLazyAst: DeserializeLazyAst = (buffer, position = 0) => {
+export const deserializeLazyAst: DeserializeLazyAst = (buffer, position) => {
 	const astBuffer = getAstBuffer(buffer);
-	return deserializeLazyAstBuffer(astBuffer, position === 0 ? getAstPosition(astBuffer) : position);
+	return deserializeLazyAstBuffer(astBuffer, position ?? getAstPosition(astBuffer));
 };
 
 function createParseResult<Ast>(
