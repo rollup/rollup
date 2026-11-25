@@ -8,15 +8,31 @@ export const BUFFER_AST_OFFSET = 1;
 export const BUFFER_SOURCEMAP_LOCATIONS_OFFSET = 2;
 export const BUFFER_WALKING_INFO_OFFSET = 3;
 
+const corruptedBufferError = (description: string): Error =>
+	new Error(`Corrupted AST buffer: ${description}. Discard the buffer and parse the code again.`);
+
 const getSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array => {
-	const position = buffer[referenceOffset];
-	return buffer.subarray(position + 1, position + 1 + buffer[position]);
+	const sectionPosition = buffer[referenceOffset];
+	if (sectionPosition >= buffer.length) {
+		throw corruptedBufferError(`section reference ${sectionPosition} is outside the buffer`);
+	}
+	const sectionEnd = sectionPosition + 1 + buffer[sectionPosition];
+	if (sectionEnd > buffer.length) {
+		throw corruptedBufferError(`section at word ${sectionPosition} exceeds the buffer`);
+	}
+	return buffer.subarray(sectionPosition + 1, sectionEnd);
 };
 
 const getNullableSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array | null =>
 	buffer[referenceOffset] === 0 ? null : getSection(buffer, referenceOffset);
 
-export const getAstPosition = (buffer: Uint32Array): number => buffer[BUFFER_AST_OFFSET];
+export const getAstPosition = (buffer: Uint32Array): number => {
+	const astPosition = buffer[BUFFER_AST_OFFSET];
+	if (astPosition >= buffer.length) {
+		throw corruptedBufferError(`node reference ${astPosition} is outside the buffer`);
+	}
+	return astPosition;
+};
 
 export const getSourcemapLocations = (buffer: Uint32Array): Uint32Array | null =>
 	getNullableSection(buffer, BUFFER_SOURCEMAP_LOCATIONS_OFFSET);

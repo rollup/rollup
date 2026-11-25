@@ -23,6 +23,7 @@ const fields = BUFFER_INVENTORY_FIELDS.map((field, index) => ({
 	capitalizedName: field.name[0].toUpperCase() + field.name.slice(1),
 	constantName: `BUFFER_${toScreamingSnakeCase(field.name)}_OFFSET`,
 	index,
+	name: field.name,
 	type: field.type
 }));
 
@@ -43,7 +44,7 @@ ${fields.map(f => `export const ${f.constantName} = ${f.index};`).join('\n')}
 `;
 
 const tsReaders = fields
-	.map(({ allowNull, capitalizedName, constantName, type }) => {
+	.map(({ allowNull, capitalizedName, constantName, name, type }) => {
 		if (type === 'FormatVersion') {
 			return '';
 		}
@@ -51,8 +52,13 @@ const tsReaders = fields
 			if (allowNull) {
 				throw new Error('Nullable node references are not supported in the buffer inventory');
 			}
-			return `export const get${capitalizedName}Position = (buffer: Uint32Array): number =>
-	buffer[${constantName}];`;
+			return `export const get${capitalizedName}Position = (buffer: Uint32Array): number => {
+	const ${name}Position = buffer[${constantName}];
+	if (${name}Position >= buffer.length) {
+		throw corruptedBufferError(\`node reference \${${name}Position} is outside the buffer\`);
+	}
+	return ${name}Position;
+};`;
 		}
 		if (type === 'Section') {
 			return `export const get${capitalizedName} = (buffer: Uint32Array): ${
@@ -64,10 +70,23 @@ const tsReaders = fields
 	.filter(reader => reader)
 	.join('\n\n');
 
+const corruptedBufferErrorHelper = fields.some(({ type }) => type === 'Node' || type === 'Section')
+	? `const corruptedBufferError = (description: string): Error =>
+	new Error(\`Corrupted AST buffer: \${description}. Discard the buffer and parse the code again.\`);
+`
+	: '';
+
 const sectionHelpers = fields.some(({ type }) => type === 'Section')
 	? `const getSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array => {
-	const position = buffer[referenceOffset];
-	return buffer.subarray(position + 1, position + 1 + buffer[position]);
+	const sectionPosition = buffer[referenceOffset];
+	if (sectionPosition >= buffer.length) {
+		throw corruptedBufferError(\`section reference \${sectionPosition} is outside the buffer\`);
+	}
+	const sectionEnd = sectionPosition + 1 + buffer[sectionPosition];
+	if (sectionEnd > buffer.length) {
+		throw corruptedBufferError(\`section at word \${sectionPosition} exceeds the buffer\`);
+	}
+	return buffer.subarray(sectionPosition + 1, sectionEnd);
 };
 ${
 	fields.some(({ allowNull, type }) => type === 'Section' && allowNull)
@@ -83,6 +102,7 @@ const getNullableSection = (
 	: '';
 
 const tsFile = `${tsConstants}
+${corruptedBufferErrorHelper}
 ${sectionHelpers}
 ${tsReaders}
 `;
