@@ -13,7 +13,7 @@ const BITS_PER_WORD: usize = u32::BITS as usize;
 pub(crate) struct SourcemapLocations {
   word_count_position: usize,
   reserved_word_count: usize,
-  highest_registered_position: Option<usize>,
+  word_count: usize,
 }
 
 impl SourcemapLocations {
@@ -30,25 +30,18 @@ impl SourcemapLocations {
     Self {
       word_count_position,
       reserved_word_count,
-      highest_registered_position: None,
+      word_count: 0,
     }
   }
 
   pub(crate) fn register(&mut self, buffer: &mut [u8], position: u32) {
     let position = position as usize;
     let word_index = position / BITS_PER_WORD;
-    debug_assert!(
+    assert!(
       word_index < self.reserved_word_count,
       "sourcemap location {position} is outside the reserved section"
     );
-    if word_index >= self.reserved_word_count {
-      return;
-    }
-    self.highest_registered_position = Some(
-      self
-        .highest_registered_position
-        .map_or(position, |highest| highest.max(position)),
-    );
+    self.word_count = self.word_count.max(word_index + 1);
     let word_offset = (self.word_count_position + 1 + word_index) * WORD_SIZE;
     let mut word = [0; WORD_SIZE];
     word.copy_from_slice(&buffer[word_offset..word_offset + WORD_SIZE]);
@@ -59,11 +52,8 @@ impl SourcemapLocations {
   /// Patches the word count to the words that are actually needed. For non-ASCII
   /// code these are fewer than the reserved ones, so the difference stays unused.
   pub(crate) fn write_word_count(&self, buffer: &mut [u8]) {
-    let word_count = self
-      .highest_registered_position
-      .map_or(0, |highest| highest / BITS_PER_WORD + 1);
     let word_count_offset = self.word_count_position * WORD_SIZE;
     buffer[word_count_offset..word_count_offset + WORD_SIZE]
-      .copy_from_slice(&(word_count as u32).to_ne_bytes());
+      .copy_from_slice(&(self.word_count as u32).to_ne_bytes());
   }
 }
