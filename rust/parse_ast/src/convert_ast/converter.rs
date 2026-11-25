@@ -7,9 +7,7 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, WORD_SIZE,
 };
 
-use crate::convert_ast::converter::buffer_inventory_constants::{
-  BUFFER_SOURCEMAP_LOCATIONS_OFFSET, BUFFER_WALKING_INFO_OFFSET,
-};
+use crate::convert_ast::converter::buffer_inventory_constants::BUFFER_WALKING_INFO_OFFSET;
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
@@ -19,6 +17,7 @@ use crate::convert_ast::converter::utf16_positions::{
 use scope_constants::{
   SCOPE_DECLARATIONS_OFFSET, SCOPE_DECLARATION_COUNT_OFFSET, SCOPE_PARENT_OFFSET,
 };
+use sourcemap_locations::SourcemapLocations;
 use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
@@ -33,6 +32,7 @@ pub(crate) mod ast_constants;
 mod ast_macros;
 pub(crate) mod buffer_inventory_constants;
 pub(crate) mod scope_constants;
+mod sourcemap_locations;
 pub(crate) mod string_constants;
 mod utf16_positions;
 
@@ -82,8 +82,7 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
   pub(crate) walked_nodes_bitset: Option<[u64; 2]>,
   pub(crate) collect_scopes: bool,
-  pub(crate) sourcemap_locations: Option<Vec<u32>>,
-  pub(crate) program_end: u32,
+  pub(crate) sourcemap_locations: Option<SourcemapLocations>,
   pub(crate) walking_entries: Vec<WalkEntry>,
   pub(crate) scope_stack: Vec<ScopeRecord>,
   pub(crate) declaration_kind: Option<DeclarationKind>,
@@ -92,20 +91,15 @@ pub(crate) struct AstConverter<'a> {
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn new(
-    buffer: Vec<u8>,
+    mut buffer: Vec<u8>,
     code: &'a str,
     annotations: &'a [AnnotationWithType],
     walked_nodes_bitset: Option<[u64; 2]>,
     collect_scopes: bool,
     collect_sourcemap_locations: bool,
   ) -> Self {
-    let sourcemap_locations = if collect_sourcemap_locations {
-      // UTF-16 length is never larger than the UTF-8 byte length. The vector is
-      // truncated to the exact Program end before the section is written.
-      Some(vec![0; (code.len() >> 5) + 1])
-    } else {
-      None
-    };
+    let sourcemap_locations =
+      collect_sourcemap_locations.then(|| SourcemapLocations::reserve(&mut buffer, code.len()));
     Self {
       buffer,
       code: code.as_bytes(),
@@ -113,7 +107,6 @@ impl<'a> AstConverter<'a> {
       walked_nodes_bitset,
       collect_scopes,
       sourcemap_locations,
-      program_end: 0,
       walking_entries: Vec::new(),
       scope_stack: Vec::new(),
       declaration_kind: None,
@@ -148,15 +141,8 @@ impl<'a> AstConverter<'a> {
       }
     }
 
-    if let Some(mut locations) = self.sourcemap_locations.take() {
-      locations.truncate((self.program_end >> 5) as usize + 1);
-      update_reference_position(&mut self.buffer, BUFFER_SOURCEMAP_LOCATIONS_OFFSET);
-      self
-        .buffer
-        .extend_from_slice(&(locations.len() as u32).to_ne_bytes());
-      for location in locations {
-        self.buffer.extend_from_slice(&location.to_ne_bytes());
-      }
+    if let Some(sourcemap_locations) = self.sourcemap_locations.take() {
+      sourcemap_locations.write_word_count(&mut self.buffer);
     }
 
     self.buffer.shrink_to_fit();
@@ -336,9 +322,8 @@ impl<'a> AstConverter<'a> {
 
   // === helpers
   pub(crate) fn add_sourcemap_location(&mut self, position: u32) {
-    if let Some(locations) = &mut self.sourcemap_locations {
-      let index = position as usize;
-      locations[index >> 5] |= 1 << (index & 31);
+    if let Some(sourcemap_locations) = &mut self.sourcemap_locations {
+      sourcemap_locations.register(&mut self.buffer, position);
     }
   }
 

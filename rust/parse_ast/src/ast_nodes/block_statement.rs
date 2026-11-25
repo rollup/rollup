@@ -78,9 +78,7 @@ impl AstConverter<'_> {
     );
     // end
     let end = self.add_end(end_position, span);
-    if end > 0 {
-      self.add_sourcemap_location(end - 1);
-    }
+    self.add_sourcemap_location(end - 1);
     if !prevent_child_block_scope {
       self.pop_scope();
     }
