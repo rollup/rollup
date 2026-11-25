@@ -328,6 +328,20 @@ export const result = outer(2);
 		assert.deepStrictEqual(deserializeAst(view), ast);
 		assertAstEqual(deserializeLazyAst(view), ast);
 	});
+
+	it('rejects an explicit position inside the buffer inventory', () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		for (const position of [0, 1, 3]) {
+			const expectedError = {
+				message: `The "position" argument ${position} points into the buffer inventory. Omit it to deserialize the root node.`
+			};
+			assert.throws(() => deserializeAst(buffer, position), expectedError);
+			assert.throws(() => deserializeLazyAst(buffer, position), expectedError);
+		}
+		assert.deepStrictEqual(deserializeAst(buffer), ast);
+		assert.strictEqual(deserializeAst(buffer, 4).type, 'Program');
+	});
 });
 
 describe('parseAstAsync', () => {
