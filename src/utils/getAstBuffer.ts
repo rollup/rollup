@@ -96,15 +96,32 @@ const decodePackedString = (array: Uint32Array, position: number, length: number
 		: new TextDecoder().decode(bytes);
 };
 
-export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
+const getAstBufferWords = (byteBuffer: Buffer | Uint8Array): Uint32Array => {
 	// Create an aligned copy for misaligned views, e.g. buffers restored by
-	// v8.deserialize, as the Uint32Array below requires a 4-byte aligned offset
+	// v8.deserialize, as a Uint32Array requires a 4-byte aligned offset
 	const alignedByteBuffer = byteBuffer.byteOffset & 3 ? new Uint8Array(byteBuffer) : byteBuffer;
-	const array = new Uint32Array(
+	return new Uint32Array(
 		alignedByteBuffer.buffer,
 		alignedByteBuffer.byteOffset,
 		alignedByteBuffer.byteLength >> 2
 	);
+};
+
+// Cached buffers are usually views into a larger pool at an unaligned offset,
+// so the version is read without aligning, which would copy the whole buffer.
+export function getAstBufferFormatVersion(byteBuffer: Buffer | Uint8Array): number | undefined {
+	const inventoryByteCount = BUFFER_INVENTORY_WORD_COUNT << 2;
+	if (byteBuffer.byteLength < inventoryByteCount) {
+		return undefined;
+	}
+	return new DataView(byteBuffer.buffer, byteBuffer.byteOffset, inventoryByteCount).getUint32(
+		BUFFER_FORMAT_VERSION_OFFSET << 2,
+		!isBigEndianHost
+	);
+}
+
+export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
+	const array = getAstBufferWords(byteBuffer);
 	const formatVersion =
 		array.length >= BUFFER_INVENTORY_WORD_COUNT ? array[BUFFER_FORMAT_VERSION_OFFSET] : undefined;
 	if (formatVersion !== BUFFER_FORMAT_VERSION) {

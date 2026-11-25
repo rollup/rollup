@@ -597,19 +597,49 @@ describe('AST buffer versions', () => {
 		}
 	});
 
-	it('rejects cached AST buffers from a different format version', async () => {
-		const files = { 'main.js': 'export const value = 42;' };
-		const { cache } = await rollup({ input: 'main.js', plugins: [loader(files)] });
-		const [cachedModule] = cache.modules;
-		const words = new Uint32Array(
-			cachedModule.astBuffer.buffer,
-			cachedModule.astBuffer.byteOffset,
-			cachedModule.astBuffer.byteLength / 4
+	it('re-parses modules whose cached AST buffer has a different format version', async () => {
+		const files = {
+			'dep.js': 'export const dep = 1;',
+			'main.js': 'export const main = 2;'
+		};
+		const inputs = Object.keys(files);
+		const firstBundle = await rollup({ input: inputs, plugins: [loader(files)] });
+		const expectedCodes = (await firstBundle.generate({ format: 'es' })).output.map(
+			({ code }) => code
 		);
-		words[0] += 1;
-		await assert.rejects(() => rollup({ cache, input: 'main.js', plugins: [loader(files)] }), {
-			code: 'INVALID_AST_BUFFER_VERSION'
+		for (const cachedModule of firstBundle.cache.modules) {
+			const words = new Uint32Array(
+				cachedModule.astBuffer.buffer,
+				cachedModule.astBuffer.byteOffset,
+				cachedModule.astBuffer.byteLength / 4
+			);
+			words[0] += 1;
+		}
+		const parsedModuleIds = [];
+		const warnings = [];
+		const secondBundle = await rollup({
+			cache: firstBundle.cache,
+			input: inputs,
+			onwarn: warning => warnings.push(warning),
+			plugins: [
+				loader(files),
+				{
+					name: 'record-parsed-modules',
+					transform(code, id) {
+						parsedModuleIds.push(id);
+					}
+				}
+			]
 		});
+		const reparsedCodes = (await secondBundle.generate({ format: 'es' })).output.map(
+			({ code }) => code
+		);
+		assert.deepStrictEqual(reparsedCodes, expectedCodes);
+		assert.deepStrictEqual(parsedModuleIds.sort(), ['dep.js', 'main.js']);
+		assert.deepStrictEqual(
+			warnings.map(({ code }) => code),
+			['INVALID_AST_BUFFER_VERSION']
+		);
 	});
 });
 

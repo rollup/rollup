@@ -3,6 +3,7 @@ import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';
 import type {
 	ast,
+	CachedModule,
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
@@ -20,6 +21,8 @@ import type {
 	UniqueModuleId
 } from './rollup/types';
 import { BLANK, EMPTY_OBJECT } from './utils/blank';
+import { BUFFER_FORMAT_VERSION } from './utils/bufferInventory';
+import { getAstBufferFormatVersion } from './utils/getAstBuffer';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -28,6 +31,7 @@ import {
 	logExternalModulesCannotBeIncludedInManualChunks,
 	logExternalModulesCannotBeTransformedToModules,
 	logExternalSyntheticExports,
+	logIgnoredCachedAstBufferVersion,
 	logImplicitDependantCannotBeExternal,
 	logInternalIdCannotBeExternal,
 	logNonExternalSourcePhaseImport,
@@ -93,6 +97,7 @@ const RESOLVE_DEPENDENCIES: PreloadType = 'resolveDependencies';
 
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
+	private hasWarnedAboutCachedAstBufferVersion = false;
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly sortedEntryModules: Module[] = [];
 	private readonly entryModules = new Set<Module>();
@@ -320,7 +325,8 @@ export class ModuleLoader {
 		if (
 			cachedModule &&
 			!cachedModule.customTransformCache &&
-			cachedModule.originalCode === sourceDescription.code
+			cachedModule.originalCode === sourceDescription.code &&
+			this.hasCompatibleAstBuffer(cachedModule)
 		) {
 			const originalModuleOptions = {
 				meta: { ...module.info.meta },
@@ -724,6 +730,18 @@ export class ModuleLoader {
 			this.options.onLog(LOGLEVEL_WARN, logExternalSyntheticExports(source, importer, attributes));
 		}
 		return resolvedId;
+	}
+
+	private hasCompatibleAstBuffer(cachedModule: CachedModule): boolean {
+		const cachedFormatVersion = getAstBufferFormatVersion(cachedModule.astBuffer);
+		if (cachedFormatVersion === BUFFER_FORMAT_VERSION) {
+			return true;
+		}
+		if (!this.hasWarnedAboutCachedAstBufferVersion) {
+			this.hasWarnedAboutCachedAstBufferVersion = true;
+			this.options.onLog(LOGLEVEL_WARN, logIgnoredCachedAstBufferVersion(cachedFormatVersion));
+		}
+		return false;
 	}
 
 	private async loadEntryModule(

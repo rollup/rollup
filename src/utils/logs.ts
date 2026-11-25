@@ -603,6 +603,15 @@ export function logInvalidAstBufferVersion(formatVersion: number | undefined): R
 	};
 }
 
+export function logIgnoredCachedAstBufferVersion(formatVersion: number | undefined): RollupLog {
+	return {
+		code: INVALID_AST_BUFFER_VERSION,
+		message: `The cached AST buffer was created by a different Rollup version: format version ${
+			formatVersion ?? 'unknown'
+		}, expected version ${BUFFER_FORMAT_VERSION}. The cache entry is ignored, so the affected modules will be re-parsed.`
+	};
+}
+
 export function logInputHookInOutputPlugin(pluginName: string, hookName: string): RollupLog {
 	return {
 		code: INPUT_HOOK_IN_OUTPUT_PLUGIN,
