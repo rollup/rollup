@@ -105,7 +105,8 @@ describe('code editor', () => {
 			await parseLazyAstAsync(code, { codeEditor: true })
 		];
 		const expectedPositions = getMappedPositions(results[0].codeEditor.generateMap().mappings);
-		for (const { codeEditor } of results) {
+		for (const { ast, codeEditor } of results) {
+			assert.strictEqual(ast.type, 'Program');
 			assert.strictEqual(codeEditor.original, code);
 			assert.strictEqual(codeEditor.hasChanged(), false);
 			assert.deepStrictEqual(
@@ -138,8 +139,12 @@ describe('code editor', () => {
 	});
 
 	it('returns the AST without a code editor unless requested', () => {
-		assert.strictEqual('codeEditor' in parseAst(code), false);
-		assert.strictEqual('codeEditor' in parseLazyAst(code), false);
+		const program = parseAst(code);
+		assert.strictEqual(program.type, 'Program');
+		assert.strictEqual('codeEditor' in program, false);
+		const lazyProgram = parseLazyAst(code);
+		assert.strictEqual(lazyProgram.type, 'Program');
+		assert.strictEqual('codeEditor' in lazyProgram, false);
 	});
 
 	it('applies edits and keeps mapping the unedited code', () => {
@@ -169,6 +174,16 @@ describe('code editor', () => {
 		// The call argument needs a position from the bitset word that even short
 		// code has to provide.
 		assert.ok(getMappedPositions(codeEditor.generateMap().mappings).has('1:12'));
+	});
+
+	it('maps positions at the start of the second sourcemap locations word', () => {
+		const code = `'${'x'.repeat(28)}'; identifier;`;
+		const identifierPosition = code.indexOf('identifier');
+		assert.strictEqual(identifierPosition, 32);
+		const { codeEditor } = parseAst(code, { codeEditor: true });
+		const mappedPositions = getMappedPositions(codeEditor.generateMap().mappings);
+		const [line, column] = getLineAndColumn(code, identifierPosition);
+		assert.ok(mappedPositions.has(`${line}:${column}`));
 	});
 
 	it('exposes the same editor in the api and the result of parseAndWalk', async () => {
