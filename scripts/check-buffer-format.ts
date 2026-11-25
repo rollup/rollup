@@ -18,8 +18,8 @@ try {
 }
 
 if (!previousBufferFormat) {
-	console.log('No previous buffer format available, skipping the version check.');
-	process.exit(0);
+	console.error(`❌ ${previousBufferFormatFile} does not exist.`);
+	process.exit(1);
 }
 
 try {

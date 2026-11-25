@@ -19,9 +19,6 @@ import {
 } from './buffer-layout.ts';
 import { STRING_CONSTANTS } from './string-constants.ts';
 
-type LayoutPart =
-	'astNodes' | 'bufferInventory' | 'bufferLayout' | 'scopeNodes' | 'stringConstants';
-
 export interface BufferFormat {
 	fingerprint: string;
 	version: number;
@@ -37,7 +34,7 @@ export const bufferFormatFile = new URL('./buffer-format.json', import.meta.url)
 // requires increasing BUFFER_FORMAT_VERSION. Changes to the hand-written
 // encoders, decoders and generator templates cannot be detected here and need
 // to be reviewed.
-const layoutData: Record<LayoutPart, unknown> = {
+const layoutData = {
 	astNodes: astNodeNamesWithFieldOrder,
 	bufferInventory: BUFFER_INVENTORY_FIELDS,
 	bufferLayout: {

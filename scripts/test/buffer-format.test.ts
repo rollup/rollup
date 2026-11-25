@@ -143,11 +143,11 @@ describe('check-buffer-format', () => {
 			assert.match(result.stderr, /was not increased/);
 		}));
 
-	it('passes with a notice when the previous file is missing', () =>
+	it('fails when the previous file is missing', () =>
 		withTemporaryDirectory(async directory => {
 			const result = runCheckBufferFormat(path.join(directory, 'missing.json'));
-			assert.equal(result.status, 0, result.stderr);
-			assert.match(result.stdout, /No previous buffer format available/);
+			assert.equal(result.status, 1, result.stdout);
+			assert.match(result.stderr, /does not exist/);
 		}));
 
 	it('fails with a usage error', () => {

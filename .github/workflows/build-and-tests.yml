@@ -57,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$BASE_SHA" =~ ^0+$ ]]; then
-            echo "::notice::This push created a new branch, so there is no base commit to compare scripts/buffer-format.json against"
+            echo "::notice::This push created a new ref, so there is no base commit to compare scripts/buffer-format.json against"
             exit 0
           fi
           git fetch --depth 1 --no-tags origin "$BASE_SHA"
@@ -66,7 +66,8 @@ jobs:
             echo "::error::Fetching the base commit $BASE_SHA left FETCH_HEAD at $fetched_sha, refusing to compare against the wrong commit"
             exit 1
           fi
-          if ! git cat-file -e "$BASE_SHA:scripts/buffer-format.json" 2>/dev/null; then
+          base_buffer_format_path="$(git ls-tree --name-only "$BASE_SHA" -- scripts/buffer-format.json)"
+          if [[ -z "$base_buffer_format_path" ]]; then
             echo "::notice::The base commit $BASE_SHA has no scripts/buffer-format.json, skipping the buffer format version check"
             exit 0
           fi
