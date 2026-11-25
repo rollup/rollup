@@ -1994,7 +1994,7 @@ An object containing potentially useful Rollup metadata:
 | --: | :-- |
 | Type: | `(code: string, options?: ParseOptions & { codeEditor?: false }) => ast.Program` |
 |  | `(code: string, options: ParseOptions & { codeEditor: true }) => { ast: ast.Program; codeEditor: CodeEditor }` |
-|  | `(code: string, options: ParseOptions) => ast.Program \| { ast: ast.Program; codeEditor: CodeEditor }` |
+|  | `(code: string, options?: ParseOptions) => ast.Program \| { ast: ast.Program; codeEditor: CodeEditor }` |
 
 ```typescript
 interface ParseOptions {
@@ -2010,7 +2010,7 @@ Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](h
 - `codeEditor`: When `true`, an object `{ ast, codeEditor }` is returned instead of the AST so that the parsed code can be edited and mapped back to the original source. If the option is a plain `boolean`, the result is a union of both shapes, so check for the `codeEditor` property before using it. See below.
 - `jsx`: When `true`, JSX syntax is supported in the parsed code.
 
-To return a sourcemap for a transformation that only touches parts of the code, Rollup can collect the position of every AST node while parsing and pass it to an editor. The following plugin adds a generated doc comment in front of every top-level export:
+To return a sourcemap for a transformation that only touches parts of the code, Rollup can collect the position of every AST node while parsing and pass it to an editor. The following plugin adds a generated doc comment in front of every named and default export:
 
 ```js twoslash
 // ---cut-start---
@@ -2019,7 +2019,7 @@ To return a sourcemap for a transformation that only touches parts of the code, 
 export function injectGeneratedComments() {
 	return {
 		name: 'inject-generated-comments',
-		transform(code, id) {
+		transform(code) {
 			const { ast, codeEditor } = this.parse(code, { codeEditor: true });
 			for (const statement of ast.body) {
 				if (
@@ -2032,16 +2032,16 @@ export function injectGeneratedComments() {
 			if (!codeEditor.hasChanged()) return null;
 			return {
 				code: codeEditor.toString(),
-				map: codeEditor.generateMap({ includeContent: true, source: id })
+				map: codeEditor.generateMap()
 			};
 		}
 	};
 }
 ```
 
-In a transform hook, `source` and `includeContent` are the recommended options: they attribute the map to the transformed module and embed the original code, so Rollup can combine it with the maps of later transforms without reading files from disk.
+Rollup links each transform map to the module id itself, so the default options are enough; `source` and `includeContent` only matter if the map is handed to another tool, and a content copy is then kept in memory and in the cache.
 
-The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes: it stores edits by their position in the original code and generates a sourcemap that maps the edited code back to it. As the position of every node is known, the map also contains mappings for all unedited parts, so code that is not touched by your plugin still points to the correct location. The editing methods `overwrite`, `update`, `remove`, `move`, `appendLeft`, `appendRight`, `prependLeft`, `prependRight`, `append` and `prepend` refer to positions in the original code, while `trim`, `trimStart`, `trimEnd`, `trimLines` and `indent` work on the whole code; all of them return the editor for chaining. `codeEditor.original` is the original code, `codeEditor.toString()` returns the edited code and `codeEditor.hasChanged()` tells you whether anything was changed. See the [magic-string documentation](https://github.com/Rich-Harris/magic-string) for details on these methods; Rollup only types the subset of methods that it offers for editing.
+The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes: it stores edits by their position in the original code and generates a sourcemap that maps the edited code back to it. As the position of every node is known, the map also contains mappings for all unedited parts, so code that is not touched by your plugin still points to the correct location. The editing methods `overwrite`, `update`, `remove`, `move`, `appendLeft`, `appendRight`, `prependLeft`, `prependRight`, `append` and `prepend` refer to positions in the original code, while `trim`, `trimStart`, `trimEnd`, `trimLines` and `indent` work on the whole code; all of them return the editor for chaining. `codeEditor.original` is the original code, `codeEditor.toString()` returns the edited code and `codeEditor.hasChanged()` tells you whether anything was changed. See the [magic-string documentation](https://github.com/Rich-Harris/magic-string) for details on these methods; Rollup only types the subset of magic-string's API that it supports. The `hires` modes of magic-string are not offered because they ignore the prepared node positions, and they are also much slower.
 
 ### this.parseAndWalk
 
@@ -2049,7 +2049,7 @@ The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) in
 | --: | :-- |
 | Type: | `(code: string, visitors: Visitors, options?: ParseAndWalkOptions & { codeEditor?: false }) => Promise<void>` |
 |  | `(code: string, visitors: Visitors, options: ParseAndWalkOptions & { codeEditor: true }) => Promise<{ codeEditor: CodeEditor }>` |
-|  | `(code: string, visitors: Visitors, options: ParseAndWalkOptions) => Promise<void \| { codeEditor: CodeEditor }>` |
+|  | `(code: string, visitors: Visitors, options?: ParseAndWalkOptions) => Promise<void \| { codeEditor: CodeEditor }>` |
 
 ```typescript
 interface ParseAndWalkOptions extends ParseOptions {
@@ -2123,7 +2123,7 @@ When you pass `{ codeEditor: true }`, the visitor api provides a `codeEditor`, a
 export function replaceConsoleLogs() {
 	return {
 		name: 'replace-console-logs',
-		async transform(code, id) {
+		async transform(code) {
 			const { codeEditor } = await this.parseAndWalk(
 				code,
 				{
@@ -2136,6 +2136,7 @@ export function replaceConsoleLogs() {
 							node.callee.property.name === 'log'
 						) {
 							api.codeEditor.overwrite(node.start, node.end, 'undefined');
+							api.skipChildren();
 						}
 					}
 				},
@@ -2144,7 +2145,7 @@ export function replaceConsoleLogs() {
 			if (!codeEditor.hasChanged()) return null;
 			return {
 				code: codeEditor.toString(),
-				map: codeEditor.generateMap({ includeContent: true, source: id })
+				map: codeEditor.generateMap()
 			};
 		}
 	};

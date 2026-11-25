@@ -279,8 +279,8 @@ export interface CodeEditorIndentOptions {
 export interface CodeEditorMapOptions {
 	file?: string;
 	/**
-	 * Deliberately not offered: per-character mappings would bypass the node
-	 * positions Rollup prepared and are much slower.
+	 * Deliberately not offered: both "hires" modes bypass the node positions
+	 * Rollup prepared, and per-character mappings are also much slower.
 	 */
 	hires?: never;
 	includeContent?: boolean;
