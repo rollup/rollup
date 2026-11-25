@@ -1992,22 +1992,29 @@ An object containing potentially useful Rollup metadata:
 
 |  |  |
 | --: | :-- |
-| Type: | `(code: string, options?: ParseOptions & { codeEditor?: false }) => ast.Program` |
-|  | `(code: string, options: ParseOptions & { codeEditor: true }) => { ast: ast.Program; codeEditor: CodeEditor }` |
-|  | `(code: string, options?: ParseOptions) => ast.Program \| { ast: ast.Program; codeEditor: CodeEditor }` |
+| Type: | `(code: string, options?: ParseOptions) => ast.Program` |
+|  | `(code: string, options: ParseOptionsWithCodeEditor & { codeEditor: true }) => { ast: ast.Program; codeEditor: CodeEditor }` |
+|  | `(code: string, options?: ParseOptionsWithCodeEditor) => ast.Program \| { ast: ast.Program; codeEditor: CodeEditor }` |
 
 ```typescript
 interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
-	codeEditor?: boolean;
+	codeEditor?: false;
 	jsx?: boolean;
+}
+
+interface ParseOptionsWithCodeEditor extends Omit<
+	ParseOptions,
+	'codeEditor'
+> {
+	codeEditor?: boolean;
 }
 ```
 
 Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST. The returned AST is a fully materialized plain JavaScript object.
 
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
-- `codeEditor`: When `true`, an object `{ ast, codeEditor }` is returned instead of the AST so that the parsed code can be edited and mapped back to the original source. If the option is a plain `boolean`, the result is a union of both shapes, so check for the `codeEditor` property before using it. See below.
+- `codeEditor`: When `true`, an object `{ ast, codeEditor }` is returned instead of the AST so that the parsed code can be edited and mapped back to the original source. It changes the result, so `ParseOptions` only allows `false` here: when the flag is a runtime `boolean`, type the options as `ParseOptionsWithCodeEditor` and narrow the result. See below.
 - `jsx`: When `true`, JSX syntax is supported in the parsed code.
 
 To return a sourcemap for a transformation that only touches parts of the code, Rollup can collect the position of every AST node while parsing and pass it to an editor. The following plugin adds a generated doc comment in front of every named and default export:
@@ -2047,14 +2054,19 @@ The editor is a [`magic-string`](https://github.com/Rich-Harris/magic-string) in
 
 |  |  |
 | --: | :-- |
-| Type: | `(code: string, visitors: Visitors, options?: ParseAndWalkOptions & { codeEditor?: false }) => Promise<void>` |
-|  | `(code: string, visitors: Visitors, options: ParseAndWalkOptions & { codeEditor: true }) => Promise<{ codeEditor: CodeEditor }>` |
-|  | `(code: string, visitors: Visitors, options?: ParseAndWalkOptions) => Promise<void \| { codeEditor: CodeEditor }>` |
+| Type: | `(code: string, visitors: Visitors, options?: ParseAndWalkOptions) => Promise<void>` |
+|  | `(code: string, visitors: Visitors, options: ParseAndWalkOptionsWithCodeEditor & { codeEditor: true }) => Promise<{ codeEditor: CodeEditor }>` |
+|  | `(code: string, visitors: Visitors, options?: ParseAndWalkOptionsWithCodeEditor) => Promise<void \| { codeEditor: CodeEditor }>` |
 
 ```typescript
 interface ParseAndWalkOptions extends ParseOptions {
 	collectScopes?: boolean;
 }
+
+interface ParseAndWalkOptionsWithCodeEditor
+	extends
+		Omit<ParseAndWalkOptions, 'codeEditor'>,
+		ParseOptionsWithCodeEditor {}
 
 interface ParseAndWalkApi {
 	codeEditor?: CodeEditor;
@@ -2152,7 +2164,7 @@ export function replaceConsoleLogs() {
 }
 ```
 
-If `codeEditor` is a plain `boolean`, the promise resolves to `void | { codeEditor }`, so check the result before using the editor.
+If `codeEditor` is a runtime `boolean`, type the options as `ParseAndWalkOptionsWithCodeEditor`: the promise then resolves to `void | { codeEditor }`, so check the result before using the editor.
 
 The editor is the same as the one returned by [`this.parse`](#this-parse) with `codeEditor: true`, so the generated map also covers the parts of the code that were not edited.
 
