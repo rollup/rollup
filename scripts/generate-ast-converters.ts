@@ -65,5 +65,5 @@ if (bufferFormatUpdate) {
 		console.error(`❌ ${bufferFormatUpdate.failure}`);
 		process.exit(1);
 	}
-	console.log('Updated scripts/buffer-format.json to the new buffer format version.');
+	console.log('Updated scripts/buffer-format.json to the current buffer layout.');
 }
