@@ -7,7 +7,7 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, WORD_SIZE,
 };
 
-use crate::convert_ast::converter::buffer_inventory_constants::BUFFER_WALKING_INFO_OFFSET;
+use crate::convert_ast::converter::buffer_inventory_constants::BUFFER_WALKING_INFO_BYTE_OFFSET;
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
@@ -124,7 +124,7 @@ impl<'a> AstConverter<'a> {
     // An empty section is written as well so that JS can tell a walk without
     // matches from a parse error.
     if self.walked_nodes_bitset.is_some() {
-      update_reference_position(&mut self.buffer, BUFFER_WALKING_INFO_OFFSET);
+      update_reference_position(&mut self.buffer, BUFFER_WALKING_INFO_BYTE_OFFSET);
       self.buffer.extend_from_slice(
         &((self.walking_entries.len() * WALKING_ENTRY_WORDS) as u32).to_ne_bytes(),
       );

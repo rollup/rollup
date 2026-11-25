@@ -3,7 +3,7 @@
 
 pub const BUFFER_INVENTORY_BYTES: usize = 16;
 pub const BUFFER_FORMAT_VERSION: u32 = 1000;
-pub const BUFFER_FORMAT_VERSION_OFFSET: usize = 0;
-pub const BUFFER_AST_OFFSET: usize = 4;
-pub const BUFFER_SOURCEMAP_LOCATIONS_OFFSET: usize = 8;
-pub const BUFFER_WALKING_INFO_OFFSET: usize = 12;
+pub const BUFFER_FORMAT_VERSION_BYTE_OFFSET: usize = 0;
+pub const BUFFER_AST_BYTE_OFFSET: usize = 4;
+pub const BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET: usize = 8;
+pub const BUFFER_WALKING_INFO_BYTE_OFFSET: usize = 12;

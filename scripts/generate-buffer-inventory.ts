@@ -20,11 +20,12 @@ const targetTsFile = new URL('../src/utils/bufferInventory.ts', import.meta.url)
 // BUFFER_INVENTORY_FIELDS. Rust uses byte offsets; JS uses u32 indices.
 const fields = BUFFER_INVENTORY_FIELDS.map((field, index) => ({
 	allowNull: 'allowNull' in field && field.allowNull,
+	byteOffsetName: `BUFFER_${toScreamingSnakeCase(field.name)}_BYTE_OFFSET`,
 	capitalizedName: field.name[0].toUpperCase() + field.name.slice(1),
-	constantName: `BUFFER_${toScreamingSnakeCase(field.name)}_OFFSET`,
 	index,
 	name: field.name,
-	type: field.type
+	type: field.type,
+	wordIndexName: `BUFFER_${toScreamingSnakeCase(field.name)}_WORD_INDEX`
 }));
 
 if (fields[0].type !== 'FormatVersion') {
@@ -34,17 +35,17 @@ if (fields[0].type !== 'FormatVersion') {
 const rustConstants = `${notEditFilesComment}
 pub const BUFFER_INVENTORY_BYTES: usize = ${fields.length * WORD_SIZE};
 pub const BUFFER_FORMAT_VERSION: u32 = ${BUFFER_FORMAT_VERSION};
-${fields.map(f => `pub const ${f.constantName}: usize = ${f.index * WORD_SIZE};`).join('\n')}
+${fields.map(f => `pub const ${f.byteOffsetName}: usize = ${f.index * WORD_SIZE};`).join('\n')}
 `;
 
 const tsConstants = `${notEditFilesComment}
 export const BUFFER_INVENTORY_WORD_COUNT = ${fields.length};
 export const BUFFER_FORMAT_VERSION = ${BUFFER_FORMAT_VERSION};
-${fields.map(f => `export const ${f.constantName} = ${f.index};`).join('\n')}
+${fields.map(f => `export const ${f.wordIndexName} = ${f.index};`).join('\n')}
 `;
 
 const tsReaders = fields
-	.map(({ allowNull, capitalizedName, constantName, name, type }) => {
+	.map(({ allowNull, capitalizedName, name, type, wordIndexName }) => {
 		if (type === 'FormatVersion') {
 			return '';
 		}
@@ -53,7 +54,7 @@ const tsReaders = fields
 				throw new Error('Nullable node references are not supported in the buffer inventory');
 			}
 			return `export const get${capitalizedName}Position = (buffer: Uint32Array): number => {
-	const ${name}Position = buffer[${constantName}];
+	const ${name}Position = buffer[${wordIndexName}];
 	if (${name}Position >= buffer.length) {
 		throw corruptedBufferError(\`node reference \${${name}Position} is outside the buffer\`);
 	}
@@ -63,7 +64,7 @@ const tsReaders = fields
 		if (type === 'Section') {
 			return `export const get${capitalizedName} = (buffer: Uint32Array): ${
 				allowNull ? 'Uint32Array | null' : 'Uint32Array'
-			} => get${allowNull ? 'Nullable' : ''}Section(buffer, ${constantName});`;
+			} => get${allowNull ? 'Nullable' : ''}Section(buffer, ${wordIndexName});`;
 		}
 		throw new Error(`Unhandled inventory field type ${type}`);
 	})
@@ -77,8 +78,8 @@ const corruptedBufferErrorHelper = fields.some(({ type }) => type === 'Node' || 
 	: '';
 
 const sectionHelpers = fields.some(({ type }) => type === 'Section')
-	? `const getSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array => {
-	const sectionPosition = buffer[referenceOffset];
+	? `const getSection = (buffer: Uint32Array, referenceWordIndex: number): Uint32Array => {
+	const sectionPosition = buffer[referenceWordIndex];
 	if (sectionPosition >= buffer.length) {
 		throw corruptedBufferError(\`section reference \${sectionPosition} is outside the buffer\`);
 	}
@@ -93,9 +94,9 @@ ${
 		? `
 const getNullableSection = (
 	buffer: Uint32Array,
-	referenceOffset: number
+	referenceWordIndex: number
 ): Uint32Array | null =>
-	buffer[referenceOffset] === 0 ? null : getSection(buffer, referenceOffset);
+	buffer[referenceWordIndex] === 0 ? null : getSection(buffer, referenceWordIndex);
 `
 		: ''
 }`

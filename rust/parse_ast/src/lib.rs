@@ -9,7 +9,8 @@ use swc_ecma_parser::{EsSyntax, Syntax};
 
 use convert_ast::converter::ast_constants::WORD_SIZE;
 use convert_ast::converter::buffer_inventory_constants::{
-  BUFFER_AST_OFFSET, BUFFER_FORMAT_VERSION, BUFFER_FORMAT_VERSION_OFFSET, BUFFER_INVENTORY_BYTES,
+  BUFFER_AST_BYTE_OFFSET, BUFFER_FORMAT_VERSION, BUFFER_FORMAT_VERSION_BYTE_OFFSET,
+  BUFFER_INVENTORY_BYTES,
 };
 use convert_ast::converter::{update_reference_position, AstConverter};
 use error_emit::try_with_handler;
@@ -28,9 +29,9 @@ mod error_emit;
 fn create_buffer_with_inventory(capacity: usize) -> Vec<u8> {
   let mut buffer = Vec::with_capacity(capacity);
   buffer.resize(BUFFER_INVENTORY_BYTES, 0);
-  buffer[BUFFER_FORMAT_VERSION_OFFSET..BUFFER_FORMAT_VERSION_OFFSET + WORD_SIZE]
+  buffer[BUFFER_FORMAT_VERSION_BYTE_OFFSET..BUFFER_FORMAT_VERSION_BYTE_OFFSET + WORD_SIZE]
     .copy_from_slice(&BUFFER_FORMAT_VERSION.to_ne_bytes());
-  update_reference_position(&mut buffer, BUFFER_AST_OFFSET);
+  update_reference_position(&mut buffer, BUFFER_AST_BYTE_OFFSET);
   buffer
 }
 

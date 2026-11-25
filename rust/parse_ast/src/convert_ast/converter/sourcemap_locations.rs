@@ -1,6 +1,6 @@
 use crate::convert_ast::converter::ast_constants::WORD_SIZE;
 use crate::convert_ast::converter::buffer_inventory_constants::{
-  BUFFER_AST_OFFSET, BUFFER_SOURCEMAP_LOCATIONS_OFFSET,
+  BUFFER_AST_BYTE_OFFSET, BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET,
 };
 use crate::convert_ast::converter::update_reference_position;
 
@@ -21,12 +21,12 @@ impl SourcemapLocations {
   /// AST root behind it.
   pub(crate) fn reserve(buffer: &mut Vec<u8>, code_byte_length: usize) -> Self {
     let word_count_position = buffer.len() / WORD_SIZE;
-    update_reference_position(buffer, BUFFER_SOURCEMAP_LOCATIONS_OFFSET);
+    update_reference_position(buffer, BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET);
     // The UTF-16 length of the code never exceeds its UTF-8 byte length, so this
     // upper bound holds every position that can be registered.
     let reserved_word_count = code_byte_length / BITS_PER_WORD + 1;
     buffer.resize(buffer.len() + (reserved_word_count + 1) * WORD_SIZE, 0);
-    update_reference_position(buffer, BUFFER_AST_OFFSET);
+    update_reference_position(buffer, BUFFER_AST_BYTE_OFFSET);
     Self {
       word_count_position,
       reserved_word_count,

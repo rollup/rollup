@@ -1,7 +1,7 @@
 import type { ast } from '../rollup/types';
 import {
 	BUFFER_FORMAT_VERSION,
-	BUFFER_FORMAT_VERSION_OFFSET,
+	BUFFER_FORMAT_VERSION_WORD_INDEX,
 	BUFFER_INVENTORY_WORD_COUNT
 } from './bufferInventory';
 import { error, logInvalidAstBufferVersion } from './logs';
@@ -115,7 +115,7 @@ export function getAstBufferFormatVersion(byteBuffer: Buffer | Uint8Array): numb
 		return undefined;
 	}
 	return new DataView(byteBuffer.buffer, byteBuffer.byteOffset, inventoryByteCount).getUint32(
-		BUFFER_FORMAT_VERSION_OFFSET << 2,
+		BUFFER_FORMAT_VERSION_WORD_INDEX << 2,
 		!isBigEndianHost
 	);
 }
@@ -123,7 +123,9 @@ export function getAstBufferFormatVersion(byteBuffer: Buffer | Uint8Array): numb
 export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 	const array = getAstBufferWords(byteBuffer);
 	const formatVersion =
-		array.length >= BUFFER_INVENTORY_WORD_COUNT ? array[BUFFER_FORMAT_VERSION_OFFSET] : undefined;
+		array.length >= BUFFER_INVENTORY_WORD_COUNT
+			? array[BUFFER_FORMAT_VERSION_WORD_INDEX]
+			: undefined;
 	if (formatVersion !== BUFFER_FORMAT_VERSION) {
 		error(logInvalidAstBufferVersion(formatVersion));
 	}

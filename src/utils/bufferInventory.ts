@@ -3,16 +3,16 @@
 
 export const BUFFER_INVENTORY_WORD_COUNT = 4;
 export const BUFFER_FORMAT_VERSION = 1000;
-export const BUFFER_FORMAT_VERSION_OFFSET = 0;
-export const BUFFER_AST_OFFSET = 1;
-export const BUFFER_SOURCEMAP_LOCATIONS_OFFSET = 2;
-export const BUFFER_WALKING_INFO_OFFSET = 3;
+export const BUFFER_FORMAT_VERSION_WORD_INDEX = 0;
+export const BUFFER_AST_WORD_INDEX = 1;
+export const BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX = 2;
+export const BUFFER_WALKING_INFO_WORD_INDEX = 3;
 
 const corruptedBufferError = (description: string): Error =>
 	new Error(`Corrupted AST buffer: ${description}. Discard the buffer and parse the code again.`);
 
-const getSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array => {
-	const sectionPosition = buffer[referenceOffset];
+const getSection = (buffer: Uint32Array, referenceWordIndex: number): Uint32Array => {
+	const sectionPosition = buffer[referenceWordIndex];
 	if (sectionPosition >= buffer.length) {
 		throw corruptedBufferError(`section reference ${sectionPosition} is outside the buffer`);
 	}
@@ -23,11 +23,11 @@ const getSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array =
 	return buffer.subarray(sectionPosition + 1, sectionEnd);
 };
 
-const getNullableSection = (buffer: Uint32Array, referenceOffset: number): Uint32Array | null =>
-	buffer[referenceOffset] === 0 ? null : getSection(buffer, referenceOffset);
+const getNullableSection = (buffer: Uint32Array, referenceWordIndex: number): Uint32Array | null =>
+	buffer[referenceWordIndex] === 0 ? null : getSection(buffer, referenceWordIndex);
 
 export const getAstPosition = (buffer: Uint32Array): number => {
-	const astPosition = buffer[BUFFER_AST_OFFSET];
+	const astPosition = buffer[BUFFER_AST_WORD_INDEX];
 	if (astPosition >= buffer.length) {
 		throw corruptedBufferError(`node reference ${astPosition} is outside the buffer`);
 	}
@@ -35,7 +35,7 @@ export const getAstPosition = (buffer: Uint32Array): number => {
 };
 
 export const getSourcemapLocations = (buffer: Uint32Array): Uint32Array | null =>
-	getNullableSection(buffer, BUFFER_SOURCEMAP_LOCATIONS_OFFSET);
+	getNullableSection(buffer, BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX);
 
 export const getWalkingInfo = (buffer: Uint32Array): Uint32Array | null =>
-	getNullableSection(buffer, BUFFER_WALKING_INFO_OFFSET);
+	getNullableSection(buffer, BUFFER_WALKING_INFO_WORD_INDEX);

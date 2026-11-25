@@ -4,11 +4,11 @@
 import type { AstNode } from '../rollup/ast-types';
 import type { ast, SerializeAst } from '../rollup/types';
 import {
-	BUFFER_AST_OFFSET,
+	BUFFER_AST_WORD_INDEX,
 	BUFFER_FORMAT_VERSION,
-	BUFFER_FORMAT_VERSION_OFFSET,
+	BUFFER_FORMAT_VERSION_WORD_INDEX,
 	BUFFER_INVENTORY_WORD_COUNT,
-	BUFFER_SOURCEMAP_LOCATIONS_OFFSET
+	BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX
 } from './bufferInventory';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
@@ -29,14 +29,14 @@ export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = 
 		typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
 	)(INITIAL_BUFFER_SIZE, sourcemapLocations);
 	let buffer = initialBuffer.reserve(BUFFER_INVENTORY_WORD_COUNT);
-	buffer[BUFFER_FORMAT_VERSION_OFFSET] = BUFFER_FORMAT_VERSION;
-	buffer[BUFFER_AST_OFFSET] = buffer.position;
+	buffer[BUFFER_FORMAT_VERSION_WORD_INDEX] = BUFFER_FORMAT_VERSION;
+	buffer[BUFFER_AST_WORD_INDEX] = buffer.position;
 	buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(
 		node as any,
 		buffer,
 		0
 	);
-	buffer[BUFFER_SOURCEMAP_LOCATIONS_OFFSET] = buffer.position;
+	buffer[BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX] = buffer.position;
 	const sectionPosition = buffer.position;
 	buffer = buffer.reserve(sourcemapLocations.length + 1);
 	buffer[sectionPosition] = sourcemapLocations.length;
