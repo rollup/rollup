@@ -109,9 +109,11 @@ const getAstBufferWords = (byteBuffer: Buffer | Uint8Array): Uint32Array => {
 
 // Cached buffers are usually views into a larger pool at an unaligned offset,
 // so the version is read without aligning, which would copy the whole buffer.
-export function getAstBufferFormatVersion(byteBuffer: Buffer | Uint8Array): number | undefined {
+export function getAstBufferFormatVersion(
+	byteBuffer: Buffer | Uint8Array | undefined
+): number | undefined {
 	const inventoryByteCount = BUFFER_INVENTORY_WORD_COUNT << 2;
-	if (byteBuffer.byteLength < inventoryByteCount) {
+	if (!(byteBuffer instanceof Uint8Array) || byteBuffer.byteLength < inventoryByteCount) {
 		return undefined;
 	}
 	return new DataView(byteBuffer.buffer, byteBuffer.byteOffset, inventoryByteCount).getUint32(
@@ -122,10 +124,7 @@ export function getAstBufferFormatVersion(byteBuffer: Buffer | Uint8Array): numb
 
 export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 	const array = getAstBufferWords(byteBuffer);
-	const formatVersion =
-		array.length >= BUFFER_INVENTORY_WORD_COUNT
-			? array[BUFFER_FORMAT_VERSION_WORD_INDEX]
-			: undefined;
+	const formatVersion = getAstBufferFormatVersion(byteBuffer);
 	if (formatVersion !== BUFFER_FORMAT_VERSION) {
 		error(logInvalidAstBufferVersion(formatVersion));
 	}
