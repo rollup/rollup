@@ -291,6 +291,8 @@ const _templateParent: rollup.ast.LazyNode<rollup.ast.TemplateLiteral> | null =
 // @ts-expect-error ClassBody cannot contain an Identifier
 const _identifierInClassBody = _lazyIdentifier.parent?.type === 'ClassBody';
 
+type ParseResult = rollup.ast.Program | rollup.CodeEditorParseResult<rollup.ast.Program>;
+
 const _codeEditorPlugin: rollup.Plugin = {
 	async buildStart() {
 		const { codeEditor } = await this.parseAndWalk(
@@ -307,6 +309,9 @@ const _codeEditorPlugin: rollup.Plugin = {
 		const _walkResult = await this.parseAndWalk('const value = 1;', {});
 		// @ts-expect-error without the option, parseAndWalk resolves to nothing
 		const _missingEditor: rollup.CodeEditor = _walkResult.codeEditor;
+		const codeEditorOption: boolean = Math.random() > 0.5;
+		const _walkResultWithForwardedOption: void | { codeEditor: rollup.CodeEditor } =
+			await this.parseAndWalk('const value = 1;', {}, { codeEditor: codeEditorOption });
 	},
 	name: 'code-editor',
 	transform(code) {
@@ -316,10 +321,14 @@ const _codeEditorPlugin: rollup.Plugin = {
 			includeContent: true,
 			source: 'main.js'
 		});
-		// @ts-expect-error hires is not supported as it ignores the prepared locations
+		// @ts-expect-error per-character hires mappings would bypass the prepared locations
 		const _hiresMap = codeEditor.generateMap({ hires: true });
+		const codeEditorOption: boolean = Math.random() > 0.5;
+		const _parseResultWithForwardedOption: ParseResult = this.parse(code, {
+			codeEditor: codeEditorOption
+		});
 		const _sharedOptions: rollup.ParseOptions = { allowReturnOutsideFunction: true };
-		const _programFromSharedOptions: rollup.ast.Program = this.parse(code, _sharedOptions);
+		const _programOrEditorFromSharedOptions: ParseResult = this.parse(code, _sharedOptions);
 		// @ts-expect-error without the option, parse returns the AST
 		const _missingEditor: rollup.CodeEditor = this.parse(code).codeEditor;
 		// @ts-expect-error the original code cannot be changed

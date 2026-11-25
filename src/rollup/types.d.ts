@@ -278,12 +278,18 @@ export interface CodeEditorIndentOptions {
 
 export interface CodeEditorMapOptions {
 	file?: string;
+	/**
+	 * Deliberately not offered: per-character mappings would bypass the node
+	 * positions Rollup prepared and are much slower.
+	 */
+	hires?: never;
 	includeContent?: boolean;
 	source?: string;
 }
 
 export interface ParseOptions {
 	allowReturnOutsideFunction?: boolean;
+	codeEditor?: boolean;
 	jsx?: boolean;
 }
 
@@ -295,6 +301,7 @@ export interface CodeEditorParseResult<Ast> {
 export interface ParseAst {
 	(input: string, options: ParseOptions & { codeEditor: true }): CodeEditorParseResult<ast.Program>;
 	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.Program;
+	(input: string, options: ParseOptions): ast.Program | CodeEditorParseResult<ast.Program>;
 }
 
 export interface ParseAstAsync {
@@ -303,6 +310,7 @@ export interface ParseAstAsync {
 		options: ParseOptions & { codeEditor: true }
 	): Promise<CodeEditorParseResult<ast.Program>>;
 	(input: string, options?: ParseOptions & { codeEditor?: false }): Promise<ast.Program>;
+	(input: string, options: ParseOptions): Promise<ast.Program | CodeEditorParseResult<ast.Program>>;
 }
 
 export type DeserializeAst = (
@@ -316,6 +324,10 @@ export interface ParseLazyAst {
 		options: ParseOptions & { codeEditor: true }
 	): CodeEditorParseResult<ast.LazyNode<ast.Program>>;
 	(input: string, options?: ParseOptions & { codeEditor?: false }): ast.LazyNode<ast.Program>;
+	(
+		input: string,
+		options: ParseOptions
+	): ast.LazyNode<ast.Program> | CodeEditorParseResult<ast.LazyNode<ast.Program>>;
 }
 
 export interface ParseLazyAstAsync {
@@ -327,6 +339,10 @@ export interface ParseLazyAstAsync {
 		input: string,
 		options?: ParseOptions & { codeEditor?: false }
 	): Promise<ast.LazyNode<ast.Program>>;
+	(
+		input: string,
+		options: ParseOptions
+	): Promise<ast.LazyNode<ast.Program> | CodeEditorParseResult<ast.LazyNode<ast.Program>>>;
 }
 
 export type DeserializeLazyAst = (
@@ -400,6 +416,11 @@ export interface ParseAndWalk {
 		visitors: ParseAndWalkVisitors,
 		options?: ParseAndWalkOptions & { codeEditor?: false }
 	): Promise<void>;
+	(
+		input: string,
+		visitors: ParseAndWalkVisitors,
+		options: ParseAndWalkOptions
+	): Promise<void | { codeEditor: CodeEditor }>;
 }
 
 export interface PluginContext extends MinimalPluginContext {
