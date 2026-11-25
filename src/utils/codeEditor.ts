@@ -15,8 +15,9 @@ export function primeSourcemapLocations(
 	code: string,
 	sourcemapLocations: Uint32Array | null
 ): void {
-	const fittedSourcemapLocations = new Uint32Array((code.length >> 5) + 1);
+	let fittedSourcemapLocations = new Uint32Array(0);
 	if (sourcemapLocations) {
+		fittedSourcemapLocations = new Uint32Array((code.length >> 5) + 1);
 		fittedSourcemapLocations.set(sourcemapLocations.subarray(0, fittedSourcemapLocations.length));
 	}
 	(magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits =
