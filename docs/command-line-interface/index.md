@@ -493,7 +493,7 @@ There is also some advanced syntax available for more complex filters.
 
 ### `--forceExit`
 
-Force exit the process when done. In some cases plugins or their dependencies might not cleanup properly and prevent the CLI process from exiting. The root cause can be hard to diagnose and this flag provides an escape hatch until it can be identified and resolved.
+Force exit after a successful build, once pending diagnostics are written. Use this when plugins or dependencies leave resources open.
 
 Note that this might break certain workflows and won't always work properly.
 

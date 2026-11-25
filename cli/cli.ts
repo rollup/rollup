@@ -18,6 +18,10 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 } else {
 	const promise = run(command);
 	if (command.forceExit) {
-		promise.then(() => process.exit());
+		promise.then(() => {
+			if (process.stderr.writableLength === 0) process.exit();
+			// An immediate exit would discard diagnostics queued on a piped stderr.
+			process.stderr.write('', () => process.exit());
+		});
 	}
 }
