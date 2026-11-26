@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+const vm = require('node:vm');
 const {
 	parseAst,
 	parseAstAsync,
@@ -327,6 +328,33 @@ export const result = outer(2);
 		assert.strictEqual(view.byteOffset, 1);
 		assert.deepStrictEqual(deserializeAst(view), ast);
 		assertAstEqual(deserializeLazyAst(view), ast);
+	});
+
+	it('accepts AST buffers that were created in another realm', () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		const foreignBuffer = vm.runInNewContext(
+			'new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)',
+			{ buffer }
+		);
+		assert.strictEqual(foreignBuffer instanceof Uint8Array, false);
+		assert.deepStrictEqual(deserializeAst(foreignBuffer), ast);
+		assertAstEqual(deserializeLazyAst(foreignBuffer), ast);
+	});
+
+	it('rejects AST buffers that are not Uint8Array views', () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		const invalidBuffers = [
+			JSON.parse(JSON.stringify(buffer)),
+			new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength >> 2),
+			new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+		];
+		for (const deserialize of [deserializeAst, deserializeLazyAst]) {
+			for (const invalidBuffer of invalidBuffers) {
+				assert.throws(() => deserialize(invalidBuffer), { code: 'INVALID_AST_BUFFER_VERSION' });
+			}
+		}
 	});
 
 	it('rejects an explicit position inside the buffer inventory', () => {
