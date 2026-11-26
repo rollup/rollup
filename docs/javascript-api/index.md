@@ -336,7 +336,7 @@ See above for details on `inputOptions` and `outputOptions`, or consult the [big
 
 In order to aid in generating such a config, rollup exposes the helper it uses to load config files in its command line interface via a separate entry-point. This helper receives a resolved `fileName` and optionally an object containing command line parameters.
 
-The `environment` option accepts a string or an array of strings in the same format as [`--environment`](../command-line-interface/index.md#environment-values). Rollup applies these settings to `process.env` before loading the config. The assignments persist after the call and are shared by concurrent loads. Node's usual module caching still applies.
+The `environment` option accepts a string or an array of strings in the same format as [`--environment`](../command-line-interface/index.md#environment-values). Rollup applies these settings to `process.env` before loading the config. The assignments persist after the call and are shared by concurrent loads. The config file itself is re-evaluated on every call, so side effects run on every call as well, while its imports remain subject to Node's module caching.
 
 ```js twoslash
 const { loadConfigFile } = require('rollup/loadConfigFile');

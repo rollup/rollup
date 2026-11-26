@@ -30,7 +30,7 @@ export const loadConfigFile: LoadConfigFile = async (
 	watchMode = false
 ) => {
 	const configs = await getConfigList(
-		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions, watchMode)),
+		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions)),
 		commandOptions
 	);
 	const warnings = batchWarnings(commandOptions);
@@ -48,11 +48,7 @@ export const loadConfigFile: LoadConfigFile = async (
 	}
 };
 
-async function getConfigFileExport(
-	fileName: string,
-	commandOptions: Record<string, unknown>,
-	watchMode: boolean
-) {
+async function getConfigFileExport(fileName: string, commandOptions: Record<string, unknown>) {
 	if (commandOptions.configPlugin || commandOptions.bundleConfigAsCjs) {
 		try {
 			return await loadTranspiledConfigFile(fileName, commandOptions);
@@ -75,10 +71,8 @@ async function getConfigFileExport(
 	process.on('warning', handleWarning);
 	try {
 		const fileUrl = pathToFileURL(fileName);
-		if (watchMode) {
-			// We are adding the current date to allow reloads in watch mode
-			fileUrl.search = `?${Date.now()}`;
-		}
+		// We are adding the current date to allow reloads, e.g. to apply updated environment options
+		fileUrl.search = `?${Date.now()}`;
 		return (await import(fileUrl.href)).default;
 	} catch (error_: any) {
 		if (cannotLoadEsm) {
