@@ -72,7 +72,7 @@ const tsReaders = fields
 	.join('\n\n');
 
 const corruptedBufferErrorHelper = fields.some(({ type }) => type === 'Node' || type === 'Section')
-	? `const corruptedBufferError = (description: string): Error =>
+	? `export const corruptedBufferError = (description: string): Error =>
 	new Error(\`Corrupted AST buffer: \${description}. Discard the buffer and parse the code again.\`);
 `
 	: '';

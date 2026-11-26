@@ -589,7 +589,24 @@ describe('lazy AST parents', () => {
 	});
 });
 
-describe('AST buffer versions', () => {
+const AST_REFERENCE_WORD = 1;
+const SOURCEMAP_LOCATIONS_REFERENCE_WORD = 2;
+
+async function assertRejectsCorruptedCachedBuffer(corruptWords) {
+	const files = { 'main.js': 'export const main = 2;' };
+	const firstBundle = await rollup({ input: 'main.js', plugins: [loader(files)] });
+	const { astBuffer } = firstBundle.cache.modules[0];
+	const words = new Uint32Array(astBuffer.buffer, astBuffer.byteOffset, astBuffer.byteLength / 4);
+	const description = corruptWords(words);
+	await assert.rejects(
+		rollup({ cache: firstBundle.cache, input: 'main.js', plugins: [loader(files)] }),
+		{
+			message: `Corrupted AST buffer: ${description}. Discard the buffer and parse the code again.`
+		}
+	);
+}
+
+describe('AST buffer validation', () => {
 	it('rejects buffers with a different format version', () => {
 		const buffer = serializeAst(parseAst('const x = 1;'));
 		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
@@ -679,6 +696,35 @@ describe('AST buffer versions', () => {
 			summarizeChunks(await secondBundle.generate({ format: 'es', sourcemap: true })),
 			summarizeChunks({ output })
 		);
+	});
+
+	it('rejects a cached AST buffer whose node reference is outside the buffer', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[AST_REFERENCE_WORD] = words.length;
+			return `node reference ${words.length} is outside the buffer`;
+		});
+	});
+
+	it('rejects a cached AST buffer with a section reference outside the buffer', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[SOURCEMAP_LOCATIONS_REFERENCE_WORD] = words.length;
+			return `section reference ${words.length} is outside the buffer`;
+		});
+	});
+
+	it('rejects a cached AST buffer whose section exceeds the buffer', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[SOURCEMAP_LOCATIONS_REFERENCE_WORD] = words.length - 1;
+			words[words.length - 1] = 1;
+			return `section at word ${words.length - 1} exceeds the buffer`;
+		});
+	});
+
+	it('rejects a cached AST buffer without sourcemap locations', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[SOURCEMAP_LOCATIONS_REFERENCE_WORD] = 0;
+			return 'the sourcemap locations section is missing';
+		});
 	});
 });
 

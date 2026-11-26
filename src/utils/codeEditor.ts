@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import type { CodeEditor } from '../rollup/types';
-import { getSourcemapLocations } from './bufferInventory';
+import { corruptedBufferError, getSourcemapLocations } from './bufferInventory';
 import type { AstBuffer } from './getAstBuffer';
 
 interface MagicStringWithSourcemapLocations extends MagicString {
@@ -15,7 +15,7 @@ export function primeSourcemapLocations(
 	sourcemapLocations: Uint32Array | null
 ): void {
 	if (!sourcemapLocations) {
-		return;
+		throw corruptedBufferError('the sourcemap locations section is missing');
 	}
 	(magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits = sourcemapLocations;
 }

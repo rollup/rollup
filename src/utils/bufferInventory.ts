@@ -8,7 +8,7 @@ export const BUFFER_AST_WORD_INDEX = 1;
 export const BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX = 2;
 export const BUFFER_WALKING_INFO_WORD_INDEX = 3;
 
-const corruptedBufferError = (description: string): Error =>
+export const corruptedBufferError = (description: string): Error =>
 	new Error(`Corrupted AST buffer: ${description}. Discard the buffer and parse the code again.`);
 
 const getSection = (buffer: Uint32Array, referenceWordIndex: number): Uint32Array => {

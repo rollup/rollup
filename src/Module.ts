@@ -937,7 +937,6 @@ export default class Module {
 			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
 		const astBufferView = getAstBuffer(astBuffer);
-		primeSourcemapLocations(this.magicString, getSourcemapLocations(astBufferView));
 
 		this.astContext = {
 			addDynamicImport: this.addDynamicImport.bind(this),
@@ -985,6 +984,9 @@ export default class Module {
 			get: () => this.tryParseLazy(this.astBuffer)
 		});
 		this.ast = convertProgram(astBufferView, null, this.scope);
+		// A parse error is encoded as an AST node that convertProgram throws, and
+		// its buffer has no locations, so install them only after conversion.
+		primeSourcemapLocations(this.magicString, getSourcemapLocations(astBufferView));
 		timeEnd('generate ast', 3);
 	}
 
