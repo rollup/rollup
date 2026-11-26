@@ -7,6 +7,9 @@ import relativeId from '../src/utils/relativeId';
 export const stderr = (...parameters: readonly unknown[]) =>
 	process.stderr.write(`${parameters.join('')}\n`);
 
+export const flushOutput = (stream: NodeJS.WritableStream): Promise<void> =>
+	new Promise(resolve => stream.write('', () => resolve()));
+
 export function handleError(error: RollupError, recover = false): void {
 	const name = error.name || (error.cause as Error)?.name;
 	const nameSection = name ? `${name}: ` : '';
