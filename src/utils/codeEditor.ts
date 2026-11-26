@@ -8,25 +8,22 @@ interface MagicStringWithSourcemapLocations extends MagicString {
 }
 
 // The locations are a hidden field of MagicString that is only read when
-// generating a map without "hires". The copy decouples the editor from the
-// parsed AST buffer and fixes the length to the code, as MagicString only grows
-// its default array but silently drops writes past the end of a typed array.
+// generating a map without "hires". A module keeps its parsed buffer alive, so
+// the section can be installed without copying it.
 export function primeSourcemapLocations(
 	magicString: MagicString,
-	code: string,
 	sourcemapLocations: Uint32Array | null
 ): void {
 	if (!sourcemapLocations) {
 		return;
 	}
-	const fittedSourcemapLocations = new Uint32Array((code.length >> 5) + 1);
-	fittedSourcemapLocations.set(sourcemapLocations.subarray(0, fittedSourcemapLocations.length));
-	(magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits =
-		fittedSourcemapLocations;
+	(magicString as MagicStringWithSourcemapLocations).sourcemapLocations.bits = sourcemapLocations;
 }
 
 export const createCodeEditor = (code: string, astBuffer: AstBuffer): CodeEditor => {
 	const codeEditor = new MagicString(code);
-	primeSourcemapLocations(codeEditor, code, getSourcemapLocations(astBuffer));
+	const sourcemapLocations = getSourcemapLocations(astBuffer);
+	// A code editor may outlive the parsed buffer, so it keeps only the section.
+	primeSourcemapLocations(codeEditor, sourcemapLocations?.slice() ?? null);
 	return codeEditor;
 };

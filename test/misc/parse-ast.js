@@ -683,6 +683,28 @@ describe('AST buffer versions', () => {
 			['INVALID_AST_BUFFER_VERSION']
 		);
 	});
+
+	it('generates the same sourcemap for modules restored from misaligned cached buffers', async () => {
+		const files = { 'main.js': 'export const main = 2;' };
+		const firstBundle = await rollup({ input: 'main.js', plugins: [loader(files)] });
+		const { output } = await firstBundle.generate({ format: 'es', sourcemap: true });
+		for (const cachedModule of firstBundle.cache.modules) {
+			const misalignedBuffer = new Uint8Array(cachedModule.astBuffer.byteLength + 2);
+			misalignedBuffer.set(cachedModule.astBuffer, 2);
+			cachedModule.astBuffer = misalignedBuffer.subarray(2);
+		}
+		const secondBundle = await rollup({
+			cache: firstBundle.cache,
+			input: 'main.js',
+			plugins: [loader(files)]
+		});
+		const summarizeChunks = ({ output }) =>
+			output.filter(({ type }) => type === 'chunk').map(({ code, map }) => [code, map.mappings]);
+		assert.deepStrictEqual(
+			summarizeChunks(await secondBundle.generate({ format: 'es', sourcemap: true })),
+			summarizeChunks({ output })
+		);
+	});
 });
 
 describe('parseAndWalk', () => {

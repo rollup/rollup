@@ -937,7 +937,7 @@ export default class Module {
 			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
 		const astBufferView = getAstBuffer(astBuffer);
-		primeSourcemapLocations(this.magicString, code, getSourcemapLocations(astBufferView));
+		primeSourcemapLocations(this.magicString, getSourcemapLocations(astBufferView));
 
 		this.astContext = {
 			addDynamicImport: this.addDynamicImport.bind(this),
@@ -971,7 +971,12 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.astBuffer = astBuffer;
+		// Keep the aligned bytes so reading the buffer again does not copy it.
+		this.astBuffer = new Uint8Array(
+			astBufferView.buffer,
+			astBufferView.byteOffset,
+			astBufferView.byteLength
+		);
 		// Lazy AST nodes are created on demand and cached while the returned
 		// object lives. By making this a getter, we avoid keeping a reference to
 		// the full AST to conserve memory.
