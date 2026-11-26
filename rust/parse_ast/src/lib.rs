@@ -24,8 +24,7 @@ mod convert_ast;
 mod error_emit;
 
 /// Creates a buffer whose inventory references the AST root, which starts
-/// directly behind the inventory until a converter reserves further sections in
-/// front of it.
+/// directly behind the inventory.
 fn create_buffer_with_inventory(capacity: usize) -> Vec<u8> {
   let mut buffer = Vec::with_capacity(capacity);
   buffer.resize(BUFFER_INVENTORY_BYTES, 0);

@@ -7,7 +7,9 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, WORD_SIZE,
 };
 
-use crate::convert_ast::converter::buffer_inventory_constants::BUFFER_WALKING_INFO_BYTE_OFFSET;
+use crate::convert_ast::converter::buffer_inventory_constants::{
+  BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET, BUFFER_WALKING_INFO_BYTE_OFFSET,
+};
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
@@ -91,7 +93,7 @@ pub(crate) struct AstConverter<'a> {
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn new(
-    mut buffer: Vec<u8>,
+    buffer: Vec<u8>,
     code: &'a str,
     annotations: &'a [AnnotationWithType],
     walked_nodes_bitset: Option<[u64; 2]>,
@@ -99,7 +101,7 @@ impl<'a> AstConverter<'a> {
     collect_sourcemap_locations: bool,
   ) -> Self {
     let sourcemap_locations =
-      collect_sourcemap_locations.then(|| SourcemapLocations::reserve(&mut buffer, code.len()));
+      collect_sourcemap_locations.then(|| SourcemapLocations::new(code.len()));
     Self {
       buffer,
       code: code.as_bytes(),
@@ -121,6 +123,11 @@ impl<'a> AstConverter<'a> {
       "Nodes were started but not ended"
     );
 
+    if let Some(sourcemap_locations) = self.sourcemap_locations.take() {
+      sourcemap_locations
+        .append_to_buffer(&mut self.buffer, BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET);
+    }
+
     // An empty section is written as well so that JS can tell a walk without
     // matches from a parse error.
     if self.walked_nodes_bitset.is_some() {
@@ -139,10 +146,6 @@ impl<'a> AstConverter<'a> {
           .buffer
           .extend_from_slice(&entry.scope_position.to_ne_bytes());
       }
-    }
-
-    if let Some(sourcemap_locations) = self.sourcemap_locations.take() {
-      sourcemap_locations.write_word_count(&mut self.buffer);
     }
 
     self.buffer.shrink_to_fit();
@@ -323,7 +326,7 @@ impl<'a> AstConverter<'a> {
   // === helpers
   pub(crate) fn add_sourcemap_location(&mut self, position: u32) {
     if let Some(sourcemap_locations) = &mut self.sourcemap_locations {
-      sourcemap_locations.register(&mut self.buffer, position);
+      sourcemap_locations.register(position);
     }
   }
 

@@ -26,33 +26,89 @@ const WALKING_INFO_WORD = 3;
 const INVENTORY_WORD_COUNT = 4;
 
 describe('ast buffer', () => {
-	it('produces byte-identical buffers from the WASM and the native build', async () => {
-		const {
-			default: initWasm,
-			parse,
-			parseAndWalkSync
-		} = await import('../../wasm/bindings_wasm.js');
-		await initWasm({
+	// Node type codes are positional in scripts/ast-types.ts, where Program is
+	// 72, which lives in the high word of the walked-nodes bitset.
+	const WALKED_NODES_BITSET = new BigUint64Array([0n, 1n << 8n]);
+	// mirrors WALKING_ENTRY_WORDS in rust/parse_ast/src/convert_ast/converter.rs
+	const WALKING_ENTRY_WORDS = 3;
+	const parsedCode = [
+		'const value = 1.5, huge = 1e308, infinite = 1e999, small = 1e-310, big = 9007199254740992;',
+		'const string = "héllo, wörld", template = `${string} ✓`;',
+		'const regexp = /[a-z]+/giu;',
+		'export default /* @__PURE__ */ Object.freeze({ value, string, regexp });'
+	].join('\n');
+
+	let wasm;
+
+	before(async () => {
+		wasm = await import('../../wasm/bindings_wasm.js');
+		await wasm.default({
 			module_or_path: await readFile(path.join(__dirname, '../../wasm/bindings_wasm_bg.wasm'))
 		});
-		const code = [
-			'const value = 1.5, huge = 1e308, infinite = 1e999, small = 1e-310, big = 9007199254740992;',
-			'const string = "héllo, wörld", template = `${string} ✓`;',
-			'const regexp = /[a-z]+/giu;',
-			'export default /* @__PURE__ */ Object.freeze({ value, string, regexp });'
-		].join('\n');
-		const nativeBuffer = native.parse(code, false, false, false);
-		const wasmBuffer = toHostByteOrder(parse(code, false, false, false));
-		assert(Buffer.from(wasmBuffer).equals(nativeBuffer));
-		const nativeLocationBuffer = native.parse(code, false, false, true);
-		const wasmLocationBuffer = toHostByteOrder(parse(code, false, false, true));
-		assert(Buffer.from(wasmLocationBuffer).equals(nativeLocationBuffer));
-		assert.strictEqual(
-			toWords(nativeBuffer)[SOURCEMAP_LOCATIONS_WORD],
-			0,
-			'the inventory has no sourcemap locations unless they are collected'
+	});
+
+	it('produces byte-identical buffers from the WASM and the native build', async () => {
+		const { parse, parseAndWalkSync } = wasm;
+		const assertBuffersMatch = (wasmBuffer, nativeBuffer, description) => {
+			assert(
+				Buffer.from(toHostByteOrder(wasmBuffer)).equals(nativeBuffer),
+				`the WASM build produces the same buffer as the native build for ${description}`
+			);
+		};
+		assertBuffersMatch(
+			parse(parsedCode, false, false, false),
+			native.parse(parsedCode, false, false, false),
+			'a parse without sourcemap locations'
 		);
-		const locationWords = toWords(nativeLocationBuffer);
+		assertBuffersMatch(
+			parse(parsedCode, false, false, true),
+			native.parse(parsedCode, false, false, true),
+			'a parse with sourcemap locations'
+		);
+		assertBuffersMatch(
+			parse('const x = ;', false, false, false),
+			native.parse('const x = ;', false, false, false),
+			'a parse error'
+		);
+		assertBuffersMatch(
+			parseAndWalkSync(parsedCode, false, false, WALKED_NODES_BITSET, true, false),
+			await native.parseAndWalk(parsedCode, false, false, WALKED_NODES_BITSET, true, false),
+			'a walk'
+		);
+		assertBuffersMatch(
+			parseAndWalkSync(parsedCode, false, false, new BigUint64Array([0n, 0n]), false, false),
+			await native.parseAndWalk(
+				parsedCode,
+				false,
+				false,
+				new BigUint64Array([0n, 0n]),
+				false,
+				false
+			),
+			'a walk without selected nodes'
+		);
+		assertBuffersMatch(
+			parseAndWalkSync(parsedCode, false, false, WALKED_NODES_BITSET, true, true),
+			await native.parseAndWalk(parsedCode, false, false, WALKED_NODES_BITSET, true, true),
+			'a walk with sourcemap locations'
+		);
+	});
+
+	it('writes the buffer inventory and its sections', async () => {
+		const plainWords = toWords(native.parse(parsedCode, false, false, false));
+		assert.strictEqual(
+			plainWords[AST_WORD],
+			INVENTORY_WORD_COUNT,
+			'the root node follows the buffer inventory'
+		);
+		assert.strictEqual(
+			plainWords[SOURCEMAP_LOCATIONS_WORD],
+			0,
+			'sourcemap locations are only referenced when they are collected'
+		);
+		assert.strictEqual(plainWords[WALKING_INFO_WORD], 0, 'a parse buffer has no walking info');
+
+		const locationWords = toWords(native.parse(parsedCode, false, false, true));
 		const sourcemapLocationsPosition = locationWords[SOURCEMAP_LOCATIONS_WORD];
 		assert.notStrictEqual(
 			sourcemapLocationsPosition,
@@ -60,36 +116,28 @@ describe('ast buffer', () => {
 			'the inventory references the collected sourcemap locations'
 		);
 		assert.strictEqual(
+			locationWords[AST_WORD],
+			INVENTORY_WORD_COUNT,
+			'sourcemap locations do not move the root node'
+		);
+		assert.strictEqual(
 			locationWords[sourcemapLocationsPosition],
-			(code.length >> 5) + 1,
-			'the sourcemap locations section is sized to the code length'
+			(parsedCode.length >> 5) + 1,
+			'the sourcemap locations section reaches the word of the last code position'
 		);
 
-		// 72 is the node type id of Program, which lives in the second (high)
-		// word of the walked-nodes bitset, pinning the bitset word order.
-		const walkedNodesBitset = new BigUint64Array([0n, 1n << 8n]);
-		const nativeWalkBuffer = await native.parseAndWalk(
-			code,
-			false,
-			false,
-			walkedNodesBitset,
-			true,
-			false
+		const walkWords = toWords(
+			await native.parseAndWalk(parsedCode, false, false, WALKED_NODES_BITSET, true, false)
 		);
-		const wasmWalkBuffer = toHostByteOrder(
-			parseAndWalkSync(code, false, false, walkedNodesBitset, true, false)
-		);
-		assert(Buffer.from(wasmWalkBuffer).equals(nativeWalkBuffer));
-		const walkWords = toWords(nativeWalkBuffer);
 		assert.strictEqual(
 			walkWords[AST_WORD],
 			INVENTORY_WORD_COUNT,
-			'the inventory references the root node after itself'
+			'walking info does not move the root node'
 		);
 		assert.strictEqual(
-			toWords(nativeBuffer)[WALKING_INFO_WORD],
+			walkWords[SOURCEMAP_LOCATIONS_WORD],
 			0,
-			'a parse buffer has no walking info'
+			'a walk without collected locations has no sourcemap section'
 		);
 		const walkingInfoPosition = walkWords[WALKING_INFO_WORD];
 		assert.notStrictEqual(
@@ -99,25 +147,20 @@ describe('ast buffer', () => {
 		);
 		assert.strictEqual(
 			walkWords[walkingInfoPosition],
-			3,
-			'the walking info section holds one three-word entry for the selected Program'
+			WALKING_ENTRY_WORDS,
+			'the selected Program gets one entry'
 		);
-		const nativeEmptyWalkBuffer = await native.parseAndWalk(
-			code,
-			false,
-			false,
-			new BigUint64Array([0n, 0n]),
-			false,
-			false
+
+		const emptyWalkWords = toWords(
+			await native.parseAndWalk(
+				parsedCode,
+				false,
+				false,
+				new BigUint64Array([0n, 0n]),
+				false,
+				false
+			)
 		);
-		assert(
-			Buffer.from(
-				toHostByteOrder(
-					parseAndWalkSync(code, false, false, new BigUint64Array([0n, 0n]), false, false)
-				)
-			).equals(nativeEmptyWalkBuffer)
-		);
-		const emptyWalkWords = toWords(nativeEmptyWalkBuffer);
 		const emptyWalkingInfoPosition = emptyWalkWords[WALKING_INFO_WORD];
 		assert.notStrictEqual(
 			emptyWalkingInfoPosition,
@@ -130,34 +173,32 @@ describe('ast buffer', () => {
 			'the walking info section is empty when no node type is selected'
 		);
 
-		const nativeWalkLocationBuffer = await native.parseAndWalk(
-			code,
-			false,
-			false,
-			walkedNodesBitset,
-			true,
-			true
+		const walkLocationWords = toWords(
+			await native.parseAndWalk(parsedCode, false, false, WALKED_NODES_BITSET, true, true)
 		);
-		assert(
-			Buffer.from(
-				toHostByteOrder(parseAndWalkSync(code, false, false, walkedNodesBitset, true, true))
-			).equals(nativeWalkLocationBuffer)
+		assert.strictEqual(
+			walkLocationWords[AST_WORD],
+			INVENTORY_WORD_COUNT,
+			'two sections do not move the root node'
 		);
-		const walkLocationWords = toWords(nativeWalkLocationBuffer);
+		const walkLocationSection = walkLocationWords[SOURCEMAP_LOCATIONS_WORD];
+		const walkInfoSection = walkLocationWords[WALKING_INFO_WORD];
 		assert.notStrictEqual(
-			walkLocationWords[SOURCEMAP_LOCATIONS_WORD],
+			walkLocationSection,
 			0,
 			'a walk buffer can also have sourcemap locations'
 		);
-		assert.notStrictEqual(
-			walkLocationWords[WALKING_INFO_WORD],
-			0,
-			'a walk buffer references its walking info'
+		assert.notStrictEqual(walkInfoSection, 0, 'a walk buffer references its walking info');
+		assert.ok(walkLocationSection < walkInfoSection, 'sections are appended in inventory order');
+		assert.strictEqual(
+			walkLocationWords[walkLocationSection],
+			(parsedCode.length >> 5) + 1,
+			'the sourcemap locations section keeps the word of the last code position'
 		);
 		assert.strictEqual(
-			walkLocationWords[walkLocationWords[SOURCEMAP_LOCATIONS_WORD]],
-			(code.length >> 5) + 1,
-			'both sections are written independently'
+			walkLocationWords[walkInfoSection],
+			WALKING_ENTRY_WORDS,
+			'the walking info section keeps its entry'
 		);
 
 		const errorWords = toWords(native.parse('const x = ;', false, false, false));
@@ -172,10 +213,12 @@ describe('ast buffer', () => {
 			'an error buffer has no sourcemap locations'
 		);
 		assert.strictEqual(errorWords[WALKING_INFO_WORD], 0, 'an error buffer has no walking info');
+	});
 
+	it('passes matching identifiers to walk visitors', async () => {
 		const identifiers = [];
 		await parseAndWalk(
-			code,
+			parsedCode,
 			{
 				Identifier: node => {
 					identifiers.push(node.name);
