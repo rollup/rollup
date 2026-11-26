@@ -1,3 +1,4 @@
+import { parseLazyAst } from './dist/parseAst';
 import type * as rollup from './dist/rollup';
 
 // Plugin API
@@ -157,3 +158,224 @@ const _nullSourcesPlugin: rollup.Plugin = {
 	},
 	name: 'test'
 };
+
+// Lazy AST parents
+const _lazyAst: rollup.ast.LazyNode<rollup.ast.Program> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.Program>;
+const _lazyAstAsEager: rollup.ast.Program = _lazyAst;
+const _eagerAst: rollup.ast.Program = null as unknown as rollup.ast.Program;
+const _lazyParent: rollup.ast.LazyNode<
+	rollup.ast.ParentOf<rollup.ast.Program['body'][number]>
+> | null = _lazyAst.body[0].parent;
+const _lazyParentType: string | undefined = _lazyAst.body[0].parent?.type;
+const _programParent: null = _lazyAst.parent;
+// @ts-expect-error eager AST nodes do not have parents
+const _eagerParent = _eagerAst.body[0].parent;
+// @ts-expect-error eager nodes are not lazy nodes
+const _lazyIdentifier: rollup.ast.LazyNode<rollup.ast.Identifier> =
+	null as unknown as rollup.ast.Identifier;
+
+_lazyAst.body.forEach(statement => {
+	const _statementParent: rollup.ast.LazyNode<
+		rollup.ast.ParentOf<rollup.ast.Program['body'][number]>
+	> | null = statement.parent;
+});
+const _bodyParentTypes: (string | null)[] = _lazyAst.body.map(
+	statement => statement.parent?.type ?? null
+);
+
+const _lazyDeclarator: rollup.ast.LazyNode<rollup.ast.VariableDeclarator> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.VariableDeclarator>;
+const _declaratorParent: rollup.ast.LazyNode<
+	rollup.ast.ParentOf<rollup.ast.VariableDeclarator>
+> | null = _lazyDeclarator.parent;
+const _declaratorParentType: string | undefined = _lazyDeclarator.parent?.type;
+if (_lazyDeclarator.parent?.type === 'VariableDeclaration') {
+	const _declaratorGrandParent: rollup.ast.LazyNode<
+		rollup.ast.ParentOf<rollup.ast.VariableDeclaration>
+	> | null = _lazyDeclarator.parent.parent;
+}
+
+const _anyLiteralNode: rollup.ast.LazyNode<rollup.ast.Literal> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.Literal>;
+const _anyLiteralParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Literal>> | null =
+	_anyLiteralNode.parent;
+if (_anyLiteralParent && 'directive' in _anyLiteralParent) {
+	const _directive: string = _anyLiteralParent.directive;
+}
+const _anyLiteralNodeValue: rollup.ast.LazyNode<rollup.ast.Literal>['value'] = null as unknown as
+	string | number | bigint | boolean | RegExp | null;
+const _stringLiteralValue: string = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.LiteralString>
+).value;
+const _numberLiteralValue: number = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.LiteralNumber>
+).value;
+const _nullLiteralValue: null = (null as unknown as rollup.ast.LazyNode<rollup.ast.LiteralNull>)
+	.value;
+const _directiveText: string = (null as unknown as rollup.ast.LazyNode<rollup.ast.Directive>)
+	.directive;
+const _expressionStatementDirective: rollup.ast.LazyNode<rollup.ast.ExpressionStatement> =
+	null as unknown as rollup.ast.LazyDirective;
+const _literalStringHandler: rollup.ParseAndWalkHandler<rollup.ast.LiteralString> = node => {
+	const _literalValue: string = node.value;
+};
+
+const _literalParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Literal>> | null = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.Literal>
+).parent;
+if (_literalParent?.type === 'BinaryExpression') {
+	const _literalBinaryParent: rollup.ast.LazyNode<rollup.ast.BinaryExpression> = _literalParent;
+}
+
+const _binaryParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.BinaryExpression>> | null =
+	(null as unknown as rollup.ast.LazyNode<rollup.ast.BinaryExpression>).parent;
+if (_binaryParent?.type === 'BinaryExpression') {
+	const _nestedBinaryParent: rollup.ast.LazyNode<rollup.ast.BinaryExpression> = _binaryParent;
+}
+
+const _nullableInitParent:
+	rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Expression>> | null | undefined = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.VariableDeclarator>
+).init?.parent;
+
+const _jsx: rollup.ast.LazyNode<rollup.ast.JSXElement> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.JSXElement>;
+const _jsxParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.JSXElement>> | null =
+	_jsx.parent;
+if (_jsxParent?.type === 'ExportDefaultDeclaration') {
+	const _jsxExportParent: rollup.ast.LazyNode<rollup.ast.ExportDefaultDeclaration> = _jsxParent;
+}
+
+const _fragment: rollup.ast.LazyNode<rollup.ast.JSXOpeningFragment> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.JSXOpeningFragment>;
+const _fragmentAttributesLength: number = _fragment.attributes.length;
+
+const _jsxFragment: rollup.ast.LazyNode<rollup.ast.JSXFragment> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.JSXFragment>;
+const _jsxFragmentParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.JSXFragment>> | null =
+	_jsxFragment.parent;
+if (_jsxFragmentParent?.type === 'JSXAttribute') {
+	const _jsxAttributeParent: rollup.ast.LazyNode<rollup.ast.JSXAttribute> = _jsxFragmentParent;
+}
+const _jsxAttributeValue: rollup.ast.JSXAttribute['value'] =
+	null as unknown as rollup.ast.JSXFragment;
+
+const _expressionParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Expression>> | null = (
+	null as unknown as rollup.ast.LazyNode<rollup.ast.Expression>
+).parent;
+if (_expressionParent?.type === 'ChainExpression') {
+	const _chainExpressionParent: rollup.ast.LazyNode<rollup.ast.ChainExpression> = _expressionParent;
+}
+
+const _walkHandler: rollup.ParseAndWalkHandler<rollup.ast.VariableDeclarator> = (node, api) => {
+	const _parent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.VariableDeclarator>> | null =
+		node.parent;
+	const _idParent: rollup.ast.LazyNode<rollup.ast.ParentOf<rollup.ast.Identifier>> | null =
+		node.id.parent;
+	const _idType: string = node.id.type;
+	api.parseChildren();
+};
+
+const _arrayExpression: rollup.ast.LazyNode<rollup.ast.ArrayExpression> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.ArrayExpression>;
+const _arrayElements: readonly (rollup.ast.LazyNode<
+	rollup.ast.Expression | rollup.ast.SpreadElement
+> | null)[] = _arrayExpression.elements;
+
+const _templateElement: rollup.ast.LazyNode<rollup.ast.TemplateElement> =
+	null as unknown as rollup.ast.LazyNode<rollup.ast.TemplateElement>;
+const _templateParent: rollup.ast.LazyNode<rollup.ast.TemplateLiteral> | null =
+	_templateElement.parent;
+
+// @ts-expect-error ClassBody cannot contain an Identifier
+const _identifierInClassBody = _lazyIdentifier.parent?.type === 'ClassBody';
+
+type ParseResult = rollup.ast.Program | rollup.CodeEditorParseResult<rollup.ast.Program>;
+
+const _codeEditorPlugin: rollup.Plugin = {
+	async buildStart() {
+		const { codeEditor } = await this.parseAndWalk(
+			'const value = 1;',
+			{
+				VariableDeclaration(node, api) {
+					api.codeEditor.remove(node.start, node.end);
+				}
+			},
+			{ codeEditor: true }
+		);
+		const _hasChanged: boolean = codeEditor.hasChanged();
+		const _original: string = codeEditor.original;
+		const _walkResult = await this.parseAndWalk('const value = 1;', {});
+		// @ts-expect-error without the option, parseAndWalk resolves to nothing
+		const _missingEditor: rollup.CodeEditor = _walkResult.codeEditor;
+		const codeEditorOption: boolean = Math.random() > 0.5;
+		const _walkResultWithForwardedOption: void | { codeEditor: rollup.CodeEditor } =
+			await this.parseAndWalk('const value = 1;', {}, { codeEditor: codeEditorOption });
+		// @ts-expect-error with a boolean option, the result may not contain an editor
+		const _editorFromForwardedWalkOption = _walkResultWithForwardedOption.codeEditor;
+		const _sharedWalkOptions: rollup.ParseAndWalkOptions = { collectScopes: true };
+		const _walkResultFromSharedOptions: Promise<void> = this.parseAndWalk(
+			'const value = 1;',
+			{},
+			_sharedWalkOptions
+		);
+		const _walkOptionsWithEditor: rollup.ParseAndWalkOptionsWithCodeEditor = {
+			..._sharedWalkOptions,
+			codeEditor: codeEditorOption
+		};
+		const _walkResultFromOptionsWithEditor: Promise<void | { codeEditor: rollup.CodeEditor }> =
+			this.parseAndWalk('const value = 1;', {}, _walkOptionsWithEditor);
+		// @ts-expect-error the result may contain an editor
+		const _notOnlyVoid: Promise<void> = this.parseAndWalk(
+			'const value = 1;',
+			{},
+			_walkOptionsWithEditor
+		);
+	},
+	name: 'code-editor',
+	transform(code) {
+		const { ast, codeEditor } = this.parse(code, { codeEditor: true });
+		const _type: string = ast.type;
+		const _map: rollup.SourceMap = codeEditor.generateMap({
+			includeContent: true,
+			source: 'main.js'
+		});
+		const mapOptions = { hires: true };
+		// @ts-expect-error "hires" is deliberately not part of the options
+		const _hiresMap = codeEditor.generateMap(mapOptions);
+		const codeEditorOption: boolean = Math.random() > 0.5;
+		const forwardedParseResult = this.parse(code, { codeEditor: codeEditorOption });
+		const _parseResultWithForwardedOption: ParseResult = forwardedParseResult;
+		// @ts-expect-error with a boolean option, the result may not contain an editor
+		const _editorFromForwardedParseOption = forwardedParseResult.codeEditor;
+		const _sharedOptions: rollup.ParseOptions = { allowReturnOutsideFunction: true };
+		const _programFromSharedOptions: rollup.ast.Program = this.parse(code, _sharedOptions);
+		// @ts-expect-error codeEditor is deliberately not part of ParseOptions
+		const _optionsWithEditorInSharedType: rollup.ParseOptions = { codeEditor: true };
+		const _maybeSharedOptions: rollup.ParseOptions | undefined =
+			Math.random() > 0.5 ? {} : undefined;
+		const _programFromForwardedOptions: rollup.ast.Program = this.parse(code, _maybeSharedOptions);
+		const _optionsWithEditor: rollup.ParseOptionsWithCodeEditor = {
+			..._sharedOptions,
+			codeEditor: codeEditorOption
+		};
+		// @ts-expect-error options that may carry an editor cannot widen to ParseOptions
+		const _widenedOptions: rollup.ParseOptions = _optionsWithEditor;
+		const _optionsWithoutEditor: rollup.ParseOptions = { codeEditor: false, jsx: true };
+		const _parseResultFromOptionsWithEditor: ParseResult = this.parse(code, _optionsWithEditor);
+		// @ts-expect-error the result may contain an editor
+		const _notOnlyProgram: rollup.ast.Program = this.parse(code, _optionsWithEditor);
+		// @ts-expect-error with a boolean option, the result may not contain an editor
+		const _editorFromOptionsWithEditor = this.parse(code, _optionsWithEditor).codeEditor;
+		// @ts-expect-error without the option, parse returns the AST
+		const _missingEditor: rollup.CodeEditor = this.parse(code).codeEditor;
+		// @ts-expect-error the original code cannot be changed
+		codeEditor.original = code;
+		return { code: codeEditor.toString(), map: codeEditor.generateMap() };
+	}
+};
+
+const _lazyParseResult = parseLazyAst('const value = 1;', { codeEditor: true });
+const _lazyCodeEditor: rollup.CodeEditor = _lazyParseResult.codeEditor;
+const _lazyProgram: rollup.ast.LazyNode<rollup.ast.Program> = _lazyParseResult.ast;

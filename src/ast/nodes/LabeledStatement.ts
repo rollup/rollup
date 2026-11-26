@@ -7,16 +7,13 @@ import {
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import {
-	doNotDeoptimize,
-	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class LabeledStatement extends StatementBase {
-	declare body: StatementNode;
+export default class LabeledStatement extends NodeBase {
+	declare parent: nodes.LabeledStatementParent;
+	declare body: nodes.Statement;
 	declare label: Identifier;
 	declare type: NodeType.tLabeledStatement;
 

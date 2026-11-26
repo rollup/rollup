@@ -1,34 +1,10 @@
-define(['exports'], (function (exports) { 'use strict';
-
-	const DEP = 'DEP';
-
-	const DYNAMIC_2 = 'DYNAMIC_2';
-
-	var dynamic2 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
-		DYNAMIC_2: DYNAMIC_2
-	});
-
-	const DYNAMIC_3 = 'DYNAMIC_3';
-
-	var dynamic3 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
-		DYNAMIC_3: DYNAMIC_3
-	});
+define(['exports', './main', './generated-dynamic2', './generated-dynamic3'], (function (exports, main, dynamic2, dynamic3) { 'use strict';
 
 	const DYNAMIC_1 = 'DYNAMIC_1';
 
-	var dynamic1 = /*#__PURE__*/Object.freeze({
-		__proto__: null,
-		DEP: DEP,
-		DYNAMIC_1: DYNAMIC_1,
-		DYNAMIC_2: DYNAMIC_2,
-		DYNAMIC_3: DYNAMIC_3
-	});
-
-	exports.DEP = DEP;
-	exports.dynamic1 = dynamic1;
-	exports.dynamic2 = dynamic2;
-	exports.dynamic3 = dynamic3;
+	exports.DEP = main.DEP;
+	exports.DYNAMIC_2 = dynamic2.DYNAMIC_2;
+	exports.DYNAMIC_3 = dynamic3.DYNAMIC_3;
+	exports.DYNAMIC_1 = DYNAMIC_1;
 
 }));

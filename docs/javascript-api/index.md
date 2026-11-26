@@ -149,6 +149,7 @@ const inputOptions = {
 
 	// advanced input options
 	cache,
+	fs,
 	logLevel,
 	makeAbsoluteExternalsRelative,
 	maxParallelFileOps,
@@ -167,8 +168,7 @@ const inputOptions = {
 	// experimental
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
-	perf,
-	fs
+	perf
 };
 ```
 
@@ -202,7 +202,6 @@ const outputOptions = {
 	generatedCode,
 	hashCharacters,
 	hoistTransitiveImports,
-	importAttributesKey,
 	inlineDynamicImports,
 	interop,
 	intro,
@@ -429,7 +428,7 @@ assert.deepEqual(
 );
 ```
 
-There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup:
+There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup. This is recommended:
 
 ```js twoslash
 import { parseAstAsync } from 'rollup/parseAst';
@@ -459,3 +458,90 @@ assert.deepEqual(
 	}
 );
 ```
+
+Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you only want to inspect a small part of the syntax tree, use `parseLazyAst` or `parseLazyAstAsync`; they accept the same options but return a lazy AST with `parent` links.
+
+To edit the parsed code and generate a sourcemap that also maps the parts that were not edited, pass `{ codeEditor: true }`. The result then contains the AST together with an editor for the code, which is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes. If the option is a runtime `boolean`, type the options as `ParseOptionsWithCodeEditor` and check for the `codeEditor` property of the union result before using it.
+
+```js twoslash
+import assert from 'node:assert';
+import { parseAst } from 'rollup/parseAst';
+
+const code = 'const value = 42;';
+const { ast, codeEditor } = parseAst(code, { codeEditor: true });
+const declaration = ast.body[0];
+codeEditor.appendLeft(declaration.start, '// edited\n');
+
+assert.equal(codeEditor.original, code);
+assert.equal(codeEditor.toString(), '// edited\nconst value = 42;');
+const map = codeEditor.generateMap({ source: 'main.js' });
+assert.deepEqual(map.sources, ['main.js']);
+```
+
+All editing methods such as `overwrite`, `remove`, `appendLeft` or `prependRight` refer to positions in the original code and return the editor for chaining. The generated map contains mappings for the start and end of the nodes in unedited code, so the unedited parts of the code are mapped at the granularity of AST nodes.
+
+See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy ASTs and parent links.
+
+## Walking the AST efficiently
+
+When you only need to visit specific types of AST nodes, `parseAndWalk` provides a far more efficient alternative to parsing the entire tree. It accepts visitor functions for selected node types and only walks those nodes:
+
+```js twoslash
+import { parseAndWalk } from 'rollup/parseAst';
+
+await parseAndWalk('const x = 1; function foo() { return x + 1; }', {
+	Identifier(node) {
+		console.log('Found identifier:', node.name);
+	},
+	FunctionDeclaration(node) {
+		console.log('Found function:', node.id.name);
+	}
+});
+// Logs:
+// Found identifier: x
+// Found function: foo
+// Found identifier: x
+```
+
+The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `codeEditor`, `jsx`), plus an additional `collectScopes` option: when set to `true`, each visitor receives a `scope` object on its `api` argument that can determine whether a name is declared in the current scope chain. When `codeEditor` is `true`, each visitor can edit the code via `api.codeEditor`, and the promise resolves to an object containing the same `codeEditor`. When using TypeScript, you get full type support for each AST node type based on the visitor key.
+
+For detailed information about visitor handlers, controlling child node traversal, scope collection, and usage within plugins, see [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) in the plugin development documentation.
+
+## AST serialization
+
+For edge case scenarios where you need to serialize ESTree ASTs to buffers or deserialize them back, Rollup exposes `serializeAst`, `deserializeLazyAst`, and `deserializeAst` helpers. These functions can handle complete AST trees as well as AST fragments that start with any top-level node.
+
+The `serializeAst` function converts an ESTree AST node into Rollup's internal binary format. `deserializeLazyAst` converts it back to a lazy AST, while `deserializeAst` produces a fully materialized plain JavaScript object:
+
+```js twoslash
+import {
+	serializeAst,
+	deserializeLazyAst,
+	deserializeAst
+} from 'rollup/parseAst';
+
+const ast = {
+	type: 'Literal',
+	value: 42,
+	raw: '42'
+};
+
+const buffer = serializeAst(ast);
+// buffer is a Buffer/Uint8Array containing the serialized AST
+
+const lazyAst = deserializeLazyAst(buffer);
+// lazyAst is a lazy AST with the same structure as the original
+console.log(lazyAst.type); // 'Literal'
+console.log(lazyAst.value); // 42
+
+const eagerAst = deserializeAst(buffer);
+// eagerAst is a fully materialized plain JavaScript object
+console.log(eagerAst.type); // 'Literal'
+console.log(eagerAst.value); // 42
+```
+
+These helpers are useful when you need to:
+
+- Cache parsed ASTs in a binary format for performance
+- Transmit AST data between processes or over the network
+- Work with Rollup's internal AST representation directly

@@ -7,26 +7,44 @@ use swc_config::is_module::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsSyntax, Syntax};
 
-use convert_ast::converter::AstConverter;
+use convert_ast::converter::ast_constants::WORD_SIZE;
+use convert_ast::converter::buffer_inventory_constants::{
+  BUFFER_AST_BYTE_OFFSET, BUFFER_FORMAT_VERSION, BUFFER_FORMAT_VERSION_BYTE_OFFSET,
+  BUFFER_INVENTORY_BYTES,
+};
+use convert_ast::converter::{update_reference_position, AstConverter};
 use error_emit::try_with_handler;
 
-use crate::ast_nodes::panic_error::get_panic_error_buffer;
+use crate::ast_nodes::panic_error::write_panic_error;
+use crate::ast_nodes::parse_error::write_parse_error;
 use crate::convert_ast::annotations::SequentialComments;
 
 mod ast_nodes;
 mod convert_ast;
 mod error_emit;
 
-/// With `swap_byte_order`, the 32-bit fields of the buffer are written in the opposite of the
-/// native byte order. The WASM build, whose byte order is always little-endian, uses this on
-/// big-endian hosts because the JS side reads the buffer in the byte order of the host. Strings and
-/// the f64 values, which are always little-endian, are not affected.
+/// Creates a buffer whose inventory references the AST root, which starts
+/// directly behind the inventory.
+fn create_buffer_with_inventory(capacity: usize) -> Vec<u8> {
+  let mut buffer = Vec::with_capacity(capacity);
+  buffer.resize(BUFFER_INVENTORY_BYTES, 0);
+  buffer[BUFFER_FORMAT_VERSION_BYTE_OFFSET..BUFFER_FORMAT_VERSION_BYTE_OFFSET + WORD_SIZE]
+    .copy_from_slice(&BUFFER_FORMAT_VERSION.to_ne_bytes());
+  update_reference_position(&mut buffer, BUFFER_AST_BYTE_OFFSET);
+  buffer
+}
+
 pub fn parse_ast(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  swap_byte_order: bool,
+  walked_nodes_bitset_buffer: Option<&[u64]>,
+  collect_scopes: bool,
+  collect_sourcemap_locations: bool,
 ) -> Vec<u8> {
+  let walked_nodes_bitset: Option<[u64; 2]> = walked_nodes_bitset_buffer
+    .map(|buffer| buffer.try_into().expect("bitset must have 2 elements"));
+
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
   let syntax = Syntax::Es(EsSyntax {
@@ -45,7 +63,11 @@ pub fn parse_ast(
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let result = catch_unwind(AssertUnwindSafe(|| {
-      let result = try_with_handler(&code_reference, swap_byte_order, |handler| {
+      // Create buffer upfront with size estimation and the buffer inventory
+      // This is just a wild guess and should be revisited from time to time
+      let mut buffer = create_buffer_with_inventory(20 * code_reference.len());
+
+      let result = try_with_handler(&code_reference, |handler| {
         parse_js(
           cm,
           file,
@@ -57,15 +79,29 @@ pub fn parse_ast(
         )
       });
       match result {
-        Err(buffer) => buffer,
+        Err((utf_16_pos, message)) => {
+          // Parse error case: write error to buffer
+          write_parse_error(&mut buffer, utf_16_pos, &message);
+          buffer
+        }
         Ok(program) => {
+          // Success case: use AstConverter to fill buffer
           let annotations = comments.take_annotations();
-          let converter = AstConverter::new(&code_reference, &annotations, swap_byte_order);
+          let converter = AstConverter::new(
+            buffer,
+            &code_reference,
+            &annotations,
+            walked_nodes_bitset,
+            collect_scopes,
+            collect_sourcemap_locations,
+          );
           converter.convert_ast_to_buffer(&program)
         }
       }
     }));
     result.unwrap_or_else(|err| {
+      // Panic error case: create fresh buffer and write panic error
+      let mut buffer = create_buffer_with_inventory(0);
       let msg = if let Some(msg) = err.downcast_ref::<&str>() {
         msg
       } else if let Some(msg) = err.downcast_ref::<String>() {
@@ -73,7 +109,8 @@ pub fn parse_ast(
       } else {
         "Unknown rust panic message"
       };
-      get_panic_error_buffer(msg, swap_byte_order)
+      write_panic_error(&mut buffer, msg);
+      buffer
     })
   })
 }

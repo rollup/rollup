@@ -5,8 +5,10 @@ use crate::convert_ast::annotations::CommentKind::Annotation;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 
 pub(crate) struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
+  code: &'a str,
   current_utf8_index: u32,
   current_utf16_index: u32,
+  utf8_index_before_last_advance: u32,
   character_iterator: Chars<'a>,
   next_annotation: Option<&'a AnnotationWithType>,
   next_annotation_start: u32,
@@ -28,8 +30,10 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     let mut annotation_iterator = annotations.iter();
     let current_annotation = annotation_iterator.next();
     Self {
+      code,
       current_utf8_index: 0,
       current_utf16_index: 0,
+      utf8_index_before_last_advance: 0,
       character_iterator: code.chars(),
       next_annotation: current_annotation,
       next_annotation_start: get_annotation_start(current_annotation),
@@ -40,13 +44,14 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     }
   }
 
-  /// Converts the given UTF-8 byte index to a UTF-16 byte index.
+  /// Converts the given UTF-8 byte index to a UTF-16 code-unit index.
   ///
-  /// To be performant, this method assumes that the given index is not smaller
-  /// than the previous index. Additionally, it handles "annotations" like
-  /// `@__PURE__` comments in the process.
+  /// Positions normally ascend. Only nodes that share their range with an earlier
+  /// sibling convert backwards: their index is derived from the current cursor,
+  /// and they never collect annotations.
   ///
-  /// The logic for those comments is as follows:
+  /// While advancing, this method handles "annotations" like `@__PURE__` comments
+  /// in the process. The logic for those comments is as follows:
   /// - If the current index is at the start of an annotation, the annotation
   ///   is collected and the index is advanced to the end of the annotation.
   /// - Otherwise, we check if the next character is a white-space character.
@@ -63,11 +68,22 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   ///   prevent annotations from being invalidated when the next position is
   ///   converted.
   pub(crate) fn convert(&mut self, utf8_index: u32, keep_annotations_for_next: bool) -> u32 {
-    if self.current_utf8_index > utf8_index {
-      panic!(
-        "Cannot convert positions backwards: {} < {}",
-        utf8_index, self.current_utf8_index
+    if utf8_index < self.current_utf8_index {
+      debug_assert!(
+        !keep_annotations_for_next,
+        "Nodes that convert backwards cannot collect annotations"
       );
+      debug_assert!(
+        utf8_index >= self.utf8_index_before_last_advance,
+        "Unexpected backwards position: {} < {}",
+        utf8_index,
+        self.utf8_index_before_last_advance
+      );
+      let backwards_text = &self.code[utf8_index as usize..self.current_utf8_index as usize];
+      return self.current_utf16_index - utf16_length(backwards_text);
+    }
+    if self.current_utf8_index < utf8_index {
+      self.utf8_index_before_last_advance = self.current_utf8_index;
     }
     while self.current_utf8_index < utf8_index {
       if self.current_utf8_index == self.next_annotation_start {
@@ -137,6 +153,12 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   pub(crate) fn take_invalid_annotations(&mut self) -> Vec<ConvertedAnnotation> {
     std::mem::take(&mut self.invalid_annotations)
   }
+}
+
+/// Stored indices count UTF-16 code units, i.e. what a JavaScript string index
+/// refers to, so a surrogate pair counts as two.
+fn utf16_length(text: &str) -> u32 {
+  text.chars().map(char::len_utf16).sum::<usize>() as u32
 }
 
 fn get_annotation_start(annotation: Option<&AnnotationWithType>) -> u32 {

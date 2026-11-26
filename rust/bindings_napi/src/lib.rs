@@ -17,6 +17,8 @@ pub struct ParseTask {
   pub code: String,
   pub allow_return_outside_function: bool,
   pub jsx: bool,
+  pub collect_scopes: bool,
+  pub collect_sourcemap_locations: bool,
 }
 
 #[napi]
@@ -29,7 +31,39 @@ impl<'task> ScopedTask<'task> for ParseTask {
       mem::take(&mut self.code),
       self.allow_return_outside_function,
       self.jsx,
-      false,
+      None,
+      self.collect_scopes,
+      self.collect_sourcemap_locations,
+    ))
+  }
+
+  fn resolve(&mut self, env: &'task Env, output: Self::Output) -> Result<Self::JsValue> {
+    BufferSlice::from_data(env, output)
+  }
+}
+
+pub struct ParseAndWalkTask {
+  pub code: String,
+  pub allow_return_outside_function: bool,
+  pub jsx: bool,
+  pub walked_nodes_bitset: BigUint64Array,
+  pub collect_scopes: bool,
+  pub collect_sourcemap_locations: bool,
+}
+
+#[napi]
+impl<'task> ScopedTask<'task> for ParseAndWalkTask {
+  type Output = Vec<u8>;
+  type JsValue = BufferSlice<'task>;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    Ok(parse_ast(
+      mem::take(&mut self.code),
+      self.allow_return_outside_function,
+      self.jsx,
+      Some(self.walked_nodes_bitset.as_ref()),
+      self.collect_scopes,
+      self.collect_sourcemap_locations,
     ))
   }
 
@@ -44,10 +78,18 @@ pub fn parse<'env>(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
+  collect_sourcemap_locations: bool,
 ) -> Result<BufferSlice<'env>> {
   BufferSlice::from_data(
     env,
-    parse_ast(code, allow_return_outside_function, jsx, false),
+    parse_ast(
+      code,
+      allow_return_outside_function,
+      jsx,
+      None,
+      false,
+      collect_sourcemap_locations,
+    ),
   )
 }
 
@@ -56,16 +98,34 @@ pub fn parse_async(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
-  signal: Option<AbortSignal>,
+  collect_sourcemap_locations: bool,
 ) -> AsyncTask<ParseTask> {
-  AsyncTask::with_optional_signal(
-    ParseTask {
-      code,
-      allow_return_outside_function,
-      jsx,
-    },
-    signal,
-  )
+  AsyncTask::new(ParseTask {
+    code,
+    allow_return_outside_function,
+    jsx,
+    collect_scopes: false,
+    collect_sourcemap_locations,
+  })
+}
+
+#[napi]
+pub fn parse_and_walk(
+  code: String,
+  allow_return_outside_function: bool,
+  jsx: bool,
+  walked_nodes_bitset: BigUint64Array,
+  collect_scopes: bool,
+  collect_sourcemap_locations: bool,
+) -> AsyncTask<ParseAndWalkTask> {
+  AsyncTask::new(ParseAndWalkTask {
+    code,
+    allow_return_outside_function,
+    jsx,
+    walked_nodes_bitset,
+    collect_scopes,
+    collect_sourcemap_locations,
+  })
 }
 
 #[napi]

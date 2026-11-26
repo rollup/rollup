@@ -171,8 +171,8 @@ function mergeInputOptions(
 const getExternal = (config: InputOptions, overrides: CommandConfigObject): ExternalOption => {
 	const configExternal = config.external;
 	return typeof configExternal === 'function'
-		? (source: string, importer: string | undefined, isResolved: boolean) =>
-				configExternal(source, importer, isResolved) || overrides.external.includes(source)
+		? (source, importer, isResolved, options) =>
+				configExternal(source, importer, isResolved, options) || overrides.external.includes(source)
 		: [...ensureArray(configExternal), ...overrides.external];
 };
 
@@ -242,7 +242,6 @@ async function mergeOutputOptions(
 		experimentalMinChunkSize: getOption('experimentalMinChunkSize'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
-		externalImportAssertions: getOption('externalImportAssertions'),
 		externalImportAttributes: getOption('externalImportAttributes'),
 		externalLiveBindings: getOption('externalLiveBindings'),
 		file: getOption('file'),

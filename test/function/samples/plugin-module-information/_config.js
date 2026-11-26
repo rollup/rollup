@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getObject } = require('../../../testHelpers');
+const { serializeModuleInfo, getObject } = require('../../../testHelpers');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
@@ -16,7 +16,7 @@ module.exports = defineTest({
 		plugins: [
 			{
 				load(id) {
-					assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(id))), {
+					assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(id)), {
 						attributes: {},
 						ast: null,
 						code: null,
@@ -39,6 +39,7 @@ module.exports = defineTest({
 						isExternal: false,
 						isIncluded: null,
 						meta: {},
+						rawId: id,
 						safeVariableNames: null,
 						syntheticNamedExports: false
 					});
@@ -47,10 +48,7 @@ module.exports = defineTest({
 					rendered = true;
 					assert.deepStrictEqual(
 						getObject(
-							[...this.getModuleIds()].map(id => [
-								id,
-								JSON.parse(JSON.stringify(this.getModuleInfo(id)))
-							])
+							[...this.getModuleIds()].map(id => [id, serializeModuleInfo(this.getModuleInfo(id))])
 						),
 						{
 							[ID_FOO]: {
@@ -141,6 +139,7 @@ module.exports = defineTest({
 										id: ID_PATH,
 										meta: {},
 										moduleSideEffects: true,
+										rawId: ID_PATH,
 										resolvedBy: 'rollup',
 										syntheticNamedExports: false
 									}
@@ -151,6 +150,7 @@ module.exports = defineTest({
 								isExternal: false,
 								isIncluded: true,
 								meta: {},
+								rawId: ID_FOO,
 								safeVariableNames: null,
 								syntheticNamedExports: false
 							},
@@ -295,6 +295,7 @@ module.exports = defineTest({
 										id: ID_NESTED,
 										meta: {},
 										moduleSideEffects: true,
+										rawId: ID_NESTED,
 										resolvedBy: 'rollup',
 										syntheticNamedExports: false
 									},
@@ -304,6 +305,7 @@ module.exports = defineTest({
 										id: ID_PATH,
 										meta: {},
 										moduleSideEffects: true,
+										rawId: ID_PATH,
 										resolvedBy: 'rollup',
 										syntheticNamedExports: false
 									}
@@ -326,6 +328,7 @@ module.exports = defineTest({
 										id: ID_FOO,
 										meta: {},
 										moduleSideEffects: true,
+										rawId: ID_FOO,
 										resolvedBy: 'rollup',
 										syntheticNamedExports: false
 									}
@@ -336,6 +339,7 @@ module.exports = defineTest({
 								isExternal: false,
 								isIncluded: true,
 								meta: {},
+								rawId: ID_MAIN,
 								safeVariableNames: null,
 								syntheticNamedExports: false
 							},
@@ -425,6 +429,7 @@ module.exports = defineTest({
 										id: ID_FOO,
 										meta: {},
 										moduleSideEffects: true,
+										rawId: ID_FOO,
 										resolvedBy: 'rollup',
 										syntheticNamedExports: false
 									}
@@ -435,6 +440,7 @@ module.exports = defineTest({
 								isExternal: false,
 								isIncluded: true,
 								meta: {},
+								rawId: ID_NESTED,
 								safeVariableNames: null,
 								syntheticNamedExports: false
 							},
@@ -459,6 +465,7 @@ module.exports = defineTest({
 								isExternal: true,
 								isIncluded: null,
 								meta: {},
+								rawId: ID_PATH,
 								safeVariableNames: null,
 								syntheticNamedExports: false
 							}

@@ -1,3 +1,4 @@
+const { serializeModuleInfo } = require('../../../../testHelpers');
 const assert = require('node:assert');
 const path = require('node:path');
 
@@ -33,9 +34,10 @@ module.exports = defineTest({
 				});
 			},
 			buildEnd() {
-				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN1))), {
+				assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(ID_MAIN1)), {
 					id: ID_MAIN1,
 					attributes: {},
+					rawId: ID_MAIN1,
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -138,6 +140,7 @@ module.exports = defineTest({
 							id: ID_LIB1,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB1,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
@@ -147,6 +150,7 @@ module.exports = defineTest({
 							id: ID_LIB1B,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB1B,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
@@ -156,6 +160,7 @@ module.exports = defineTest({
 							id: ID_LIB2,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB2,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}
@@ -168,9 +173,10 @@ module.exports = defineTest({
 					meta: {},
 					syntheticNamedExports: false
 				});
-				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN2))), {
+				assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(ID_MAIN2)), {
 					id: ID_MAIN2,
 					attributes: {},
+					rawId: ID_MAIN2,
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -273,6 +279,7 @@ module.exports = defineTest({
 							id: ID_LIB1,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB1,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
@@ -282,6 +289,7 @@ module.exports = defineTest({
 							id: ID_LIB1B,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB1B,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
@@ -291,6 +299,7 @@ module.exports = defineTest({
 							id: ID_LIB3,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB3,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}
@@ -303,9 +312,10 @@ module.exports = defineTest({
 					meta: {},
 					syntheticNamedExports: false
 				});
-				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
+				assert.deepStrictEqual(serializeModuleInfo(this.getModuleInfo(ID_DEP)), {
 					id: ID_DEP,
 					attributes: {},
+					rawId: ID_DEP,
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -407,6 +417,7 @@ module.exports = defineTest({
 							id: ID_LIB1,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB1,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
@@ -416,6 +427,7 @@ module.exports = defineTest({
 							id: ID_LIB2,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB2,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
@@ -425,6 +437,7 @@ module.exports = defineTest({
 							id: ID_LIB3,
 							meta: {},
 							moduleSideEffects: true,
+							rawId: ID_LIB3,
 							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}

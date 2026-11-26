@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getObject } = require('../../../testHelpers');
+const { serializeModuleInfo, getObject } = require('../../../testHelpers');
 
 function getId(name) {
 	return path.join(__dirname, `${name}.js`);
@@ -14,9 +14,7 @@ module.exports = defineTest({
 			manualChunks(id, { getModuleIds, getModuleInfo }) {
 				assert.deepStrictEqual(
 					getObject(
-						[...getModuleIds()]
-							.sort()
-							.map(id => [id, JSON.parse(JSON.stringify(getModuleInfo(id)))])
+						[...getModuleIds()].sort().map(id => [id, serializeModuleInfo(getModuleInfo(id))])
 					),
 					{
 						[getId('dynamic')]: {
@@ -90,6 +88,7 @@ module.exports = defineTest({
 									id: 'external',
 									meta: {},
 									moduleSideEffects: true,
+									rawId: 'external',
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -109,6 +108,7 @@ module.exports = defineTest({
 									id: getId('lib'),
 									meta: {},
 									moduleSideEffects: true,
+									rawId: getId('lib'),
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -119,6 +119,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: getId('dynamic'),
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -156,6 +157,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: getId('lib'),
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -253,6 +255,7 @@ module.exports = defineTest({
 									id: getId('dynamic'),
 									meta: {},
 									moduleSideEffects: true,
+									rawId: getId('dynamic'),
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -276,6 +279,7 @@ module.exports = defineTest({
 									id: getId('lib'),
 									meta: {},
 									moduleSideEffects: true,
+									rawId: getId('lib'),
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								},
@@ -285,6 +289,7 @@ module.exports = defineTest({
 									id: 'external',
 									meta: {},
 									moduleSideEffects: true,
+									rawId: 'external',
 									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
@@ -295,6 +300,7 @@ module.exports = defineTest({
 							isExternal: false,
 							isIncluded: true,
 							meta: {},
+							rawId: getId('main'),
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						},
@@ -319,6 +325,7 @@ module.exports = defineTest({
 							isExternal: true,
 							isIncluded: null,
 							meta: {},
+							rawId: 'external',
 							safeVariableNames: null,
 							syntheticNamedExports: false
 						}

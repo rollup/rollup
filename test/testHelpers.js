@@ -26,6 +26,7 @@ const { importAssertions } = require('acorn-import-assertions');
 const importPhases = require('acorn-import-phases');
 const jsx = require('acorn-jsx');
 const fixturify = require('fixturify');
+const { deserializeAst, deserializeLazyAst, serializeAst } = require('../dist/parseAst');
 
 if (!globalThis.defineTest) {
 	globalThis.defineTest = config => config;
@@ -107,6 +108,23 @@ exports.compareError = function compareError(actual, expected) {
 	if (actual.stack) {
 		assert.ok(actual.stack.includes(expected.message));
 	}
+};
+
+/**
+ * @param {{ (): unknown; }} testFunction
+ * @param {RollupError} expectedError
+ */
+exports.expectError = async function (testFunction, expectedError) {
+	let caughtError = null;
+	try {
+		await testFunction();
+	} catch (error) {
+		caughtError = error;
+	}
+	if (!caughtError) {
+		throw new Error('Expected an error but none was thrown');
+	}
+	exports.compareError(caughtError, expectedError);
 };
 
 /**
@@ -352,6 +370,83 @@ function getFileNamesAndRemoveOutput(directory) {
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 /**
+ * Pretends test failures happen in the sample's "_config.js" by temporarily
+ * patching the global `it` during test registration. Tools that read stack
+ * traces like GitHub Actions annotations or IDE test runners then point at
+ * the sample instead of shared harness code.
+ *
+ * @param {string} configFile
+ * @param {() => void} registerTests
+ */
+function runTestWithConfigAsFailureLocation(configFile, registerTests) {
+	const originalIt = globalThis.it;
+
+	/**
+	 * @param {string} testName
+	 * @param {Mocha.AsyncFunc} testFunction
+	 */
+	const itReportingConfigLocation = (testName, testFunction) =>
+		originalIt(testName, locateFailuresInConfigFile(testFunction, configFile));
+
+	/**
+	 * @param {string} testName
+	 * @param {Mocha.AsyncFunc} testFunction
+	 */
+	itReportingConfigLocation.only = (testName, testFunction) =>
+		originalIt.only(testName, locateFailuresInConfigFile(testFunction, configFile));
+
+	itReportingConfigLocation.skip = originalIt.skip;
+	globalThis.it = /** @type {any} */ (itReportingConfigLocation);
+	try {
+		registerTests();
+	} finally {
+		globalThis.it = originalIt;
+	}
+}
+
+/**
+ * Wraps a test function so that the topmost stack frame of a failure points
+ * at the sample's "_config.js" file, at the exact location if the failure
+ * originates there. Test functions using the "done" callback style cannot be
+ * wrapped without confusing Mocha's async detection and are returned
+ * unchanged.
+ *
+ * @param {Mocha.AsyncFunc} testFunction
+ * @param {string} configFile
+ * @returns {Mocha.AsyncFunc}
+ */
+function locateFailuresInConfigFile(testFunction, configFile) {
+	if (testFunction.length > 0) {
+		return testFunction;
+	}
+	return async function () {
+		try {
+			return await testFunction.call(this);
+		} catch (error) {
+			if (error instanceof Error && typeof error.stack === 'string') {
+				const stackLines = error.stack.split('\n');
+				const firstStackFrameIndex = stackLines.findIndex(stackLine => /^ {4}at /.test(stackLine));
+				if (firstStackFrameIndex >= 0) {
+					const configFrame = stackLines
+						.slice(firstStackFrameIndex)
+						.find(stackLine => stackLine.includes(configFile));
+					const failureLocation = configFrame
+						? configFrame.slice(configFrame.indexOf(configFile)).replace(/\)$/, '')
+						: `${configFile}:1:1`;
+					stackLines.splice(
+						firstStackFrameIndex,
+						0,
+						`    at Context.<anonymous> (${failureLocation})`
+					);
+					error.stack = stackLines.join('\n');
+				}
+			}
+			throw error;
+		}
+	};
+}
+
+/**
  * @template {TestConfigBase} C
  * @param {string} directory
  * @param {(directory: string, config: C) => void} runTest
@@ -367,7 +462,7 @@ function loadConfigAndRunTest(directory, runTest) {
 		(!config.onlyWindows || platform === 'win32') &&
 		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(version)[1]))
 	) {
-		runTest(directory, config);
+		runTestWithConfigAsFailureLocation(configFile, () => runTest(directory, config));
 	}
 }
 
@@ -522,12 +617,76 @@ exports.verifyAstPlugin = {
 	name: 'verify-ast',
 	moduleParsed: ({ ast, code }) => {
 		const acornAst = acornParser.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+		const eagerAst = deserializeAst(serializeAst(ast));
 		assert.deepStrictEqual(
-			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
+			JSON.parse(JSON.stringify(eagerAst, replaceStringifyValues), reviveStringifyValues),
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
 		);
+		exports.assertAstEqual(deserializeLazyAst(serializeAst(ast)), eagerAst);
 	}
 };
+
+function assertAstValueEqual(actual, expected, path) {
+	if (Array.isArray(expected)) {
+		assert.ok(Array.isArray(actual), `${path} should be an array`);
+		assert.strictEqual(actual.length, expected.length, `${path} length`);
+		for (let index = 0; index < expected.length; index++) {
+			assertAstValueEqual(actual[index], expected[index], `${path}[${index}]`);
+		}
+		return;
+	}
+	if (expected instanceof RegExp || actual instanceof RegExp) {
+		assert.deepStrictEqual(actual, expected, path);
+		return;
+	}
+	if (expected !== null && typeof expected === 'object') {
+		assert.ok(actual !== null && typeof actual === 'object', `${path} should be an object`);
+		const enumerableKeys = getEnumerableKeys(actual);
+		for (const key of Object.keys(expected)) {
+			if (key === 'parent' || expected[key] === undefined) continue;
+			assert.ok(enumerableKeys.has(key), `${path}.${key} should be enumerable`);
+			assertAstValueEqual(actual[key], expected[key], `${path}.${key}`);
+		}
+		for (const key of enumerableKeys) {
+			if (key === 'parent' || actual[key] === undefined) continue;
+			assert.ok(expected[key] !== undefined, `${path} has unexpected property "${key}"`);
+		}
+		return;
+	}
+	assert.strictEqual(actual, expected, path);
+}
+
+exports.assertAstEqual = (actual, expected) => assertAstValueEqual(actual, expected, 'ast');
+
+function getEnumerableKeys(value) {
+	const keys = new Set();
+	let current = value;
+	while (current && current !== Object.prototype) {
+		for (const key of Object.keys(current)) keys.add(key);
+		current = Object.getPrototypeOf(current);
+	}
+	return keys;
+}
+
+function toSerializableValue(value) {
+	if (Array.isArray(value)) {
+		return value.map(toSerializableValue);
+	}
+	if (value !== null && typeof value === 'object') {
+		const result = {};
+		for (const key of getEnumerableKeys(value)) {
+			if (key === 'parent') continue;
+			const childValue = value[key];
+			if (childValue !== undefined) {
+				result[key] = toSerializableValue(childValue);
+			}
+		}
+		return result;
+	}
+	return value;
+}
+
+exports.serializeModuleInfo = moduleInfo => toSerializableValue(moduleInfo);
 
 exports.getRandomElement = function getRandomElement(array) {
 	return array[Math.floor(Math.random() * array.length)];
@@ -560,6 +719,13 @@ const replaceStringifyValues = (key, value) => {
 			const { options, ...nonOptionsProperties } = value;
 			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
 		}
+		case 'TemplateElement': {
+			const {
+				value: { cooked, raw },
+				...rest
+			} = value;
+			return cooked != null ? value : { value: { raw }, ...rest };
+		}
 		case 'ClassDeclaration':
 		case 'ClassExpression':
 		case 'PropertyDefinition':
@@ -574,7 +740,7 @@ const replaceStringifyValues = (key, value) => {
 		}
 	}
 
-	return key[0] === '_'
+	return key.endsWith('nnotations')
 		? undefined
 		: typeof value == 'bigint'
 			? `~BigInt${value.toString()}`

@@ -21,5 +21,5 @@
   "libc": [
     "glibc"
   ],
-  "main": "./rollup.linux-arm-gnueabihf.node"
+  "main": "rollup.linux-arm-gnueabihf.node"
 }

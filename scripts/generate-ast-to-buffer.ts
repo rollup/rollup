@@ -1,0 +1,288 @@
+#!/usr/bin/env node
+
+import { writeFile } from 'node:fs/promises';
+import type { AstNodeName, AstTypeName, FieldDescription, NodeDescription } from './ast-types.ts';
+import { astNodeNamesWithFieldOrder } from './ast-types.ts';
+import {
+	ENCODED_PARENT_BIAS,
+	NODE_DATA_OFFSET,
+	NODE_END_OFFSET,
+	NODE_PARENT_OFFSET,
+	NODE_START_OFFSET
+} from './buffer-layout.ts';
+import { generateNotEditFilesComment, lintTsFile } from './helpers.ts';
+
+const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
+
+const astToBufferFile = new URL('../src/utils/astToBuffer.ts', import.meta.url);
+
+interface AstTypeDescription {
+	fields: FieldDescription[];
+	flags?: string[];
+	index: number;
+	node: NodeDescription;
+	nodeName: AstNodeName;
+	typeName: AstTypeName;
+}
+
+const astNodesByAstType: Partial<Record<AstTypeName, AstTypeDescription[]>> = {};
+
+astNodeNamesWithFieldOrder.forEach(({ name, node, fields }, index) => {
+	const astType = node.astType ?? name;
+	(astNodesByAstType[astType] ||= []).push({
+		fields,
+		flags: node.flags,
+		index,
+		node,
+		nodeName: name,
+		typeName: astType
+	});
+});
+
+const nonCanonicalAstTypes: { astType: AstTypeName; nodes: AstTypeDescription[] }[] = [];
+
+const canonicalSerializers = Object.entries(astNodesByAstType)
+	.sort(([astTypeA], [astTypeB]) => astTypeA.localeCompare(astTypeB))
+	.map(([astType, nodes]) => {
+		if (nodes.length !== 1) {
+			nonCanonicalAstTypes.push({ astType: astType as AstTypeName, nodes });
+			return `${astType}: serialize${astType}Node`;
+		}
+		return `${astType}: (node, buffer, encodedParent) => ${getNodeSerializerBody(nodes[0])}`;
+	})
+	.join(',\n');
+
+const nonCanonicalSerializers = nonCanonicalAstTypes
+	.flatMap(({ nodes }) =>
+		nodes.map(node => {
+			return `const serialize${node.nodeName}: NodeSerializer<ast.${node.nodeName}> = (node, buffer, encodedParent) => ${getNodeSerializerBody(node)}`;
+		})
+	)
+	.join('\n\n');
+
+function getNodeSerializerBody({
+	index,
+	fields,
+	flags,
+	typeName,
+	node: { serializeHiddenFields }
+}: AstTypeDescription): string {
+	const fieldSerializers: string[] = [];
+	let nextPosition = NODE_DATA_OFFSET;
+	if (flags) {
+		const flagConverters = flags.map((flag, index) => `((node.${flag} as any) << ${index})`);
+		fieldSerializers.push(
+			`buffer[nodePosition + ${nextPosition}] = ${flagConverters.join(' | ')};`
+		);
+		nextPosition++;
+	}
+	for (const field of fields) {
+		const fieldName = serializeHiddenFields?.[field.name] ?? field.name;
+		switch (field.type) {
+			case 'Node': {
+				const nodeTypeCast = field.allowNull ? ` as AstNode & { ${fieldName}: AstNode }` : '';
+				let fieldSerializer = `buffer = serializeNode(${JSON.stringify(fieldName)}, node${nodeTypeCast}, buffer, nodePosition + ${nextPosition}, nodePosition + ${ENCODED_PARENT_BIAS});`;
+				if (field.allowNull) {
+					fieldSerializer = `if (node.${fieldName} != null) ${fieldSerializer}`;
+				}
+				fieldSerializers.push(fieldSerializer);
+				break;
+			}
+			case 'NodeList': {
+				fieldSerializers.push(
+					`buffer = serializeNodeList(${JSON.stringify(fieldName)}, node, buffer, nodePosition + ${nextPosition}, nodePosition + ${ENCODED_PARENT_BIAS});`
+				);
+				break;
+			}
+			case 'String': {
+				let fieldSerializer = `buffer = buffer.addStringToBuffer(node.${fieldName}, nodePosition + ${nextPosition});`;
+				if (field.optional) {
+					fieldSerializer = `if (node.${fieldName} != null) { ${fieldSerializer} }`;
+				}
+				fieldSerializers.push(fieldSerializer);
+				break;
+			}
+			case 'Float': {
+				fieldSerializers.push(
+					`buffer.writeFloat64(node.${fieldName}, nodePosition + ${nextPosition});`
+				);
+				nextPosition += 1; // Float64 takes 8 bytes
+				break;
+			}
+			case 'FixedString': {
+				let fieldSerializer = `buffer[nodePosition + ${nextPosition}] = FIXED_STRING_INDICES[node.${fieldName}];`;
+				if (field.optional) {
+					fieldSerializer = `if (node.${fieldName} != null) { ${fieldSerializer} }`;
+				}
+				fieldSerializers.push(fieldSerializer);
+				break;
+			}
+			case 'Annotations': {
+				fieldSerializers.push(
+					`buffer = serializeAnnotations(node.${fieldName}, buffer, nodePosition + ${nextPosition});`
+				);
+				break;
+			}
+			case 'ScopeOffset': {
+				break;
+			}
+			default: {
+				throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
+			}
+		}
+		nextPosition += 1;
+	}
+	return `{
+		  const nodePosition = buffer.position;
+		  buffer = buffer.reserve(${nextPosition});
+		  buffer[nodePosition] = ${index};
+		  buffer[nodePosition + ${NODE_PARENT_OFFSET}] = encodedParent;
+		  buffer[nodePosition + ${NODE_START_OFFSET}] = node.start;
+		  buffer[nodePosition + ${NODE_END_OFFSET}] = node.end;
+		  buffer.addSourcemapLocation(node.start, node.end, ${typeName === 'BlockStatement'});
+		  ${fieldSerializers.map(s => s + '\n').join('')}return buffer;
+		}`;
+}
+
+const astToBuffer = `${notEditFilesComment}
+import type { AstNode } from '../rollup/ast-types';
+import type { ast, SerializeAst } from '../rollup/types';
+import {
+  BUFFER_AST_WORD_INDEX,
+  BUFFER_FORMAT_VERSION,
+  BUFFER_FORMAT_VERSION_WORD_INDEX,
+  BUFFER_INVENTORY_WORD_COUNT,
+  BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX
+} from './bufferInventory';
+import type { AstBufferForWriting } from './getAstBuffer';
+import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
+import { error, logExpectedNodeList, logUnknownNodeType } from './logs';
+import FIXED_STRING_INDICES from './serialize-ast-strings.js';
+
+type NodeSerializer<T extends ast.AstNode> = (
+	node: T,
+	buffer: AstBufferForWriting,
+	encodedParent: number
+) => AstBufferForWriting;
+
+const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
+
+export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = node => {
+  const sourcemapLocations = new Uint32Array((node.end >> 5) + 1);
+  const initialBuffer = (
+    typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
+  )(INITIAL_BUFFER_SIZE, sourcemapLocations);
+  let buffer = initialBuffer.reserve(BUFFER_INVENTORY_WORD_COUNT);
+  buffer[BUFFER_FORMAT_VERSION_WORD_INDEX] = BUFFER_FORMAT_VERSION;
+  buffer[BUFFER_AST_WORD_INDEX] = buffer.position;
+  buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, buffer, 0);
+  buffer[BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX] = buffer.position;
+  const sectionPosition = buffer.position;
+  buffer = buffer.reserve(sourcemapLocations.length + 1);
+  buffer[sectionPosition] = sourcemapLocations.length;
+  buffer.set(sourcemapLocations, sectionPosition + 1);
+  return buffer.toOutput();
+};
+
+const serializeExpressionStatementNode: NodeSerializer<ast.ExpressionStatement | ast.Directive
+> = (node, buffer, encodedParent) => {
+	return 'directive' in node ? serializeDirective(node, buffer, encodedParent) : serializeExpressionStatement(node, buffer, encodedParent);
+};
+
+const serializeLiteralNode: NodeSerializer<ast.Literal> = (node, buffer, encodedParent) => {
+	switch (typeof node.value) {
+		case 'object':
+			if (node.value === null) {
+				return serializeLiteralNull(node, buffer, encodedParent);
+			}
+			return serializeLiteralRegExp(node as ast.LiteralRegExp, buffer, encodedParent);
+		case 'boolean':
+			return serializeLiteralBoolean(node as ast.LiteralBoolean, buffer, encodedParent);
+		case 'number':
+			return serializeLiteralNumber(node as ast.LiteralNumber, buffer, encodedParent);
+		case 'string':
+			return serializeLiteralString(node as ast.LiteralString, buffer, encodedParent);
+		case 'bigint':
+			return serializeLiteralBigInt(node as ast.LiteralBigInt, buffer, encodedParent);
+		default: {
+			/* istanbul ignore next */
+			throw new Error(\`Unexpected node value type for Literal: $\{typeof node.value}\`);
+		}
+	}
+};
+
+type NodeSerializers = {
+  [key in ast.AstNode['type']]: NodeSerializer<Extract<ast.AstNode, { type: key }>>;
+};
+
+const nodeSerializers: NodeSerializers = {
+  ${canonicalSerializers}
+};
+
+${nonCanonicalSerializers}
+
+function serializeNode<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, AstNode>, buffer: AstBufferForWriting, referencePosition: number, encodedParent: number
+): AstBufferForWriting {
+	buffer[referencePosition] = buffer.position;
+	const node = parent[field];
+	return (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer, encodedParent);
+}
+
+function serializeNodeList<FIELD extends string>(field: FIELD, parent: AstNode & Record<FIELD, readonly (AstNode | null)[]>, buffer: AstBufferForWriting, referencePosition: number, encodedParent: number
+): AstBufferForWriting {
+  const nodes = parent[field];
+  if (nodes == null) {
+		return buffer;
+	}
+  const { length } = nodes;
+  if (length === 0) {
+    return buffer;
+  }
+  if (length == null) {
+    return error(logExpectedNodeList(parent.type, field, parent[field]));
+  }
+	let insertPosition = buffer.position;
+	buffer = buffer.reserve(length + 1);
+	buffer[referencePosition] = insertPosition;
+	buffer[insertPosition] = length;
+	insertPosition++;
+	for (let index = 0; index < length; index++) {
+		const node = nodes[index];
+		if (node != null) {
+			buffer[insertPosition + index] = buffer.position;
+			buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, parent.type, field)))(node as any, buffer, encodedParent);
+		}
+	}
+	return buffer;
+}
+
+function serializeAnnotations(
+  annotations: readonly ast.Annotation[] | undefined,
+  buffer: AstBufferForWriting,
+  referencePosition: number
+): AstBufferForWriting {
+  if (!annotations?.length) {
+    return buffer;
+  }
+  const { length } = annotations;
+  let insertPosition = buffer.position;
+  buffer = buffer.reserve(length + 1);
+  buffer[referencePosition] = insertPosition;
+  buffer[insertPosition] = length;
+  insertPosition++;
+  for (let index = 0; index < length; index++) {
+    const annotation = annotations[index];
+    const annotationPosition = buffer.position;
+    buffer = buffer.reserve(3); // 3 for start, end, type
+    buffer[insertPosition + index] = annotationPosition;
+    buffer[annotationPosition] = annotation.start;
+    buffer[annotationPosition + 1] = annotation.end;
+    buffer[annotationPosition + 2] = FIXED_STRING_INDICES[annotation.type];
+  }
+  return buffer;
+}
+`;
+
+await writeFile(astToBufferFile, astToBuffer);
+
+await lintTsFile(astToBufferFile);

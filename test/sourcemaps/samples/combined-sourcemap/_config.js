@@ -21,6 +21,7 @@ module.exports = defineTest({
 						s.append('\nconsole.log("foo end");');
 					} else {
 						testMain(code, smc);
+						testWordBoundaryMapping(code, smc);
 
 						s.appendRight(code.indexOf('console'), 'console.log("main start");\n\n');
 						s.append('\nconsole.log("main end");');
@@ -81,6 +82,19 @@ function testMain(code, smc) {
 	const originalLoc = smc.originalPositionFor(generatedLoc);
 
 	assert.ok(/main/.test(originalLoc.source));
+	assert.equal(originalLoc.line, 3);
+	assert.equal(originalLoc.column, 8);
+}
+
+// The fallback map only maps word starts and non-word characters, so positions
+// inside a word resolve to the start of that word.
+function testWordBoundaryMapping(code, smc) {
+	const generatedLoc = getLocation(code, code.indexOf('info') + 2);
+	const originalLoc = smc.originalPositionFor({
+		...generatedLoc,
+		bias: SourceMapConsumer.GREATEST_LOWER_BOUND
+	});
+
 	assert.equal(originalLoc.line, 3);
 	assert.equal(originalLoc.column, 8);
 }
