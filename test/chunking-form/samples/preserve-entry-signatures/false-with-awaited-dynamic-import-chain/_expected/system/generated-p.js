@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			const loadX = exports("loadX", () => module.import('./generated-x.js'));
+			const loadX = () => module.import('./generated-x.js'); exports("loadX", loadX);
 
 		})
 	};

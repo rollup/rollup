@@ -7,9 +7,9 @@ System.register('bundle', ['external'], (function (exports, module) {
 		}],
 		execute: (function () {
 
-			const test = exports("test", () => myExternal);
+			const test = () => myExternal; exports("test", test);
 
-			const someDynamicImport = exports("someDynamicImport", () => module.import('external'));
+			const someDynamicImport = () => module.import('external'); exports("someDynamicImport", someDynamicImport);
 
 		})
 	};

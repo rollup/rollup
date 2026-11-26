@@ -9,13 +9,13 @@ System.register('myBundle', ['a', 'b'], (function (exports) {
     }],
     execute: (function () {
 
-      const Test = exports("Test", () => {
+      const Test = () => {
         console.log(Test$1);
-      });
+      }; exports("Test", Test);
 
-      const Test1 = exports("Test1", () => {
+      const Test1 = () => {
         console.log(Test$2);
-      });
+      }; exports("Test1", Test1);
 
     })
   };

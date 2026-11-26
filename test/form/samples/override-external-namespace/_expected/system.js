@@ -21,7 +21,7 @@ System.register('bundle', ['external'], (function (exports) {
 			const a = exports("a", 'defined');
 			let b; exports("b", b);
 			var c; exports("c", c);
-			const reassign = exports("reassign", () => (exports("b", b = 'defined')));
+			const reassign = () => (exports("b", b = 'defined')); exports("reassign", reassign);
 
 		})
 	};

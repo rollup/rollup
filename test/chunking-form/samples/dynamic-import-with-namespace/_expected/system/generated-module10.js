@@ -3,10 +3,10 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const foo = exports("foo", () => {});
-			const bar = exports("bar", () => {});
-			const baz = exports("baz", () => {});
-			const qux = exports("qux", () => {});
+			const foo = () => {}; exports("foo", foo);
+			const bar = () => {}; exports("bar", bar);
+			const baz = () => {}; exports("baz", baz);
+			const qux = () => {}; exports("qux", qux);
 
 		})
 	};
