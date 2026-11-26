@@ -9,7 +9,7 @@ import type {
 	ParseLazyAstAsync,
 	ParseOptionsWithCodeEditor
 } from '../rollup/types';
-import { BUFFER_INVENTORY_WORD_COUNT, getAstPosition } from './bufferInventory';
+import { getAstPosition } from './bufferInventory';
 import { deserializeAstBuffer } from './bufferToAst';
 import { deserializeLazyAstBuffer } from './bufferToLazyAst';
 import { createCodeEditor } from './codeEditor';
@@ -19,26 +19,14 @@ import { getAstBuffer } from './getAstBuffer';
 export { serializeAst } from './astToBuffer';
 export { parseAndWalk } from './parseAndWalk';
 
-function getDeserializationPosition(astBuffer: AstBuffer, position: number | undefined): number {
-	if (position === undefined) {
-		return getAstPosition(astBuffer);
-	}
-	if (position < BUFFER_INVENTORY_WORD_COUNT) {
-		throw new Error(
-			`The "position" argument ${position} points into the buffer inventory. Omit it to deserialize the root node.`
-		);
-	}
-	return position;
-}
-
-export const deserializeAst: DeserializeAst = (buffer, position) => {
+export const deserializeAst: DeserializeAst = buffer => {
 	const astBuffer = getAstBuffer(buffer);
-	return deserializeAstBuffer(astBuffer, getDeserializationPosition(astBuffer, position));
+	return deserializeAstBuffer(astBuffer, getAstPosition(astBuffer));
 };
 
-export const deserializeLazyAst: DeserializeLazyAst = (buffer, position) => {
+export const deserializeLazyAst: DeserializeLazyAst = buffer => {
 	const astBuffer = getAstBuffer(buffer);
-	return deserializeLazyAstBuffer(astBuffer, getDeserializationPosition(astBuffer, position));
+	return deserializeLazyAstBuffer(astBuffer, getAstPosition(astBuffer));
 };
 
 function createParseResult<Ast>(

@@ -335,8 +335,7 @@ export interface ParseAstAsync {
 }
 
 export type DeserializeAst = (
-	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/,
-	position?: number
+	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/
 ) => ast.AstNode;
 
 export interface ParseLazyAst {
@@ -364,8 +363,7 @@ export interface ParseLazyAstAsync {
 }
 
 export type DeserializeLazyAst = (
-	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/,
-	position?: number
+	buffer: /*browser: Uint8Array */ Buffer | Uint8Array /*browser*/
 ) => ast.LazyNode<ast.AstNode>;
 
 export type SerializeAst = (node: ast.AstNode) => /*browser: Uint8Array; */ Buffer; /*browser*/

@@ -356,20 +356,6 @@ export const result = outer(2);
 			}
 		}
 	});
-
-	it('rejects an explicit position inside the buffer inventory', () => {
-		const ast = parseAst('console.log("ok")');
-		const buffer = serializeAst(ast);
-		for (const position of [0, 1, 3]) {
-			const expectedError = {
-				message: `The "position" argument ${position} points into the buffer inventory. Omit it to deserialize the root node.`
-			};
-			assert.throws(() => deserializeAst(buffer, position), expectedError);
-			assert.throws(() => deserializeLazyAst(buffer, position), expectedError);
-		}
-		assert.deepStrictEqual(deserializeAst(buffer), ast);
-		assert.strictEqual(deserializeAst(buffer, 4).type, 'Program');
-	});
 });
 
 describe('parseAstAsync', () => {
@@ -540,17 +526,6 @@ describe('lazy AST parents', () => {
 		});
 		assert.strictEqual(parents[0], parents[1]);
 		assert.strictEqual(parents[0].type, 'VariableDeclarator');
-	});
-
-	it('resolves parents when deserializing a fragment at a non-zero position', () => {
-		const buffer = serializeAst(parseAst('const x = foo;'));
-		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
-		const rootPosition = words[1];
-		const declarationPosition = words[words[rootPosition + 4] + 1];
-		const declaration = deserializeLazyAst(buffer, declarationPosition);
-		assert.strictEqual(declaration.type, 'VariableDeclaration');
-		assert.strictEqual(declaration.parent.type, 'Program');
-		assert.strictEqual(declaration.parent.body[0], declaration);
 	});
 
 	it('keeps parent links of dynamic import sources consistent in a build', async () => {
