@@ -275,12 +275,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	/**
 	 * Override to perform special initialisation steps after the scope is
-	 * initialised
+	 * initialised. Sourcemap positions come from the AST buffer written by the
+	 * parser or, for plugin ASTs, by the serializer.
 	 */
-	initialise(): void {
-		this.scope.context.magicString.addSourcemapLocation(this.start);
-		this.scope.context.magicString.addSourcemapLocation(this.end);
-	}
+	initialise(): void {}
 
 	removeAnnotations(code: MagicString): void {
 		if (this.annotations) {

@@ -77,7 +77,8 @@ impl AstConverter<'_> {
       },
     );
     // end
-    self.add_end(end_position, span);
+    let end = self.add_end(end_position, span);
+    self.add_sourcemap_location(end - 1);
     if !prevent_child_block_scope {
       self.pop_scope();
     }

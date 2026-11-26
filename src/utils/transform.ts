@@ -158,7 +158,11 @@ export default async function transform(
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);
-							return magicString.generateMap({ hires: true, includeContent: true, source: id });
+							return magicString.generateMap({
+								hires: 'boundary',
+								includeContent: true,
+								source: id
+							});
 						}
 						if (originalSourcemap !== combinedMap) {
 							originalSourcemap = combinedMap;
@@ -187,7 +191,9 @@ export default async function transform(
 	) {
 		module.transformFiles = emittedFiles;
 	}
-	const astBuffer = ast ? serializeAst(ast) : await parseAsync(code, false, options.jsx !== false);
+	const astBuffer = ast
+		? serializeAst(ast)
+		: await parseAsync(code, false, options.jsx !== false, true);
 
 	return {
 		astBuffer,

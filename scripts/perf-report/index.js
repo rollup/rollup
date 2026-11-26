@@ -1,13 +1,19 @@
 /* global gc */
 
+import commonjsModule from '@rollup/plugin-commonjs';
+import { createHash } from 'node:crypto';
 import { mkdir, symlink, writeFile } from 'node:fs/promises';
+import { builtinModules } from 'node:module';
+import { dirname, resolve } from 'node:path';
 import { chdir } from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import pc from 'picocolors';
 import prettyBytes from 'pretty-bytes';
 import { runWithEcho } from '../helpers.ts';
 import reportCollector from './report-collector.js';
 import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.js';
+
+const commonjs = /** @type {any} */ (commonjsModule).default || commonjsModule;
 
 /**
  * @typedef {Record<string,{memory:number,time:number}>} CollectedTimings
@@ -18,8 +24,12 @@ import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.j
  */
 
 const PERF_DIRECTORY = new URL('../../perf/', import.meta.url);
-const ENTRY = new URL('entry.js', PERF_DIRECTORY);
+const CUSTOM_ENTRY = process.env.PERF_ENTRY && pathToFileURL(resolve(process.env.PERF_ENTRY));
+const ENTRY = CUSTOM_ENTRY || new URL('entry.js', PERF_DIRECTORY);
+const USE_COMMONJS = process.env.PERF_COMMONJS === '1';
+const GENERATE_SOURCEMAP = process.env.PERF_SOURCEMAP === '1';
 const THREEJS_COPIES = 10;
+const outputByRollup = new Map();
 const { bold, underline, cyan, red, green } = pc.createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const MIN_RELATIVE_DEVIATION_PERCENT = 2;
@@ -32,6 +42,9 @@ await ensureBenchmarkExists();
 await calculatePrintAndPersistTimings();
 
 async function ensureBenchmarkExists() {
+	if (CUSTOM_ENTRY) {
+		return;
+	}
 	const THREE_DIRECTORY = new URL('threejs1/', PERF_DIRECTORY);
 	// mkdir only returns undefined if the directory already exists, in which case
 	// we do not need to prepare anything
@@ -63,12 +76,12 @@ async function ensureBenchmarkExists() {
 async function calculatePrintAndPersistTimings() {
 	console.info(
 		bold(
-			`Comparing against rollup@${previousVersion}.\nCalculating the average of ${cyan(RUNS_TO_AVERAGE)} runs discarding the ${cyan(
+			`Comparing against rollup@${previousVersion} using ${cyan(fileURLToPath(ENTRY))}.\nCalculating the average of ${cyan(RUNS_TO_AVERAGE)} runs discarding the ${cyan(
 				DISCARDED_LARGE_RESULTS
 			)} largest and the ${cyan(DISCARDED_SMALL_RESULTS)}s smallest results.`
 		)
 	);
-	chdir(fileURLToPath(PERF_DIRECTORY));
+	chdir(CUSTOM_ENTRY ? dirname(fileURLToPath(ENTRY)) : fileURLToPath(PERF_DIRECTORY));
 	/** @type {AccumulatedTimings} */
 	const accumulatedPreviousTimings = {};
 	await buildAndGetTimings(previousRollup, accumulatedPreviousTimings);
@@ -97,6 +110,7 @@ async function calculatePrintAndPersistTimings() {
 		getAverage(accumulatedNewTimings, RUNS_TO_AVERAGE),
 		getAverage(accumulatedPreviousTimings, RUNS_TO_AVERAGE)
 	);
+	printOutputSummary();
 	await reportCollector.outputMsg();
 }
 
@@ -110,11 +124,20 @@ async function buildAndGetTimings(rollup, accumulatedTimings) {
 	}
 	gc();
 	const bundle = await rollup({
+		external: id => id.startsWith('node:') || builtinModules.includes(id),
 		input: fileURLToPath(ENTRY),
 		onLog() {},
-		perf: true
+		perf: true,
+		plugins: USE_COMMONJS ? [commonjs()] : []
 	});
-	await bundle.generate({ format: 'es' });
+	const { output } = await bundle.generate({ format: 'es', sourcemap: GENERATE_SOURCEMAP });
+	const map = output[0].map;
+	if (map) {
+		outputByRollup.set(rollup, {
+			hash: createHash('sha1').update(map.mappings).update(JSON.stringify(map.names)).digest('hex'),
+			size: Buffer.byteLength(map.mappings)
+		});
+	}
 	if (!bundle.getTimings) {
 		throw new Error('Timings not found in the bundle.');
 	}
@@ -165,8 +188,7 @@ function getSingleAverage(times, runs, discardedLarge, discardedSmall) {
 	const actualDiscardedLarge = actualDiscarded - actualDiscardedSmall;
 	return (
 		times
-			.sort()
-			.reverse()
+			.sort((a, b) => b - a)
 			.slice(actualDiscardedLarge, runs - actualDiscardedSmall)
 			.reduce((sum, time) => sum + time, 0) /
 		(runs - actualDiscarded)
@@ -299,6 +321,22 @@ function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
 		}
 	}
 	return color(formattedMemory);
+}
+
+function printOutputSummary() {
+	if (!GENERATE_SOURCEMAP) {
+		return;
+	}
+	const previousOutput = outputByRollup.get(previousRollup);
+	const newOutput = outputByRollup.get(newRollup);
+	if (previousOutput && newOutput) {
+		const equality = previousOutput.hash === newOutput.hash ? 'identical' : 'different';
+		console.info(
+			`\nSourcemap: previous ${prettyBytes(previousOutput.size)}, new ${prettyBytes(
+				newOutput.size
+			)} (${equality}).`
+		);
+	}
 }
 
 /**

@@ -7,6 +7,9 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, WORD_SIZE,
 };
 
+use crate::convert_ast::converter::buffer_inventory_constants::{
+  BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET, BUFFER_WALKING_INFO_BYTE_OFFSET,
+};
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
@@ -16,6 +19,7 @@ use crate::convert_ast::converter::utf16_positions::{
 use scope_constants::{
   SCOPE_DECLARATIONS_OFFSET, SCOPE_DECLARATION_COUNT_OFFSET, SCOPE_PARENT_OFFSET,
 };
+use sourcemap_locations::SourcemapLocations;
 use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
@@ -28,7 +32,9 @@ use swc_ecma_ast::{
 pub(crate) mod analyze_code;
 pub(crate) mod ast_constants;
 mod ast_macros;
+pub(crate) mod buffer_inventory_constants;
 pub(crate) mod scope_constants;
+mod sourcemap_locations;
 pub(crate) mod string_constants;
 mod utf16_positions;
 
@@ -40,6 +46,8 @@ const _: () = {
   assert!(NODE_DATA_OFFSET == NODE_END_OFFSET + 1);
   assert!(NODE_DATA_BYTES_AFTER_END == (NODE_DATA_OFFSET - NODE_END_OFFSET) * WORD_SIZE);
 };
+
+const WALKING_ENTRY_WORDS: usize = 3;
 
 pub(crate) struct WalkEntry {
   pub(crate) node_buffer_position: u32,
@@ -76,6 +84,7 @@ pub(crate) struct AstConverter<'a> {
   pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
   pub(crate) walked_nodes_bitset: Option<[u64; 2]>,
   pub(crate) collect_scopes: bool,
+  pub(crate) sourcemap_locations: Option<SourcemapLocations>,
   pub(crate) walking_entries: Vec<WalkEntry>,
   pub(crate) scope_stack: Vec<ScopeRecord>,
   pub(crate) declaration_kind: Option<DeclarationKind>,
@@ -89,13 +98,17 @@ impl<'a> AstConverter<'a> {
     annotations: &'a [AnnotationWithType],
     walked_nodes_bitset: Option<[u64; 2]>,
     collect_scopes: bool,
+    collect_sourcemap_locations: bool,
   ) -> Self {
+    let sourcemap_locations =
+      collect_sourcemap_locations.then(|| SourcemapLocations::new(code.len()));
     Self {
       buffer,
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
       walked_nodes_bitset,
       collect_scopes,
+      sourcemap_locations,
       walking_entries: Vec::new(),
       scope_stack: Vec::new(),
       declaration_kind: None,
@@ -110,17 +123,22 @@ impl<'a> AstConverter<'a> {
       "Nodes were started but not ended"
     );
 
-    if self.walked_nodes_bitset.is_some() && !self.walking_entries.is_empty() {
-      let walking_info_offset = (self.buffer.len() / WORD_SIZE) as u32;
+    if let Some(sourcemap_locations) = self.sourcemap_locations.take() {
+      sourcemap_locations
+        .append_to_buffer(&mut self.buffer, BUFFER_SOURCEMAP_LOCATIONS_BYTE_OFFSET);
+    }
 
-      // Write the offset at the beginning of the buffer (native endian)
-      self.buffer[0..WORD_SIZE].copy_from_slice(&walking_info_offset.to_ne_bytes());
-
-      // Append walking entries: [node_position(4), skip_to_index(4), scope_position(4)] for each entry
+    // An empty section is written as well so that JS can tell a walk without
+    // matches from a parse error.
+    if self.walked_nodes_bitset.is_some() {
+      update_reference_position(&mut self.buffer, BUFFER_WALKING_INFO_BYTE_OFFSET);
+      self.buffer.extend_from_slice(
+        &((self.walking_entries.len() * WALKING_ENTRY_WORDS) as u32).to_ne_bytes(),
+      );
       for entry in &self.walking_entries {
         self
           .buffer
-          .extend_from_slice(&(entry.node_buffer_position).to_ne_bytes());
+          .extend_from_slice(&entry.node_buffer_position.to_ne_bytes());
         self
           .buffer
           .extend_from_slice(&entry.skip_to_index.to_ne_bytes());
@@ -306,6 +324,12 @@ impl<'a> AstConverter<'a> {
   }
 
   // === helpers
+  pub(crate) fn add_sourcemap_location(&mut self, position: u32) {
+    if let Some(sourcemap_locations) = &mut self.sourcemap_locations {
+      sourcemap_locations.register(position);
+    }
+  }
+
   fn add_type_and_parent(&mut self, node_type: &[u8; 4]) -> u32 {
     let node_position = (self.buffer.len() / WORD_SIZE) as u32;
     let parent_position = self
@@ -339,6 +363,7 @@ impl<'a> AstConverter<'a> {
     );
     // start
     let start = self.index_converter.convert(utf8_start, keep_annotations);
+    self.add_sourcemap_location(start);
     self.buffer.extend_from_slice(&start.to_ne_bytes());
     // end
     let end_position = self.buffer.len();
@@ -366,18 +391,20 @@ impl<'a> AstConverter<'a> {
     self.add_type_and_utf8_start(node_type, utf8_start, reserved_bytes, false)
   }
 
-  pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
-    self.add_explicit_end(end_position, span.hi.0 - 1);
+  pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) -> u32 {
+    self.add_explicit_end(end_position, span.hi.0 - 1)
   }
 
-  pub(crate) fn add_explicit_end(&mut self, end_position: usize, utf8_end: u32) {
+  pub(crate) fn add_explicit_end(&mut self, end_position: usize, utf8_end: u32) -> u32 {
     let node_position = self
       .node_position_stack
       .pop()
       .expect("Cannot end a node that was not started") as usize;
     debug_assert_eq!(end_position, (node_position + NODE_END_OFFSET) * WORD_SIZE);
-    self.buffer[end_position..end_position + WORD_SIZE]
-      .copy_from_slice(&self.index_converter.convert(utf8_end, false).to_ne_bytes());
+    let end = self.index_converter.convert(utf8_end, false);
+    self.buffer[end_position..end_position + WORD_SIZE].copy_from_slice(&end.to_ne_bytes());
+    self.add_sourcemap_location(end);
+    end
   }
 
   pub(crate) fn convert_item_list<T, F>(

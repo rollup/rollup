@@ -51,6 +51,28 @@ jobs:
           git restore .
           npm run build:ast-converters
           git diff HEAD --exit-code --ignore-space-at-eol
+      - name: Buffer Format Version
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$BASE_SHA" =~ ^0+$ ]]; then
+            echo "::notice::This push created a new ref, so there is no base commit to compare scripts/buffer-format.json against"
+            exit 0
+          fi
+          git fetch --depth 1 --no-tags origin "$BASE_SHA"
+          fetched_sha="$(git rev-parse FETCH_HEAD)"
+          if [[ "$fetched_sha" != "$BASE_SHA" ]]; then
+            echo "::error::Fetching the base commit $BASE_SHA left FETCH_HEAD at $fetched_sha, refusing to compare against the wrong commit"
+            exit 1
+          fi
+          base_buffer_format_path="$(git ls-tree --name-only "$BASE_SHA" -- scripts/buffer-format.json)"
+          if [[ -z "$base_buffer_format_path" ]]; then
+            echo "::notice::The base commit $BASE_SHA has no scripts/buffer-format.json, skipping the buffer format version check"
+            exit 0
+          fi
+          git show "$BASE_SHA:scripts/buffer-format.json" > "$RUNNER_TEMP/buffer-format.json"
+          npm run check:buffer-format -- "$RUNNER_TEMP/buffer-format.json"
 
   build:
     strategy:

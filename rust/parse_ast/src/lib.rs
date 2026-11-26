@@ -8,7 +8,11 @@ use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsSyntax, Syntax};
 
 use convert_ast::converter::ast_constants::WORD_SIZE;
-use convert_ast::converter::AstConverter;
+use convert_ast::converter::buffer_inventory_constants::{
+  BUFFER_AST_BYTE_OFFSET, BUFFER_FORMAT_VERSION, BUFFER_FORMAT_VERSION_BYTE_OFFSET,
+  BUFFER_INVENTORY_BYTES,
+};
+use convert_ast::converter::{update_reference_position, AstConverter};
 use error_emit::try_with_handler;
 
 use crate::ast_nodes::panic_error::write_panic_error;
@@ -19,17 +23,27 @@ mod ast_nodes;
 mod convert_ast;
 mod error_emit;
 
+/// Creates a buffer whose inventory references the AST root, which starts
+/// directly behind the inventory.
+fn create_buffer_with_inventory(capacity: usize) -> Vec<u8> {
+  let mut buffer = Vec::with_capacity(capacity);
+  buffer.resize(BUFFER_INVENTORY_BYTES, 0);
+  buffer[BUFFER_FORMAT_VERSION_BYTE_OFFSET..BUFFER_FORMAT_VERSION_BYTE_OFFSET + WORD_SIZE]
+    .copy_from_slice(&BUFFER_FORMAT_VERSION.to_ne_bytes());
+  update_reference_position(&mut buffer, BUFFER_AST_BYTE_OFFSET);
+  buffer
+}
+
 pub fn parse_ast(
   code: String,
   allow_return_outside_function: bool,
   jsx: bool,
   walked_nodes_bitset_buffer: Option<&[u64]>,
   collect_scopes: bool,
+  collect_sourcemap_locations: bool,
 ) -> Vec<u8> {
   let walked_nodes_bitset: Option<[u64; 2]> = walked_nodes_bitset_buffer
     .map(|buffer| buffer.try_into().expect("bitset must have 2 elements"));
-
-  let has_walking_info = walked_nodes_bitset.is_some();
 
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
@@ -49,13 +63,9 @@ pub fn parse_ast(
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     let result = catch_unwind(AssertUnwindSafe(|| {
-      // Create buffer upfront with size estimation and walking header if needed
+      // Create buffer upfront with size estimation and the buffer inventory
       // This is just a wild guess and should be revisited from time to time
-      let mut buffer = Vec::with_capacity(20 * code_reference.len());
-      if has_walking_info {
-        // Reserve 4 bytes at the start for the walking info offset
-        buffer.extend_from_slice(&[0u8; WORD_SIZE]);
-      }
+      let mut buffer = create_buffer_with_inventory(20 * code_reference.len());
 
       let result = try_with_handler(&code_reference, |handler| {
         parse_js(
@@ -83,6 +93,7 @@ pub fn parse_ast(
             &annotations,
             walked_nodes_bitset,
             collect_scopes,
+            collect_sourcemap_locations,
           );
           converter.convert_ast_to_buffer(&program)
         }
@@ -90,10 +101,7 @@ pub fn parse_ast(
     }));
     result.unwrap_or_else(|err| {
       // Panic error case: create fresh buffer and write panic error
-      let mut buffer = Vec::new();
-      if has_walking_info {
-        buffer.extend_from_slice(&[0u8; WORD_SIZE]);
-      }
+      let mut buffer = create_buffer_with_inventory(0);
       let msg = if let Some(msg) = err.downcast_ref::<&str>() {
         msg
       } else if let Some(msg) = err.downcast_ref::<String>() {

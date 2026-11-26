@@ -146,6 +146,24 @@ export const SCOPE_NODE_FIELDS = [
 	{ name: 'declarations' }
 ] as const;
 
+// Increase this whenever anything about the buffer layout changes, at most
+// once per pull request. Buffers written by other Rollup versions are rejected,
+// and scripts/buffer-format.json records the layout fingerprint that CI uses to
+// verify that a layout change came with an increase.
+export const BUFFER_FORMAT_VERSION = 1000;
+
+// Layout of the buffer inventory that starts every AST buffer. It holds the
+// format version, references the AST root and the buffered sections. A section
+// reference points at a word count that is followed by the section words.
+// Sections declared with allowNull are encoded as a 0 reference and decoded as
+// null when they were not collected.
+export const BUFFER_INVENTORY_FIELDS = [
+	{ name: 'formatVersion', type: 'FormatVersion' },
+	{ name: 'ast', type: 'Node' },
+	{ allowNull: true, name: 'sourcemapLocations', type: 'Section' },
+	{ allowNull: true, name: 'walkingInfo', type: 'Section' }
+] as const;
+
 export type AstUnionName =
 	| 'BindingPattern'
 	| 'DestructuringPattern'

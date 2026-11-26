@@ -461,6 +461,25 @@ assert.deepEqual(
 
 Both `parseAst` and `parseAstAsync` return fully materialized plain JavaScript objects. If you only want to inspect a small part of the syntax tree, use `parseLazyAst` or `parseLazyAstAsync`; they accept the same options but return a lazy AST with `parent` links.
 
+To edit the parsed code and generate a sourcemap that also maps the parts that were not edited, pass `{ codeEditor: true }`. The result then contains the AST together with an editor for the code, which is a [`magic-string`](https://github.com/Rich-Harris/magic-string) instance that Rollup prepared with the positions of all AST nodes. If the option is a runtime `boolean`, type the options as `ParseOptionsWithCodeEditor` and check for the `codeEditor` property of the union result before using it.
+
+```js twoslash
+import assert from 'node:assert';
+import { parseAst } from 'rollup/parseAst';
+
+const code = 'const value = 42;';
+const { ast, codeEditor } = parseAst(code, { codeEditor: true });
+const declaration = ast.body[0];
+codeEditor.appendLeft(declaration.start, '// edited\n');
+
+assert.equal(codeEditor.original, code);
+assert.equal(codeEditor.toString(), '// edited\nconst value = 42;');
+const map = codeEditor.generateMap({ source: 'main.js' });
+assert.deepEqual(map.sources, ['main.js']);
+```
+
+All editing methods such as `overwrite`, `remove`, `appendLeft` or `prependRight` refer to positions in the original code and return the editor for chaining. The generated map contains mappings for the start and end of the nodes in unedited code, so the unedited parts of the code are mapped at the granularity of AST nodes.
+
 See [Working with ASTs](../plugin-development/index.md#working-with-asts) in the plugin development documentation for details about lazy ASTs and parent links.
 
 ## Walking the AST efficiently
@@ -484,7 +503,7 @@ await parseAndWalk('const x = 1; function foo() { return x + 1; }', {
 // Found identifier: x
 ```
 
-The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `jsx`), plus an additional `collectScopes` option: when set to `true`, each visitor receives a `scope` object on its `api` argument that can determine whether a name is declared in the current scope chain. When using TypeScript, you get full type support for each AST node type based on the visitor key.
+The function is asynchronous and parses and prepares walking information in a different thread in non-WASM builds of Rollup. It accepts the same options as `parseAst` (`allowReturnOutsideFunction`, `codeEditor`, `jsx`), plus an additional `collectScopes` option: when set to `true`, each visitor receives a `scope` object on its `api` argument that can determine whether a name is declared in the current scope chain. When `codeEditor` is `true`, each visitor can edit the code via `api.codeEditor`, and the promise resolves to an object containing the same `codeEditor`. When using TypeScript, you get full type support for each AST node type based on the visitor key.
 
 For detailed information about visitor handlers, controlling child node traversal, scope collection, and usage within plugins, see [`this.parseAndWalk`](../plugin-development/index.md#this-parseandwalk) in the plugin development documentation.
 

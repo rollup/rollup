@@ -70,8 +70,6 @@ export default class BlockStatement extends NodeBase {
 	}
 
 	initialise(): void {
-		super.initialise();
-		this.scope.context.magicString.addSourcemapLocation(this.end - 1);
 		const firstBodyStatement = this.body[0];
 		this.deoptimizeBody =
 			firstBodyStatement instanceof ExpressionStatement &&

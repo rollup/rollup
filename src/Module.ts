@@ -49,7 +49,9 @@ import type {
 	RollupLog
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import { getSourcemapLocations } from './utils/bufferInventory';
 import { BuildPhase } from './utils/buildPhase';
+import { primeSourcemapLocations } from './utils/codeEditor';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import {
 	escapeExportName,
@@ -58,6 +60,7 @@ import {
 	isNamespaceExportName,
 	unescapeExportName
 } from './utils/exportNames';
+import { getAstBuffer } from './utils/getAstBuffer';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -933,6 +936,7 @@ export default class Module {
 		this.magicString = new MagicString(code, {
 			filename: (this.excludeFromSourcemap ? null : fileName)! // don't include plugin helpers in sourcemap
 		});
+		const astBufferView = getAstBuffer(astBuffer);
 
 		this.astContext = {
 			addDynamicImport: this.addDynamicImport.bind(this),
@@ -966,7 +970,12 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext, this.importDescriptions);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.astBuffer = astBuffer;
+		// Keep the aligned bytes so reading the buffer again does not copy it.
+		this.astBuffer = new Uint8Array(
+			astBufferView.buffer,
+			astBufferView.byteOffset,
+			astBufferView.byteLength
+		);
 		// Lazy AST nodes are created on demand and cached while the returned
 		// object lives. By making this a getter, we avoid keeping a reference to
 		// the full AST to conserve memory.
@@ -974,7 +983,10 @@ export default class Module {
 			enumerable: true,
 			get: () => this.tryParseLazy(this.astBuffer)
 		});
-		this.ast = convertProgram(this.astBuffer, null, this.scope);
+		this.ast = convertProgram(astBufferView, null, this.scope);
+		// A parse error is encoded as an AST node that convertProgram throws, and
+		// its buffer has no locations, so install them only after conversion.
+		primeSourcemapLocations(this.magicString, getSourcemapLocations(astBufferView));
 		timeEnd('generate ast', 3);
 	}
 

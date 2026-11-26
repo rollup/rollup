@@ -1,45 +1,90 @@
 import { parse, parseAsync } from '../../native';
 import type {
-	ast,
+	CodeEditorParseResult,
 	DeserializeAst,
 	DeserializeLazyAst,
 	ParseAst,
 	ParseAstAsync,
 	ParseLazyAst,
-	ParseLazyAstAsync
+	ParseLazyAstAsync,
+	ParseOptionsWithCodeEditor
 } from '../rollup/types';
+import { getAstPosition } from './bufferInventory';
 import { deserializeAstBuffer } from './bufferToAst';
 import { deserializeLazyAstBuffer } from './bufferToLazyAst';
+import { createCodeEditor } from './codeEditor';
+import type { AstBuffer } from './getAstBuffer';
 import { getAstBuffer } from './getAstBuffer';
 
 export { serializeAst } from './astToBuffer';
 export { parseAndWalk } from './parseAndWalk';
 
-export const deserializeAst: DeserializeAst = (buffer, position = 0) =>
-	deserializeAstBuffer(getAstBuffer(buffer), position);
+export const deserializeAst: DeserializeAst = buffer => {
+	const astBuffer = getAstBuffer(buffer);
+	return deserializeAstBuffer(astBuffer, getAstPosition(astBuffer));
+};
 
-export const deserializeLazyAst: DeserializeLazyAst = (buffer, position = 0) =>
-	deserializeLazyAstBuffer(getAstBuffer(buffer), position);
+export const deserializeLazyAst: DeserializeLazyAst = buffer => {
+	const astBuffer = getAstBuffer(buffer);
+	return deserializeLazyAstBuffer(astBuffer, getAstPosition(astBuffer));
+};
 
-export const parseAst: ParseAst = (
-	input,
-	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) => deserializeAst(parse(input, allowReturnOutsideFunction, jsx)) as ast.Program;
+function createParseResult<Ast>(
+	input: string,
+	astBuffer: AstBuffer,
+	node: Ast,
+	withCodeEditor: boolean
+): Ast | CodeEditorParseResult<Ast> {
+	return withCodeEditor ? { ast: node, codeEditor: createCodeEditor(input, astBuffer) } : node;
+}
 
-export const parseAstAsync: ParseAstAsync = async (
-	input,
-	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) => deserializeAst(await parseAsync(input, allowReturnOutsideFunction, jsx)) as ast.Program;
+export const parseAst = ((input: string, options: ParseOptionsWithCodeEditor = {}) => {
+	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
+	const astBuffer = getAstBuffer(parse(input, allowReturnOutsideFunction, jsx, codeEditor));
+	return createParseResult(
+		input,
+		astBuffer,
+		deserializeAstBuffer(astBuffer, getAstPosition(astBuffer)),
+		codeEditor
+	);
+}) as ParseAst;
 
-export const parseLazyAst: ParseLazyAst = (
-	input,
-	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) => deserializeLazyAst(parse(input, allowReturnOutsideFunction, jsx)) as ast.LazyNode<ast.Program>;
+export const parseAstAsync = (async (input: string, options: ParseOptionsWithCodeEditor = {}) => {
+	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
+	const astBuffer = getAstBuffer(
+		await parseAsync(input, allowReturnOutsideFunction, jsx, codeEditor)
+	);
+	return createParseResult(
+		input,
+		astBuffer,
+		deserializeAstBuffer(astBuffer, getAstPosition(astBuffer)),
+		codeEditor
+	);
+}) as ParseAstAsync;
 
-export const parseLazyAstAsync: ParseLazyAstAsync = async (
-	input,
-	{ allowReturnOutsideFunction = false, jsx = false } = {}
-) =>
-	deserializeLazyAst(
-		await parseAsync(input, allowReturnOutsideFunction, jsx)
-	) as ast.LazyNode<ast.Program>;
+export const parseLazyAst = ((input: string, options: ParseOptionsWithCodeEditor = {}) => {
+	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
+	const astBuffer = getAstBuffer(parse(input, allowReturnOutsideFunction, jsx, codeEditor));
+	return createParseResult(
+		input,
+		astBuffer,
+		deserializeLazyAstBuffer(astBuffer, getAstPosition(astBuffer)),
+		codeEditor
+	);
+}) as ParseLazyAst;
+
+export const parseLazyAstAsync = (async (
+	input: string,
+	options: ParseOptionsWithCodeEditor = {}
+) => {
+	const { allowReturnOutsideFunction = false, codeEditor = false, jsx = false } = options;
+	const astBuffer = getAstBuffer(
+		await parseAsync(input, allowReturnOutsideFunction, jsx, codeEditor)
+	);
+	return createParseResult(
+		input,
+		astBuffer,
+		deserializeLazyAstBuffer(astBuffer, getAstPosition(astBuffer)),
+		codeEditor
+	);
+}) as ParseLazyAstAsync;

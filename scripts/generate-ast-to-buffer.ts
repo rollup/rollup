@@ -64,6 +64,7 @@ function getNodeSerializerBody({
 	index,
 	fields,
 	flags,
+	typeName,
 	node: { serializeHiddenFields }
 }: AstTypeDescription): string {
 	const fieldSerializers: string[] = [];
@@ -138,6 +139,7 @@ function getNodeSerializerBody({
 		  buffer[nodePosition + ${NODE_PARENT_OFFSET}] = encodedParent;
 		  buffer[nodePosition + ${NODE_START_OFFSET}] = node.start;
 		  buffer[nodePosition + ${NODE_END_OFFSET}] = node.end;
+		  buffer.addSourcemapLocation(node.start, node.end, ${typeName === 'BlockStatement'});
 		  ${fieldSerializers.map(s => s + '\n').join('')}return buffer;
 		}`;
 }
@@ -145,6 +147,13 @@ function getNodeSerializerBody({
 const astToBuffer = `${notEditFilesComment}
 import type { AstNode } from '../rollup/ast-types';
 import type { ast, SerializeAst } from '../rollup/types';
+import {
+  BUFFER_AST_WORD_INDEX,
+  BUFFER_FORMAT_VERSION,
+  BUFFER_FORMAT_VERSION_WORD_INDEX,
+  BUFFER_INVENTORY_WORD_COUNT,
+  BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX
+} from './bufferInventory';
 import type { AstBufferForWriting } from './getAstBuffer';
 import { createAstBufferNode, createAstBufferUint8 } from './getAstBuffer';
 import { error, logExpectedNodeList, logUnknownNodeType } from './logs';
@@ -159,10 +168,19 @@ type NodeSerializer<T extends ast.AstNode> = (
 const INITIAL_BUFFER_SIZE = 2 ** 16; // 64KB
 
 export const serializeAst: SerializeAst | ((node: ast.AstNode) => Uint8Array) = node => {
+  const sourcemapLocations = new Uint32Array((node.end >> 5) + 1);
   const initialBuffer = (
     typeof Buffer === 'undefined' ? createAstBufferUint8 : createAstBufferNode
-  )(INITIAL_BUFFER_SIZE);
-  const buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, initialBuffer, 0);
+  )(INITIAL_BUFFER_SIZE, sourcemapLocations);
+  let buffer = initialBuffer.reserve(BUFFER_INVENTORY_WORD_COUNT);
+  buffer[BUFFER_FORMAT_VERSION_WORD_INDEX] = BUFFER_FORMAT_VERSION;
+  buffer[BUFFER_AST_WORD_INDEX] = buffer.position;
+  buffer = (nodeSerializers[node.type] || error(logUnknownNodeType(node.type, null, '')))(node as any, buffer, 0);
+  buffer[BUFFER_SOURCEMAP_LOCATIONS_WORD_INDEX] = buffer.position;
+  const sectionPosition = buffer.position;
+  buffer = buffer.reserve(sourcemapLocations.length + 1);
+  buffer[sectionPosition] = sourcemapLocations.length;
+  buffer.set(sourcemapLocations, sectionPosition + 1);
   return buffer.toOutput();
 };
 

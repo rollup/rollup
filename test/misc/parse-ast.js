@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+const vm = require('node:vm');
 const {
 	parseAst,
 	parseAstAsync,
@@ -9,9 +10,52 @@ const {
 	deserializeLazyAst
 } = require('../../dist/parseAst');
 const { rollup } = require('../../dist/rollup');
-const { assertAstEqual, hasEsBuild } = require('../testHelpers');
+const { assertAstEqual, hasEsBuild, loader } = require('../testHelpers');
 
 describe('parseAst', () => {
+	it('round-trips a serialized AST', () => {
+		const ast = parseAst('function getValue() { return 42; }');
+		assert.deepStrictEqual(deserializeAst(serializeAst(ast)), ast);
+	});
+
+	it('generates the same sourcemap with a supplied AST', async () => {
+		const code = `const value = 41;
+function outer(a) {
+	if (a > value) {
+		return { result: a + value, nested: () => [a, value] };
+	}
+	for (let i = 0; i < 3; i++) {
+		a += i;
+	}
+	return a;
+}
+export const result = outer(2);
+`;
+		const generate = async useAst => {
+			const bundle = await rollup({
+				input: 'entry.js',
+				plugins: [
+					{
+						name: 'virtual',
+						resolveId: id => (id === 'entry.js' ? id : null),
+						load: id => (id === 'entry.js' ? code : null),
+						transform(code) {
+							if (useAst) {
+								return { ast: this.parse(code), code, map: null };
+							}
+						}
+					}
+				]
+			});
+			const { output } = await bundle.generate({ format: 'es', sourcemap: true });
+			return output[0].map;
+		};
+		const withoutAst = await generate(false);
+		const withAst = await generate(true);
+		assert.strictEqual(withAst.mappings, withoutAst.mappings);
+		assert.deepStrictEqual(withAst.sources, withoutAst.sources);
+	});
+
 	it('parses an AST', async () => {
 		assert.deepStrictEqual(parseAst('console.log("ok")'), {
 			type: 'Program',
@@ -285,6 +329,33 @@ describe('parseAst', () => {
 		assert.deepStrictEqual(deserializeAst(view), ast);
 		assertAstEqual(deserializeLazyAst(view), ast);
 	});
+
+	it('accepts AST buffers that were created in another realm', () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		const foreignBuffer = vm.runInNewContext(
+			'new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)',
+			{ buffer }
+		);
+		assert.strictEqual(foreignBuffer instanceof Uint8Array, false);
+		assert.deepStrictEqual(deserializeAst(foreignBuffer), ast);
+		assertAstEqual(deserializeLazyAst(foreignBuffer), ast);
+	});
+
+	it('rejects AST buffers that are not Uint8Array views', () => {
+		const ast = parseAst('console.log("ok")');
+		const buffer = serializeAst(ast);
+		const invalidBuffers = [
+			JSON.parse(JSON.stringify(buffer)),
+			new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength >> 2),
+			new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+		];
+		for (const deserialize of [deserializeAst, deserializeLazyAst]) {
+			for (const invalidBuffer of invalidBuffers) {
+				assert.throws(() => deserialize(invalidBuffer), { code: 'INVALID_AST_BUFFER_VERSION' });
+			}
+		}
+	});
 });
 
 describe('parseAstAsync', () => {
@@ -457,16 +528,6 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(parents[0].type, 'VariableDeclarator');
 	});
 
-	it('resolves parents when deserializing a fragment at a non-zero position', () => {
-		const buffer = serializeAst(parseAst('const x = foo;'));
-		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
-		const declarationPosition = words[words[4] + 1];
-		const declaration = deserializeLazyAst(buffer, declarationPosition);
-		assert.strictEqual(declaration.type, 'VariableDeclaration');
-		assert.strictEqual(declaration.parent.type, 'Program');
-		assert.strictEqual(declaration.parent.body[0], declaration);
-	});
-
 	it('keeps parent links of dynamic import sources consistent in a build', async () => {
 		let checks;
 		await rollup({
@@ -525,6 +586,158 @@ describe('lazy AST parents', () => {
 		assert.strictEqual(declarator.id.parent, declarator);
 		assert.strictEqual(declarator.init.parent, declarator);
 		assert.strictEqual(otherParent, declarator.init);
+	});
+});
+
+const AST_REFERENCE_WORD = 1;
+const SOURCEMAP_LOCATIONS_REFERENCE_WORD = 2;
+
+async function assertRejectsCorruptedCachedBuffer(corruptWords) {
+	const files = { 'main.js': 'export const main = 2;' };
+	const firstBundle = await rollup({ input: 'main.js', plugins: [loader(files)] });
+	const { astBuffer } = firstBundle.cache.modules[0];
+	const words = new Uint32Array(astBuffer.buffer, astBuffer.byteOffset, astBuffer.byteLength / 4);
+	const description = corruptWords(words);
+	await assert.rejects(
+		rollup({ cache: firstBundle.cache, input: 'main.js', plugins: [loader(files)] }),
+		{
+			message: `Corrupted AST buffer: ${description}. Discard the buffer and parse the code again.`
+		}
+	);
+}
+
+describe('AST buffer validation', () => {
+	it('rejects buffers with a different format version', () => {
+		const buffer = serializeAst(parseAst('const x = 1;'));
+		const words = new Uint32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+		const formatVersion = words[0];
+		words[0] = formatVersion + 1;
+		const expectedError = {
+			code: 'INVALID_AST_BUFFER_VERSION',
+			message: `Cannot use AST buffer: unsupported format version ${
+				formatVersion + 1
+			}, expected version ${formatVersion}. The buffer was created by a different Rollup version, e.g. as part of an outdated cache. Discard the cache passed to Rollup together with any persisted copy and try again.`
+		};
+		assert.throws(() => deserializeAst(buffer), expectedError);
+		assert.throws(() => deserializeLazyAst(buffer), expectedError);
+	});
+
+	it('rejects buffers that are too short to contain the inventory', () => {
+		for (const byteLength of [0, 4, 12]) {
+			assert.throws(() => deserializeAst(new Uint8Array(byteLength)), {
+				code: 'INVALID_AST_BUFFER_VERSION',
+				message: /^Cannot use AST buffer: unsupported format version, expected version \d+\./
+			});
+		}
+	});
+
+	it('re-parses modules whose cached AST buffer has a different format version', async () => {
+		const files = {
+			'dep.js': 'export const dep = 1;',
+			'main.js': 'export const main = 2;'
+		};
+		const inputs = Object.keys(files);
+		const firstBundle = await rollup({ input: inputs, plugins: [loader(files)] });
+		const expectedCodes = (await firstBundle.generate({ format: 'es' })).output.map(
+			({ code }) => code
+		);
+		for (const cachedModule of firstBundle.cache.modules) {
+			const words = new Uint32Array(
+				cachedModule.astBuffer.buffer,
+				cachedModule.astBuffer.byteOffset,
+				cachedModule.astBuffer.byteLength / 4
+			);
+			words[0] += 1;
+		}
+		const parsedModuleIds = [];
+		const warnings = [];
+		const secondBundle = await rollup({
+			cache: firstBundle.cache,
+			input: inputs,
+			onwarn: warning => warnings.push(warning),
+			plugins: [
+				loader(files),
+				{
+					name: 'record-parsed-modules',
+					transform(code, id) {
+						parsedModuleIds.push(id);
+					}
+				}
+			]
+		});
+		const reparsedCodes = (await secondBundle.generate({ format: 'es' })).output.map(
+			({ code }) => code
+		);
+		assert.deepStrictEqual(reparsedCodes, expectedCodes);
+		assert.deepStrictEqual(parsedModuleIds.sort(), ['dep.js', 'main.js']);
+		assert.deepStrictEqual(
+			warnings.map(({ code }) => code),
+			['INVALID_AST_BUFFER_VERSION']
+		);
+	});
+
+	it('generates the same sourcemap for modules restored from misaligned cached buffers', async () => {
+		const files = { 'main.js': 'export const main = 2;' };
+		const firstBundle = await rollup({ input: 'main.js', plugins: [loader(files)] });
+		const { output } = await firstBundle.generate({ format: 'es', sourcemap: true });
+		for (const cachedModule of firstBundle.cache.modules) {
+			const misalignedBuffer = new Uint8Array(cachedModule.astBuffer.byteLength + 2);
+			misalignedBuffer.set(cachedModule.astBuffer, 2);
+			cachedModule.astBuffer = misalignedBuffer.subarray(2);
+		}
+		const secondBundle = await rollup({
+			cache: firstBundle.cache,
+			input: 'main.js',
+			plugins: [loader(files)]
+		});
+		const summarizeChunks = ({ output }) =>
+			output.filter(({ type }) => type === 'chunk').map(({ code, map }) => [code, map.mappings]);
+		assert.deepStrictEqual(
+			summarizeChunks(await secondBundle.generate({ format: 'es', sourcemap: true })),
+			summarizeChunks({ output })
+		);
+	});
+
+	it('rejects a cached AST buffer whose node reference is outside the buffer', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[AST_REFERENCE_WORD] = words.length;
+			return `node reference ${words.length} is outside the buffer`;
+		});
+	});
+
+	it('rejects a cached AST buffer with a section reference outside the buffer', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[SOURCEMAP_LOCATIONS_REFERENCE_WORD] = words.length;
+			return `section reference ${words.length} is outside the buffer`;
+		});
+	});
+
+	it('rejects a cached AST buffer whose section exceeds the buffer', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[SOURCEMAP_LOCATIONS_REFERENCE_WORD] = words.length - 1;
+			words[words.length - 1] = 1;
+			return `section at word ${words.length - 1} exceeds the buffer`;
+		});
+	});
+
+	it('rejects a cached AST buffer without sourcemap locations', async () => {
+		await assertRejectsCorruptedCachedBuffer(words => {
+			words[SOURCEMAP_LOCATIONS_REFERENCE_WORD] = 0;
+			return 'the sourcemap locations section is missing';
+		});
+	});
+});
+
+describe('parseAndWalk', () => {
+	it('returns without visiting when no node matches the selected types', async () => {
+		let visited = false;
+		const result = await parseAndWalk('const value = 42;', {
+			YieldExpression: () => {
+				visited = true;
+			}
+		});
+		assert.strictEqual(visited, false);
+		assert.strictEqual(result, undefined);
 	});
 });
 

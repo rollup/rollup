@@ -1,4 +1,10 @@
 import type { ast } from '../rollup/types';
+import {
+	BUFFER_FORMAT_VERSION,
+	BUFFER_FORMAT_VERSION_WORD_INDEX,
+	BUFFER_INVENTORY_WORD_COUNT
+} from './bufferInventory';
+import { error, logInvalidAstBufferVersion } from './logs';
 
 export type AstBuffer = Uint32Array & {
 	convertFloat64: (this: AstBuffer, position: number) => number;
@@ -11,6 +17,7 @@ export type AstBuffer = Uint32Array & {
 export type AstBufferForWriting<T = Uint8Array | Buffer> = Uint32Array & AstBufferForWritingApi<T>;
 
 interface AstBufferForWritingApi<T = Uint8Array | Buffer> {
+	addSourcemapLocation: (start: number, end: number, isBlockStatement: boolean) => void;
 	addStringToBuffer: (text: string, referencePosition: number) => AstBufferForWriting<T>;
 	byteBuffer: T;
 	position: number;
@@ -33,6 +40,20 @@ const writeFloat64 = function (this: Uint32Array, value: number, wordPosition: n
 	this[wordPosition] = scratchFloat64.getUint32(0, true);
 	this[wordPosition + 1] = scratchFloat64.getUint32(4, true);
 };
+
+function writeSourcemapLocation(
+	sourcemapLocations: Uint32Array,
+	start: number,
+	end: number,
+	isBlockStatement: boolean
+): void {
+	sourcemapLocations[start >> 5] |= 1 << (start & 31);
+	sourcemapLocations[end >> 5] |= 1 << (end & 31);
+	if (isBlockStatement && end > 0) {
+		const index = end - 1;
+		sourcemapLocations[index >> 5] |= 1 << (index & 31);
+	}
+}
 
 function writeStringWordsBigEndian(
 	buffer: AstBufferForWriting,
@@ -75,15 +96,44 @@ const decodePackedString = (array: Uint32Array, position: number, length: number
 		: new TextDecoder().decode(bytes);
 };
 
-export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
+const getAstBufferWords = (byteBuffer: Buffer | Uint8Array): Uint32Array => {
 	// Create an aligned copy for misaligned views, e.g. buffers restored by
-	// v8.deserialize, as the Uint32Array below requires a 4-byte aligned offset
+	// v8.deserialize, as a Uint32Array requires a 4-byte aligned offset
 	const alignedByteBuffer = byteBuffer.byteOffset & 3 ? new Uint8Array(byteBuffer) : byteBuffer;
-	const array = new Uint32Array(
+	return new Uint32Array(
 		alignedByteBuffer.buffer,
 		alignedByteBuffer.byteOffset,
 		alignedByteBuffer.byteLength >> 2
 	);
+};
+
+// A Uint8Array check that works across realms, unlike "instanceof", but still
+// rejects other typed arrays and DataViews, which the buffer readers cannot
+// decode.
+const isByteView = (value: unknown): value is Uint8Array =>
+	ArrayBuffer.isView(value) && Object.prototype.toString.call(value) === '[object Uint8Array]';
+
+// Cached buffers are usually views into a larger pool at an unaligned offset,
+// so the version is read without aligning, which would copy the whole buffer.
+export function getAstBufferFormatVersion(
+	byteBuffer: Buffer | Uint8Array | undefined
+): number | undefined {
+	const inventoryByteCount = BUFFER_INVENTORY_WORD_COUNT << 2;
+	if (!isByteView(byteBuffer) || byteBuffer.byteLength < inventoryByteCount) {
+		return undefined;
+	}
+	return new DataView(byteBuffer.buffer, byteBuffer.byteOffset, inventoryByteCount).getUint32(
+		BUFFER_FORMAT_VERSION_WORD_INDEX << 2,
+		!isBigEndianHost
+	);
+}
+
+export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
+	const array = getAstBufferWords(byteBuffer);
+	const formatVersion = getAstBufferFormatVersion(byteBuffer);
+	if (formatVersion !== BUFFER_FORMAT_VERSION) {
+		error(logInvalidAstBufferVersion(formatVersion));
+	}
 	let convertString: (position: number) => string;
 	if (isBigEndianHost) {
 		convertString = position => decodePackedString(array, position, array[position]);
@@ -114,11 +164,17 @@ export function getAstBuffer(byteBuffer: Buffer | Uint8Array): AstBuffer {
 	});
 }
 
-export function createAstBufferUint8(uInt32Size: number): AstBufferForWriting<Uint8Array> {
+export function createAstBufferUint8(
+	uInt32Size: number,
+	sourcemapLocations: Uint32Array
+): AstBufferForWriting<Uint8Array> {
 	const buffer = new Uint32Array(uInt32Size) as AstBufferForWriting<Uint8Array>;
 	const encoder = new TextEncoder();
 	const byteBuffer = new Uint8Array(buffer.buffer);
 	return Object.assign(buffer, {
+		addSourcemapLocation(start, end, isBlockStatement) {
+			writeSourcemapLocation(sourcemapLocations, start, end, isBlockStatement);
+		},
 		addStringToBuffer(text, referencePosition) {
 			const insertPosition = buffer.position;
 			buffer[referencePosition] = insertPosition;
@@ -148,7 +204,7 @@ export function createAstBufferUint8(uInt32Size: number): AstBufferForWriting<Ui
 				buffer.position = newPosition;
 				return buffer;
 			}
-			const newBuffer = createAstBufferUint8(newPosition * 2);
+			const newBuffer = createAstBufferUint8(newPosition * 2, sourcemapLocations);
 			newBuffer.set(buffer);
 			newBuffer.position = newPosition;
 			return newBuffer;
@@ -161,16 +217,22 @@ export function createAstBufferUint8(uInt32Size: number): AstBufferForWriting<Ui
 	} satisfies AstBufferForWritingApi<Uint8Array>);
 }
 
-export function createAstBufferNode(uInt32Size: number): AstBufferForWriting<Buffer> {
+export function createAstBufferNode(
+	uInt32Size: number,
+	sourcemapLocations: Uint32Array
+): AstBufferForWriting<Buffer> {
 	const buffer = new Uint32Array(uInt32Size) as AstBufferForWriting<Buffer>;
 	const byteBuffer = Buffer.from(buffer.buffer);
 	return Object.assign(buffer, {
+		addSourcemapLocation(start, end, isBlockStatement) {
+			writeSourcemapLocation(sourcemapLocations, start, end, isBlockStatement);
+		},
 		addStringToBuffer(text, referencePosition) {
 			let extendedBuffer = buffer;
 			const requiredSize = buffer.position + 1 + ((text.length * 3 + 3) >> 2);
 			if (requiredSize > buffer.length) {
 				// Reserve more space if needed
-				extendedBuffer = createAstBufferNode(requiredSize * 2);
+				extendedBuffer = createAstBufferNode(requiredSize * 2, sourcemapLocations);
 				byteBuffer.copy(extendedBuffer.byteBuffer, 0, 0, buffer.position << 2);
 				extendedBuffer.position = buffer.position;
 			}
@@ -199,7 +261,7 @@ export function createAstBufferNode(uInt32Size: number): AstBufferForWriting<Buf
 				buffer.position = newPosition;
 				return buffer;
 			}
-			const newBuffer = createAstBufferNode(newPosition * 2);
+			const newBuffer = createAstBufferNode(newPosition * 2, sourcemapLocations);
 			byteBuffer.copy(newBuffer.byteBuffer, 0, 0, buffer.position << 2);
 			newBuffer.position = newPosition;
 			return newBuffer;

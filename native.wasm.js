@@ -18,19 +18,27 @@ const toHostByteOrder = result => {
 	return result;
 };
 
-exports.parse = (code, allowReturnOutsideFunction, jsx) =>
-	toHostByteOrder(parse(code, allowReturnOutsideFunction, jsx));
-exports.parseAsync = async (code, allowReturnOutsideFunction, jsx) =>
-	toHostByteOrder(parse(code, allowReturnOutsideFunction, jsx));
+exports.parse = (code, allowReturnOutsideFunction, jsx, collectSourcemapLocations) =>
+	toHostByteOrder(parse(code, allowReturnOutsideFunction, jsx, collectSourcemapLocations));
+exports.parseAsync = async (code, allowReturnOutsideFunction, jsx, collectSourcemapLocations) =>
+	toHostByteOrder(parse(code, allowReturnOutsideFunction, jsx, collectSourcemapLocations));
 exports.parseAndWalk = async (
 	code,
 	allowReturnOutsideFunction,
 	jsx,
 	walkedNodesBitset,
-	collectScopes
+	collectScopes,
+	collectSourcemapLocations
 ) =>
 	toHostByteOrder(
-		parseAndWalkSync(code, allowReturnOutsideFunction, jsx, walkedNodesBitset, collectScopes)
+		parseAndWalkSync(
+			code,
+			allowReturnOutsideFunction,
+			jsx,
+			walkedNodesBitset,
+			collectScopes,
+			collectSourcemapLocations
+		)
 	);
 exports.xxhashBase64Url = xxhashBase64Url;
 exports.xxhashBase36 = xxhashBase36;
