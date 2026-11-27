@@ -122,6 +122,16 @@ describe('loadConfigFile', () => {
 				options[0].input
 			);
 
+			const { options: reloadedOptions } = await loadConfigFile(configFile, {
+				environment: 'ROLLUP_TEST_CONFIG_INPUT:reloaded'
+			});
+			assert.deepStrictEqual(reloadedOptions[0].input, [
+				'reloaded',
+				'true',
+				'',
+				'http://localhost:4000'
+			]);
+
 			const environment = { ...process.env };
 			await loadConfigFile(configFile);
 			assert.deepStrictEqual({ ...process.env }, environment);
@@ -137,27 +147,34 @@ describe('loadConfigFile', () => {
 		}
 	});
 
-	it('applies updated environment options when loading the same config twice', async () => {
-		const previousInput = process.env.ROLLUP_TEST_CONFIG_INPUT;
-		delete process.env.ROLLUP_TEST_CONFIG_INPUT;
-		try {
-			const configFile = path.resolve(__dirname, 'samples/environment/rollup.config.mjs');
-			const { options: firstOptions } = await loadConfigFile(configFile, {
-				environment: 'ROLLUP_TEST_CONFIG_INPUT:first'
-			});
-			assert.strictEqual(firstOptions[0].input, 'first');
-			const { options: secondOptions } = await loadConfigFile(configFile, {
-				environment: 'ROLLUP_TEST_CONFIG_INPUT:second'
-			});
-			assert.strictEqual(secondOptions[0].input, 'second');
-		} finally {
-			if (previousInput === undefined) {
-				delete process.env.ROLLUP_TEST_CONFIG_INPUT;
-			} else {
-				process.env.ROLLUP_TEST_CONFIG_INPUT = previousInput;
+	for (const bundleConfigAsCjs of [false, true]) {
+		it(`applies updated environment options to repeated ${bundleConfigAsCjs ? 'bundled' : 'native ESM'} loads in the same millisecond`, async () => {
+			const previousInput = process.env.ROLLUP_TEST_CONFIG_INPUT;
+			const originalNow = Date.now;
+			Date.now = () => 123;
+			delete process.env.ROLLUP_TEST_CONFIG_INPUT;
+			try {
+				const configFile = path.resolve(__dirname, 'samples/environment/rollup.config.mjs');
+				const { options: firstOptions } = await loadConfigFile(configFile, {
+					bundleConfigAsCjs,
+					environment: 'ROLLUP_TEST_CONFIG_INPUT:first'
+				});
+				assert.strictEqual(firstOptions[0].input, 'first');
+				const { options: secondOptions } = await loadConfigFile(configFile, {
+					bundleConfigAsCjs,
+					environment: 'ROLLUP_TEST_CONFIG_INPUT:second'
+				});
+				assert.strictEqual(secondOptions[0].input, 'second');
+			} finally {
+				Date.now = originalNow;
+				if (previousInput === undefined) {
+					delete process.env.ROLLUP_TEST_CONFIG_INPUT;
+				} else {
+					process.env.ROLLUP_TEST_CONFIG_INPUT = previousInput;
+				}
 			}
-		}
-	});
+		});
+	}
 
 	it('throws a helpful error when loading an ES module that should actually be CommonJS', async () => {
 		let caughtError;

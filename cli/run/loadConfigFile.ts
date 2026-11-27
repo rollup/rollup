@@ -1,7 +1,9 @@
+import { randomUUID } from 'node:crypto';
 import { unlink, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as rollup from '../../src/node-entry';
 import type {
 	ImportAttributesKey,
@@ -23,6 +25,8 @@ import { stderr } from '../logging';
 import batchWarnings from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 import type { LoadConfigFile } from './loadConfigFileType';
+
+const require = createRequire(import.meta.url);
 
 export const loadConfigFile: LoadConfigFile = async (
 	fileName,
@@ -71,8 +75,13 @@ async function getConfigFileExport(fileName: string, commandOptions: Record<stri
 	process.on('warning', handleWarning);
 	try {
 		const fileUrl = pathToFileURL(fileName);
-		// We are adding the current date to allow reloads, e.g. to apply updated environment options
-		fileUrl.search = `?${Date.now()}`;
+		// Node caches CommonJS by filename even when the import URL changes.
+		try {
+			delete require.cache[require.resolve(fileURLToPath(fileUrl))];
+		} catch {
+			// Let import report any load failure.
+		}
+		fileUrl.search = randomUUID();
 		return (await import(fileUrl.href)).default;
 	} catch (error_: any) {
 		if (cannotLoadEsm) {
@@ -157,7 +166,7 @@ async function loadTranspiledConfigFile(
 	return loadConfigFromWrittenFile(
 		path.join(
 			path.dirname(fileName),
-			`rollup.config-${Date.now()}.${bundleConfigAsCjs ? 'cjs' : 'mjs'}`
+			`rollup.config-${randomUUID()}.${bundleConfigAsCjs ? 'cjs' : 'mjs'}`
 		),
 		code
 	);
