@@ -1234,21 +1234,20 @@ export default class Module {
 	private addLocationToLogProps(properties: RollupLog, pos: number): void {
 		properties.id = this.id;
 		properties.pos = pos;
-		let code = this.info.code;
-		const location = locate(code!, pos, { offsetLine: 1 });
-		if (location) {
-			let { column, line } = location;
-			try {
-				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
-				code = this.originalCode;
-			} catch (error_: any) {
-				this.options.onLog(
-					LOGLEVEL_WARN,
-					logInvalidSourcemapForError(error_, this.id, column, line, pos)
-				);
-			}
-			augmentCodeLocation(properties, { column, line }, code!, this.id);
+		let code = this.info.code!;
+		const location = locate(code, pos, { offsetLine: 1 });
+		if (!location) return;
+		let mapped;
+		try {
+			mapped = getOriginalLocation(this.sourcemapChain, location);
+			if (mapped) code = this.originalCode!;
+		} catch (error_: any) {
+			this.options.onLog(
+				LOGLEVEL_WARN,
+				logInvalidSourcemapForError(error_, this.id, location.column, location.line, pos)
+			);
 		}
+		augmentCodeLocation(properties, mapped ?? location, code, this.id);
 	}
 
 	private addModulesToImportDescriptions(
