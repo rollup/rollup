@@ -61,14 +61,23 @@ export function resetSourcemapCache(
 
 export function decodedSourcemap(map: null | undefined): null;
 export function decodedSourcemap<T extends ExistingDecodedSourceMap>(map: T): T;
-export function decodedSourcemap(map: Exclude<Input, null | undefined>): ExistingDecodedSourceMap;
+export function decodedSourcemap(map: string): ExistingDecodedSourceMap | null;
+export function decodedSourcemap(
+	map: Exclude<Input, null | undefined | string>
+): ExistingDecodedSourceMap;
+// String maps get their own nullable overload instead of being folded into the catch-all
+// eslint-disable-next-line @typescript-eslint/unified-signatures
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null;
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
-	if (!map) return null;
-
 	if (typeof map === 'string') {
-		map = JSON.parse(map) as ExistingRawSourceMap;
+		try {
+			map = JSON.parse(map) as ExistingRawSourceMap;
+		} catch {
+			// Plugins sometimes return strings like "undefined" instead of a sourcemap
+			return null;
+		}
 	}
+	if (!map) return null;
 	// A map this function already returned, e.g. one restored from the cache of a previous build, is
 	// lazy. Reading its mappings below would decode it.
 	if (sourceMapCache.has(map as ExistingDecodedSourceMap)) {

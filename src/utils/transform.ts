@@ -30,15 +30,6 @@ import { getTrackedPluginCache } from './PluginCache';
 import type { PluginDriver } from './PluginDriver';
 import { URL_TRANSFORM } from './urls';
 
-// Plugins may return non-JSON strings such as "undefined" as a map.
-function decodeTransformMap(map: SourceMapInput | undefined): ReturnType<typeof decodedSourcemap> {
-	try {
-		return decodedSourcemap(map);
-	} catch {
-		return null;
-	}
-}
-
 export default async function transform(
 	source: SourceDescription,
 	module: Module,
@@ -93,7 +84,7 @@ export default async function transform(
 		// while 'undefined' gets the missing map warning
 		if (map !== null) {
 			sourcemapChain.push(
-				decodeTransformMap(map) || {
+				decodedSourcemap(map) || {
 					missing: true,
 					plugin: plugin.name
 				}
