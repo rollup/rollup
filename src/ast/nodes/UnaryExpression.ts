@@ -8,7 +8,8 @@ import {
 	EMPTY_PATH,
 	type EntityPathTracker,
 	type ObjectPath,
-	SHARED_RECURSION_TRACKER
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { getRenderedLiteralValue } from '../utils/renderLiteralValue';
 import Identifier from './Identifier';
@@ -34,6 +35,11 @@ const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnkn
 	void: () => undefined,
 	'~': value => ~(value as NonNullable<LiteralValue>)
 };
+
+// The unary `+`, `-` and `~` operators convert their argument to a number
+// via ToPrimitive, which can call the argument's `valueOf` and `toString`
+// methods. The other unary operators do not convert their argument.
+const COERCING_UNARY_OPERATORS: ReadonlySet<string> = new Set(['+', '-', '~']);
 
 const UNASSIGNED = Symbol('Unassigned');
 
@@ -96,6 +102,12 @@ export default class UnaryExpression extends NodeBase {
 		if (this.operator === 'delete') {
 			this.argument.deoptimizePath(EMPTY_PATH);
 			this.scope.context.requestTreeshakingPass();
+		} else if (COERCING_UNARY_OPERATORS.has(this.operator)) {
+			// The operator converts its argument to a number, which can call
+			// its conversion methods with the argument as `this`. Deoptimize
+			// the argument so later reads observe any mutation.
+			this.argument.deoptimizePath(UNKNOWN_PATH);
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 
@@ -125,6 +137,14 @@ export default class UnaryExpression extends NodeBase {
 		) {
 			this.argument.include(context, includeChildrenRecursively);
 			this.renderedLiteralValue = UnknownValue;
+			if (COERCING_UNARY_OPERATORS.has(this.operator)) {
+				// The operator converts its argument to a number, which will
+				// call the argument's `valueOf` and `toString` methods if
+				// they exist. Using objects in unary expressions that coerce
+				// values should be uncommon enough to include the whole
+				// argument.
+				this.argument.includePath(UNKNOWN_PATH, context);
+			}
 		}
 	}
 

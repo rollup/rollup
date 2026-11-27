@@ -25,12 +25,7 @@ import {
 	type LiteralValueOrUnknown,
 	UnknownValue
 } from './shared/Expression';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 type Operator =
 	| '!='
@@ -84,6 +79,12 @@ const binaryOperators: Partial<
 	// in: () => UnknownValue,
 	// instanceof: () => UnknownValue,
 };
+
+// All operators except `===`, `!==` and `instanceof` convert their operands
+// to primitives via ToPrimitive, which can call the `valueOf` and `toString`
+// methods of an object operand. The `in` operator only converts its left
+// operand, to a property key.
+const OPERATORS_WITHOUT_COERCION: ReadonlySet<Operator> = new Set(['===', '!==', 'instanceof']);
 
 const UNASSIGNED = Symbol('Unassigned');
 
@@ -157,13 +158,26 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
 	) {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) this.includeNode(context);
 		if (typeof this.getRenderedLiteralValue() === 'symbol') {
 			this.left.include(context, includeChildrenRecursively, options);
 			this.right.include(context, includeChildrenRecursively, options);
 
 			// `instanceof` will attempt to call RHS's `Symbol.hasInstance` if it exists.
-			if (this.operator === 'instanceof') this.right.includePath(INSTANCEOF_PATH, context);
+			if (this.operator === 'instanceof') {
+				this.right.includePath(INSTANCEOF_PATH, context);
+			} else if (!OPERATORS_WITHOUT_COERCION.has(this.operator)) {
+				// Other operators convert their operands to primitives, which
+				// will call their `valueOf` and `toString` methods if they exist.
+				// Using objects in binary expressions that coerce values should
+				// be uncommon enough to include the whole operand. The `in`
+				// operator only converts its left operand.
+				this.left.includePath(UNKNOWN_PATH, context);
+				if (this.operator !== 'in') {
+					this.right.includePath(UNKNOWN_PATH, context);
+				}
+			}
 		}
 	}
 
@@ -191,6 +205,20 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 			this.right.render(code, options);
 		}
 	}
-}
 
-BinaryExpression.prototype.applyDeoptimizations = doNotDeoptimize;
+	applyDeoptimizations() {
+		this.deoptimized = true;
+		if (!OPERATORS_WITHOUT_COERCION.has(this.operator)) {
+			// The operator converts its operands to primitives, which can call
+			// their conversion methods with the operand as `this`. Deoptimize
+			// the operands so later reads observe any mutation, and run another
+			// treeshaking pass to re-evaluate earlier decisions. The `in`
+			// operator only converts its left operand.
+			this.left.deoptimizePath(UNKNOWN_PATH);
+			if (this.operator !== 'in') {
+				this.right.deoptimizePath(UNKNOWN_PATH);
+			}
+			this.scope.context.requestTreeshakingPass();
+		}
+	}
+}

@@ -3,7 +3,7 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import Identifier from './Identifier';
 import type Literal from './Literal';
@@ -99,6 +99,11 @@ export default class Property extends MethodBase implements DeclarationPatternNo
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.key.include(context, includeChildrenRecursively);
+		if (this.computed) {
+			// A computed key is converted via ToPropertyKey, which can call
+			// the key's `valueOf`/`toString` methods.
+			this.key.includePath(UNKNOWN_PATH, context);
+		}
 		this.value.include(context, includeChildrenRecursively);
 	}
 

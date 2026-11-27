@@ -410,6 +410,11 @@ export default class MemberExpression
 		if (!this.included) this.includeNode(context);
 		this.object.include(context, includeChildrenRecursively);
 		this.property.include(context, includeChildrenRecursively);
+		if (this.computed) {
+			// A computed property key is converted via ToPropertyKey, which
+			// can call the key's `valueOf`/`toString` methods.
+			this.property.includePath(UNKNOWN_PATH, context);
+		}
 		if (includeChildrenRecursively) {
 			this.variable?.includePath(UNKNOWN_PATH, context);
 		}
