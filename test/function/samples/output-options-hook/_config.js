@@ -56,6 +56,7 @@ module.exports = defineTest({
 						paths: {},
 						plugins: [],
 						preserveModules: false,
+						preserveNamespaceReexports: false,
 						reexportProtoFromExternal: true,
 						sourcemap: false,
 						sourcemapDebugIds: false,

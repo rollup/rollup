@@ -1,3 +1,4 @@
+import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Chunk from './Chunk';
 import ExternalChunk from './ExternalChunk';
 import ExternalModule from './ExternalModule';
@@ -185,7 +186,7 @@ export default class Bundle {
 			this.outputOptions,
 			inputBase
 		);
-		const executableModule = inlineDynamicImports
+		const executableModule: ReturnType<typeof getChunkAssignments> = inlineDynamicImports
 			? [{ alias: null, modules: includedModules }]
 			: preserveModules
 				? includedModules.map(module => ({ alias: null, modules: [module] }))
@@ -195,12 +196,15 @@ export default class Bundle {
 						experimentalMinChunkSize,
 						this.inputOptions.onLog,
 						typeof manualChunks === 'function',
-						onlyExplicitManualChunks
+						onlyExplicitManualChunks,
+						this.outputOptions.preserveNamespaceReexports && this.outputOptions.format === 'es'
+							? getReexportedNamespaceModules(includedModules)
+							: []
 					);
 		const chunks: Chunk[] = new Array(executableModule.length);
 		const chunkByModule = new Map<Module, Chunk>();
 		let index = 0;
-		for (const { alias, modules } of executableModule) {
+		for (const { alias, modules, namespaceModule } of executableModule) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
 				modules,
@@ -217,7 +221,8 @@ export default class Bundle {
 				getHashPlaceholder,
 				bundle,
 				inputBase,
-				snippets
+				snippets,
+				namespaceModule
 			);
 			chunks[index++] = chunk;
 		}
@@ -316,6 +321,46 @@ function validateOptionsForMultiChunkOutput(
 				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
 			)
 		);
+}
+
+function getReexportedNamespaceModules(includedModules: Module[]): Set<Module> {
+	const namespaceModules = new Set<Module>();
+	const pureModules = new Set<Module>();
+	const orderedModules = [...includedModules];
+	sortByExecutionOrder(orderedModules);
+	// Pulling an effectful module into a dependency chunk can move it before earlier imports.
+	for (const module of orderedModules) {
+		if (
+			module.cycles.size === 0 &&
+			module.hasOrderIndependentInitialization() &&
+			[...module.getDependenciesToBeIncluded()].every(
+				dependency =>
+					dependency === module || (dependency instanceof Module && pureModules.has(dependency))
+			)
+		) {
+			pureModules.add(module);
+		}
+	}
+	const publicModules = new Set(
+		includedModules.filter(
+			module =>
+				(module.info.isEntry && module.preserveSignature !== false) ||
+				module.includedDynamicImporters.length > 0
+		)
+	);
+	for (const module of publicModules) {
+		for (const variable of module.getExportNamesByVariable().keys()) {
+			if (
+				variable instanceof NamespaceVariable &&
+				!variable.module.info.syntheticNamedExports &&
+				pureModules.has(variable.module)
+			) {
+				namespaceModules.add(variable.module);
+				publicModules.add(variable.module);
+			}
+		}
+	}
+	return namespaceModules;
 }
 
 function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalModule>): Module[] {

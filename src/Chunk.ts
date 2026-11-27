@@ -240,7 +240,8 @@ export default class Chunk {
 		private readonly getPlaceholder: HashPlaceholderGenerator,
 		private readonly bundle: OutputBundleWithPlaceholders,
 		private readonly inputBase: string,
-		private readonly snippets: GenerateCodeSnippets
+		private readonly snippets: GenerateCodeSnippets,
+		readonly namespaceModule?: Module
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 		const chunkModules = new Set(orderedModules);
@@ -249,14 +250,15 @@ export default class Chunk {
 			chunkByModule.set(module, this);
 			if (
 				module.namespace.included &&
-				(!outputOptions.preserveModules || module.info.syntheticNamedExports)
+				((!outputOptions.preserveModules && module !== namespaceModule) ||
+					module.info.syntheticNamedExports)
 			) {
 				includedNamespaces.add(module);
 			}
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
-			if (module.info.isEntry || outputOptions.preserveModules) {
+			if (module.info.isEntry || outputOptions.preserveModules || module === namespaceModule) {
 				this.entryModules.push(module);
 			}
 			for (const importer of module.includedDynamicImporters) {
@@ -439,7 +441,7 @@ export default class Chunk {
 		);
 
 		for (const module of entryModules) {
-			if (module.preserveSignature === 'allow-extension') {
+			if (module.preserveSignature === 'allow-extension' && module !== this.namespaceModule) {
 				const canPreserveExports = this.canPreserveModuleExports(module);
 
 				if (
@@ -479,14 +481,15 @@ export default class Chunk {
 			}
 			if (!this.facadeModule) {
 				const needsStrictFacade =
-					!this.outputOptions.preserveModules &&
-					(module.preserveSignature === 'strict' ||
-						(module.preserveSignature === 'exports-only' &&
-							module.getExportNamesByVariable().size > 0));
+					module === this.namespaceModule ||
+					(!this.outputOptions.preserveModules &&
+						(module.preserveSignature === 'strict' ||
+							(module.preserveSignature === 'exports-only' &&
+								module.getExportNamesByVariable().size > 0)));
 				if (!needsStrictFacade || this.canModuleBeFacade(module, exposedVariables)) {
 					this.facadeModule = module;
 					this.facadeChunkByModule.set(module, this);
-					if (module.preserveSignature) {
+					if (module.preserveSignature || module === this.namespaceModule) {
 						this.strictFacade = needsStrictFacade;
 					}
 					this.assignFacadeName(
@@ -688,8 +691,9 @@ export default class Chunk {
 
 	private isNativeNamespace(variable: Variable): boolean {
 		return (
-			this.outputOptions.preserveModules &&
 			variable instanceof NamespaceVariable &&
+			(this.outputOptions.preserveModules ||
+				this.chunkByModule.get(variable.module)?.namespaceModule === variable.module) &&
 			!variable.module.info.syntheticNamedExports
 		);
 	}
@@ -1663,6 +1667,7 @@ export default class Chunk {
 		}
 		if (
 			this.includedNamespaces.has(module) ||
+			module === this.namespaceModule ||
 			(module.info.isEntry && module.preserveSignature !== false) ||
 			module.includedDynamicImporters.some(importer => this.chunkByModule.get(importer) !== this)
 		) {

@@ -103,7 +103,7 @@ function deconflictImportsEsmOrSystem(
 ) {
 	// This is needed for namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
-		if (preserveModules || dependency instanceof ExternalChunk) {
+		if (preserveModules || dependency instanceof ExternalChunk || dependency.namespaceModule) {
 			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames, null);
 		}
 	}
@@ -112,7 +112,9 @@ function deconflictImportsEsmOrSystem(
 		const name = variable.name;
 		if (
 			variable.isNamespace &&
-			(module instanceof ExternalModule || (preserveModules && !module.info.syntheticNamedExports))
+			(module instanceof ExternalModule ||
+				((preserveModules || chunkByModule.get(module)?.namespaceModule === module) &&
+					!module.info.syntheticNamedExports))
 		) {
 			variable.setRenderNames(
 				null,
