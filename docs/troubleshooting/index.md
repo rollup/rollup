@@ -62,6 +62,8 @@ In a JavaScript module, `this` is `undefined` at the top level (i.e., outside fu
 
 There are occasional valid reasons for `this` to mean something else. If you're getting errors in your bundle, you can use `options.context` and `options.moduleContext` to change this behaviour.
 
+If a compiler generates a top-level `this` reference and its sourcemap marks that line as unmapped, Rollup shows the warning at its location in the transformed code.
+
 ## Warning: "Sourcemap is likely to be incorrect"
 
 You'll see this warning if you generate a sourcemap with your bundle (`sourcemap: true` or `sourcemap: 'inline'`) but you're using one or more plugins that transformed code without generating a sourcemap for the transformation.

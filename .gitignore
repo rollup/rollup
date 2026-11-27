@@ -25,6 +25,7 @@ target
 /wasm/*
 !/wasm/*.d.ts
 /wasm-node/
+/npm/*/LICENSE.md
 mise.toml
 .opencode
 tmp

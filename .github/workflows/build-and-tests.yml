@@ -219,7 +219,7 @@ jobs:
         if: ${{ matrix.settings.target != 'x86_64-pc-windows-gnu' }}
         with:
           node-version: 24.10.0
-      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+      - uses: msys2/setup-msys2@3c51bf698df1e37b2261f53cb67797b97761185c # v2
         if: ${{ matrix.settings.target == 'x86_64-pc-windows-gnu' }}
         with:
           msystem: ${{ matrix.settings.msystem }}
@@ -254,7 +254,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install cargo-zigbuild
-        uses: taiki-e/install-action@ab49d3c64680143e184118bed66a46419fc15519 # v2.90.5
+        uses: taiki-e/install-action@fe3acb53a98b62c772db35de75ce0e4595e7ca8c # v2.90.8
         if: ${{ matrix.settings.cross == 'zig' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -392,7 +392,7 @@ jobs:
         uses: ./.github/actions/install-and-cache-node-deps
 
       - name: Build (OpenBSD)
-        uses: cross-platform-actions/action@82668f1fbd89d9c99487604f822cbf6716f124d3 # v1.7.0
+        uses: cross-platform-actions/action@30cde56b87a128507bebea9531205087890ee360 # v1.8.0
         with:
           operating_system: ${{ matrix.os.name }}
           architecture: ${{ matrix.os.architecture }}
@@ -624,7 +624,7 @@ jobs:
             coverage-and-additional-tests-cargo-ubuntu-latest
             coverage-cargo-ubuntu-latest
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@ab49d3c64680143e184118bed66a46419fc15519 # v2.90.5
+        uses: taiki-e/install-action@fe3acb53a98b62c772db35de75ce0e4595e7ca8c # v2.90.8
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -635,6 +635,11 @@ jobs:
         id: run-tests
         continue-on-error: true
         run: bash scripts/coverage.sh ci:coverage
+      - name: Check generated license files
+        run: |
+          npm run build:rust-licenses
+          npm run build:licenses
+          git diff --exit-code -- LICENSE.md browser/LICENSE.md licenses/
       - name: Save Cargo cache
         if: github.ref == 'refs/heads/master'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
