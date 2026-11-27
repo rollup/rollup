@@ -47,6 +47,62 @@ describe('in-memory sourcemaps', () => {
 	});
 });
 
+describe('sourcemap file directories', () => {
+	for (const sourcemap of [true, 'hidden', 'inline']) {
+		for (const hashed of [false, true]) {
+			it(`resolves separate chunk and map directories (${sourcemap}, hashed: ${hashed})`, async () => {
+				const bundle = await rollup.rollup({
+					input: 'main',
+					plugins: [loader({ main: 'console.log(42);' })]
+				});
+				try {
+					const mapDirectory = sourcemap === 'inline' ? 'js' : 'maps/deep';
+					const { output } = await bundle.generate({
+						format: 'es',
+						dir: 'dist',
+						entryFileNames: hashed ? 'js/[name]-[hash].js' : 'js/[name].js',
+						sourcemap,
+						sourcemapFileNames: 'maps/deep/[name]-[hash].map',
+						sourcemapIgnoreList(source, mapFile) {
+							assert.equal(source, path.relative(`dist/${mapDirectory}`, 'main'));
+							assert.equal(path.dirname(mapFile), path.resolve('dist', mapDirectory));
+							return true;
+						},
+						sourcemapPathTransform(source, mapFile) {
+							assert.equal(source, path.relative(`dist/${mapDirectory}`, 'main'));
+							assert.equal(path.dirname(mapFile), path.resolve('dist', mapDirectory));
+							return source;
+						}
+					});
+					const chunk = output[0];
+					assert.deepEqual(chunk.map.x_google_ignoreList, [0]);
+					assert.equal(chunk.map.file, path.posix.relative(mapDirectory, chunk.fileName));
+					assert.deepEqual(chunk.map.sources, [
+						path.posix.relative(`dist/${mapDirectory}`, 'main')
+					]);
+					if (sourcemap === 'inline') {
+						assert.ok(chunk.code.includes('sourceMappingURL=data:application/json;'));
+					} else {
+						const map = output.find(file => file.fileName === chunk.sourcemapFileName);
+						assert.equal(map.source, chunk.map.toString());
+						if (sourcemap === 'hidden') {
+							assert.ok(!chunk.code.includes('sourceMappingURL='));
+						} else {
+							assert.ok(
+								chunk.code.endsWith(
+									`//# sourceMappingURL=${path.posix.relative('js', map.fileName)}\n`
+								)
+							);
+						}
+					}
+				} finally {
+					await bundle.close();
+				}
+			});
+		}
+	}
+});
+
 describe('sourcemap chunk hashes', () => {
 	let bundle;
 

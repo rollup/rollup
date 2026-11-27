@@ -9,7 +9,7 @@ import type {
 import { decodedSourcemap, resetSourcemapCache } from './decodedSourcemap';
 import { LOGLEVEL_WARN } from './logging';
 import { error, logConflictingSourcemapSources, logSourcemapBroken } from './logs';
-import { basename, dirname, relative, resolve } from './path';
+import { dirname, normalize, relative, resolve } from './path';
 
 class Source {
 	readonly content: string | null;
@@ -208,7 +208,8 @@ export function collapseSourcemaps(
 	modules: readonly Module[],
 	bundleSourcemapChain: readonly DecodedSourceMapOrMissing[],
 	excludeContent: boolean | undefined,
-	log: LogHandler
+	log: LogHandler,
+	sourcemapFile = file
 ): SourceMap {
 	const linkMap = getLinkMap(log);
 	const moduleSources = modules
@@ -228,9 +229,9 @@ export function collapseSourcemaps(
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
 	if (file) {
-		const directory = dirname(file);
+		const directory = dirname(sourcemapFile);
 		sources = sources.map((source: string) => relative(directory, source));
-		file = basename(file);
+		file = normalize(relative(directory, file));
 	}
 
 	for (const module of modules) {

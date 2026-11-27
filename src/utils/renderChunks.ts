@@ -19,7 +19,7 @@ import {
 import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
-import { basename, normalize, resolve } from './path';
+import { basename, dirname, normalize, relative, resolve } from './path';
 import type { PluginDriver } from './PluginDriver';
 import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';
@@ -112,6 +112,7 @@ function getChunkGraph(chunks: Chunk[]) {
 async function transformChunk(
 	magicString: MagicStringBundle,
 	fileName: string,
+	sourcemapFileName: string | undefined,
 	usedModules: Module[],
 	chunkGraph: Record<string, RenderedChunk>,
 	options: NormalizedOutputOptions,
@@ -162,6 +163,10 @@ async function transformChunk(
 		else if (dir) resultingFile = resolve(dir, fileName);
 		else resultingFile = resolve(fileName);
 
+		const sourcemapPath =
+			sourcemap !== 'inline' && sourcemapFileName
+				? resolve(dir || (file ? dirname(file) : '.'), sourcemapFileName)
+				: `${resultingFile}.map`;
 		const decodedMap = magicString.generateDecodedMap({});
 		map = collapseSourcemaps(
 			resultingFile,
@@ -169,11 +174,11 @@ async function transformChunk(
 			usedModules,
 			sourcemapChain,
 			sourcemapExcludeSources,
-			log
+			log,
+			sourcemapPath
 		);
 		for (let sourcesIndex = 0; sourcesIndex < map.sources.length; ++sourcesIndex) {
 			let sourcePath = map.sources[sourcesIndex];
-			const sourcemapPath = `${resultingFile}.map`;
 			const ignoreList = sourcemapIgnoreList(sourcePath, sourcemapPath);
 			if (typeof ignoreList !== 'boolean') {
 				error(logFailedValidation('sourcemapIgnoreList function must return a boolean.'));
@@ -238,6 +243,7 @@ async function transformChunksAndGenerateContentHashes(
 					...(await transformChunk(
 						magicString,
 						fileName,
+						preliminarySourcemapFileName?.fileName,
 						usedModules,
 						chunkGraph,
 						outputOptions,
@@ -349,6 +355,7 @@ function getChunkHash(
 			sourcemapPlaceholders = externalPlaceholders;
 			contentToHash += getSourceMapComment(
 				normalizedFileName,
+				fileName,
 				map,
 				outputOptions.sourcemap,
 				outputOptions.sourcemapBaseUrl
@@ -454,7 +461,13 @@ function addChunksToBundle(
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
 				: `${finalFileName}.map`;
 			map.file = replacePlaceholders(map.file ?? '', hashesByPlaceholder);
-			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
+			updatedCode += emitSourceMapAndGetComment(
+				finalSourcemapFileName,
+				finalFileName,
+				map,
+				pluginDriver,
+				options
+			);
 		}
 		bundle[finalFileName] = chunk.finalizeChunk(
 			updatedCode,
@@ -474,7 +487,13 @@ function addChunksToBundle(
 			finalSourcemapFileName = sourcemapFileName
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
 				: `${fileName}.map`;
-			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
+			updatedCode += emitSourceMapAndGetComment(
+				finalSourcemapFileName,
+				fileName,
+				map,
+				pluginDriver,
+				options
+			);
 		}
 		bundle[fileName] = chunk.finalizeChunk(
 			updatedCode,
@@ -487,6 +506,7 @@ function addChunksToBundle(
 
 function emitSourceMapAndGetComment(
 	fileName: string,
+	chunkFileName: string,
 	map: SourceMap,
 	pluginDriver: PluginDriver,
 	{ sourcemap, sourcemapBaseUrl }: NormalizedOutputOptions
@@ -499,11 +519,12 @@ function emitSourceMapAndGetComment(
 			type: 'asset'
 		});
 	}
-	return getSourceMapComment(fileName, map, sourcemap, sourcemapBaseUrl);
+	return getSourceMapComment(fileName, chunkFileName, map, sourcemap, sourcemapBaseUrl);
 }
 
 function getSourceMapComment(
 	fileName: string,
+	chunkFileName: string,
 	map: SourceMap,
 	sourcemap: NormalizedOutputOptions['sourcemap'],
 	sourcemapBaseUrl: string | undefined
@@ -513,7 +534,7 @@ function getSourceMapComment(
 			? map.toUrl()
 			: sourcemapBaseUrl
 				? new URL(basename(fileName), sourcemapBaseUrl).toString()
-				: basename(fileName);
+				: normalize(relative(dirname(chunkFileName), fileName));
 	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
 
