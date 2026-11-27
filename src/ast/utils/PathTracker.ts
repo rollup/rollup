@@ -74,9 +74,7 @@ interface EntityPaths {
 }
 
 export class EntityPathTracker {
-	private readonly entityPaths: EntityPaths = Object.create(null, {
-		[EntitiesKey]: { value: new Set<Entity>() }
-	});
+	private entityPaths: EntityPaths | null = null;
 
 	trackEntityAtPathAndGetIfTracked(path: ObjectPath, entity: Entity): boolean {
 		const trackedEntities = this.getEntities(path);
@@ -100,7 +98,9 @@ export class EntityPathTracker {
 	}
 
 	private getEntities(path: ObjectPath): Set<Entity> {
-		let currentPaths = this.entityPaths;
+		let currentPaths = (this.entityPaths ||= Object.create(null, {
+			[EntitiesKey]: { value: new Set<Entity>() }
+		}) as EntityPaths);
 		for (const pathSegment of path) {
 			currentPaths = currentPaths[pathSegment] ||= Object.create(null, {
 				[EntitiesKey]: { value: new Set<Entity>() }
@@ -126,16 +126,16 @@ interface DiscriminatedEntityPaths {
 }
 
 export class DiscriminatedPathTracker {
-	private readonly entityPaths: DiscriminatedEntityPaths = Object.create(null, {
-		[EntitiesKey]: { value: new Map<unknown, Set<Entity>>() }
-	});
+	private entityPaths: DiscriminatedEntityPaths | null = null;
 
 	trackEntityAtPathAndGetIfTracked(
 		path: ObjectPath,
 		discriminator: unknown,
 		entity: unknown
 	): boolean {
-		let currentPaths = this.entityPaths;
+		let currentPaths = (this.entityPaths ||= Object.create(null, {
+			[EntitiesKey]: { value: new Map<unknown, Set<Entity>>() }
+		}) as DiscriminatedEntityPaths);
 		for (const pathSegment of path) {
 			currentPaths = currentPaths[pathSegment] ||= Object.create(null, {
 				[EntitiesKey]: { value: new Map<unknown, Set<unknown>>() }
