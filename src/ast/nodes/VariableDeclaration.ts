@@ -18,12 +18,15 @@ import { markTopLevelAwait } from '../utils/markTopLevelAwait';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
+import type ClassExpression from './ClassExpression';
+import type FunctionExpression from './FunctionExpression';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import type { InclusionOptions } from './shared/Expression';
 import {
 	doNotDeoptimize,
+	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
@@ -403,7 +406,7 @@ export default class VariableDeclaration extends NodeBase {
 			const variable = node.id.variable!;
 			const exportNames = exportNamesByVariable.get(variable);
 			if (!node.init || !exportNames) return;
-			if (exportNames.length === 1) {
+			if (exportNames.length === 1 && !isAnonymousFunctionDefinition(node.init)) {
 				const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
 				renderSystemExportExpression(
 					variable,
@@ -458,6 +461,7 @@ function gatherSystemExportsAndGetSingleExport(
 			if (
 				node.id instanceof Identifier &&
 				node.init &&
+				!isAnonymousFunctionDefinition(node.init) &&
 				aggregatedSystemExports.length === 0 &&
 				options.exportNamesByVariable.get(node.id.variable!)?.length === 1
 			) {
@@ -474,6 +478,22 @@ function gatherSystemExportsAndGetSingleExport(
 		}
 	}
 	return singleSystemExport;
+}
+
+// Wrapping these in exports(...) would prevent them from inferring their name
+function isAnonymousFunctionDefinition(expression: ExpressionNode): boolean {
+	switch (expression.type) {
+		case NodeType.ArrowFunctionExpression: {
+			return true;
+		}
+		case NodeType.ClassExpression:
+		case NodeType.FunctionExpression: {
+			return !(expression as ClassExpression | FunctionExpression).id;
+		}
+		default: {
+			return false;
+		}
+	}
 }
 
 VariableDeclaration.prototype.includeNode = onlyIncludeSelfNoDeoptimize;

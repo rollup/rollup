@@ -21,12 +21,12 @@ System.register('bundle', [], (function (exports) {
 
 			a.foo = foo;
 
-			const c = exports("c", function () {
+			const c = function () {
 				console.log( 'c' );
-			});
+			}; exports("c", c);
 			c.bar = bar;
 
-			const e = exports("e", () => console.log( 'e' ));
+			const e = () => console.log( 'e' ); exports("e", e);
 			e.baz = baz;
 
 			class g {
@@ -37,11 +37,11 @@ System.register('bundle', [], (function (exports) {
 
 			g.foo = foo;
 
-			const i = exports("i", class {
+			const i = class {
 				constructor () {
 					console.log( 'i' );
 				}
-			});
+			}; exports("i", i);
 			i.foo = foo;
 
 		})

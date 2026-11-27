@@ -8,7 +8,7 @@ System.register(['./generated-square.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const cube = exports("cube", x => square(x) * x);
+			const cube = x => square(x) * x; exports("cube", cube);
 
 		})
 	};
