@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 # Licenses of bundled dependencies
 The published Rollup artifact additionally contains code with the following licenses:
-Apache-2.0, Apache-2.0 WITH LLVM-exception, BSD-2-Clause, BSD-3-Clause, BSL-1.0, MIT, Unicode-3.0, Unlicense, Zlib
+Apache-2.0, Apache-2.0 WITH LLVM-exception, BSD-3-Clause, BSL-1.0, MIT, Unicode-3.0, Unlicense, Zlib
 
 # Bundled JavaScript dependencies
 ## @jridgewell/sourcemap-codec
@@ -89,16 +89,6 @@ License text: see MIT below
 > Copyright (c) 2017-present, Jon Schlinkert.
 
 # Bundled Rust dependencies
-## ahash
-License: MIT OR Apache-2.0
-By: Tom Kaitchuck
-Repository: https://github.com/tkaitchuck/ahash
-License text: see Apache-2.0 below, see MIT below
-
-> Copyright (c) 2018 Tom Kaitchuck
-
----------------------------------------
-
 ## aho-corasick
 License: Unlicense OR MIT
 By: Andrew Gallant
@@ -1376,16 +1366,6 @@ License text: see Unicode-3.0 (2) below
 
 ---------------------------------------
 
-## zerocopy
-License: BSD-2-Clause OR Apache-2.0 OR MIT
-Repository: https://github.com/google/zerocopy
-License text: see Apache-2.0 below, see BSD-2-Clause below, see MIT below
-
-> Copyright 2023 The Fuchsia Authors
-> Copyright 2019 The Fuchsia Authors.
-
----------------------------------------
-
 ## zerofrom
 License: Unicode-3.0
 By: The ICU4X Project Developers
@@ -1798,33 +1778,6 @@ License text: see MIT below
 > prospectively choose to deem waived or otherwise exclude such Section(s) of
 > the License, but only in their entirety and only with respect to the Combined
 > Software.
-
----------------------------------------
-
-## BSD-2-Clause
-
-> Redistribution and use in source and binary forms, with or without
-> modification, are permitted provided that the following conditions are
-> met:
-> 
-> * Redistributions of source code must retain the above copyright
-> notice, this list of conditions and the following disclaimer.
-> * Redistributions in binary form must reproduce the above
-> copyright notice, this list of conditions and the following disclaimer
-> in the documentation and/or other materials provided with the
-> distribution.
-> 
-> THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-> A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-> OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-> SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-> LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-> DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-> THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-> OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---------------------------------------
 
