@@ -8,7 +8,7 @@ import { createInclusionContext } from './ast/ExecutionContext';
 import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
-import type ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
+import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import Identifier from './ast/nodes/Identifier';
 import type ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
@@ -165,6 +165,14 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
+
+function isIndependentInitializer(type: string): boolean {
+	return (
+		type === NodeType.Literal ||
+		type === NodeType.ArrowFunctionExpression ||
+		type === NodeType.FunctionExpression
+	);
+}
 
 function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
@@ -775,6 +783,36 @@ export default class Module {
 
 	hasEffects(): boolean {
 		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
+	}
+
+	// Extracting a module can move its initialization ahead of a sibling import.
+	// Even a read with no side effects can observe a different value at that point.
+	hasOrderIndependentInitialization(): boolean {
+		return this.ast!.body.every(statement => {
+			if (!statement.included) return true;
+			const declaration =
+				statement instanceof ExportNamedDeclaration || statement instanceof ExportDefaultDeclaration
+					? statement.declaration
+					: statement;
+			if (!declaration) return true;
+			if (declaration instanceof VariableDeclaration) {
+				return (
+					declaration.kind !== 'using' &&
+					declaration.kind !== 'await using' &&
+					declaration.declarations.every(
+						({ id, included, init }) =>
+							!included ||
+							(id instanceof Identifier && (!init || isIndependentInitializer(init.type)))
+					)
+				);
+			}
+			return (
+				declaration.type === NodeType.FunctionDeclaration ||
+				declaration.type === NodeType.ExportAllDeclaration ||
+				declaration.type === NodeType.ImportDeclaration ||
+				isIndependentInitializer(declaration.type)
+			);
+		});
 	}
 
 	hasTopLevelAwait(): boolean {

@@ -1741,6 +1741,18 @@ The `preserveModulesRoot` setting ensures that the input modules will be output 
 
 This option is particularly useful while using plugins such as `@rollup/plugin-node-resolve`, which may cause changes in the output directory structure. This can happen when third-party modules are not marked [`external`](#external), or while developing in a monorepo of multiple packages that rely on one another and are not marked [`external`](#external).
 
+### output.preserveNamespaceReexports
+
+|          |                                |
+| -------: | :----------------------------- |
+|    Type: | `boolean`                      |
+| Default: | `false`                        |
+|     CLI: | `--preserveNamespaceReexports` |
+
+In an ES library build, `export * as maths from './maths.js'` normally becomes an exported object. Set this option to emit the source of the namespace in its own chunk. A consumer that imports `maths` and uses only `maths.square` can then tree-shake the other exports. Other modules can still be bundled together.
+
+This option also applies to namespace imports that an entry reexports under a local name. It applies to code-splitting ES output. Rollup keeps the usual representation for namespaces in manual chunks, sources with synthetic named exports and sources whose initialization depends on execution order. Rollup can move function declarations, literal initializers and reexports of other eligible modules. Static cycles, top-level reads of mutable state and external dependencies retain their original chunking.
+
 ### output.sourcemap
 
 |          |                                     |

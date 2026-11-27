@@ -69,6 +69,7 @@ Options:
 --no-preserveEntrySignatures Avoid facade chunks for entry points
 --preserveModules           Preserve module structure
 --preserveModulesRoot       Put preserved modules under this path at root level
+--preserveNamespaceReexports  Preserve native ES namespace reexports
 --preserveSymlinks          Do not follow symlinks when resolving files
 --no-reexportProtoFromExternal Ignore `__proto__` in star re-exports
 --no-sanitizeFileName       Do not replace invalid characters in file names

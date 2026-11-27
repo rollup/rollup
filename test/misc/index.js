@@ -5,5 +5,6 @@ require('./parse-ast');
 require('./iife');
 require('./in-memory-sourcemaps');
 require('./misc');
+require('./namespace-reexports');
 require('./sanity-checks');
 require('./umd');

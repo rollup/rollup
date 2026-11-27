@@ -1,12 +1,12 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import type { LogHandler } from '../rollup/types';
-import { getNewSet, getOrCreate } from './getOrCreate';
+import { getNewArray, getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { logOptimizeChunkStatus } from './logs';
 import { timeEnd, timeStart } from './timers';
 
-type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
+type ChunkDefinitions = { alias: string | null; modules: Module[]; namespaceModule?: Module }[];
 
 interface ModuleWithDependentEntries {
 	/**
@@ -165,7 +165,8 @@ export function getChunkAssignments(
 	minChunkSize: number,
 	log: LogHandler,
 	isManualChunksFunctionForm: boolean,
-	onlyExplicitManualChunks: boolean
+	onlyExplicitManualChunks: boolean,
+	namespaceModules: Iterable<Module>
 ): ChunkDefinitions {
 	const { chunkDefinitions, manualChunkModules, manualChunkModulesByModule } =
 		getChunkDefinitionsFromManualChunks(
@@ -173,6 +174,16 @@ export function getChunkAssignments(
 			isManualChunksFunctionForm,
 			onlyExplicitManualChunks
 		);
+	const firstNamespaceEntry = entries.length + manualChunkModules.length;
+	// A native module namespace must expose exactly the exports of its source module.
+	for (const module of namespaceModules) {
+		if (!manualChunkModulesByModule.has(module)) {
+			const modules = [module];
+			manualChunkModules.push(modules);
+			manualChunkModulesByModule.set(module, modules);
+			chunkDefinitions.push({ alias: null, modules, namespaceModule: module });
+		}
+	}
 	const {
 		entriesAndManualChunksCount,
 		dependentEntriesByModule,
@@ -225,15 +236,43 @@ export function getChunkAssignments(
 			minChunkSize
 		);
 
-	chunkDefinitions.push(
-		...getOptimizedChunks(chunks, minChunkSize, sideEffectAtoms, sizeByAtom, log).map(
-			({ modules }) => ({
-				alias: null,
-				modules
-			})
-		)
-	);
+	const lastNamespaceEntry = entries.length + manualChunkModules.length;
+	for (const group of groupChunksByNamespaceDependencies(
+		chunks,
+		firstNamespaceEntry,
+		lastNamespaceEntry
+	)) {
+		for (const { modules } of getOptimizedChunks(
+			group,
+			minChunkSize,
+			sideEffectAtoms,
+			sizeByAtom,
+			log
+		)) {
+			chunkDefinitions.push({ alias: null, modules });
+		}
+	}
 	return chunkDefinitions;
+}
+
+function groupChunksByNamespaceDependencies(
+	chunks: ChunkDescription[],
+	firstNamespaceEntry: number,
+	lastNamespaceEntry: number
+): Iterable<ChunkDescription[]> {
+	if (firstNamespaceEntry === lastNamespaceEntry) return [chunks];
+	// Merging a namespace dependency with its importer can introduce an execution cycle.
+	const groups = new Map<bigint, ChunkDescription[]>();
+	for (const chunk of chunks) {
+		let namespaceDependencies = 0n;
+		for (const entry of chunk.dependentEntries) {
+			if (entry >= firstNamespaceEntry && entry < lastNamespaceEntry) {
+				namespaceDependencies |= 1n << BigInt(entry - firstNamespaceEntry);
+			}
+		}
+		getOrCreate(groups, namespaceDependencies, getNewArray<ChunkDescription>).push(chunk);
+	}
+	return groups.values();
 }
 
 function getChunkDefinitionsFromManualChunks(
@@ -855,8 +894,8 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
  * its dependent entry points.
  *
  * E.g. if X -> A and Y -> A, then the dependent entry points of A are XY.
- * Starting from that idea, we can determine a set of chunks—and thus a set
- * of side effects—that must have been triggered if a certain chunk has been
+ * Starting from that idea, we can determine a set of chunksâ€”and thus a set
+ * of side effectsâ€”that must have been triggered if a certain chunk has been
  * loaded. Basically, it is the intersection of all chunks loaded by the
  * dependent entry points of a given chunk. We call the corresponding side
  * effects the correlated side effects of that chunk.

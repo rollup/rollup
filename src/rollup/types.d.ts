@@ -871,6 +871,7 @@ export interface OutputOptions {
 	plugins?: OutputPluginOption | undefined;
 	preserveModules?: boolean | undefined;
 	preserveModulesRoot?: string | undefined;
+	preserveNamespaceReexports?: boolean | undefined;
 	reexportProtoFromExternal?: boolean | undefined;
 	sanitizeFileName?: boolean | ((fileName: string) => string) | undefined;
 	sourcemap?: boolean | 'inline' | 'hidden' | undefined;
@@ -927,6 +928,7 @@ export interface NormalizedOutputOptions {
 	plugins: OutputPlugin[];
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
+	preserveNamespaceReexports: boolean;
 	reexportProtoFromExternal: boolean;
 	sanitizeFileName: (fileName: string) => string;
 	sourcemap: boolean | 'inline' | 'hidden';
