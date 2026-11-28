@@ -156,10 +156,32 @@ class Link {
 	}
 }
 
-function getLinkMap(log: LogHandler) {
+function getLinkMap(log: LogHandler, id: string) {
+	const directory = dirname(id) || '.';
+
 	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
 		if (!map.missing) {
-			return new Link(map, [source]);
+			const declaredSources = map.sources ?? [];
+			let sources: (Source | Link | null)[];
+			if (declaredSources.length <= 1) {
+				// A transform map without sources or with a single source refers to the
+				// previous source in the chain.
+				sources = [source];
+			} else {
+				// A transform map can declare multiple sources, e.g. when a plugin
+				// combines several files. Resolve each declared source instead of
+				// assuming every segment maps back to the previous chain source.
+				const sourceRoot = map.sourceRoot || '.';
+				sources = declaredSources.map((sourceName, index) =>
+					sourceName == null
+						? null
+						: new Source(
+								resolve(directory, sourceRoot, sourceName),
+								map.sourcesContent?.[index] ?? null
+							)
+				);
+			}
+			return new Link(map, sources);
 		}
 
 		log(LOGLEVEL_WARN, logSourcemapBroken(map.plugin));
@@ -210,7 +232,7 @@ export function collapseSourcemaps(
 	excludeContent: boolean | undefined,
 	log: LogHandler
 ): SourceMap {
-	const linkMap = getLinkMap(log);
+	const linkMap = getLinkMap(log, file);
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
 		.map(module =>
@@ -219,7 +241,7 @@ export function collapseSourcemaps(
 				module.originalCode,
 				module.originalSourcemap,
 				module.sourcemapChain,
-				linkMap
+				getLinkMap(log, module.id)
 			)
 		);
 
@@ -265,7 +287,7 @@ export function collapseSourcemap(
 		originalCode,
 		originalSourcemap,
 		sourcemapChain,
-		getLinkMap(log)
+		getLinkMap(log, id)
 	) as Link;
 	const map = source.traceMappings();
 	return decodedSourcemap({ version: 3, ...map });
