@@ -1,5 +1,75 @@
 # rollup changelog
 
+## 4.68.9
+
+_2026-11-27_
+
+### Bug Fixes
+
+- Avoid some unnecessary allocations for a noticable performance boost on builds (#6698)
+- Include bundles Rust dependencies in license file (#6684)
+- Ensure that switching imports that only differ by hash change the file hash (#6686)
+- Make sure to flush stdout and stderr when using --forceExit (#6691)
+- Use fallback for sourcemap locations on unmapped lines (#6695)
+
+### Pull Requests
+
+- [#6684](https://github.com/rollup/rollup/pull/6684): feat: generate license files for Rust dependencies (@lukastaegert)
+- [#6686](https://github.com/rollup/rollup/pull/6686): Preserve dependency reference order in chunk hashes (@xixi-box)
+- [#6691](https://github.com/rollup/rollup/pull/6691): Fix truncated stdout with --forceExit (@h55n, @lukastaegert)
+- [#6695](https://github.com/rollup/rollup/pull/6695): Keep diagnostics at generated locations on unmapped lines (@XSY-28)
+- [#6698](https://github.com/rollup/rollup/pull/6698): perf: create path tracker roots lazily (@g4lb, @lukastaegert)
+- [#6702](https://github.com/rollup/rollup/pull/6702): Update msys2/setup-msys2 digest to 3c51bf6 (@renovate[bot])
+- [#6703](https://github.com/rollup/rollup/pull/6703): Update minor/patch updates (@renovate[bot])
+- [#6704](https://github.com/rollup/rollup/pull/6704): Update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6705](https://github.com/rollup/rollup/pull/6705): Lock file maintenance (@renovate[bot], @lukastaegert)
+
+## 4.68.8
+
+_2026-11-21_
+
+### Bug Fixes
+
+- Hoist namespace objects if necessary to avoid broken output (#6672)
+- Do not try to auto-install source-map-support as it was causing some issues (#6682)
+
+### Pull Requests
+
+- [#6672](https://github.com/rollup/rollup/pull/6672): Create namespace objects early when a cycle can read them before their module runs (@waw666waw666)
+- [#6673](https://github.com/rollup/rollup/pull/6673): docs: explain why async methods are preferred in plugins (@CharoenwitKunna, @lukastaegert)
+- [#6674](https://github.com/rollup/rollup/pull/6674): docs: document warning and error properties (@CharoenwitKunna, @lukastaegert)
+- [#6675](https://github.com/rollup/rollup/pull/6675): docs: document dynamic expressions in import() (@CharoenwitKunna, @lukastaegert)
+- [#6676](https://github.com/rollup/rollup/pull/6676): docs: clarify that --perf omits asynchronous plugin hook time (@CharoenwitKunna, @lukastaegert)
+- [#6678](https://github.com/rollup/rollup/pull/6678): Update dtolnay/rust-toolchain digest to 3900882 (@renovate[bot], @lukastaegert)
+- [#6679](https://github.com/rollup/rollup/pull/6679): Update minor/patch updates (@renovate[bot])
+- [#6680](https://github.com/rollup/rollup/pull/6680): Update dependency eslint-plugin-unicorn to v80 (@renovate[bot])
+- [#6681](https://github.com/rollup/rollup/pull/6681): Lock file maintenance (@renovate[bot])
+- [#6682](https://github.com/rollup/rollup/pull/6682): fix(cli): stop installing source-map-support (@lukastaegert)
+
+## 4.68.7
+
+_2026-11-18_
+
+### Bug Fixes
+
+- Revert previous fix as it was breaking bundling in certain cases (#6671)
+
+### Pull Requests
+
+- [#6671](https://github.com/rollup/rollup/pull/6671): Revert previous fix to fail with a parse error instead of exhausting the native stack (@lukastaegert)
+
+## 4.68.6
+
+_2026-11-18_
+
+### Bug Fixes
+
+- Fail the build with a parse error instead of a native stack overflow for deeply nested expressions (#6669)
+
+### Pull Requests
+
+- [#6669](https://github.com/rollup/rollup/pull/6669): fix: fail with a parse error instead of exhausting the native stack (@lukastaegert)
+
 ## 4.68.5
 
 _2026-11-17_

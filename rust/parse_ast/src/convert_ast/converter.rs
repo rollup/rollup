@@ -1,4 +1,4 @@
-use swc_common::{Span, Spanned};
+use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, CallExpr, Callee, Class, ClassMember, Decl, Decorator,
   ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread,
@@ -19,14 +19,6 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::utf16_positions::{
   ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
-use crate::nesting_limit::{
-  current_stack_position, stack_limit_position, MAX_CONVERTER_NESTING_DEPTH,
-};
-
-#[cfg(debug_assertions)]
-const NODES_PER_STACK_CHECK: u32 = 8;
-#[cfg(not(debug_assertions))]
-const NODES_PER_STACK_CHECK: u32 = 32;
 
 pub(crate) mod analyze_code;
 pub(crate) mod string_constants;
@@ -42,15 +34,6 @@ pub(crate) struct AstConverter<'a> {
   // Only used when the byte order of the 32-bit fields is swapped at the end: the byte ranges
   // that are kept as they are, i.e. string bytes and the little-endian f64 values
   unswapped_byte_ranges: Option<Vec<(usize, usize)>>,
-  nesting_depth: u32,
-  nesting_error: Option<NestingError>,
-  nodes_until_stack_check: u32,
-  stack_limit_position: usize,
-}
-
-pub(crate) enum NestingError {
-  DepthLimit { utf_8_position: u32 },
-  StackExhausted { utf_8_position: u32 },
 }
 
 impl<'a> AstConverter<'a> {
@@ -65,49 +48,16 @@ impl<'a> AstConverter<'a> {
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
       unswapped_byte_ranges: swap_byte_order.then(Vec::new),
-      nesting_depth: 0,
-      nesting_error: None,
-      nodes_until_stack_check: NODES_PER_STACK_CHECK,
-      stack_limit_position: stack_limit_position(),
     }
   }
 
-  pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Result<Vec<u8>, NestingError> {
+  pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
-    if let Some(nesting_error) = self.nesting_error {
-      return Err(nesting_error);
-    }
     if let Some(unswapped_byte_ranges) = self.unswapped_byte_ranges.take() {
       swap_32_bit_fields(&mut self.buffer, unswapped_byte_ranges);
     }
     self.buffer.shrink_to_fit();
-    Ok(self.buffer)
-  }
-
-  #[inline(always)]
-  fn enter_nesting(&mut self, span: impl FnOnce() -> Span) -> bool {
-    if self.nesting_error.is_some() {
-      return false;
-    }
-    let exceeds_depth_limit = self.nesting_depth >= MAX_CONVERTER_NESTING_DEPTH;
-    let exceeds_stack_limit = if self.nodes_until_stack_check > 1 {
-      self.nodes_until_stack_check -= 1;
-      false
-    } else {
-      self.nodes_until_stack_check = NODES_PER_STACK_CHECK;
-      current_stack_position() < self.stack_limit_position
-    };
-    if exceeds_depth_limit || exceeds_stack_limit {
-      let utf_8_position = span().lo.0.saturating_sub(1);
-      self.nesting_error = Some(if exceeds_depth_limit {
-        NestingError::DepthLimit { utf_8_position }
-      } else {
-        NestingError::StackExhausted { utf_8_position }
-      });
-      return false;
-    }
-    self.nesting_depth += 1;
-    true
+    self.buffer
   }
 
   // === helpers
@@ -403,34 +353,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub(crate) fn convert_chain_element(&mut self, expression: &Expr, is_chained: bool) {
-    if !self.enter_nesting(|| expression.span()) {
-      return;
-    }
-    match expression {
-      Expr::OptChain(optional_chain_expression) => {
-        self.store_chain_expression(optional_chain_expression, is_chained);
-      }
-      Expr::Call(call_expression) => {
-        self.convert_call_expression(call_expression, false, is_chained);
-      }
-      Expr::Member(member_expression) => {
-        self.convert_member_expression(member_expression, false, is_chained);
-      }
-      _ => self.convert_expression_without_nesting_check(expression),
-    }
-    self.nesting_depth -= 1;
-  }
-
   pub(crate) fn convert_expression(&mut self, expression: &Expr) {
-    if !self.enter_nesting(|| expression.span()) {
-      return;
-    }
-    self.convert_expression_without_nesting_check(expression);
-    self.nesting_depth -= 1;
-  }
-
-  fn convert_expression_without_nesting_check(&mut self, expression: &Expr) {
     match expression {
       Expr::Array(array_literal) => {
         self.store_array_expression(array_literal);
@@ -597,9 +520,6 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn convert_jsx_attribute_value(&mut self, jsx_attribute_value: &JSXAttrValue) {
-    if !self.enter_nesting(|| jsx_attribute_value.span()) {
-      return;
-    }
     match jsx_attribute_value {
       JSXAttrValue::Str(string_literal) => self.store_literal_string(string_literal),
       JSXAttrValue::JSXExprContainer(expression_container) => {
@@ -608,21 +528,9 @@ impl<'a> AstConverter<'a> {
       JSXAttrValue::JSXElement(jsx_element) => self.store_jsx_element(jsx_element),
       JSXAttrValue::JSXFragment(jsx_fragment) => self.store_jsx_fragment(jsx_fragment),
     }
-    self.nesting_depth -= 1;
   }
 
   pub(crate) fn convert_jsx_element_child(&mut self, jsx_element_child: &JSXElementChild) {
-    if !self.enter_nesting(|| jsx_element_child.span()) {
-      return;
-    }
-    self.convert_jsx_element_child_without_nesting_check(jsx_element_child);
-    self.nesting_depth -= 1;
-  }
-
-  fn convert_jsx_element_child_without_nesting_check(
-    &mut self,
-    jsx_element_child: &JSXElementChild,
-  ) {
     match jsx_element_child {
       JSXElementChild::JSXText(jsx_text) => {
         self.store_jsx_text(jsx_text);
@@ -657,14 +565,6 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn convert_jsx_object(&mut self, jsx_object: &JSXObject) {
-    if !self.enter_nesting(|| jsx_object.span()) {
-      return;
-    }
-    self.convert_jsx_object_without_nesting_check(jsx_object);
-    self.nesting_depth -= 1;
-  }
-
-  fn convert_jsx_object_without_nesting_check(&mut self, jsx_object: &JSXObject) {
     match jsx_object {
       JSXObject::JSXMemberExpr(jsx_member_expression) => {
         self.store_jsx_member_expression(jsx_member_expression);
@@ -791,14 +691,6 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn convert_pattern(&mut self, pattern: &Pat) {
-    if !self.enter_nesting(|| pattern.span()) {
-      return;
-    }
-    self.convert_pattern_without_nesting_check(pattern);
-    self.nesting_depth -= 1;
-  }
-
-  fn convert_pattern_without_nesting_check(&mut self, pattern: &Pat) {
     match pattern {
       Pat::Array(array_pattern) => {
         self.store_array_pattern(array_pattern);
@@ -901,14 +793,6 @@ impl<'a> AstConverter<'a> {
   }
 
   pub(crate) fn convert_statement(&mut self, statement: &Stmt) {
-    if !self.enter_nesting(|| statement.span()) {
-      return;
-    }
-    self.convert_statement_without_nesting_check(statement);
-    self.nesting_depth -= 1;
-  }
-
-  fn convert_statement_without_nesting_check(&mut self, statement: &Stmt) {
     match statement {
       Stmt::Break(break_statement) => self.store_break_statement(break_statement),
       Stmt::Block(block_statement) => self.store_block_statement(block_statement, false),

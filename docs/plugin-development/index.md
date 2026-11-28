@@ -61,7 +61,7 @@ export default ({
 - Plugins should have a clear name with `rollup-plugin-` prefix.
 - Include `rollup-plugin` keyword in `package.json`.
 - Plugins should be tested. We recommend [mocha](https://github.com/mochajs/mocha) or [ava](https://github.com/avajs/ava) which support Promises out of the box.
-- Use asynchronous methods when it is possible, e.g. `fs.readFile` instead of `fs.readFileSync`.
+- Use asynchronous methods when it is possible, e.g. `fs.readFile` instead of `fs.readFileSync`. Rollup is scheduling a lot of file system IO and other async operations in parallel. If all of those were synchronous, it would have devastating effects for the performance in large projects.
 - Document your plugin in English.
 - Make sure your plugin outputs correct source mappings if appropriate.
 - If your plugin uses 'virtual modules' (e.g. for helper functions), prefix the module ID with `\0`. This prevents other plugins from trying to process it.

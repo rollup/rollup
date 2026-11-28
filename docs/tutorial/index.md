@@ -311,6 +311,8 @@ export default function () {
 }
 ```
 
+Note that Rollup only creates chunks for dynamic imports whose argument is a static string. If the argument is a dynamic expression, e.g. ``import(`./locales/${language}.js`)``, Rollup cannot know which files might be loaded; unless a plugin resolves the import via the [`resolveDynamicImport`](../plugin-development/index.md#resolvedynamicimport) hook, it is treated as external without a warning and left in the output, so no chunks are generated for those files. To bundle dynamic imports with variables, use [@rollup/plugin-dynamic-import-vars](https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars).
+
 Rollup will use the dynamic import to create a separate chunk that is only loaded on demand. In order for Rollup to know where to place the second chunk, instead of passing the `--file` option we set a folder to output to with the `--dir` option:
 
 ```shell
