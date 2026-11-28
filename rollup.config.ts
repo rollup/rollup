@@ -69,7 +69,7 @@ export default async function getConfig(
 		external: ['fsevents'],
 		input: {
 			'getLogFilter.js': 'src/utils/getLogFilter.ts',
-			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
+			'loadConfigFile.js': 'cli/loadConfigFile.ts',
 			'parseAst.js': 'src/utils/parseAst.ts',
 			'rollup.js': 'src/node-entry.ts'
 		},
