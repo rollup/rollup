@@ -43,3 +43,13 @@ if (console.log('effect'), false) ;
 if (console.log('effect'), false) ; else {
 	console.log('kept');
 }
+
+var a;
+if (a = false) ; else {
+	console.log('kept');
+}
+
+var d;
+if ((d = function () { return true })()) {
+	console.log('kept');
+}
