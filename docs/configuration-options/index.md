@@ -12,7 +12,7 @@ title: Configuration Options
 
 |  |  |
 | --: | :-- |
-| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string, isResolved: boolean) => boolean` |
+| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string \| undefined, isResolved: boolean, options: { attributes: Record<string, string> }) => boolean` |
 | CLI: | `-e`/`--external <external-id,another-external-id,...>` |
 
 Either a function that takes an `id` and returns `true` (external) or `false` (not external), or an `Array` of module IDs, or regular expressions to match module IDs, that should remain external to the bundle. Can also be just a single ID or regular expression. The matched IDs should be either:
@@ -50,11 +50,12 @@ When given as a command line argument, it should be a comma-separated list of ID
 rollup -i src/main.js ... -e foo,bar,baz
 ```
 
-When providing a function, it is called with three parameters `(id, parent, isResolved)` that can give you more fine-grained control:
+When providing a function, it is called with `(id, parent, isResolved, options)`:
 
 - `id` is the id of the module in question
 - `parent` is the id of the module doing the import
 - `isResolved` signals whether the `id` has been resolved by e.g. plugins
+- `options.attributes` contains the import attributes, or an empty object when there are none. After resolution, it reflects any attributes returned by the resolving plugin.
 
 When creating an `iife` or `umd` bundle, you will need to provide global variable names to replace your external imports via the [`output.globals`](#output-globals) option.
 

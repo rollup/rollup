@@ -202,8 +202,8 @@ export class ModuleLoader {
 		skip = null
 	) =>
 		this.getResolvedIdWithDefaults(
-			this.getNormalizedResolvedIdWithoutDefaults(
-				this.options.external(source, importer, false)
+			this.normalizeResolution(
+				this.options.external(source, importer, false, { attributes })
 					? false
 					: await resolveId(
 							source,
@@ -219,7 +219,8 @@ export class ModuleLoader {
 							this.options.fs
 						),
 				importer,
-				source
+				source,
+				attributes
 			),
 			attributes
 		);
@@ -547,49 +548,46 @@ export class ModuleLoader {
 		}
 	}
 
-	private getNormalizedResolvedIdWithoutDefaults(
-		resolveIdResult: ResolveIdResult,
+	private normalizeResolution(
+		resolved: ResolveIdResult,
 		importer: string | undefined,
-		source: string
+		source: string,
+		attributes: Record<string, string>
 	): NormalizedResolveIdWithoutDefaults | null {
-		const { makeAbsoluteExternalsRelative } = this.options;
-		if (resolveIdResult) {
-			if (typeof resolveIdResult === 'object') {
-				const external =
-					resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true);
-				return {
-					...resolveIdResult,
-					external:
-						external &&
-						(external === 'relative' ||
-							!isAbsolute(resolveIdResult.id) ||
-							(external === true &&
-								isNotAbsoluteExternal(resolveIdResult.id, source, makeAbsoluteExternalsRelative)) ||
-							'absolute')
-				};
-			}
-
-			const external = this.options.external(resolveIdResult, importer, true);
+		const { makeAbsoluteExternalsRelative: relativeExternals } = this.options;
+		if (resolved && typeof resolved === 'object') {
+			const { id } = resolved;
+			const external =
+				resolved.external ||
+				this.options.external(id, importer, true, {
+					attributes: resolved.attributes ?? attributes
+				});
 			return {
+				...resolved,
 				external:
 					external &&
-					(isNotAbsoluteExternal(resolveIdResult, source, makeAbsoluteExternalsRelative) ||
-						'absolute'),
+					(external === 'relative' ||
+						!isAbsolute(id) ||
+						(external === true && isNotAbsoluteExternal(id, source, relativeExternals)) ||
+						'absolute')
+			};
+		}
+		if (resolved) {
+			const external = this.options.external(resolved, importer, true, { attributes });
+			return {
+				external:
+					external && (isNotAbsoluteExternal(resolved, source, relativeExternals) || 'absolute'),
 				id:
-					external && makeAbsoluteExternalsRelative
-						? normalizeRelativeExternalId(resolveIdResult, importer)
-						: resolveIdResult
+					external && relativeExternals ? normalizeRelativeExternalId(resolved, importer) : resolved
 			};
 		}
 
-		const id = makeAbsoluteExternalsRelative
-			? normalizeRelativeExternalId(source, importer)
-			: source;
-		if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
+		const id = relativeExternals ? normalizeRelativeExternalId(source, importer) : source;
+		if (resolved !== false && !this.options.external(id, importer, true, { attributes })) {
 			return null;
 		}
 		return {
-			external: isNotAbsoluteExternal(id, source, makeAbsoluteExternalsRelative) || 'absolute',
+			external: isNotAbsoluteExternal(id, source, relativeExternals) || 'absolute',
 			id
 		};
 	}
@@ -809,10 +807,11 @@ export class ModuleLoader {
 				attributes
 			));
 		}
-		const normalizedResolution = this.getNormalizedResolvedIdWithoutDefaults(
+		const normalizedResolution = this.normalizeResolution(
 			resolution,
 			importer,
-			specifier
+			specifier,
+			attributes
 		);
 		return this.handleInvalidResolvedId(
 			this.getResolvedIdWithDefaults(
