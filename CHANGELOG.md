@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 4.68.9
+
+_2026-11-27_
+
+### Bug Fixes
+
+- Avoid some unnecessary allocations for a noticable performance boost on builds (#6698)
+- Include bundles Rust dependencies in license file (#6684)
+- Ensure that switching imports that only differ by hash change the file hash (#6686)
+- Make sure to flush stdout and stderr when using --forceExit (#6691)
+- Use fallback for sourcemap locations on unmapped lines (#6695)
+
+### Pull Requests
+
+- [#6684](https://github.com/rollup/rollup/pull/6684): feat: generate license files for Rust dependencies (@lukastaegert)
+- [#6686](https://github.com/rollup/rollup/pull/6686): Preserve dependency reference order in chunk hashes (@xixi-box)
+- [#6691](https://github.com/rollup/rollup/pull/6691): Fix truncated stdout with --forceExit (@h55n, @lukastaegert)
+- [#6695](https://github.com/rollup/rollup/pull/6695): Keep diagnostics at generated locations on unmapped lines (@XSY-28)
+- [#6698](https://github.com/rollup/rollup/pull/6698): perf: create path tracker roots lazily (@g4lb, @lukastaegert)
+- [#6702](https://github.com/rollup/rollup/pull/6702): Update msys2/setup-msys2 digest to 3c51bf6 (@renovate[bot])
+- [#6703](https://github.com/rollup/rollup/pull/6703): Update minor/patch updates (@renovate[bot])
+- [#6704](https://github.com/rollup/rollup/pull/6704): Update swc monorepo (major) (@renovate[bot], @lukastaegert)
+- [#6705](https://github.com/rollup/rollup/pull/6705): Lock file maintenance (@renovate[bot], @lukastaegert)
+
 ## 4.68.8
 
 _2026-11-21_
