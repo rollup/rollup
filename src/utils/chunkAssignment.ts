@@ -809,16 +809,20 @@ function addAwaitedChunkDependencies(
 	let hasAwaitedDependencies = false;
 	for (const chunk of graphChunks) {
 		if (!chunk.modules.some(module => module.hasTopLevelAwait())) continue;
-		for (const dependency of chunk.modules) {
-			for (const { node } of dependency.dynamicImports) {
-				const importedChunk =
-					node.included && node.resolution instanceof Module
-						? chunkByModule.get(node.resolution)
-						: undefined;
-				if (importedChunk && importedChunk !== chunk) {
-					hasAwaitedDependencies = true;
-					chunk.awaitedDependencies.add(importedChunk);
-					importedChunk.awaitingChunks.add(chunk);
+		const chunksToScan = new Set([chunk]);
+		for (const scannedChunk of chunksToScan) {
+			for (const dependency of scannedChunk.dependencies) chunksToScan.add(dependency);
+			for (const module of scannedChunk.modules) {
+				for (const { node } of module.dynamicImports) {
+					const importedChunk =
+						node.included && node.resolution instanceof Module
+							? chunkByModule.get(node.resolution)
+							: undefined;
+					if (importedChunk && importedChunk !== chunk) {
+						hasAwaitedDependencies = true;
+						chunk.awaitedDependencies.add(importedChunk);
+						importedChunk.awaitingChunks.add(chunk);
+					}
 				}
 			}
 		}
