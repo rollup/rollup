@@ -25,6 +25,8 @@ interface ModulesWithDependentEntries {
 }
 
 interface ChunkDescription {
+	awaitedDependencies: Set<ChunkDescription>;
+	awaitingChunks: Set<ChunkDescription>;
 	/**
 	 * These are the atoms (=initial chunks) that are contained in this chunk
 	 */
@@ -182,14 +184,16 @@ export function getChunkAssignments(
 		awaitedDynamicImportsByEntry
 	} = analyzeModuleGraph(entries, manualChunkModules, manualChunkModulesByModule);
 
+	const isolatedChunks: ChunkDefinitions = [];
 	// Each chunk is identified by its position in this array
 	const chunkAtoms = getChunksWithSameDependentEntries(
 		getModulesWithDependentEntriesAndHandleTLACycles(
 			dependentEntriesByModule,
 			manualChunkModulesByModule,
-			chunkDefinitions
+			isolatedChunks
 		)
 	);
+	chunkDefinitions.push(...isolatedChunks);
 	const manualChunkAtoms = getManualChunkAtoms(manualChunkModules, dependentEntriesByModule);
 	const staticDependencyAtomsByEntry = getStaticDependencyAtomsByEntry(
 		entriesAndManualChunksCount,
@@ -216,22 +220,29 @@ export function getChunkAssignments(
 		alreadyLoadedAtomsByEntry,
 		awaitedAlreadyLoadedAtomsByEntry
 	);
-	const { chunks, sideEffectAtoms, sizeByAtom } =
+	const { chunks, graphChunks, chunkByModule, sideEffectAtoms, sizeByAtom } =
 		getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 			chunkAtoms,
 			manualChunkAtoms,
 			staticDependencyAtomsByEntry,
 			alreadyLoadedAtomsByEntry,
+			isolatedChunks,
 			minChunkSize
 		);
 
 	chunkDefinitions.push(
-		...getOptimizedChunks(chunks, minChunkSize, sideEffectAtoms, sizeByAtom, log).map(
-			({ modules }) => ({
-				alias: null,
-				modules
-			})
-		)
+		...getOptimizedChunks(
+			chunks,
+			graphChunks,
+			chunkByModule,
+			minChunkSize,
+			sideEffectAtoms,
+			sizeByAtom,
+			log
+		).map(({ modules }) => ({
+			alias: null,
+			modules
+		}))
 	);
 	return chunkDefinitions;
 }
@@ -701,6 +712,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	manualChunkAtoms: ModulesWithDependentEntries[],
 	staticDependencyAtomsByEntry: bigint[],
 	alreadyLoadedAtomsByEntry: bigint[],
+	isolatedChunks: ChunkDefinitions,
 	minChunkSize: number
 ) {
 	const chunksBySignature: Record<string, ChunkDescription> = Object.create(null);
@@ -721,6 +733,8 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 				staticDependencyAtomsByEntry[entryIndex] | alreadyLoadedAtomsByEntry[entryIndex];
 		}
 		const chunk = (chunksBySignature[String(chunkSignature)] ||= {
+			awaitedDependencies: new Set(),
+			awaitingChunks: new Set(),
 			containedAtoms: 0n,
 			correlatedAtoms,
 			dependencies: new Set(),
@@ -761,13 +775,59 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 		atomMask <<= 1n;
 	}
 	const chunks = Object.values(chunksBySignature);
+	const graphChunks = [...chunks];
+	// Isolated awaited targets participate in cycle checks, but are never merged.
+	for (const { modules } of isolatedChunks) {
+		const chunk: ChunkDescription = {
+			awaitedDependencies: new Set(),
+			awaitingChunks: new Set(),
+			containedAtoms: 0n,
+			correlatedAtoms: 0n,
+			dependencies: new Set(),
+			dependentChunks: new Set(),
+			dependentEntries: new Set(),
+			modules,
+			pure: false,
+			size: 0
+		};
+		graphChunks.push(chunk);
+		for (const module of modules) chunkByModule.set(module, chunk);
+	}
 	sideEffectAtoms |= addChunkDependenciesAndGetExternalSideEffectAtoms(
-		chunks,
+		graphChunks,
 		chunkByModule,
 		manualChunkAtomByModule,
 		atomMask
 	);
-	return { chunks, sideEffectAtoms, sizeByAtom };
+	return { chunkByModule, chunks, graphChunks, sideEffectAtoms, sizeByAtom };
+}
+
+function addAwaitedChunkDependencies(
+	graphChunks: ChunkDescription[],
+	chunkByModule: Map<Module, ChunkDescription>
+): boolean {
+	let hasAwaitedDependencies = false;
+	for (const chunk of graphChunks) {
+		if (!chunk.modules.some(module => module.hasTopLevelAwait())) continue;
+		const chunksToScan = new Set([chunk]);
+		for (const scannedChunk of chunksToScan) {
+			for (const dependency of scannedChunk.dependencies) chunksToScan.add(dependency);
+			for (const module of scannedChunk.modules) {
+				for (const { node } of module.dynamicImports) {
+					const importedChunk =
+						node.included && node.resolution instanceof Module
+							? chunkByModule.get(node.resolution)
+							: undefined;
+					if (importedChunk && importedChunk !== chunk) {
+						hasAwaitedDependencies = true;
+						chunk.awaitedDependencies.add(importedChunk);
+						importedChunk.awaitingChunks.add(chunk);
+					}
+				}
+			}
+		}
+	}
+	return hasAwaitedDependencies;
 }
 
 function getAtomPurityAndSize(
@@ -910,6 +970,8 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
  */
 function getOptimizedChunks(
 	chunks: ChunkDescription[],
+	graphChunks: ChunkDescription[],
+	chunkByModule: Map<Module, ChunkDescription>,
 	minChunkSize: number,
 	sideEffectAtoms: bigint,
 	sizeByAtom: number[],
@@ -924,7 +986,8 @@ function getOptimizedChunks(
 	if (minChunkSize > 1) {
 		log('info', logOptimizeChunkStatus(chunks.length, chunkPartition.small.size, 'Initially'));
 	}
-	mergeChunks(chunkPartition, minChunkSize, sideEffectAtoms, sizeByAtom);
+	const hasAwaitedDependencies = addAwaitedChunkDependencies(graphChunks, chunkByModule);
+	mergeChunks(chunkPartition, minChunkSize, sideEffectAtoms, sizeByAtom, hasAwaitedDependencies);
 	if (minChunkSize > 1) {
 		log(
 			'info',
@@ -970,7 +1033,8 @@ function mergeChunks(
 	chunkPartition: ChunkPartition,
 	minChunkSize: number,
 	sideEffectAtoms: bigint,
-	sizeByAtom: number[]
+	sizeByAtom: number[],
+	hasAwaitedDependencies: boolean
 ) {
 	const { small } = chunkPartition;
 	for (const mergedChunk of small) {
@@ -980,7 +1044,8 @@ function mergeChunks(
 			sideEffectAtoms,
 			sizeByAtom,
 			// In the default case, we do not accept size increases
-			minChunkSize <= 1 ? 1 : Infinity
+			minChunkSize <= 1 ? 1 : Infinity,
+			hasAwaitedDependencies
 		);
 		if (bestTargetChunk) {
 			const { containedAtoms, correlatedAtoms, modules, pure, size } = mergedChunk;
@@ -1005,6 +1070,18 @@ function mergeChunks(
 				dependentChunk.dependencies.delete(mergedChunk);
 				dependentChunk.dependencies.add(bestTargetChunk);
 			}
+			for (const dependency of mergedChunk.awaitedDependencies) {
+				bestTargetChunk.awaitedDependencies.add(dependency);
+				dependency.awaitingChunks.delete(mergedChunk);
+				dependency.awaitingChunks.add(bestTargetChunk);
+			}
+			for (const dependentChunk of mergedChunk.awaitingChunks) {
+				bestTargetChunk.awaitingChunks.add(dependentChunk);
+				dependentChunk.awaitedDependencies.delete(mergedChunk);
+				dependentChunk.awaitedDependencies.add(bestTargetChunk);
+			}
+			bestTargetChunk.awaitedDependencies.delete(bestTargetChunk);
+			bestTargetChunk.awaitingChunks.delete(bestTargetChunk);
 			dependencies.delete(bestTargetChunk);
 			dependentChunks.delete(bestTargetChunk);
 			getChunksInPartition(bestTargetChunk, minChunkSize, chunkPartition).add(bestTargetChunk);
@@ -1017,7 +1094,8 @@ function findBestMergeTarget(
 	{ big, small }: ChunkPartition,
 	sideEffectAtoms: bigint,
 	sizeByAtom: number[],
-	smallestAdditionalSize: number
+	smallestAdditionalSize: number,
+	hasAwaitedDependencies: boolean
 ): ChunkDescription | null {
 	let bestTargetChunk: ChunkDescription | null = null;
 	// In the default case, we do not accept size increases
@@ -1028,7 +1106,8 @@ function findBestMergeTarget(
 			targetChunk,
 			smallestAdditionalSize,
 			sideEffectAtoms,
-			sizeByAtom
+			sizeByAtom,
+			hasAwaitedDependencies
 		);
 		if (additionalSizeAfterMerge < smallestAdditionalSize) {
 			bestTargetChunk = targetChunk;
@@ -1054,25 +1133,29 @@ function getAdditionalSizeAfterMerge(
 	// taking dependencies into account, needs to be below this number
 	currentAdditionalSize: number,
 	sideEffectAtoms: bigint,
-	sizeByAtom: number[]
+	sizeByAtom: number[],
+	hasAwaitedDependencies: boolean
 ): number {
 	const firstSize = getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 		mergedChunk,
 		targetChunk,
 		currentAdditionalSize,
 		sideEffectAtoms,
-		sizeByAtom
+		sizeByAtom,
+		hasAwaitedDependencies
 	);
-	return firstSize < currentAdditionalSize
-		? firstSize +
-				getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
-					targetChunk,
-					mergedChunk,
-					currentAdditionalSize - firstSize,
-					sideEffectAtoms,
-					sizeByAtom
-				)
-		: Infinity;
+	if (firstSize >= currentAdditionalSize) return Infinity;
+	const additionalSize =
+		firstSize +
+		getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
+			targetChunk,
+			mergedChunk,
+			currentAdditionalSize - firstSize,
+			sideEffectAtoms,
+			sizeByAtom,
+			hasAwaitedDependencies
+		);
+	return additionalSize;
 }
 
 function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
@@ -1080,7 +1163,8 @@ function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 	dependencyChunk: ChunkDescription,
 	currentAdditionalSize: number,
 	sideEffectAtoms: bigint,
-	sizeByAtom: number[]
+	sizeByAtom: number[],
+	hasAwaitedDependencies: boolean
 ): number {
 	const { correlatedAtoms } = dependencyChunk;
 	let dependencyAtoms = dependentChunk.containedAtoms;
@@ -1089,7 +1173,10 @@ function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 		return Infinity;
 	}
 	const chunksToCheck = new Set(dependentChunk.dependencies);
-	for (const { dependencies, containedAtoms } of chunksToCheck) {
+	const awaitedChunksToCheck = hasAwaitedDependencies
+		? new Set(dependentChunk.awaitedDependencies)
+		: undefined;
+	for (const { dependencies, awaitedDependencies, containedAtoms } of chunksToCheck) {
 		dependencyAtoms |= containedAtoms;
 		const containedSideEffects = containedAtoms & sideEffectAtoms;
 		if ((correlatedAtoms & containedSideEffects) !== containedSideEffects) {
@@ -1101,7 +1188,24 @@ function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 			}
 			chunksToCheck.add(dependency);
 		}
+		if (awaitedChunksToCheck) {
+			for (const dependency of awaitedDependencies) {
+				if (dependency === dependencyChunk) return Infinity;
+				awaitedChunksToCheck.add(dependency);
+			}
+		}
 	}
+	// Awaited paths affect cycles, not eager code size or side effects.
+	if (awaitedChunksToCheck) {
+		for (const chunk of awaitedChunksToCheck) {
+			if (chunksToCheck.has(chunk)) continue;
+			for (const dependency of concatLazy([chunk.dependencies, chunk.awaitedDependencies])) {
+				if (dependency === dependencyChunk) return Infinity;
+				awaitedChunksToCheck.add(dependency);
+			}
+		}
+	}
+
 	return getAtomsSizeIfBelowLimit(
 		dependencyAtoms & ~correlatedAtoms,
 		currentAdditionalSize,
